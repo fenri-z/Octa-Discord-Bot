@@ -171,7 +171,7 @@ module.exports = new Event({
             if (infoLines.length > 0) content += (content ? '\n' : '') + infoLines.join('\n');
 
             if (content) {
-                const plainPayload = { content };
+                const plainPayload = { content, allowedMentions: { users: [member.id] } };
                 if (cardAttachment) plainPayload.files = [cardAttachment];
                 await welcomeChannel.send(plainPayload).catch(() => null);
             } else if (cardAttachment) {
@@ -209,7 +209,11 @@ module.exports = new Event({
             if (fields.length > 0) embed.addFields(...fields);
             if (cardAttachment) embed.setImage('attachment://welcome-card.png');
 
-            const embedPayload = { embeds: [embed] };
+            const embedPayload = {
+                content: `<@${member.id}>`,
+                embeds: [embed],
+                allowedMentions: { users: [member.id] },
+            };
             if (cardAttachment) embedPayload.files = [cardAttachment];
             await welcomeChannel.send(embedPayload).catch(() => null);
         }
