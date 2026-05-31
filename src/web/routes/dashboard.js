@@ -140,6 +140,19 @@ function requireManageGuild(req, res, next) {
         });
     }
 
+    // Daftar server mutual (user punya akses + bot ada di sana) untuk sidebar switcher
+    const manageableGuilds = userGuilds.filter(g =>
+        (parseInt(g.permissions) & MANAGE_GUILD) !== 0 || g.owner
+    );
+    res.locals.mutualGuilds = manageableGuilds
+        .filter(g => req.discordClient?.guilds.cache.has(g.id))
+        .map(g => ({
+            id:       g.id,
+            name:     g.name,
+            iconURL:  g.icon ? `https://cdn.discordapp.com/icons/${g.id}/${g.icon}.png` : null,
+            isActive: g.id === guildId
+        }));
+
     req.botGuild = botGuild;
     req.userGuildData = guild;
     next();

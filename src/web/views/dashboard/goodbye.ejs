@@ -2,52 +2,7 @@
 <%- include('../partials/navbar') %>
 
 <div class="dash-layout">
-    <aside class="sidebar">
-        <div class="sidebar-bot-brand">
-            <img style="width:30px;height:30px;border-radius:50%;object-fit:cover;flex-shrink:0;"
-                 src="<%- locals.botNavAvatar || 'https://cdn.discordapp.com/embed/avatars/0.png' %>"
-                 alt="Bot" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
-            <span style="font-size:.95rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;background:linear-gradient(135deg,#e3e5e8,#8b8fbd);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">
-                <%- locals.botNavName || 'OCTA BOT' %>
-            </span>
-            <button class="sidebar-bot-close" onclick="closeSidebar()" title="Tutup"><i data-lucide="x"></i></button>
-        </div>
-        <div class="sidebar-guild">
-            <button class="sidebar-server-btn" onclick="toggleServerSelector()">
-                <% if (guild.iconURL()) { %><img src="<%= guild.iconURL() %>" alt="<%= guild.name %>" class="sidebar-guild-icon">
-                <% } else { %><div class="sidebar-guild-icon-placeholder"><%= guild.name.charAt(0) %></div><% } %>
-                <span class="sidebar-guild-name"><%= guild.name %></span>
-                <span class="sidebar-server-chevron"><i data-lucide="chevron-down"></i></span>
-            </button>
-            <div class="sidebar-server-dd" id="sidebarServerDD">
-                <div class="sidebar-server-dd-item active">
-                    <% if (guild.iconURL()) { %><img src="<%= guild.iconURL() %>" alt="" class="sidebar-guild-icon">
-                    <% } else { %><div class="sidebar-guild-icon-placeholder"><%= guild.name.charAt(0) %></div><% } %>
-                    <%= guild.name %>
-                </div>
-                <div class="sidebar-server-dd-divider"></div>
-                <a href="/dashboard" class="sidebar-server-dd-item sidebar-server-dd-change">
-                    <i data-lucide="arrow-left-right"></i> Ganti Server
-                </a>
-            </div>
-        </div>
-        <nav class="sidebar-nav">
-            <a href="/dashboard/<%= guild.id %>"                  class="sidebar-link"><i data-lucide="layout-dashboard"></i> Overview</a>
-            <span class="sidebar-group-label">Notification</span>
-            <a href="/dashboard/<%= guild.id %>/welcome"              class="sidebar-sublink"><i data-lucide="user-plus"></i> Welcome Notification</a>
-            <a href="/dashboard/<%= guild.id %>/goodbye"              class="sidebar-sublink active"><i data-lucide="log-out"></i> Goodbye Notification</a>
-            <a href="/dashboard/<%= guild.id %>/booster?tab=boost"    class="sidebar-sublink"><i data-lucide="zap"></i> Boost Notification</a>
-            <a href="/dashboard/<%= guild.id %>/booster?tab=unboost"  class="sidebar-sublink"><i data-lucide="zap-off"></i> Unboost Notification</a>
-            <span class="sidebar-group-label">Auto Role</span>
-            <a href="/dashboard/<%= guild.id %>/autorole?tab=join"    class="sidebar-sublink"><i data-lucide="users"></i> Autorole Join</a>
-            <a href="/dashboard/<%= guild.id %>/autorole?tab=booster" class="sidebar-sublink"><i data-lucide="zap"></i> Autorole Booster</a>
-            <a href="/dashboard/<%= guild.id %>/autorole?tab=button"  class="sidebar-sublink"><i data-lucide="mouse-pointer-2"></i> Autorole Button</a>
-            <span class="sidebar-group-label">Others</span>
-            <a href="/dashboard/<%= guild.id %>/message-builder"      class="sidebar-sublink"><i data-lucide="mail"></i> Message Builder</a>
-            <a href="/dashboard/<%= guild.id %>/serverstats"          class="sidebar-sublink"><i data-lucide="bar-chart-2"></i> Server Stats</a>
-            <a href="/dashboard/<%= guild.id %>/invites"              class="sidebar-sublink"><i data-lucide="link"></i> Invite Links</a>
-        </nav>
-    </aside>
+    <%- include('../partials/sidebar', { activePage: 'goodbye' }) %>
 
     <main class="dash-main" style="max-width:100%;">
         <div class="page-header">
