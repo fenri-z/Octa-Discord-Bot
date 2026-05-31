@@ -1,8 +1,9 @@
 node_modules/
 .env
+database.db
+terminal.log
 *.db-shm
 *.db-wal
-database.db
 *.log
-terminal.log
+
 .claude
