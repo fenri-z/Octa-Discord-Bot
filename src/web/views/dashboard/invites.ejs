@@ -76,7 +76,7 @@
                 </div>
                 <input type="text" id="searchInput" class="input" placeholder="Cari kode / pengundang / channel…"
                        style="width:220px;font-size:.85rem;padding:.38rem .75rem;flex-shrink:0;"
-                       oninput="applyFilter()">
+                       oninput="currentPage=1;applyFilter()">
             </div>
 
             <% if (invites.length === 0 && !fetchError) { %>
@@ -107,7 +107,8 @@
             </div>
             <% } %>
 
-            <div style="padding:.75rem 1.25rem;border-top:1px solid var(--border,rgba(255,255,255,.06));font-size:.8rem;color:var(--text-muted);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;">
+            <div id="paginationBar" style="display:flex;justify-content:center;align-items:center;gap:.3rem;padding:.65rem 1.25rem;border-top:1px solid var(--border,rgba(255,255,255,.06));flex-wrap:wrap;min-height:0;"></div>
+            <div style="padding:.6rem 1.25rem;border-top:1px solid var(--border,rgba(255,255,255,.06));font-size:.8rem;color:var(--text-muted);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;">
                 <span id="tableFooterCount"></span>
                 <span id="lastRefreshed">Data diambil saat halaman dimuat</span>
             </div>
@@ -141,21 +142,38 @@
 .period-btn:hover  { background:var(--bg-4,#3b3d44); color:var(--text-primary); }
 .period-btn.active { background:#5865F2; color:#fff; border-color:#5865F2; }
 @keyframes spin { to { transform:rotate(360deg); } }
+.page-btn {
+    background:var(--bg3,#2a2b38);
+    border:1px solid var(--border,rgba(255,255,255,.1));
+    border-radius:6px;
+    color:var(--text);
+    padding:.28rem .6rem;
+    font-size:.8rem;
+    cursor:pointer;
+    min-width:30px;
+    text-align:center;
+    transition:background .12s,color .12s,border-color .12s;
+}
+.page-btn:hover:not(:disabled) { border-color:#5865F2;color:#5865F2; }
+.page-btn.active { background:#5865F2;color:#fff;border-color:#5865F2; }
+.page-btn:disabled { opacity:.35;cursor:not-allowed; }
+.page-ellipsis { color:var(--text-muted);font-size:.85rem;padding:0 .2rem;line-height:1; }
 </style>
 
 <script>
-const GUILD_ID   = '<%= guild.id %>';
-let ALL_INVITES  = <%- JSON.stringify(invites) %>;
+const GUILD_ID    = '<%= guild.id %>';
+let ALL_INVITES   = <%- JSON.stringify(invites) %>;
 let currentPeriod = 'all';
+let currentPage   = 1;
+const PAGE_SIZE   = 10;
+let _filtered     = [];
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 function periodCutoff(period) {
     const now = Date.now();
     if (period === '30d')   return now - 30 * 86400000;
     if (period === '7d')    return now - 7  * 86400000;
-    if (period === 'today') {
-        const d = new Date(); d.setHours(0,0,0,0); return d.getTime();
-    }
+    if (period === 'today') { const d = new Date(); d.setHours(0,0,0,0); return d.getTime(); }
     return 0;
 }
 
@@ -183,9 +201,7 @@ function buildRow(inv, rank) {
         ? `<span style="font-size:.75rem;color:var(--text-muted);font-family:monospace;">${inv.inviterId}</span>`
         : '';
     return `
-    <tr class="inv-row" data-created="${inv.createdAt ?? 0}"
-        data-search="${(inv.code+inv.inviterTag+inv.channelName).toLowerCase()}"
-        style="border-top:1px solid var(--border,rgba(255,255,255,.05));transition:background .15s;"
+    <tr style="border-top:1px solid var(--border,rgba(255,255,255,.05));transition:background .15s;"
         onmouseover="this.style.background='var(--bg-3,#2b2d31)'" onmouseout="this.style.background=''">
         <td style="padding:.7rem 1rem;color:var(--text-muted);font-size:.8rem;">${rank}</td>
         <td style="padding:.7rem 1rem;">
@@ -196,64 +212,115 @@ function buildRow(inv, rank) {
                 <i data-lucide="external-link" style="width:12px;height:12px;opacity:.6;flex-shrink:0;"></i>
             </a>
         </td>
-        <td style="padding:.7rem 1rem;color:var(--text-primary);">
+        <td style="padding:.7rem 1rem;">
             <div style="display:flex;flex-direction:column;gap:.1rem;">
                 <span>${inv.inviterTag}</span>${inviterIdHtml}
             </div>
         </td>
-        <td style="padding:.7rem 1rem;color:var(--text-secondary);">#${inv.channelName}</td>
+        <td style="padding:.7rem 1rem;color:var(--text-muted);">#${inv.channelName}</td>
         <td style="padding:.7rem 1rem;text-align:right;">
-            <span style="font-weight:700;color:var(--text-primary);">${inv.uses}</span>
+            <span style="font-weight:700;">${inv.uses}</span>
             <span style="color:var(--text-muted);font-size:.8rem;">/${maxStr}</span>
         </td>
         <td style="padding:.7rem 1rem;">${fmtCreated(inv)}</td>
-        <td style="padding:.7rem 1rem;white-space:nowrap;color:var(--text-secondary);">${fmtExpiry(inv)}</td>
+        <td style="padding:.7rem 1rem;white-space:nowrap;">${fmtExpiry(inv)}</td>
         <td style="padding:.7rem 1rem;text-align:center;">${tempHtml}</td>
     </tr>`;
 }
 
-// ── Core render ───────────────────────────────────────────────────────────────
+// ── Filter ────────────────────────────────────────────────────────────────────
 function applyFilter() {
-    const tbody   = document.getElementById('inviteTableBody');
-    if (!tbody) return;
+    const q      = (document.getElementById('searchInput')?.value || '').toLowerCase();
+    const cutoff = periodCutoff(currentPeriod);
 
-    const q       = (document.getElementById('searchInput')?.value || '').toLowerCase();
-    const cutoff  = periodCutoff(currentPeriod);
-
-    const filtered = ALL_INVITES.filter(inv => {
+    _filtered = ALL_INVITES.filter(inv => {
         const withinPeriod = (inv.createdAt ?? 0) >= cutoff;
         const matchSearch  = !q || (inv.code + inv.inviterTag + inv.channelName).toLowerCase().includes(q);
         return withinPeriod && matchSearch;
     });
 
-    // Render rows
-    tbody.innerHTML = filtered.map((inv, i) => buildRow(inv, i + 1)).join('');
-
     // Update stats
-    const totalUses      = filtered.reduce((s, inv) => s + inv.uses, 0);
-    const uniqueInviters = new Set(filtered.map(inv => inv.inviterId).filter(Boolean)).size;
-    const topInviter     = filtered.length > 0 ? filtered[0].inviterTag : '—';
-
-    document.getElementById('statTotal').textContent    = filtered.length;
+    const totalUses      = _filtered.reduce((s, inv) => s + inv.uses, 0);
+    const uniqueInviters = new Set(_filtered.map(inv => inv.inviterId).filter(Boolean)).size;
+    document.getElementById('statTotal').textContent    = _filtered.length;
     document.getElementById('statUses').textContent     = totalUses;
     document.getElementById('statInviters').textContent = uniqueInviters;
-    document.getElementById('statTop').textContent      = topInviter;
+    document.getElementById('statTop').textContent      = _filtered.length > 0 ? _filtered[0].inviterTag : '—';
 
+    renderPage();
+}
+
+// ── Render halaman tertentu ───────────────────────────────────────────────────
+function renderPage() {
+    const tbody = document.getElementById('inviteTableBody');
     const noRes = document.getElementById('noResultMsg');
-    if (noRes) noRes.style.display = filtered.length === 0 ? 'block' : 'none';
+    if (!tbody) return;
 
-    const periodLabel = {
-        all: 'semua periode', '30d': '30 hari terakhir',
-        '7d': '7 hari terakhir', today: 'hari ini'
-    }[currentPeriod];
-    document.getElementById('tableFooterCount').textContent =
-        `${filtered.length} dari ${ALL_INVITES.length} invite ditampilkan (${periodLabel})`;
+    const totalPages = Math.max(1, Math.ceil(_filtered.length / PAGE_SIZE));
+    if (currentPage > totalPages) currentPage = totalPages;
+    if (currentPage < 1) currentPage = 1;
 
+    const start     = (currentPage - 1) * PAGE_SIZE;
+    const end       = Math.min(start + PAGE_SIZE, _filtered.length);
+    const pageItems = _filtered.slice(start, end);
+
+    tbody.innerHTML = pageItems.map((inv, i) => buildRow(inv, start + i + 1)).join('');
+
+    if (noRes) noRes.style.display = _filtered.length === 0 ? 'block' : 'none';
+
+    // Footer count
+    const periodLabel = { all:'semua periode','30d':'30 hari terakhir','7d':'7 hari terakhir',today:'hari ini' }[currentPeriod];
+    const countEl = document.getElementById('tableFooterCount');
+    if (countEl) {
+        countEl.textContent = _filtered.length === 0
+            ? `0 dari ${ALL_INVITES.length} invite (${periodLabel})`
+            : `${start + 1}–${end} dari ${_filtered.length} invite (${periodLabel})`;
+    }
+
+    renderPagination(totalPages);
     if (window.lucide) lucide.createIcons();
+}
+
+// ── Render pagination bar ─────────────────────────────────────────────────────
+function renderPagination(totalPages) {
+    const bar = document.getElementById('paginationBar');
+    if (!bar) return;
+
+    if (totalPages <= 1) { bar.innerHTML = ''; return; }
+
+    const delta = 2;
+    const range = [];
+    for (let i = Math.max(1, currentPage - delta); i <= Math.min(totalPages, currentPage + delta); i++) range.push(i);
+
+    let html = `<button class="page-btn" onclick="goPage(${currentPage-1})" ${currentPage===1?'disabled':''}>‹ Prev</button>`;
+
+    if (range[0] > 1) {
+        html += `<button class="page-btn" onclick="goPage(1)">1</button>`;
+        if (range[0] > 2) html += `<span class="page-ellipsis">…</span>`;
+    }
+    range.forEach(p => {
+        html += `<button class="page-btn ${p===currentPage?'active':''}" onclick="goPage(${p})">${p}</button>`;
+    });
+    if (range[range.length-1] < totalPages) {
+        if (range[range.length-1] < totalPages - 1) html += `<span class="page-ellipsis">…</span>`;
+        html += `<button class="page-btn" onclick="goPage(${totalPages})">${totalPages}</button>`;
+    }
+
+    html += `<button class="page-btn" onclick="goPage(${currentPage+1})" ${currentPage===totalPages?'disabled':''}>Next ›</button>`;
+    bar.innerHTML = html;
+}
+
+function goPage(p) {
+    const totalPages = Math.ceil(_filtered.length / PAGE_SIZE);
+    if (p < 1 || p > totalPages) return;
+    currentPage = p;
+    renderPage();
+    document.querySelector('.settings-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function setPeriod(btn, period) {
     currentPeriod = period;
+    currentPage   = 1;
     document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     applyFilter();
@@ -265,30 +332,23 @@ async function refreshInvites(guildId) {
     btn.disabled = true;
     btn.innerHTML = '<i data-lucide="loader" style="width:14px;height:14px;animation:spin 1s linear infinite;"></i> Memuat…';
     if (window.lucide) lucide.createIcons();
-
     try {
         const res  = await fetch(`/api/guild/${guildId}/invites`);
         const data = await res.json();
         if (!data.success) { alert(data.message || 'Gagal mengambil invite.'); return; }
-
         ALL_INVITES = data.invites;
+        currentPage = 1;
         applyFilter();
-
-        const now = new Date().toLocaleTimeString('id-ID');
-        document.getElementById('lastRefreshed').textContent = `Diperbarui pukul ${now}`;
-    } catch {
-        alert('Gagal menghubungi server.');
-    } finally {
+        document.getElementById('lastRefreshed').textContent = `Diperbarui pukul ${new Date().toLocaleTimeString('id-ID')}`;
+    } catch { alert('Gagal menghubungi server.'); }
+    finally {
         btn.disabled = false;
         btn.innerHTML = '<i data-lucide="refresh-cw" style="width:14px;height:14px;"></i> Refresh';
         if (window.lucide) lucide.createIcons();
     }
 }
 
-// ── Init ──────────────────────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
-    applyFilter();
-});
+document.addEventListener('DOMContentLoaded', () => { applyFilter(); });
 </script>
 
 <%- include('../partials/footer') %>
