@@ -3,3 +3,4 @@ node_modules/
 database.db
 *.log
 terminal.log
+.claude
