@@ -276,7 +276,9 @@ code {
     position: sticky; top: var(--navbar-h);
     height: calc(100vh - var(--navbar-h));
     overflow-y: auto;
+    scrollbar-width: none; /* Firefox */
 }
+.sidebar::-webkit-scrollbar { display: none; } /* Chrome/Safari */
 
 /* ── Server selector (MEE6-style) ────────────────────────────────────────── */
 .sidebar-guild { margin-bottom: .5rem; }
