@@ -75,10 +75,23 @@ function getConfig(client, guildId) {
     };
 }
 
-// ── Placeholder parser ─────────────────────────────────────────────────────
+// ── Placeholder parsers ────────────────────────────────────────────────────
+// Untuk description & plain text: {member} → mention <@ID>
 function parse(str, member, guild) {
     return str
         .replace(/{member}/g,   `<@${member.id}>`)
+        .replace(/{username}/g, member.user.username)
+        .replace(/{tag}/g,      member.user.tag)
+        .replace(/{server}/g,   guild.name)
+        .replace(/{boosts}/g,   String(guild.premiumSubscriptionCount ?? 0))
+        .replace(/{level}/g,    String(guild.premiumTier));
+}
+
+// Untuk title & footer: {member} → @displayName (mention tidak render di embed title/footer)
+function parseTitle(str, member, guild) {
+    const displayName = member.displayName || member.user.username;
+    return str
+        .replace(/{member}/g,   `@${displayName}`)
         .replace(/{username}/g, member.user.username)
         .replace(/{tag}/g,      member.user.tag)
         .replace(/{server}/g,   guild.name)
@@ -168,14 +181,14 @@ module.exports = new Event({
             if (cfg.boostMessageType === 'plain') {
                 const text = cfg.boostPlainText ? parse(cfg.boostPlainText, newMember, guild) : '';
                 const payload = {};
-                if (text) payload.content = text;
+                if (text) { payload.content = text; payload.allowedMentions = { users: [newMember.id] }; }
                 if (boostCard) payload.files = [boostCard];
                 if (payload.content || payload.files) await channel.send(payload).catch(() => null);
             } else {
                 const embed = new EmbedBuilder()
                     .setColor(cfg.boostColor)
                     .setTimestamp();
-                const parsedBoostTitle = parse(cfg.boostTitle, newMember, guild);
+                const parsedBoostTitle = parseTitle(cfg.boostTitle, newMember, guild);
                 if (parsedBoostTitle) embed.setTitle(parsedBoostTitle);
                 const parsedBoostDesc = parse(cfg.boostDescription, newMember, guild);
                 if (parsedBoostDesc) embed.setDescription(parsedBoostDesc);
@@ -186,9 +199,13 @@ module.exports = new Event({
                 if (cfg.boostShowTotalBoost)  boostFields.push({ name: '✨ Total Boost',  value: `**${guild.premiumSubscriptionCount ?? 0}** boost`,             inline: true });
                 if (cfg.boostShowLevelServer) boostFields.push({ name: '🏅 Level Server', value: `Level **${guild.premiumTier}**`,                              inline: true });
                 if (boostFields.length) embed.addFields(...boostFields);
-                if (cfg.boostFooter) embed.setFooter({ text: parse(cfg.boostFooter, newMember, guild) });
+                if (cfg.boostFooter) embed.setFooter({ text: parseTitle(cfg.boostFooter, newMember, guild) });
                 if (boostCard) embed.setImage('attachment://boost-card.png');
-                const payload = { embeds: [embed] };
+                const payload = {
+                    content: `<@${newMember.id}>`,
+                    embeds: [embed],
+                    allowedMentions: { users: [newMember.id] },
+                };
                 if (boostCard) payload.files = [boostCard];
                 await channel.send(payload).catch(() => null);
             }
@@ -254,14 +271,14 @@ module.exports = new Event({
             if (cfg.unboostMessageType === 'plain') {
                 const text = cfg.unboostPlainText ? parse(cfg.unboostPlainText, newMember, guild) : '';
                 const payload = {};
-                if (text) payload.content = text;
+                if (text) { payload.content = text; payload.allowedMentions = { users: [newMember.id] }; }
                 if (unboostCard) payload.files = [unboostCard];
                 if (payload.content || payload.files) await channel.send(payload).catch(() => null);
             } else {
                 const embed = new EmbedBuilder()
                     .setColor(cfg.unboostColor)
                     .setTimestamp();
-                const parsedUnboostTitle = parse(cfg.unboostTitle, newMember, guild);
+                const parsedUnboostTitle = parseTitle(cfg.unboostTitle, newMember, guild);
                 if (parsedUnboostTitle) embed.setTitle(parsedUnboostTitle);
                 const parsedUnboostDesc = parse(cfg.unboostDescription, newMember, guild);
                 if (parsedUnboostDesc) embed.setDescription(parsedUnboostDesc);
@@ -271,9 +288,13 @@ module.exports = new Event({
                 if (cfg.unboostShowTotalBoost)  unboostFields.push({ name: '✨ Total Boost',  value: `**${guild.premiumSubscriptionCount ?? 0}** boost`, inline: true });
                 if (cfg.unboostShowLevelServer) unboostFields.push({ name: '🏅 Level Server', value: `Level **${guild.premiumTier}**`,                    inline: true });
                 if (unboostFields.length) embed.addFields(...unboostFields);
-                if (cfg.unboostFooter) embed.setFooter({ text: parse(cfg.unboostFooter, newMember, guild) });
+                if (cfg.unboostFooter) embed.setFooter({ text: parseTitle(cfg.unboostFooter, newMember, guild) });
                 if (unboostCard) embed.setImage('attachment://unboost-card.png');
-                const payload = { embeds: [embed] };
+                const payload = {
+                    content: `<@${newMember.id}>`,
+                    embeds: [embed],
+                    allowedMentions: { users: [newMember.id] },
+                };
                 if (unboostCard) payload.files = [unboostCard];
                 await channel.send(payload).catch(() => null);
             }
