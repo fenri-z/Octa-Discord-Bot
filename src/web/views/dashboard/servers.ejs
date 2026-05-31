@@ -1,0 +1,45 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+
+<div class="page-container">
+    <div class="page-header">
+        <h1>Pilih Server</h1>
+        <p>Pilih server yang ingin kamu kelola.</p>
+    </div>
+
+    <div class="servers-grid">
+        <% guilds.forEach(guild => { %>
+        <div class="server-card">
+            <div class="server-icon">
+                <% if (guild.iconURL) { %>
+                    <img src="<%= guild.iconURL %>" alt="<%= guild.name %>">
+                <% } else { %>
+                    <div class="server-icon-placeholder">
+                        <%= guild.name.charAt(0).toUpperCase() %>
+                    </div>
+                <% } %>
+            </div>
+            <div class="server-info">
+                <h3 class="server-name"><%= guild.name %></h3>
+                <span class="server-badge <%= guild.botPresent ? 'badge-green' : 'badge-gray' %>">
+                    <%= guild.botPresent ? '✓ Bot aktif' : '+ Undang bot' %>
+                </span>
+            </div>
+            <% if (guild.botPresent) { %>
+                <a href="/dashboard/<%= guild.id %>" class="btn btn-primary btn-sm">Kelola</a>
+            <% } else { %>
+                <a href="https://discord.com/oauth2/authorize?client_id=<%= process.env.CLIENT_ID %>&permissions=8&scope=bot+applications.commands&guild_id=<%= guild.id %>"
+                   target="_blank" class="btn btn-outline btn-sm">Undang</a>
+            <% } %>
+        </div>
+        <% }) %>
+
+        <% if (guilds.length === 0) { %>
+        <div class="empty-state">
+            <p>Kamu tidak punya server dengan izin Manage Guild.</p>
+        </div>
+        <% } %>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,224 @@
+/**
+ * generateWelcomeCard.js — Enhanced welcome card with full customization
+ * Uses sharp (SVG + compositing). Renders SVG at 2× density then downsamples
+ * for crisp text, without the viewBox approach that breaks on older librsvg.
+ */
+
+const sharp = require('sharp');
+const https = require('https');
+const http  = require('http');
+
+function fetchBuffer(url, maxRedirects = 5) {
+    return new Promise((resolve, reject) => {
+        const mod = url.startsWith('https') ? https : http;
+        const req = mod.get(url, { timeout: 8000 }, (res) => {
+            if ([301,302,307,308].includes(res.statusCode) && res.headers.location && maxRedirects > 0)
+                return fetchBuffer(res.headers.location, maxRedirects - 1).then(resolve).catch(reject);
+            if (res.statusCode !== 200) return reject(new Error(`HTTP ${res.statusCode}`));
+            const chunks = [];
+            res.on('data', c => chunks.push(c));
+            res.on('end',  () => resolve(Buffer.concat(chunks)));
+            res.on('error', reject);
+        });
+        req.on('error', reject);
+        req.on('timeout', () => { req.destroy(); reject(new Error('Fetch timeout')); });
+    });
+}
+
+async function fetchAvatar(avatarUrl) {
+    try {
+        const buf  = await fetchBuffer(avatarUrl);
+        const meta = await sharp(buf).metadata();
+        if (!meta.format) throw new Error('Not an image');
+        return buf;
+    } catch {
+        return sharp({ create: { width: 256, height: 256, channels: 4, background: { r:88, g:101, b:242, alpha:1 } } })
+            .png().toBuffer();
+    }
+}
+
+function escXml(s) {
+    return String(s)
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+const FONT_MAP = {
+    impact:  "Impact, 'Arial Black', sans-serif",
+    arial:   'Arial, Helvetica, sans-serif',
+    georgia: "Georgia, 'Times New Roman', serif",
+    courier: "'Courier New', Courier, monospace",
+    verdana: 'Verdana, Geneva, sans-serif',
+};
+
+// Render an SVG buffer at 2× density then resize down to target W×H
+// This produces crisp text without relying on viewBox scaling.
+async function svgAt2x(svgBuf, W, H) {
+    return sharp(svgBuf, { density: 144 })   // 144 dpi = 2× default 72 dpi
+        .resize(W, H, { kernel: sharp.kernel.lanczos3 })
+        .png()
+        .toBuffer();
+}
+
+async function generateWelcomeCard({
+    avatarUrl      = null,
+    avatarBuffer   = null,
+    username       = 'Member',
+    serverName     = 'Server',
+    // Text content
+    welcomeText    = 'WELCOME',
+    userPrefix     = '',     // deprecated, diabaikan
+    subText        = 'TO {server}',
+    // Avatar
+    avatarShape    = 'circle',
+    // Background
+    bgType         = 'gradient',  // 'gradient' | 'solid' | 'image' | 'transparent'
+    bgColor        = '#1a1a2e',
+    bgColor2       = '#16213e',
+    bgImageUrl     = '',
+    // Overlay
+    overlayColor   = '#000000',
+    overlayOpacity = 0,            // 0–100
+    // Colors
+    accentColor    = '#5865F2',
+    titleColor     = '#ffffff',
+    usernameColor  = '',
+    messageColor   = '#cccccc',
+    // Font
+    fontFamily     = 'impact',
+    // Legacy
+    textColor      = '',
+} = {}) {
+    const W = 800, H = 260;
+    const AS = 120, BD = 5;
+    const AVL = 50;
+    const AVT = Math.round((H - AS - BD * 2) / 2);   // 65
+    const BT  = AS + BD * 2;                           // 130
+    const TX  = AVL + BT + 40;                         // 240
+
+    const resolvedTitle    = textColor    || titleColor    || '#ffffff';
+    const resolvedUsername = usernameColor || accentColor  || '#5865F2';
+    const resolvedMsg      = messageColor  || '#cccccc';
+    const resolvedFont     = FONT_MAP[fontFamily] || FONT_MAP.impact;
+
+    subText = (subText || '').replace(/{server}/gi, serverName);
+
+    // ── Avatar ────────────────────────────────────────────────────────────
+    let avBuf = avatarBuffer;
+    if (!avBuf && avatarUrl) avBuf = await fetchAvatar(avatarUrl);
+    if (!avBuf) avBuf = await sharp({
+        create: { width: 256, height: 256, channels: 4, background: { r:88, g:101, b:242, alpha:1 } }
+    }).png().toBuffer();
+
+    const isSquare = avatarShape === 'square';
+
+    // Mask at 2× for crisper edges, then resize to final size
+    const AS2 = AS * 2;
+    const maskSvg = isSquare
+        ? `<svg width="${AS2}" height="${AS2}"><rect width="${AS2}" height="${AS2}" rx="32" ry="32"/></svg>`
+        : `<svg width="${AS2}" height="${AS2}"><circle cx="${AS2/2}" cy="${AS2/2}" r="${AS2/2}"/></svg>`;
+    const maskedAvatar = await sharp(avBuf)
+        .resize(AS2, AS2, { fit: 'cover', kernel: sharp.kernel.lanczos3 })
+        .composite([{ input: Buffer.from(maskSvg), blend: 'dest-in' }])
+        .png()
+        .toBuffer()
+        .then(buf => sharp(buf).resize(AS, AS, { kernel: sharp.kernel.lanczos3 }).png().toBuffer());
+
+    const borderSvg = Buffer.from(isSquare
+        ? `<svg width="${BT}" height="${BT}"><rect width="${BT}" height="${BT}" rx="20" ry="20" fill="${accentColor}"/></svg>`
+        : `<svg width="${BT}" height="${BT}"><circle cx="${BT/2}" cy="${BT/2}" r="${BT/2}" fill="${accentColor}"/></svg>`
+    );
+
+    // ── Background layer ──────────────────────────────────────────────────
+    let bgBuffer;
+    let effectiveBgType = bgType;
+
+    if (bgType === 'image' && bgImageUrl) {
+        try {
+            const raw = await fetchBuffer(bgImageUrl);
+            bgBuffer  = await sharp(raw)
+                .resize(W, H, { fit: 'cover', position: 'center', kernel: sharp.kernel.lanczos3 })
+                .png().toBuffer();
+        } catch { effectiveBgType = 'gradient'; }
+    }
+
+    if (!bgBuffer) {
+        if (effectiveBgType === 'transparent') {
+            bgBuffer = await sharp({
+                create: { width: W, height: H, channels: 4, background: { r:0, g:0, b:0, alpha:0 } }
+            }).png().toBuffer();
+        } else {
+            const bgSvg = effectiveBgType === 'solid'
+                ? `<svg width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg">
+                     <rect width="${W}" height="${H}" rx="20" fill="${bgColor}"/>
+                   </svg>`
+                : `<svg width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg">
+                     <defs>
+                       <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+                         <stop offset="0%"   stop-color="${bgColor}"/>
+                         <stop offset="100%" stop-color="${bgColor2 || bgColor}"/>
+                       </linearGradient>
+                     </defs>
+                     <rect width="${W}" height="${H}" rx="20" fill="url(#bg)"/>
+                   </svg>`;
+            bgBuffer = await sharp(Buffer.from(bgSvg)).png().toBuffer();
+        }
+    }
+
+    // ── Build composites ──────────────────────────────────────────────────
+    const composites = [];
+
+    // Overlay
+    const op = Math.max(0, Math.min(100, Number(overlayOpacity) || 0));
+    if (op > 0) {
+        const overlaySvg = Buffer.from(
+            `<svg width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg">
+               <rect width="${W}" height="${H}" rx="20" fill="${overlayColor}" opacity="${(op/100).toFixed(2)}"/>
+             </svg>`
+        );
+        composites.push({ input: await svgAt2x(overlaySvg, W, H), top: 0, left: 0 });
+    }
+
+    // Card decorations + text — rendered at 2× density for crispness
+    const s = {
+        w: escXml(welcomeText),
+        u: escXml(username),
+        t: escXml(subText),
+    };
+    const cardSvgBuf = Buffer.from(`<svg width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="1.5" stdDeviation="2" flood-color="rgba(0,0,0,0.65)"/>
+    </filter>
+  </defs>
+  <!-- Decorative circles -->
+  <circle cx="${W-60}" cy="40"       r="80" fill="${accentColor}" opacity="0.07"/>
+  <circle cx="${W-20}" cy="${H-20}"  r="60" fill="${accentColor}" opacity="0.04"/>
+  <!-- Text -->
+  <text x="${TX}" y="115" font-family="${resolvedFont}" font-size="56" font-weight="900"
+        letter-spacing="3" fill="${resolvedTitle}" filter="url(#glow)"
+        text-rendering="optimizeLegibility">${s.w}</text>
+  <text x="${TX}" y="157" font-family="${resolvedFont}" font-size="25" font-weight="700"
+        fill="${resolvedUsername}" filter="url(#shadow)"
+        text-rendering="optimizeLegibility">${s.u}</text>
+  <text x="${TX}" y="192" font-family="${resolvedFont}" font-size="17" font-weight="600"
+        fill="${resolvedMsg}" text-rendering="optimizeLegibility">${s.t}</text>
+</svg>`);
+
+    composites.push({ input: await svgAt2x(cardSvgBuf, W, H), top: 0, left: 0 });
+
+    // Avatar border + masked avatar (all at output W×H coords)
+    composites.push({ input: borderSvg,    top: AVT,        left: AVL        });
+    composites.push({ input: maskedAvatar, top: AVT + BD,   left: AVL + BD   });
+
+    return await sharp(bgBuffer)
+        .composite(composites)
+        .png({ compressionLevel: 6 })
+        .toBuffer();
+}
+
+module.exports = { generateWelcomeCard, fetchAvatar };

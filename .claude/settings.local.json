@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install *)",
+      "Bash(node -e \"const m = require\\('./src/events/Guild/onMemberJoin.js'\\); console.log\\('OK, event:', m.event\\);\")",
+      "Bash(node -e \"const p=require\\('./package.json'\\);console.log\\(JSON.stringify\\(p.dependencies,null,2\\)\\)\")",
+      "Bash(node -e \"const ejs = require\\('ejs'\\); const fs = require\\('fs'\\); try { ejs.render\\(fs.readFileSync\\('src/web/views/dashboard/welcome.ejs', 'utf8'\\), { guild: {id:'123', name:'Test', memberCount:10}, loginUser: {username:'TestUser', avatarUrl:'https://example.com/avatar.png'}, welcomeData: {enabled:false, channelId:'', messageType:'embed', plainText:'', title:'', description:'', color:'#5865F2', footerText:'', thumbnail:false, showMemberNew:false, showAkunDibuat:false, showTotalMember:false, showDiundangOleh:false, showKodeInvite:false, showTotalUndangan:false, cardEnabled:false, cardWelcomeText:'WELCOME', cardUserPrefix:'', cardSubText:'TO {server}', cardBgColor:'#1a1a2e', cardBgColor2:'#16213e', cardAccentColor:'#5865F2', cardTextColor:'#ffffff', cardAvatarShape:'circle', cardBgType:'gradient', cardBgImageUrl:'', cardOverlayColor:'#000000', cardOverlayOpacity:'0', cardTitleColor:'#ffffff', cardUsernameColor:'#5865F2', cardMsgColor:'#cccccc', cardFont:'impact'}, channels:[], roles:[], activePage:'welcome', hasSidebar:true, user:{id:'123',username:'TestUser',avatar:'abc'}, title:'Welcome', locals:{} }\\); console.log\\('EJS OK'\\); } catch\\(e\\) { console.error\\('EJS ERROR:', e.message\\); }\")",
+      "Bash(node -e ' *)",
+      "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\faidu\\\\Downloads\\\\DiscordJS-V14-Bot-Template-main\" -Force | Select-Object Name, @{Name=\"Type\";Expression={if\\($_.PSIsContainer\\){\"DIR\"}else{\"FILE\"}}} | Format-Table -AutoSize)",
+      "Bash(find \"c:\\\\\\\\Users\\\\\\\\faidu\\\\\\\\Downloads\\\\\\\\DiscordJS-V14-Bot-Template-main\" -type f -name \"*.js\" -o -name \"*.json\")",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\faidu\\\\Downloads\\\\DiscordJS-V14-Bot-Template-main\\\\src\\\\web\" -Recurse -Force)",
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(Get-ChildItem \"C:\\\\Users\\\\faidu\\\\Downloads\\\\DiscordJS-V14-Bot-Template-main\" -Filter \"*.md\" -File)",
+      "Bash(Select-Object Name, FullName)"
+    ]
+  }
+}

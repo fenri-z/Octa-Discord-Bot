@@ -1,0 +1,247 @@
+<%- include('partials/head') %>
+<%- include('partials/navbar') %>
+
+<style>
+/* ── Landing Page ─────────────────────────────────────────────────────────── */
+.lp-hero {
+    position: relative;
+    max-width: 960px; margin: 0 auto;
+    padding: 5.5rem 1.5rem 3rem;
+    text-align: center;
+}
+.lp-hero::before {
+    content: '';
+    position: absolute; inset: 0; z-index: -1;
+    background: radial-gradient(ellipse 70% 55% at 50% -5%,
+        rgba(88,101,242,.22) 0%, transparent 70%);
+    pointer-events: none;
+}
+.lp-badge {
+    display: inline-block;
+    background: rgba(88,101,242,.14);
+    color: #8b95f7;
+    border: 1px solid rgba(88,101,242,.3);
+    border-radius: 999px;
+    font-size: .78rem; font-weight: 700;
+    letter-spacing: .08em; text-transform: uppercase;
+    padding: .3rem 1.1rem;
+    margin-bottom: 1.5rem;
+}
+.lp-title {
+    font-size: clamp(2.8rem, 10vw, 5rem);
+    font-weight: 800; letter-spacing: -.035em; line-height: 1.06;
+    margin-bottom: 1.25rem;
+    background: linear-gradient(135deg, #ffffff 25%, #a0a8e8 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+.lp-subtitle {
+    font-size: clamp(.95rem, 3vw, 1.1rem);
+    color: var(--text-muted); line-height: 1.75;
+    max-width: 480px; margin: 0 auto 2.75rem;
+}
+.lp-cta-wrap {
+    display: flex; flex-direction: column; align-items: center; gap: .75rem;
+}
+.lp-cta-btn {
+    display: inline-flex; align-items: center; gap: .55rem;
+    padding: .9rem 2.4rem; font-size: 1rem; font-weight: 700;
+    border-radius: 12px; letter-spacing: .01em;
+    box-shadow: 0 4px 28px rgba(88,101,242,.45);
+    transition: box-shadow .2s, transform .15s;
+}
+.lp-cta-btn:hover {
+    box-shadow: 0 6px 36px rgba(88,101,242,.6);
+    transform: translateY(-2px);
+}
+.lp-cta-btn:active { transform: translateY(0); }
+
+/* Divider */
+.lp-divider {
+    max-width: 960px; margin: 0 auto;
+    padding: 1.5rem 1.5rem 0;
+    display: flex; align-items: center; gap: 1rem;
+}
+.lp-divider::before,
+.lp-divider::after {
+    content: ''; flex: 1;
+    height: 1px; background: var(--border);
+}
+.lp-divider-label {
+    font-size: .75rem; font-weight: 600; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--text-muted);
+    white-space: nowrap;
+}
+
+/* Features section */
+.lp-features {
+    max-width: 960px; margin: 0 auto;
+    padding: 2.5rem 1.5rem 5rem;
+}
+.lp-sect-title {
+    text-align: center; margin-bottom: 2.25rem;
+}
+.lp-sect-title h2 {
+    font-size: clamp(1.4rem, 5vw, 1.9rem); font-weight: 800;
+    letter-spacing: -.025em; margin-bottom: .5rem;
+}
+.lp-sect-title p {
+    color: var(--text-muted); font-size: .9rem;
+    max-width: 420px; margin: 0 auto; line-height: 1.6;
+}
+.lp-feat-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+}
+.lp-feat-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    transition: border-color .2s, box-shadow .2s, transform .18s;
+    cursor: default;
+}
+.lp-feat-card:hover {
+    border-color: rgba(88,101,242,.4);
+    box-shadow: 0 6px 28px rgba(0,0,0,.3);
+    transform: translateY(-3px);
+}
+.lp-feat-icon {
+    width: 48px; height: 48px; border-radius: 13px;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 1.1rem;
+    background: var(--ic-bg, rgba(88,101,242,.15));
+    color: var(--ic-color, #7289da);
+}
+.lp-feat-icon svg { width: 22px; height: 22px; }
+.lp-feat-card h3 { font-size: .9rem; font-weight: 700; margin-bottom: .4rem; color: var(--text); }
+.lp-feat-card p  { font-size: .8rem; color: var(--text-muted); line-height: 1.65; margin: 0; }
+
+/* Bottom CTA */
+.lp-bottom {
+    background: var(--bg2);
+    border-top: 1px solid var(--border);
+    text-align: center;
+    padding: 3.5rem 1.5rem 4rem;
+}
+.lp-bottom h2 {
+    font-size: clamp(1.2rem, 5vw, 1.65rem);
+    font-weight: 800; letter-spacing: -.02em;
+    margin-bottom: .65rem;
+}
+.lp-bottom p {
+    color: var(--text-muted); font-size: .9rem; margin-bottom: 1.75rem;
+    max-width: 380px; margin-left: auto; margin-right: auto; line-height: 1.6;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .lp-hero   { padding: 3.5rem 1rem 2.5rem; }
+    .lp-feat-grid { grid-template-columns: 1fr; }
+    .lp-features  { padding: 2rem 1rem 3.5rem; }
+    .lp-bottom    { padding: 2.5rem 1rem 3rem; }
+}
+@media (min-width: 641px) and (max-width: 900px) {
+    .lp-feat-grid { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+
+<!-- ── Hero ──────────────────────────────────────────────────────────────── -->
+<div class="lp-hero">
+    <div class="lp-badge">Discord Bot Dashboard</div>
+    <h1 class="lp-title">OCTA BOT</h1>
+    <p class="lp-subtitle">
+        Kelola server Discord kamu sepenuhnya dari browser —
+        atur notifikasi, role otomatis, statistik server, dan banyak lagi.
+    </p>
+    <div class="lp-cta-wrap">
+        <a href="/auth/login" class="btn btn-primary lp-cta-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M20.317 4.492c-1.53-.69-3.17-1.2-4.885-1.49a.075.075 0 0 0-.079.036c-.21.369-.444.85-.608 1.23a18.566 18.566 0 0 0-5.487 0 12.36 12.36 0 0 0-.617-1.23A.077.077 0 0 0 8.562 3c-1.714.29-3.354.8-4.885 1.491a.07.07 0 0 0-.032.027C.533 9.093-.32 13.555.099 17.961a.08.08 0 0 0 .031.055 20.03 20.03 0 0 0 5.993 2.98.078.078 0 0 0 .084-.026c.462-.62.874-1.275 1.226-1.963.021-.04.001-.088-.041-.104a13.201 13.201 0 0 1-1.872-.878.075.075 0 0 1-.008-.125c.126-.093.252-.19.372-.287a.075.075 0 0 1 .078-.01c3.927 1.764 8.18 1.764 12.061 0a.075.075 0 0 1 .079.009c.12.098.245.195.372.288a.075.075 0 0 1-.006.125c-.598.344-1.22.635-1.873.877a.075.075 0 0 0-.041.105c.36.687.772 1.341 1.225 1.962a.077.077 0 0 0 .084.028 19.963 19.963 0 0 0 6.002-2.981.076.076 0 0 0 .032-.054c.5-5.094-.838-9.52-3.549-13.442a.06.06 0 0 0-.031-.028z"/>
+            </svg>
+            Login dengan Discord
+        </a>
+        <% if (typeof error !== 'undefined' && error) { %>
+        <div class="alert alert-error">Login gagal. Silakan coba lagi.</div>
+        <% } %>
+    </div>
+</div>
+
+<!-- ── Divider ────────────────────────────────────────────────────────────── -->
+<div class="lp-divider">
+    <span class="lp-divider-label">Fitur Utama</span>
+</div>
+
+<!-- ── Features ──────────────────────────────────────────────────────────── -->
+<section class="lp-features">
+    <div class="lp-sect-title">
+        <h2>Semua yang kamu butuhkan</h2>
+        <p>Fitur lengkap tersedia langsung dari dashboard — tanpa perlu mengetik command satu per satu.</p>
+    </div>
+    <div class="lp-feat-grid">
+
+        <div class="lp-feat-card">
+            <div class="lp-feat-icon" style="--ic-bg:rgba(88,101,242,.16);--ic-color:#7289da;">
+                <i data-lucide="user-plus"></i>
+            </div>
+            <h3>Welcome &amp; Goodbye</h3>
+            <p>Pesan sambutan dan perpisahan otomatis dengan embed, welcome card, dan kustomisasi penuh.</p>
+        </div>
+
+        <div class="lp-feat-card">
+            <div class="lp-feat-icon" style="--ic-bg:rgba(255,115,250,.13);--ic-color:#FF73FA;">
+                <i data-lucide="zap"></i>
+            </div>
+            <h3>Boost Notification</h3>
+            <p>Notifikasi otomatis saat member boost atau berhenti boost server, lengkap dengan boost card.</p>
+        </div>
+
+        <div class="lp-feat-card">
+            <div class="lp-feat-icon" style="--ic-bg:rgba(59,165,93,.15);--ic-color:#3ba55d;">
+                <i data-lucide="users"></i>
+            </div>
+            <h3>Auto Role</h3>
+            <p>Berikan role otomatis ke member baru, bot, atau booster — termasuk panel tombol pilih role interaktif.</p>
+        </div>
+
+        <div class="lp-feat-card">
+            <div class="lp-feat-icon" style="--ic-bg:rgba(87,242,135,.12);--ic-color:#57F287;">
+                <i data-lucide="bar-chart-2"></i>
+            </div>
+            <h3>Server Stats</h3>
+            <p>Tampilkan total member, user, dan bot secara real-time melalui channel voice yang diperbarui otomatis.</p>
+        </div>
+
+        <div class="lp-feat-card">
+            <div class="lp-feat-icon" style="--ic-bg:rgba(240,160,50,.13);--ic-color:#f0a032;">
+                <i data-lucide="mail"></i>
+            </div>
+            <h3>Message Builder</h3>
+            <p>Buat dan kirim template embed ke channel manapun langsung dari dashboard web tanpa command.</p>
+        </div>
+
+        <div class="lp-feat-card">
+            <div class="lp-feat-icon" style="--ic-bg:rgba(155,89,182,.15);--ic-color:#9b59b6;">
+                <i data-lucide="link"></i>
+            </div>
+            <h3>Invite Links</h3>
+            <p>Pantau semua invite link server beserta statistik penggunaan, diurutkan dari yang terbanyak.</p>
+        </div>
+
+    </div>
+</section>
+
+<!-- ── Bottom CTA ─────────────────────────────────────────────────────────── -->
+<div class="lp-bottom">
+    <h2>Siap mengelola server?</h2>
+    <p>Login dengan akun Discord kamu dan mulai kelola server langsung dari browser.</p>
+    <a href="/auth/login" class="btn btn-primary lp-cta-btn">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M20.317 4.492c-1.53-.69-3.17-1.2-4.885-1.49a.075.075 0 0 0-.079.036c-.21.369-.444.85-.608 1.23a18.566 18.566 0 0 0-5.487 0 12.36 12.36 0 0 0-.617-1.23A.077.077 0 0 0 8.562 3c-1.714.29-3.354.8-4.885 1.491a.07.07 0 0 0-.032.027C.533 9.093-.32 13.555.099 17.961a.08.08 0 0 0 .031.055 20.03 20.03 0 0 0 5.993 2.98.078.078 0 0 0 .084-.026c.462-.62.874-1.275 1.226-1.963.021-.04.001-.088-.041-.104a13.201 13.201 0 0 1-1.872-.878.075.075 0 0 1-.008-.125c.126-.093.252-.19.372-.287a.075.075 0 0 1 .078-.01c3.927 1.764 8.18 1.764 12.061 0a.075.075 0 0 1 .079.009c.12.098.245.195.372.288a.075.075 0 0 1-.006.125c-.598.344-1.22.635-1.873.877a.075.075 0 0 0-.041.105c.36.687.772 1.341 1.225 1.962a.077.077 0 0 0 .084.028 19.963 19.963 0 0 0 6.002-2.981.076.076 0 0 0 .032-.054c.5-5.094-.838-9.52-3.549-13.442a.06.06 0 0 0-.031-.028z"/>
+        </svg>
+        Login dengan Discord
+    </a>
+</div>
+
+<%- include('partials/footer') %>

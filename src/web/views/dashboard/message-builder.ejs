@@ -1,0 +1,1145 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+
+<div class="dash-layout">
+    <aside class="sidebar">
+        <div class="sidebar-bot-brand">
+            <img style="width:30px;height:30px;border-radius:50%;object-fit:cover;flex-shrink:0;"
+                 src="<%- locals.botNavAvatar || 'https://cdn.discordapp.com/embed/avatars/0.png' %>"
+                 alt="Bot" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+            <span style="font-size:.95rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;background:linear-gradient(135deg,#e3e5e8,#8b8fbd);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">
+                <%- locals.botNavName || 'OCTA BOT' %>
+            </span>
+            <button class="sidebar-bot-close" onclick="closeSidebar()" title="Tutup"><i data-lucide="x"></i></button>
+        </div>
+        <div class="sidebar-guild">
+            <button class="sidebar-server-btn" onclick="toggleServerSelector()">
+                <% if (guild.iconURL()) { %><img src="<%= guild.iconURL() %>" alt="<%= guild.name %>" class="sidebar-guild-icon">
+                <% } else { %><div class="sidebar-guild-icon-placeholder"><%= guild.name.charAt(0) %></div><% } %>
+                <span class="sidebar-guild-name"><%= guild.name %></span>
+                <span class="sidebar-server-chevron"><i data-lucide="chevron-down"></i></span>
+            </button>
+            <div class="sidebar-server-dd" id="sidebarServerDD">
+                <div class="sidebar-server-dd-item active">
+                    <% if (guild.iconURL()) { %><img src="<%= guild.iconURL() %>" alt="" class="sidebar-guild-icon">
+                    <% } else { %><div class="sidebar-guild-icon-placeholder"><%= guild.name.charAt(0) %></div><% } %>
+                    <%= guild.name %>
+                </div>
+                <div class="sidebar-server-dd-divider"></div>
+                <a href="/dashboard" class="sidebar-server-dd-item sidebar-server-dd-change">
+                    <i data-lucide="arrow-left-right"></i> Ganti Server
+                </a>
+            </div>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="/dashboard/<%= guild.id %>"                  class="sidebar-link"><i data-lucide="layout-dashboard"></i> Overview</a>
+            <span class="sidebar-group-label">Notification</span>
+            <a href="/dashboard/<%= guild.id %>/welcome"              class="sidebar-sublink"><i data-lucide="user-plus"></i> Welcome Notification</a>
+            <a href="/dashboard/<%= guild.id %>/goodbye"              class="sidebar-sublink"><i data-lucide="log-out"></i> Goodbye Notification</a>
+            <a href="/dashboard/<%= guild.id %>/booster?tab=boost"    class="sidebar-sublink"><i data-lucide="zap"></i> Boost Notification</a>
+            <a href="/dashboard/<%= guild.id %>/booster?tab=unboost"  class="sidebar-sublink"><i data-lucide="zap-off"></i> Unboost Notification</a>
+            <span class="sidebar-group-label">Auto Role</span>
+            <a href="/dashboard/<%= guild.id %>/autorole?tab=join"    class="sidebar-sublink"><i data-lucide="users"></i> Autorole Join</a>
+            <a href="/dashboard/<%= guild.id %>/autorole?tab=booster" class="sidebar-sublink"><i data-lucide="zap"></i> Autorole Booster</a>
+            <a href="/dashboard/<%= guild.id %>/autorole?tab=button"  class="sidebar-sublink"><i data-lucide="mouse-pointer-2"></i> Autorole Button</a>
+            <span class="sidebar-group-label">Others</span>
+            <a href="/dashboard/<%= guild.id %>/message-builder"      class="sidebar-sublink active"><i data-lucide="mail"></i> Message Builder</a>
+            <a href="/dashboard/<%= guild.id %>/serverstats"          class="sidebar-sublink"><i data-lucide="bar-chart-2"></i> Server Stats</a>
+            <a href="/dashboard/<%= guild.id %>/invites"              class="sidebar-sublink"><i data-lucide="link"></i> Invite Links</a>
+        </nav>
+    </aside>
+
+    <main class="dash-main">
+    <div class="dash-content-wide">
+        <div class="page-header">
+            <h1>Message Builder</h1>
+            <p>Buat, edit, dan kirim template embed ke channel manapun.</p>
+        </div>
+
+        <!-- ── Toolbar: buat baru + search ── -->
+        <div class="mb-toolbar">
+            <button class="btn btn-primary" onclick="openCreateModal()">＋ Template Baru</button>
+            <input type="text" class="input mb-search" placeholder="🔍 Cari template..." oninput="filterTemplates(this.value)">
+        </div>
+
+        <!-- ── Page layout: list kiri, preview kanan ── -->
+        <div class="mb-page-layout">
+
+            <!-- Kiri: daftar template -->
+            <div class="mb-list-col">
+                <div class="mb-grid" id="mbGrid">
+                    <% if (templates.length === 0) { %>
+                        <div class="empty-state" id="emptyState">
+                            <p style="font-size:2rem;margin-bottom:.5rem">✉️</p>
+                            <p>Belum ada template. Buat yang pertama!</p>
+                        </div>
+                    <% } else { %>
+                        <% templates.forEach(t => { %>
+                        <div class="mb-card" data-name="<%= t.name %>">
+                            <div class="mb-card-pill" style="background:<%= t.color || '#5865F2' %>"></div>
+                            <div class="mb-card-body">
+                                <div class="mb-card-header">
+                                    <span class="mb-card-name"><%= t.name %></span>
+                                    <span class="mb-badge <%= t.kategori === 'unik' ? 'mb-badge-unik' : 'mb-badge-biasa' %>">
+                                        <%= t.kategori === 'unik' ? 'Unik' : 'Biasa' %>
+                                    </span>
+                                    <span class="mb-badge mb-badge-type">
+                                        <%= t.messageType === 'plain' ? 'Teks' : 'Embed' %>
+                                    </span>
+                                </div>
+                                <div class="mb-card-title">
+                                    <% if (t.messageType === 'plain') { %>
+                                        <span style="color:var(--text-muted);font-style:italic;"><%= t.plainText ? t.plainText.slice(0, 60) + (t.plainText.length > 60 ? '…' : '') : '(teks kosong)' %></span>
+                                    <% } else { %>
+                                        <%= t.title || '(tidak ada judul)' %>
+                                    <% } %>
+                                </div>
+                                <div class="mb-card-desc"><%= t.description ? t.description.slice(0, 80) + (t.description.length > 80 ? '…' : '') : (t.messageType === 'plain' ? '' : '(tidak ada deskripsi)') %></div>
+                            </div>
+                            <div class="mb-card-actions">
+                                <button class="btn btn-outline btn-sm" onclick="openEditModal('<%= t.name %>')"><i data-lucide="pencil"></i> Edit</button>
+                                <button class="btn btn-outline btn-sm" onclick="openSendModal('<%= t.name %>')"><i data-lucide="send"></i> Kirim</button>
+                                <button class="btn btn-sm mb-btn-delete" onclick="deleteTemplate('<%= t.name %>')"><i data-lucide="trash-2"></i></button>
+                            </div>
+                        </div>
+                        <% }) %>
+                    <% } %>
+                </div>
+            </div>
+
+            <!-- Kanan: preview panel -->
+            <div class="mb-preview-panel" id="mbPreviewPanel">
+                <div class="mb-preview-panel-header">
+                    <span id="mbPreviewPanelName" class="mb-preview-panel-title">Preview</span>
+                    <button class="mb-preview-panel-close" onclick="closePreviewPanel()">✕</button>
+                </div>
+                <div class="mb-preview-panel-body">
+                    <div id="mbPreviewPanelPlaceholder" class="mb-preview-placeholder">
+                        <div style="font-size:1.75rem">👆</div>
+                        <div>Klik template untuk melihat preview</div>
+                    </div>
+                    <div id="mbPreviewPanelContent" style="display:none;">
+                        <div class="dc-window">
+                            <div class="dc-channel-bar">
+                                <span class="dc-channel-hash">#</span>
+                                <span>preview-channel</span>
+                            </div>
+                            <div class="dc-messages">
+                                <div class="dc-message">
+                                    <img class="dc-avatar"
+                                         src="<%- botUser ? botUser.avatarUrl : 'https://cdn.discordapp.com/embed/avatars/0.png' %>"
+                                         alt="avatar" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+                                    <div class="dc-msg-body">
+                                        <span class="dc-username"
+                                              style="color:<%- botUser ? botUser.roleColor : '#ffffff' %>">
+                                            <%= botUser ? botUser.username : 'Bot' %>
+                                        </span>
+                                        <span class="dc-timestamp">Hari ini pukul 12:00</span>
+                                        <div id="mbPanelPreviewPlain" class="dc-plain-msg" style="display:none;"></div>
+                                        <div class="dc-embed" id="mbPanelPreviewEmbed" style="display:none;">
+                                            <div class="dc-embed-pill" id="mbPanelPreviewPill"></div>
+                                            <div class="dc-embed-content">
+                                                <div class="dc-embed-author" id="mbPanelPreviewAuthor"></div>
+                                                <div class="dc-embed-title" id="mbPanelPreviewTitle"></div>
+                                                <div class="dc-embed-desc" id="mbPanelPreviewDesc"></div>
+                                                <img class="dc-embed-image" id="mbPanelPreviewImage" src="" alt="" style="display:none;">
+                                                <div class="dc-embed-footer" id="mbPanelPreviewFooter"></div>
+                                            </div>
+                                            <img class="dc-embed-thumb" id="mbPanelPreviewThumb" src="" alt="" style="display:none;">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div><!-- /mb-page-layout -->
+    </div>
+    </main>
+</div>
+
+<!-- Backdrop mobile preview -->
+<div class="mb-preview-backdrop" id="mbPreviewBackdrop" onclick="closePreviewPanel()"></div>
+
+<%- include('../partials/bottom-nav') %>
+
+<!-- ══════════════════════════════════════════════
+     MODAL: Buat / Edit Template
+══════════════════════════════════════════════ -->
+<div class="mb-modal-backdrop" id="editBackdrop" onclick="closeEditModal()"></div>
+<div class="mb-modal" id="editModal">
+    <div class="mb-modal-header">
+        <h2 id="editModalTitle">Template Baru</h2>
+        <button class="mb-modal-close" onclick="closeEditModal()">✕</button>
+    </div>
+    <div class="mb-modal-body">
+        <div class="mb-editor-layout">
+            <!-- Form -->
+            <div class="mb-editor-form">
+                <input type="hidden" id="editOriginalName">
+
+                <div class="form-group">
+                    <label class="label">Nama Template</label>
+                    <input type="text" id="editName" class="input" placeholder="contoh: pengumuman-rutin" maxlength="32">
+                    <div class="hint">Hanya huruf, angka, <code>-</code> dan <code>_</code> (maks. 32 karakter).</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="label">Kategori</label>
+                    <select id="editKategori" class="select">
+                        <option value="biasa">Biasa — bisa dikirim berkali-kali</option>
+                        <option value="unik">Unik — kirim sekali, bisa diedit</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="label">Tipe Pesan</label>
+                    <div style="display:flex;gap:.75rem;">
+                        <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;">
+                            <input type="radio" name="editMessageType" id="mbTypeEmbed" value="embed" checked>
+                            <span>Embed</span>
+                        </label>
+                        <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;">
+                            <input type="radio" name="editMessageType" id="mbTypePlain" value="plain">
+                            <span>Teks Biasa</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- ── Panel Teks Biasa ── -->
+                <div id="mbPlainPanel" style="display:none;">
+                    <div class="form-group">
+                        <label class="label">Isi Pesan Teks Biasa</label>
+                        <textarea id="editPlainText" class="textarea" rows="5"
+                                  placeholder="Tulis isi pesan di sini..."
+                                  oninput="updatePreview()"></textarea>
+                    </div>
+                </div>
+
+                <!-- ── Panel Embed ── -->
+                <div id="mbEmbedPanel">
+
+                <div class="form-group">
+                    <label class="label">Judul Embed</label>
+                    <input type="text" id="editTitle" class="input" placeholder="Judul embed..." maxlength="256" oninput="updatePreview()">
+                </div>
+
+                <div class="form-group">
+                    <label class="label">Deskripsi</label>
+                    <textarea id="editDescription" class="textarea" rows="4" placeholder="Isi konten embed... Mendukung markdown Discord." oninput="updatePreview()"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label class="label">Footer</label>
+                    <input type="text" id="editFooter" class="input" placeholder="Teks footer..." maxlength="2048" oninput="updatePreview()">
+                </div>
+
+                <div class="form-group">
+                    <label class="label">Author</label>
+                    <input type="text" id="editAuthorName" class="input" placeholder="Nama author (opsional)..." maxlength="256" oninput="updatePreview()">
+                </div>
+
+                <div class="form-group">
+                    <label class="label">URL Ikon Author</label>
+                    <input type="text" id="editAuthorIcon" class="input" placeholder="https://... (opsional)" oninput="updatePreview()">
+                </div>
+
+                <div class="form-group">
+                    <label class="label">URL Gambar (bawah embed)</label>
+                    <input type="text" id="editImage" class="input" placeholder="https://..." oninput="updatePreview()">
+                </div>
+
+                <div class="form-group">
+                    <label class="label">URL Thumbnail (pojok kanan)</label>
+                    <input type="text" id="editThumbnail" class="input" placeholder="https://..." oninput="updatePreview()">
+                </div>
+
+                <div class="form-group">
+                    <label class="label">Warna Embed</label>
+                    <div style="display:flex;gap:.75rem;align-items:center;">
+                        <input type="color" id="editColorPicker" value="#5865F2"
+                               style="width:44px;height:36px;border:none;border-radius:6px;cursor:pointer;padding:0;background:none;"
+                               oninput="syncHex('editColor','editColorPicker');updatePreview()">
+                        <input type="text" id="editColor" class="input" style="max-width:130px;"
+                               placeholder="#5865F2" maxlength="7" value="#5865F2"
+                               oninput="syncPicker('editColor','editColorPicker');updatePreview()">
+                    </div>
+                </div>
+
+                </div><!-- /mbEmbedPanel -->
+            </div>
+
+            <!-- Preview -->
+            <div class="mb-editor-preview">
+                <div class="preview-label">Preview</div>
+                <div class="dc-window">
+                    <div class="dc-channel-bar">
+                        <span class="dc-channel-hash">#</span>
+                        <span>preview-channel</span>
+                    </div>
+                    <div class="dc-messages" id="mbPreviewMessages">
+                        <div class="dc-message">
+                            <img class="dc-avatar" id="mbBotAvatar"
+                                 src="<%- botUser ? botUser.avatarUrl : 'https://cdn.discordapp.com/embed/avatars/0.png' %>"
+                                 alt="avatar" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+                            <div class="dc-msg-body">
+                                <span class="dc-username" id="mbBotUsername"
+                                      style="color:<%- botUser ? botUser.roleColor : '#ffffff' %>">
+                                    <%= botUser ? botUser.username : 'Bot' %>
+                                </span>
+                                <span class="dc-timestamp">Hari ini pukul 12:00</span>
+                                <!-- Plain text preview -->
+                                <div id="mbPreviewPlain" class="dc-plain-msg" style="display:none;"></div>
+                                <!-- Embed preview -->
+                                <div class="dc-embed" id="mbPreviewEmbed">
+                                    <div class="dc-embed-pill" id="mbPreviewPill"></div>
+                                    <div class="dc-embed-content">
+                                        <div class="dc-embed-author" id="mbPreviewAuthor"></div>
+                                        <div class="dc-embed-title" id="mbPreviewTitle"></div>
+                                        <div class="dc-embed-desc" id="mbPreviewDesc"></div>
+                                        <img class="dc-embed-image" id="mbPreviewImage" src="" alt="" style="display:none;max-width:100%;border-radius:4px;margin-top:.5rem;">
+                                        <div class="dc-embed-footer" id="mbPreviewFooter"></div>
+                                    </div>
+                                    <img class="dc-embed-thumb" id="mbPreviewThumb" src="" alt="" style="display:none;">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="mb-modal-footer">
+        <div id="editMsg" class="form-message"></div>
+        <div style="display:flex;gap:.75rem;justify-content:flex-end;">
+            <button class="btn btn-outline" onclick="closeEditModal()">Batal</button>
+            <button class="btn btn-primary" onclick="saveTemplate()">Simpan</button>
+        </div>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     MODAL: Kirim ke Channel
+══════════════════════════════════════════════ -->
+<div class="mb-modal-backdrop" id="sendBackdrop" onclick="closeSendModal()"></div>
+<div class="mb-modal mb-modal-sm" id="sendModal">
+    <div class="mb-modal-header">
+        <h2><i data-lucide="send"></i> Kirim Template</h2>
+        <button class="mb-modal-close" onclick="closeSendModal()">✕</button>
+    </div>
+    <div class="mb-modal-body">
+        <p style="margin-bottom:1rem;color:var(--text-muted);font-size:.9rem;">
+            Kirim template <strong id="sendTemplateName"></strong> ke channel:
+        </p>
+        <div class="form-group">
+            <label class="label">Channel Tujuan</label>
+            <select id="sendChannel" class="select">
+                <option value="">— Pilih channel —</option>
+                <% channels.forEach(ch => { %>
+                    <option value="<%= ch.id %>">#<%= ch.name %></option>
+                <% }) %>
+            </select>
+        </div>
+    </div>
+    <div class="mb-modal-footer">
+        <div id="sendMsg" class="form-message"></div>
+        <div style="display:flex;gap:.75rem;justify-content:flex-end;">
+            <button class="btn btn-outline" onclick="closeSendModal()">Batal</button>
+            <button class="btn btn-primary" onclick="sendTemplate()">Kirim</button>
+        </div>
+    </div>
+</div>
+
+<style>
+/* ── Toolbar ── */
+.mb-toolbar {
+    display: flex; gap: .75rem; align-items: center;
+    margin-bottom: 1.25rem; flex-wrap: wrap;
+}
+.mb-search { flex: 1; min-width: 180px; max-width: 320px; }
+
+/* ── Grid ── */
+.mb-grid { display: flex; flex-direction: column; gap: .75rem; }
+
+/* ── Card ── */
+.mb-card {
+    display: flex; align-items: stretch;
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius); overflow: hidden;
+    transition: border-color .15s;
+}
+.mb-card:hover { border-color: var(--accent); }
+.mb-card-pill { width: 4px; flex-shrink: 0; }
+.mb-card-body { flex: 1; padding: .9rem 1rem; min-width: 0; }
+.mb-card-header { display: flex; align-items: center; gap: .6rem; margin-bottom: .35rem; flex-wrap: wrap; }
+.mb-card-name { font-weight: 600; font-size: .95rem; }
+.mb-badge { font-size: .72rem; padding: .2rem .5rem; border-radius: 999px; white-space: nowrap; }
+.mb-badge-unik  { background: rgba(88,101,242,.2); color: var(--accent); }
+.mb-badge-biasa { background: var(--bg3); color: var(--text-muted); }
+.mb-card-title { font-size: .85rem; color: var(--text); margin-bottom: .2rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mb-card-desc  { font-size: .78rem; color: var(--text-muted); overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.mb-card-actions {
+    display: flex; flex-direction: column; gap: .4rem;
+    padding: .75rem; justify-content: center; flex-shrink: 0;
+}
+.mb-btn-delete {
+    background: transparent; border: 1.5px solid var(--border);
+    color: var(--red); border-radius: var(--radius);
+    cursor: pointer; transition: all .15s;
+    -webkit-tap-highlight-color: transparent;
+    min-height: 36px; padding: .35rem .8rem; font-size: .82rem;
+}
+.mb-btn-delete:hover { background: rgba(237,66,69,.1); border-color: var(--red); }
+
+@media (max-width: 500px) {
+    .mb-card { flex-direction: column; }
+    .mb-card-pill { width: 100%; height: 4px; }
+    .mb-card-actions { flex-direction: row; flex-wrap: wrap; padding: .6rem .9rem .9rem; }
+}
+
+/* ── Modal backdrop ── */
+.mb-modal-backdrop {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,.6); z-index: 400;
+    opacity: 0; transition: opacity .2s;
+    pointer-events: none;
+}
+.mb-modal-backdrop.open { display: block; opacity: 1; pointer-events: auto; }
+
+/* ── Modal ── */
+.mb-modal {
+    display: none; position: fixed;
+    top: 50%; left: 50%; transform: translate(-50%, -50%) scale(.96);
+    width: min(96vw, 960px); max-height: 90vh;
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 12px; z-index: 401;
+    flex-direction: column;
+    box-shadow: 0 16px 48px rgba(0,0,0,.6);
+    transition: transform .2s, opacity .2s;
+    opacity: 0;
+}
+.mb-modal.open {
+    display: flex; transform: translate(-50%, -50%) scale(1); opacity: 1;
+}
+.mb-modal-sm { width: min(96vw, 420px); }
+
+.mb-modal-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1rem 1.25rem; border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+}
+.mb-modal-header h2 { font-size: 1.05rem; font-weight: 600; }
+.mb-modal-close {
+    background: none; border: none; color: var(--text-muted);
+    font-size: 1.1rem; cursor: pointer; padding: .25rem .4rem;
+    border-radius: 6px; transition: background .15s;
+    -webkit-tap-highlight-color: transparent;
+}
+.mb-modal-close:hover { background: var(--bg3); color: var(--text); }
+
+.mb-modal-body { padding: 1.25rem; overflow-y: auto; flex: 1; }
+.mb-modal-footer {
+    padding: 1rem 1.25rem; border-top: 1px solid var(--border);
+    flex-shrink: 0;
+}
+
+/* ── Editor layout: 2 kolom ── */
+.mb-editor-layout {
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: 1.5rem; align-items: start;
+}
+@media (max-width: 700px) {
+    .mb-editor-layout { grid-template-columns: 1fr; }
+}
+.mb-editor-preview { position: sticky; top: 0; }
+
+/* ── DC embed author ── */
+.dc-embed-author {
+    font-size: .78rem; color: #dbdee1; font-weight: 600;
+    margin-bottom: .25rem;
+}
+.dc-embed-author:empty { display: none; }
+.dc-embed-image { display: none; }
+
+/* ── Plain text message ── */
+.dc-plain-msg {
+    margin-top: .35rem; font-size: .875rem; color: #dbdee1;
+    line-height: 1.5; word-break: break-word; max-width: 432px;
+}
+
+/* ── Spoiler ── */
+.dc-spoiler {
+    background: #202225; border-radius: 2px; color: transparent;
+    cursor: pointer; transition: color .1s, background .1s; user-select: none;
+}
+.dc-spoiler.shown { color: #dbdee1; background: rgba(32,34,37,.5); }
+
+/* ── Type badge ── */
+.mb-badge-type { background: rgba(87,242,135,.12); color: #57f287; }
+
+/* ── Discord Window Preview ── */
+.dc-window {
+    background: #313338;
+    border-radius: 8px;
+    overflow: hidden;
+    font-family: 'gg sans', 'Noto Sans', sans-serif;
+}
+.dc-channel-bar {
+    background: #2b2d31;
+    padding: .5rem .75rem;
+    font-size: .82rem;
+    color: #80848e;
+    display: flex; align-items: center; gap: .3rem;
+    border-bottom: 1px solid #1e1f22;
+}
+.dc-channel-hash { font-weight: 700; font-size: .95rem; }
+.dc-messages { padding: .75rem 1rem; }
+.dc-message { display: flex; gap: .75rem; align-items: flex-start; }
+.dc-avatar {
+    width: 36px; height: 36px;
+    border-radius: 50%; flex-shrink: 0;
+    object-fit: cover;
+}
+.dc-msg-body { flex: 1; min-width: 0; }
+.dc-username {
+    font-weight: 600; font-size: .875rem; color: #fff;
+    margin-right: .4rem;
+}
+.dc-timestamp { font-size: .72rem; color: #80848e; }
+
+/* ── Discord Embed ── */
+.dc-embed {
+    display: flex;
+    background: #2b2d31;
+    border-radius: 4px;
+    margin-top: .35rem;
+    overflow: hidden;
+    max-width: 432px;
+}
+.dc-embed-pill {
+    width: 4px;
+    flex-shrink: 0;
+    background: #5865F2;
+    border-radius: 4px 0 0 4px;
+}
+.dc-embed-content {
+    flex: 1;
+    padding: .5rem .75rem .5rem .75rem;
+    min-width: 0;
+}
+.dc-embed-title {
+    font-size: .875rem;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: .2rem;
+}
+.dc-embed-title:empty { display: none; }
+.dc-embed-desc {
+    font-size: .825rem;
+    color: #dbdee1;
+    line-height: 1.4;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+.dc-embed-desc:empty { display: none; }
+.dc-embed-footer {
+    font-size: .72rem;
+    color: #80848e;
+    margin-top: .4rem;
+}
+.dc-embed-footer:empty { display: none; }
+
+/* ── Thumbnail (pojok kanan, kecil) ── */
+.dc-embed-thumb {
+    width: 72px;
+    height: 72px;
+    object-fit: cover;
+    border-radius: 4px;
+    margin: .5rem .5rem .5rem 0;
+    flex-shrink: 0;
+    align-self: flex-start;
+    display: none;
+}
+
+/* ── Large image (di bawah konten) ── */
+.dc-embed-image {
+    display: none;
+    max-width: 100%;
+    border-radius: 4px;
+    margin-top: .5rem;
+}
+
+/* ══════════════════════════════════════
+   PREVIEW PANEL
+══════════════════════════════════════ */
+
+/* ── Page layout: 2 kolom ── */
+.mb-page-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 480px;
+    gap: 1.5rem;
+    align-items: start;
+}
+.mb-list-col { min-width: 0; }
+
+/* ── Panel kanan (PC: sticky) ── */
+.mb-preview-panel {
+    position: sticky;
+    top: 1rem;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    max-height: calc(100vh - 5rem);
+    display: flex;
+    flex-direction: column;
+}
+.mb-preview-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: .7rem 1rem;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+}
+.mb-preview-panel-title {
+    font-size: .85rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.mb-preview-panel-close {
+    display: none;
+    background: none; border: none; color: var(--text-muted);
+    cursor: pointer; font-size: 1rem; padding: .2rem .4rem;
+    border-radius: 6px; transition: background .15s; flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
+}
+.mb-preview-panel-close:hover { background: var(--bg3); color: var(--text); }
+.mb-preview-panel-body {
+    overflow-y: auto;
+    flex: 1;
+    padding: .75rem;
+}
+
+/* ── Placeholder ── */
+.mb-preview-placeholder {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: .6rem; padding: 2.5rem 1rem;
+    color: var(--text-muted); font-size: .85rem;
+    text-align: center; min-height: 200px;
+}
+
+/* ── Card selected state ── */
+.mb-card.selected { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.mb-card-body { cursor: pointer; }
+
+/* ── Mobile/tablet: bottom sheet ── */
+@media (max-width: 1100px) {
+    .mb-page-layout { grid-template-columns: 1fr; }
+
+    /* Panel = satu container scroll tunggal, max 70vh */
+    .mb-preview-panel {
+        position: fixed;
+        bottom: 0; left: 0; right: 0;
+        border-radius: 16px 16px 0 0;
+        border-bottom: none;
+        height: auto;
+        max-height: 70vh;
+        overflow-y: auto;   /* panel yg scroll, bukan body */
+        overflow-x: hidden;
+        display: block;
+        transform: translateY(110%);
+        visibility: hidden;
+        transition: transform .3s cubic-bezier(.4,0,.2,1), visibility 0s .3s;
+        z-index: 350;
+    }
+    .mb-preview-panel.open {
+        transform: translateY(0);
+        visibility: visible;
+        transition: transform .3s cubic-bezier(.4,0,.2,1), visibility 0s 0s;
+        box-shadow: 0 -12px 40px rgba(0,0,0,.7);
+    }
+
+    /* Header sticky agar tidak ikut scroll */
+    .mb-preview-panel-header {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        background: var(--bg2);
+        border-bottom: 1px solid var(--border);
+        padding-top: 1.1rem; /* ruang untuk drag handle */
+    }
+    /* Drag handle */
+    .mb-preview-panel-header::before {
+        content: '';
+        position: absolute;
+        top: .45rem; left: 50%;
+        transform: translateX(-50%);
+        width: 36px; height: 4px;
+        background: var(--border);
+        border-radius: 99px;
+    }
+
+    /* Body bebas, tidak perlu overflow/max-height sendiri */
+    .mb-preview-panel-body {
+        overflow: visible;
+        max-height: none;
+        flex: none;
+        display: block;
+        padding: .75rem;
+        padding-bottom: max(env(safe-area-inset-bottom, 0px), 1.5rem);
+    }
+
+    .mb-preview-panel-close { display: block; }
+
+    .mb-preview-backdrop {
+        position: fixed; inset: 0;
+        background: rgba(0,0,0,.72); z-index: 349;
+        opacity: 0; pointer-events: none;
+        transition: opacity .25s;
+    }
+    .mb-preview-backdrop.open { opacity: 1; pointer-events: auto; }
+}
+@media (min-width: 1101px) {
+    .mb-preview-backdrop { display: none !important; }
+}
+</style>
+
+<script>
+const GUILD_ID = '<%= guild.id %>';
+const CHANNELS = <%- JSON.stringify(Object.fromEntries(channels.map(c => [c.id, c.name]))) %>;
+const ROLES    = <%- JSON.stringify(Object.fromEntries((locals.roles||[]).map(r=>[r.id,{name:r.name,color:r.color}]))) %>;
+
+let _sendingName = '';
+
+// ── Filter ────────────────────────────────────────────────────────────────
+function filterTemplates(q) {
+    q = q.toLowerCase();
+    document.querySelectorAll('.mb-card').forEach(card => {
+        card.style.display = card.dataset.name.includes(q) ? '' : 'none';
+    });
+}
+
+// ── Sync color picker ─────────────────────────────────────────────────────
+function syncHex(inputId, pickerId) {
+    document.getElementById(inputId).value = document.getElementById(pickerId).value;
+}
+function syncPicker(inputId, pickerId) {
+    const val = document.getElementById(inputId).value;
+    if (/^#[0-9A-Fa-f]{6}$/.test(val)) document.getElementById(pickerId).value = val;
+}
+
+// ── Markdown Discord → HTML ───────────────────────────────────────────────
+function mdToHtml(text) {
+    if (!text) return '';
+    function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+    function inline(s) {
+        const codeStore = [];
+        s = s.replace(/`(.+?)`/g, (_, code) => {
+            const i = codeStore.length;
+            codeStore.push('<code style="background:#2b2d31;padding:1px 5px;border-radius:3px;font-size:.85em;font-family:\'Consolas\',monospace;">' + code + '</code>');
+            return '\x01C' + i + '\x01';
+        });
+        s = s
+            .replace(/\[([^\]]+)\]\(\s*(https?:\/\/[^\s)]+)\s*\)/g,'<a href="$2" target="_blank" rel="noopener noreferrer" style="color:#00b0f4;text-decoration:none;">$1</a>')
+            .replace(/\*\*\*(.+?)\*\*\*/g,'<strong><em>$1</em></strong>')
+            .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+            .replace(/\*(.+?)\*/g,'<em>$1</em>')
+            .replace(/__(.+?)__/g,'<u>$1</u>')
+            .replace(/~~(.+?)~~/g,'<s>$1</s>')
+            .replace(/\|\|(.+?)\|\|/g,'<span class="dc-spoiler" onclick="this.classList.toggle(\'shown\')">$1</span>')
+            .replace(/(href="[^"]*")|((https?:\/\/[^\s<>"']+))/g,(m,h,_,url)=>{
+                if(h) return m;
+                const c=url.replace(/[.,;:!?)\]>]+$/,'');
+                return '<a href="'+c+'" target="_blank" rel="noopener noreferrer" style="color:#00b0f4;text-decoration:underline;">'+c+'</a>';
+            });
+        return s.replace(/\x01C(\d+)\x01/g,(_,i)=>codeStore[+i]);
+    }
+    const lines=text.split('\n'), out=[];
+    let inCode=false, codeBuf=[];
+    for(let i=0;i<lines.length;i++){
+        const raw=lines[i];
+        if(!inCode && /^```/.test(raw)){ inCode=true; codeBuf=[]; continue; }
+        if(inCode){
+            if(/^```\s*$/.test(raw.trim())){
+                inCode=false;
+                out.push('<div style="display:block;background:#1e1f22;border-radius:4px;padding:.4rem .75rem;font-family:\'Consolas\',monospace;font-size:.82em;white-space:pre;overflow-x:auto;color:#dbdee1;">'+esc(codeBuf.join('\n'))+'</div>');
+            } else { codeBuf.push(raw); }
+            continue;
+        }
+        let m;
+        if((m=raw.match(/^>>> (.*)$/))){ const rest=[m[1],...lines.slice(i+1)].join('\n'); out.push('<div style="display:block;border-left:4px solid #4e5058;padding:.1em .75em;margin:.1em 0;color:#dbdee1;">'+inline(esc(rest))+'</div>'); break; }
+        if((m=raw.match(/^> (.+)$/))){ out.push('<div style="display:block;border-left:4px solid #4e5058;padding:.1em .75em;margin:.05em 0;color:#dbdee1;">'+inline(esc(m[1]))+'</div>'); continue; }
+        if((m=raw.match(/^### (.+)$/))){ out.push('<div style="display:block;font-size:1.05em;font-weight:700;margin:.3em 0 .1em;">'+inline(esc(m[1]))+'</div>'); continue; }
+        if((m=raw.match(/^## (.+)$/))){ out.push('<div style="display:block;font-size:1.25em;font-weight:700;margin:.3em 0 .2em;">'+inline(esc(m[1]))+'</div>'); continue; }
+        if((m=raw.match(/^# (.+)$/))){ out.push('<div style="display:block;font-size:1.5em;font-weight:700;margin:.3em 0 .2em;">'+inline(esc(m[1]))+'</div>'); continue; }
+        if((m=raw.match(/^-# (.+)$/))){ out.push('<div style="display:block;font-size:.75em;color:#80848e;margin:.05em 0;">'+inline(esc(m[1]))+'</div>'); continue; }
+        out.push(inline(esc(raw)));
+    }
+    if(inCode&&codeBuf.length) out.push('<div style="display:block;background:#1e1f22;border-radius:4px;padding:.4rem .75rem;font-family:\'Consolas\',monospace;font-size:.82em;white-space:pre;color:#dbdee1;">'+esc(codeBuf.join('\n'))+'</div>');
+    let result='';
+    for(let j=0;j<out.length;j++){
+        const isBlock=out[j].startsWith('<div');
+        const prevBlock=j>0&&out[j-1].startsWith('<div');
+        if(j>0&&!isBlock&&!prevBlock) result+='<br>';
+        result+=out[j];
+    }
+    return result;
+}
+
+// ── Mention resolution ────────────────────────────────────────────────────
+const memberCache={}, roleCache={}, channelCache={};
+function mentionBadge(color,text,bg){bg=bg||color+'26';return '<span style="color:'+color+';background:'+bg+';border-radius:3px;padding:0 2px;font-weight:600;">'+text+'</span>';}
+
+async function resolveMentionId(id){
+    if(memberCache[id]!==undefined) return;
+    memberCache[id]='fetching';
+    try{
+        const r=await fetch('/api/guild/'+GUILD_ID+'/members/search?q='+encodeURIComponent(id));
+        const d=await r.json();
+        memberCache[id]=(d.success&&d.members&&d.members.length>0&&d.members[0].display)?d.members[0].display:null;
+    }catch(e){memberCache[id]=null;}
+    updatePreview();
+}
+async function resolveRoleId(id){
+    if(roleCache[id]!==undefined) return;
+    roleCache[id]='fetching';
+    try{
+        const r=await fetch('/api/guild/'+GUILD_ID+'/roles/'+id);
+        const d=await r.json();
+        roleCache[id]=(d.success&&d.role&&d.role.name)?{name:d.role.name,color:d.role.color}:null;
+    }catch(e){roleCache[id]=null;}
+    updatePreview();
+}
+async function resolveChannelId(id){
+    if(channelCache[id]!==undefined) return;
+    channelCache[id]='fetching';
+    try{
+        const r=await fetch('/api/guild/'+GUILD_ID+'/channels/'+id);
+        const d=await r.json();
+        channelCache[id]=(d.success&&d.channel&&d.channel.name)?{name:d.channel.name}:null;
+    }catch(e){channelCache[id]=null;}
+    updatePreview();
+}
+
+function resolveHtmlMentions(html){
+    if(!html) return '';
+    return html
+        .replace(/&lt;@&amp;(\d+)&gt;/g,(_,id)=>{
+            const s=ROLES[id]; if(s) return mentionBadge(s.color,'@'+s.name);
+            const c=roleCache[id]; if(c===undefined) resolveRoleId(id);
+            return c&&c!=='fetching'?mentionBadge(c.color,'@'+c.name):mentionBadge('#99aab5',c===null?'@unknown-role':'@...');
+        })
+        .replace(/&lt;@!?(\d+)&gt;/g,(_,id)=>{
+            const c=memberCache[id]; if(c===undefined) resolveMentionId(id);
+            const label=c&&c!=='fetching'?'@'+c:c===null?'@unknown-user':'@...';
+            return mentionBadge('#7289da',label,'rgba(88,101,242,.15)');
+        })
+        .replace(/&lt;#(\d+)&gt;/g,(_,id)=>{
+            if(CHANNELS[id]) return mentionBadge('#7289da','#'+CHANNELS[id],'rgba(88,101,242,.15)');
+            const c=channelCache[id]; if(c===undefined) resolveChannelId(id);
+            return c&&c!=='fetching'?mentionBadge('#7289da','#'+c.name,'rgba(88,101,242,.15)'):mentionBadge('#7289da',c===null?'#unknown-channel':'#...','rgba(88,101,242,.15)');
+        });
+}
+
+// ── Toggle tipe panel ─────────────────────────────────────────────────────
+function toggleMbTypePanel() {
+    const isPlain = document.getElementById('mbTypePlain').checked;
+    document.getElementById('mbPlainPanel').style.display = isPlain ? 'block' : 'none';
+    document.getElementById('mbEmbedPanel').style.display = isPlain ? 'none'  : 'block';
+    updatePreview();
+}
+document.querySelectorAll('input[name="editMessageType"]').forEach(el =>
+    el.addEventListener('change', toggleMbTypePanel)
+);
+
+// ── Preview ───────────────────────────────────────────────────────────────
+function updatePreview() {
+    const isPlain = document.getElementById('mbTypePlain').checked;
+    const plainEl = document.getElementById('mbPreviewPlain');
+    const embedEl = document.getElementById('mbPreviewEmbed');
+    const msgsEl  = document.getElementById('mbPreviewMessages');
+
+    if (isPlain) {
+        const text = document.getElementById('editPlainText').value;
+        const html = resolveHtmlMentions(mdToHtml(text));
+        plainEl.style.display = 'block';
+        embedEl.style.display = 'none';
+        if (html.trim()) {
+            plainEl.innerHTML = html;
+            if (msgsEl) msgsEl.style.display = 'block';
+        } else {
+            plainEl.innerHTML = '';
+            if (msgsEl) msgsEl.style.display = 'none';
+        }
+        return;
+    }
+
+    // Embed mode
+    plainEl.style.display = 'none';
+    embedEl.style.display = 'flex';
+
+    const color  = document.getElementById('editColor').value || '#5865F2';
+    const title  = document.getElementById('editTitle').value;
+    const desc   = document.getElementById('editDescription').value;
+    const footer = document.getElementById('editFooter').value;
+    const author = document.getElementById('editAuthorName').value;
+    const image  = document.getElementById('editImage').value.trim();
+    const thumb  = document.getElementById('editThumbnail').value.trim();
+
+    const hasContent = title.trim() || desc.trim() || author.trim();
+    if (msgsEl) msgsEl.style.display = hasContent ? 'block' : 'none';
+    if (!hasContent) return;
+
+    document.getElementById('mbPreviewPill').style.background = color;
+    document.getElementById('mbPreviewTitle').innerHTML  = resolveHtmlMentions(mdToHtml(title));
+    document.getElementById('mbPreviewDesc').innerHTML   = resolveHtmlMentions(mdToHtml(desc));
+    document.getElementById('mbPreviewFooter').innerHTML = footer ? resolveHtmlMentions(mdToHtml(footer)) : '';
+    document.getElementById('mbPreviewAuthor').textContent = author;
+
+    const imgEl = document.getElementById('mbPreviewImage');
+    if (image && /^https?:\/\/.+/.test(image)) { imgEl.src=image; imgEl.style.display='block'; }
+    else { imgEl.style.display='none'; }
+
+    const thumbEl = document.getElementById('mbPreviewThumb');
+    if (thumb && /^https?:\/\/.+/.test(thumb)) { thumbEl.src=thumb; thumbEl.style.display='block'; }
+    else { thumbEl.style.display='none'; }
+}
+
+// ── Buka modal buat baru ──────────────────────────────────────────────────
+function openCreateModal() {
+    document.getElementById('editModalTitle').textContent = 'Template Baru';
+    document.getElementById('editOriginalName').value = '';
+    document.getElementById('editName').value         = '';
+    document.getElementById('editName').disabled      = false;
+    document.getElementById('editKategori').value     = 'biasa';
+    document.getElementById('mbTypeEmbed').checked    = true;
+    document.getElementById('editPlainText').value    = '';
+    document.getElementById('editTitle').value        = '';
+    document.getElementById('editDescription').value  = '';
+    document.getElementById('editFooter').value       = '';
+    document.getElementById('editAuthorName').value   = '';
+    document.getElementById('editAuthorIcon').value   = '';
+    document.getElementById('editImage').value        = '';
+    document.getElementById('editThumbnail').value    = '';
+    document.getElementById('editColor').value        = '#5865F2';
+    document.getElementById('editColorPicker').value  = '#5865F2';
+    document.getElementById('editMsg').textContent    = '';
+    toggleMbTypePanel();
+    openModal('editBackdrop', 'editModal');
+}
+
+// ── Buka modal edit ───────────────────────────────────────────────────────
+async function openEditModal(name) {
+    const res  = await fetch(`/api/guild/${GUILD_ID}/message-builder/${encodeURIComponent(name)}`);
+    const data = await res.json();
+    if (!data.success) return alert('Gagal memuat template: ' + data.message);
+    const t = data.template;
+
+    document.getElementById('editModalTitle').textContent = `Edit: ${name}`;
+    document.getElementById('editOriginalName').value = name;
+    document.getElementById('editName').value         = name;
+    document.getElementById('editName').disabled      = true;
+    document.getElementById('editKategori').value     = t.kategori || 'biasa';
+
+    const isPlain = t.messageType === 'plain';
+    document.getElementById(isPlain ? 'mbTypePlain' : 'mbTypeEmbed').checked = true;
+    document.getElementById('editPlainText').value   = t.plainText    || '';
+    document.getElementById('editTitle').value       = t.title        || '';
+    document.getElementById('editDescription').value = t.description  || '';
+    document.getElementById('editFooter').value      = t.footer       || '';
+    document.getElementById('editAuthorName').value  = t.authorName   || '';
+    document.getElementById('editAuthorIcon').value  = t.authorIcon   || '';
+    document.getElementById('editImage').value       = t.image        || '';
+    document.getElementById('editThumbnail').value   = t.thumbnail    || '';
+    const color = t.color || '#5865F2';
+    document.getElementById('editColor').value       = color;
+    document.getElementById('editColorPicker').value = color;
+    document.getElementById('editMsg').textContent   = '';
+    toggleMbTypePanel();
+    openModal('editBackdrop', 'editModal');
+}
+
+function closeEditModal() { closeModal('editBackdrop', 'editModal'); }
+
+// ── Simpan template ───────────────────────────────────────────────────────
+async function saveTemplate() {
+    const originalName = document.getElementById('editOriginalName').value;
+    const isEdit       = !!originalName;
+    const name         = isEdit ? originalName : document.getElementById('editName').value.trim();
+    const msg          = document.getElementById('editMsg');
+
+    if (!name) return showMsg(msg, 'Nama template tidak boleh kosong.', 'error');
+    if (!/^[a-zA-Z0-9_-]{1,32}$/.test(name)) return showMsg(msg, 'Nama tidak valid. Gunakan huruf, angka, - dan _.', 'error');
+
+    const isPlain    = document.getElementById('mbTypePlain').checked;
+    const payload = {
+        name,
+        kategori:    document.getElementById('editKategori').value,
+        messageType: isPlain ? 'plain' : 'embed',
+        plainText:   document.getElementById('editPlainText').value.trim(),
+        title:       document.getElementById('editTitle').value.trim(),
+        description: document.getElementById('editDescription').value.trim(),
+        footer:      document.getElementById('editFooter').value.trim(),
+        authorName:  document.getElementById('editAuthorName').value.trim(),
+        authorIcon:  document.getElementById('editAuthorIcon').value.trim(),
+        image:       document.getElementById('editImage').value.trim(),
+        thumbnail:   document.getElementById('editThumbnail').value.trim(),
+        color:       document.getElementById('editColor').value.trim() || '#5865F2',
+    };
+
+    const res  = await fetch(`/api/guild/${GUILD_ID}/message-builder`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (!data.success) return showMsg(msg, data.message, 'error');
+
+    showMsg(msg, data.message, 'success');
+    setTimeout(() => { closeEditModal(); location.reload(); }, 800);
+}
+
+// ── Hapus template ────────────────────────────────────────────────────────
+async function deleteTemplate(name) {
+    if (!confirm(`Hapus template "${name}"? Tindakan ini tidak bisa dibatalkan.`)) return;
+    const res  = await fetch(`/api/guild/${GUILD_ID}/message-builder/${encodeURIComponent(name)}`, { method: 'DELETE' });
+    const data = await res.json();
+    if (!data.success) return alert('Gagal: ' + data.message);
+    const card = document.querySelector(`.mb-card[data-name="${name}"]`);
+    if (card) card.remove();
+    if (!document.querySelector('.mb-card')) {
+        document.getElementById('mbGrid').innerHTML = '<div class="empty-state"><p style="font-size:2rem;margin-bottom:.5rem">✉️</p><p>Belum ada template. Buat yang pertama!</p></div>';
+    }
+}
+
+// ── Buka modal kirim ──────────────────────────────────────────────────────
+function openSendModal(name) {
+    _sendingName = name;
+    document.getElementById('sendTemplateName').textContent = `"${name}"`;
+    document.getElementById('sendChannel').value = '';
+    document.getElementById('sendMsg').textContent = '';
+    openModal('sendBackdrop', 'sendModal');
+}
+function closeSendModal() { closeModal('sendBackdrop', 'sendModal'); }
+
+async function sendTemplate() {
+    const channelId = document.getElementById('sendChannel').value;
+    const msg       = document.getElementById('sendMsg');
+    if (!channelId) return showMsg(msg, 'Pilih channel tujuan.', 'error');
+
+    const res  = await fetch(`/api/guild/${GUILD_ID}/message-builder/${encodeURIComponent(_sendingName)}/send`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ channelId })
+    });
+    const data = await res.json();
+    showMsg(msg, data.message, data.success ? 'success' : 'error');
+    if (data.success) setTimeout(closeSendModal, 1200);
+}
+
+// ── Preview panel ─────────────────────────────────────────────────────────
+let _selectedCard = null;
+
+// Klik di dalam card (tapi bukan tombol aksi) → tampilkan preview
+document.getElementById('mbGrid').addEventListener('click', e => {
+    if (e.target.closest('.mb-card-actions')) return;
+    const card = e.target.closest('.mb-card');
+    if (card) selectCard(card.dataset.name);
+});
+
+async function selectCard(name) {
+    // Klik kartu yang sama → toggle tutup
+    if (_selectedCard === name) { closePreviewPanel(); return; }
+
+    // Deselect kartu sebelumnya
+    if (_selectedCard) {
+        document.querySelector(`.mb-card[data-name="${_selectedCard}"]`)?.classList.remove('selected');
+    }
+    _selectedCard = name;
+    document.querySelector(`.mb-card[data-name="${name}"]`)?.classList.add('selected');
+
+    // Fetch data template
+    const res  = await fetch(`/api/guild/${GUILD_ID}/message-builder/${encodeURIComponent(name)}`);
+    const data = await res.json();
+    if (!data.success) return;
+
+    renderPreviewPanel(data.template, name);
+
+    // Tampilkan panel
+    const nameEl = document.getElementById('mbPreviewPanelName');
+    if (nameEl) nameEl.textContent = name;
+    document.getElementById('mbPreviewPanelPlaceholder').style.display = 'none';
+    document.getElementById('mbPreviewPanelContent').style.display = '';
+    document.getElementById('mbPreviewPanel').classList.add('open');
+    document.getElementById('mbPreviewBackdrop').classList.add('open');
+}
+
+function renderPreviewPanel(t, name) {
+    const isPlain = t.messageType === 'plain';
+    const plainEl = document.getElementById('mbPanelPreviewPlain');
+    const embedEl = document.getElementById('mbPanelPreviewEmbed');
+
+    if (isPlain) {
+        plainEl.style.display = 'block';
+        embedEl.style.display = 'none';
+        plainEl.innerHTML = resolveHtmlMentions(mdToHtml(t.plainText || ''));
+    } else {
+        plainEl.style.display = 'none';
+        embedEl.style.display = 'flex';
+
+        const color = t.color || '#5865F2';
+        document.getElementById('mbPanelPreviewPill').style.background   = color;
+        document.getElementById('mbPanelPreviewTitle').innerHTML          = resolveHtmlMentions(mdToHtml(t.title || ''));
+        document.getElementById('mbPanelPreviewDesc').innerHTML           = resolveHtmlMentions(mdToHtml(t.description || ''));
+        document.getElementById('mbPanelPreviewFooter').innerHTML         = t.footer ? resolveHtmlMentions(mdToHtml(t.footer)) : '';
+        document.getElementById('mbPanelPreviewAuthor').textContent       = t.authorName || '';
+
+        const imgEl = document.getElementById('mbPanelPreviewImage');
+        if (t.image && /^https?:\/\//.test(t.image)) { imgEl.src = t.image; imgEl.style.display = 'block'; }
+        else imgEl.style.display = 'none';
+
+        const thumbEl = document.getElementById('mbPanelPreviewThumb');
+        if (t.thumbnail && /^https?:\/\//.test(t.thumbnail)) { thumbEl.src = t.thumbnail; thumbEl.style.display = 'block'; }
+        else thumbEl.style.display = 'none';
+    }
+}
+
+function closePreviewPanel() {
+    document.getElementById('mbPreviewPanel').classList.remove('open');
+    document.getElementById('mbPreviewBackdrop').classList.remove('open');
+    if (_selectedCard) {
+        document.querySelector(`.mb-card[data-name="${_selectedCard}"]`)?.classList.remove('selected');
+        _selectedCard = null;
+    }
+    document.getElementById('mbPreviewPanelPlaceholder').style.display = '';
+    document.getElementById('mbPreviewPanelContent').style.display = 'none';
+    const nameEl = document.getElementById('mbPreviewPanelName');
+    if (nameEl) nameEl.textContent = 'Preview';
+}
+
+// ── Modal helpers ─────────────────────────────────────────────────────────
+function openModal(backdropId, modalId) {
+    document.getElementById(backdropId).classList.add('open');
+    document.getElementById(modalId).classList.add('open');
+    document.body.style.overflow = 'hidden';
+}
+function closeModal(backdropId, modalId) {
+    document.getElementById(backdropId).classList.remove('open');
+    document.getElementById(modalId).classList.remove('open');
+    document.body.style.overflow = '';
+}
+
+function showMsg(el, text, type) {
+    el.textContent = text;
+    el.className   = `form-message msg-${type}`;
+    if (type === 'error') setTimeout(() => { el.textContent = ''; el.className = 'form-message'; }, 3500);
+}
+</script>
+
+<%- include('../partials/footer') %>

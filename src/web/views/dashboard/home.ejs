@@ -1,0 +1,236 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+
+<div class="dash-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <!-- Bot brand: hanya muncul di mobile (dalam drawer sidebar) -->
+        <div class="sidebar-bot-brand">
+            <img style="width:30px;height:30px;border-radius:50%;object-fit:cover;flex-shrink:0;"
+                 src="<%- locals.botNavAvatar || 'https://cdn.discordapp.com/embed/avatars/0.png' %>"
+                 alt="Bot" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+            <span style="font-size:.95rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;background:linear-gradient(135deg,#e3e5e8,#8b8fbd);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">
+                <%- locals.botNavName || 'OCTA BOT' %>
+            </span>
+            <button class="sidebar-bot-close" onclick="closeSidebar()" title="Tutup"><i data-lucide="x"></i></button>
+        </div>
+        <div class="sidebar-guild">
+            <button class="sidebar-server-btn" onclick="toggleServerSelector()">
+                <% if (guild.iconURL()) { %><img src="<%= guild.iconURL() %>" alt="<%= guild.name %>" class="sidebar-guild-icon">
+                <% } else { %><div class="sidebar-guild-icon-placeholder"><%= guild.name.charAt(0) %></div><% } %>
+                <span class="sidebar-guild-name"><%= guild.name %></span>
+                <span class="sidebar-server-chevron"><i data-lucide="chevron-down"></i></span>
+            </button>
+            <div class="sidebar-server-dd" id="sidebarServerDD">
+                <div class="sidebar-server-dd-item active">
+                    <% if (guild.iconURL()) { %><img src="<%= guild.iconURL() %>" alt="" class="sidebar-guild-icon">
+                    <% } else { %><div class="sidebar-guild-icon-placeholder"><%= guild.name.charAt(0) %></div><% } %>
+                    <%= guild.name %>
+                </div>
+                <div class="sidebar-server-dd-divider"></div>
+                <a href="/dashboard" class="sidebar-server-dd-item sidebar-server-dd-change">
+                    <i data-lucide="arrow-left-right"></i> Ganti Server
+                </a>
+            </div>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="/dashboard/<%= guild.id %>"                  class="sidebar-link active"><i data-lucide="layout-dashboard"></i> Overview</a>
+            <span class="sidebar-group-label">Notification</span>
+            <a href="/dashboard/<%= guild.id %>/welcome"              class="sidebar-sublink"><i data-lucide="user-plus"></i> Welcome Notification</a>
+            <a href="/dashboard/<%= guild.id %>/goodbye"              class="sidebar-sublink"><i data-lucide="log-out"></i> Goodbye Notification</a>
+            <a href="/dashboard/<%= guild.id %>/booster?tab=boost"    class="sidebar-sublink"><i data-lucide="zap"></i> Boost Notification</a>
+            <a href="/dashboard/<%= guild.id %>/booster?tab=unboost"  class="sidebar-sublink"><i data-lucide="zap-off"></i> Unboost Notification</a>
+            <span class="sidebar-group-label">Auto Role</span>
+            <a href="/dashboard/<%= guild.id %>/autorole?tab=join"    class="sidebar-sublink"><i data-lucide="users"></i> Autorole Join</a>
+            <a href="/dashboard/<%= guild.id %>/autorole?tab=booster" class="sidebar-sublink"><i data-lucide="zap"></i> Autorole Booster</a>
+            <a href="/dashboard/<%= guild.id %>/autorole?tab=button"  class="sidebar-sublink"><i data-lucide="mouse-pointer-2"></i> Autorole Button</a>
+            <span class="sidebar-group-label">Others</span>
+            <a href="/dashboard/<%= guild.id %>/message-builder"      class="sidebar-sublink"><i data-lucide="mail"></i> Message Builder</a>
+            <a href="/dashboard/<%= guild.id %>/serverstats"          class="sidebar-sublink"><i data-lucide="bar-chart-2"></i> Server Stats</a>
+            <a href="/dashboard/<%= guild.id %>/invites"              class="sidebar-sublink"><i data-lucide="link"></i> Invite Links</a>
+        </nav>
+    </aside>
+
+    <!-- Main content -->
+    <main class="dash-main">
+    <div class="dash-content">
+        <div class="page-header">
+            <h1>Overview</h1>
+            <p>Selamat datang di dashboard <strong><%= guild.name %></strong>.</p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon"><i data-lucide="users"></i></div>
+                <div class="stat-info">
+                    <div class="stat-value"><%= guild.memberCount %></div>
+                    <div class="stat-label">Total Member</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon"><i data-lucide="hash"></i></div>
+                <div class="stat-info">
+                    <div class="stat-value"><%= guild.channels.cache.filter(c => c.type === 0).size %></div>
+                    <div class="stat-label">Text Channel</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon"><i data-lucide="shield"></i></div>
+                <div class="stat-info">
+                    <div class="stat-value"><%= guild.roles.cache.size %></div>
+                    <div class="stat-label">Role</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon"><i data-lucide="pencil"></i></div>
+                <div class="stat-info">
+                    <div class="stat-value" style="font-size:1rem;"><%= botNickname %></div>
+                    <div class="stat-label">Nickname Bot</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Permission Status -->
+        <% if (missingPerms.length === 0) { %>
+        <div class="perm-card perm-ok">
+            <i data-lucide="check-circle"></i>
+            <span>Semua permission yang diperlukan sudah dimiliki bot.</span>
+        </div>
+        <% } else { %>
+        <div class="perm-card perm-warn">
+            <div class="perm-header">
+                <i data-lucide="alert-triangle"></i>
+                <span><strong><%= missingPerms.length %> permission</strong> yang diperlukan bot belum diberikan:</span>
+            </div>
+            <ul class="perm-list">
+                <% missingPerms.forEach(p => { %>
+                <li>
+                    <code class="perm-name"><%= p.name %></code>
+                    <span class="perm-desc">— <%= p.desc %></span>
+                </li>
+                <% }); %>
+            </ul>
+            <p class="perm-hint">Buka pengaturan server Discord → Roles → pilih role bot → centang permission di atas.</p>
+        </div>
+        <% } %>
+
+        <!-- Ubah Nickname Bot -->
+        <div class="settings-card">
+            <h2>Nickname Bot</h2>
+            <div class="form-row">
+                <input type="text" id="nicknameInput" class="input" value="<%= botNickname %>"
+                       maxlength="32" placeholder="Kosongkan untuk reset ke nama asli" style="max-width:240px">
+                <button class="btn btn-primary" onclick="saveNickname('<%= guild.id %>')">Simpan</button>
+            </div>
+            <div id="nicknameMsg" class="form-message"></div>
+        </div>
+
+        <div class="feat-section-title">Fitur Dashboard</div>
+        <div class="feat-grid">
+            <a href="/dashboard/<%= guild.id %>/welcome" class="feat-card">
+                <div class="feat-icon-wrap blue"><i data-lucide="user-plus"></i></div>
+                <div class="feat-body">
+                    <div class="feat-title">Welcome Notification</div>
+                    <div class="feat-desc">Kartu & notifikasi sambutan otomatis saat member bergabung.</div>
+                </div>
+                <div class="feat-arrow"><i data-lucide="chevron-right"></i></div>
+            </a>
+            <a href="/dashboard/<%= guild.id %>/goodbye" class="feat-card">
+                <div class="feat-icon-wrap red"><i data-lucide="log-out"></i></div>
+                <div class="feat-body">
+                    <div class="feat-title">Goodbye Notification</div>
+                    <div class="feat-desc">Kartu & notifikasi perpisahan otomatis saat member keluar.</div>
+                </div>
+                <div class="feat-arrow"><i data-lucide="chevron-right"></i></div>
+            </a>
+            <a href="/dashboard/<%= guild.id %>/booster?tab=boost" class="feat-card">
+                <div class="feat-icon-wrap" style="background:rgba(255,115,250,.15);color:#FF73FA;"><i data-lucide="zap"></i></div>
+                <div class="feat-body">
+                    <div class="feat-title">Boost Notification</div>
+                    <div class="feat-desc">Notifikasi otomatis saat member melakukan boost server.</div>
+                </div>
+                <div class="feat-arrow"><i data-lucide="chevron-right"></i></div>
+            </a>
+            <a href="/dashboard/<%= guild.id %>/booster?tab=unboost" class="feat-card">
+                <div class="feat-icon-wrap" style="background:rgba(237,66,69,.15);color:#ED4245;"><i data-lucide="zap-off"></i></div>
+                <div class="feat-body">
+                    <div class="feat-title">Unboost Notification</div>
+                    <div class="feat-desc">Notifikasi otomatis saat member menghapus boost server.</div>
+                </div>
+                <div class="feat-arrow"><i data-lucide="chevron-right"></i></div>
+            </a>
+            <a href="/dashboard/<%= guild.id %>/message-builder" class="feat-card">
+                <div class="feat-icon-wrap purple"><i data-lucide="mail"></i></div>
+                <div class="feat-body">
+                    <div class="feat-title">Message Builder</div>
+                    <div class="feat-desc">Buat dan kirim template pesan embed ke channel manapun.</div>
+                </div>
+                <div class="feat-arrow"><i data-lucide="chevron-right"></i></div>
+            </a>
+            <a href="/dashboard/<%= guild.id %>/autorole?tab=join" class="feat-card">
+                <div class="feat-icon-wrap green"><i data-lucide="users"></i></div>
+                <div class="feat-body">
+                    <div class="feat-title">Autorole Join</div>
+                    <div class="feat-desc">Berikan role otomatis saat member baru bergabung.</div>
+                </div>
+                <div class="feat-arrow"><i data-lucide="chevron-right"></i></div>
+            </a>
+            <a href="/dashboard/<%= guild.id %>/autorole?tab=booster" class="feat-card">
+                <div class="feat-icon-wrap" style="background:rgba(88,101,242,.15);color:#5865f2;"><i data-lucide="zap"></i></div>
+                <div class="feat-body">
+                    <div class="feat-title">Autorole Booster</div>
+                    <div class="feat-desc">Berikan role otomatis saat member melakukan boost server.</div>
+                </div>
+                <div class="feat-arrow"><i data-lucide="chevron-right"></i></div>
+            </a>
+            <a href="/dashboard/<%= guild.id %>/autorole?tab=button" class="feat-card">
+                <div class="feat-icon-wrap orange"><i data-lucide="mouse-pointer-2"></i></div>
+                <div class="feat-body">
+                    <div class="feat-title">Autorole Button</div>
+                    <div class="feat-desc">Panel tombol interaktif untuk member memilih role sendiri.</div>
+                </div>
+                <div class="feat-arrow"><i data-lucide="chevron-right"></i></div>
+            </a>
+            <a href="/dashboard/<%= guild.id %>/serverstats" class="feat-card">
+                <div class="feat-icon-wrap" style="background:rgba(87,242,135,.12);color:#57F287;"><i data-lucide="bar-chart-2"></i></div>
+                <div class="feat-body">
+                    <div class="feat-title">Server Stats</div>
+                    <div class="feat-desc">Tampilkan statistik member secara otomatis via channel voice.</div>
+                </div>
+                <div class="feat-arrow"><i data-lucide="chevron-right"></i></div>
+            </a>
+            <a href="/dashboard/<%= guild.id %>/invites" class="feat-card">
+                <div class="feat-icon-wrap" style="background:rgba(88,101,242,.15);color:#5865F2;"><i data-lucide="link"></i></div>
+                <div class="feat-body">
+                    <div class="feat-title">Invite Links</div>
+                    <div class="feat-desc">Lihat semua invite link server beserta statistik penggunaannya.</div>
+                </div>
+                <div class="feat-arrow"><i data-lucide="chevron-right"></i></div>
+            </a>
+        </div>
+    </div>
+    </main>
+</div>
+
+<script>
+async function saveNickname(guildId) {
+    const nickname = document.getElementById('nicknameInput').value.trim();
+    const msg      = document.getElementById('nicknameMsg');
+
+    const res  = await fetch(`/api/guild/${guildId}/nickname`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nickname })
+    });
+    const data = await res.json();
+    showMsg(msg, data.message, data.success ? 'success' : 'error');
+}
+
+function showMsg(el, text, type) {
+    el.textContent = text;
+    el.className   = `form-message msg-${type}`;
+    setTimeout(() => { el.textContent = ''; el.className = 'form-message'; }, 3000);
+}
+</script>
+
+<%- include('../partials/footer') %>

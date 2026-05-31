@@ -1,0 +1,319 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+
+<div class="dash-layout">
+    <aside class="sidebar">
+        <div class="sidebar-bot-brand">
+            <img style="width:30px;height:30px;border-radius:50%;object-fit:cover;flex-shrink:0;"
+                 src="<%- locals.botNavAvatar || 'https://cdn.discordapp.com/embed/avatars/0.png' %>"
+                 alt="Bot" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+            <span style="font-size:.95rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;background:linear-gradient(135deg,#e3e5e8,#8b8fbd);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">
+                <%- locals.botNavName || 'OCTA BOT' %>
+            </span>
+            <button class="sidebar-bot-close" onclick="closeSidebar()" title="Tutup"><i data-lucide="x"></i></button>
+        </div>
+        <div class="sidebar-guild">
+            <button class="sidebar-server-btn" onclick="toggleServerSelector()">
+                <% if (guild.iconURL()) { %><img src="<%= guild.iconURL() %>" alt="<%= guild.name %>" class="sidebar-guild-icon">
+                <% } else { %><div class="sidebar-guild-icon-placeholder"><%= guild.name.charAt(0) %></div><% } %>
+                <span class="sidebar-guild-name"><%= guild.name %></span>
+                <span class="sidebar-server-chevron"><i data-lucide="chevron-down"></i></span>
+            </button>
+            <div class="sidebar-server-dd" id="sidebarServerDD">
+                <div class="sidebar-server-dd-item active">
+                    <% if (guild.iconURL()) { %><img src="<%= guild.iconURL() %>" alt="" class="sidebar-guild-icon">
+                    <% } else { %><div class="sidebar-guild-icon-placeholder"><%= guild.name.charAt(0) %></div><% } %>
+                    <%= guild.name %>
+                </div>
+                <div class="sidebar-server-dd-divider"></div>
+                <a href="/dashboard" class="sidebar-server-dd-item sidebar-server-dd-change">
+                    <i data-lucide="arrow-left-right"></i> Ganti Server
+                </a>
+            </div>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="/dashboard/<%= guild.id %>"                  class="sidebar-link"><i data-lucide="layout-dashboard"></i> Overview</a>
+            <span class="sidebar-group-label">Notification</span>
+            <a href="/dashboard/<%= guild.id %>/welcome"              class="sidebar-sublink"><i data-lucide="user-plus"></i> Welcome Notification</a>
+            <a href="/dashboard/<%= guild.id %>/goodbye"              class="sidebar-sublink"><i data-lucide="log-out"></i> Goodbye Notification</a>
+            <a href="/dashboard/<%= guild.id %>/booster?tab=boost"    class="sidebar-sublink"><i data-lucide="zap"></i> Boost Notification</a>
+            <a href="/dashboard/<%= guild.id %>/booster?tab=unboost"  class="sidebar-sublink"><i data-lucide="zap-off"></i> Unboost Notification</a>
+            <span class="sidebar-group-label">Auto Role</span>
+            <a href="/dashboard/<%= guild.id %>/autorole?tab=join"    class="sidebar-sublink"><i data-lucide="users"></i> Autorole Join</a>
+            <a href="/dashboard/<%= guild.id %>/autorole?tab=booster" class="sidebar-sublink"><i data-lucide="zap"></i> Autorole Booster</a>
+            <a href="/dashboard/<%= guild.id %>/autorole?tab=button"  class="sidebar-sublink"><i data-lucide="mouse-pointer-2"></i> Autorole Button</a>
+            <span class="sidebar-group-label">Others</span>
+            <a href="/dashboard/<%= guild.id %>/message-builder"      class="sidebar-sublink"><i data-lucide="mail"></i> Message Builder</a>
+            <a href="/dashboard/<%= guild.id %>/serverstats"          class="sidebar-sublink active"><i data-lucide="bar-chart-2"></i> Server Stats</a>
+            <a href="/dashboard/<%= guild.id %>/invites"              class="sidebar-sublink"><i data-lucide="link"></i> Invite Links</a>
+        </nav>
+    </aside>
+
+    <main class="dash-main">
+    <div class="dash-content">
+
+        <div class="page-header">
+            <h1>Server Stats</h1>
+            <p>Tampilkan statistik member server secara otomatis melalui channel voice.</p>
+        </div>
+
+        <!-- ── Stats Overview ──────────────────────────────────────────── -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon"><i data-lucide="users"></i></div>
+                <div class="stat-info">
+                    <div class="stat-value"><%= totalCount %></div>
+                    <div class="stat-label">Total Member</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="color:#57F287;"><i data-lucide="user"></i></div>
+                <div class="stat-info">
+                    <div class="stat-value"><%= humanCount %></div>
+                    <div class="stat-label">User</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="color:#5865F2;"><i data-lucide="bot"></i></div>
+                <div class="stat-info">
+                    <div class="stat-value"><%= botCount %></div>
+                    <div class="stat-label">Bot</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="color:<%= serverstatsData.enabled ? '#57F287' : '#ED4245' %>;"><i data-lucide="<%= serverstatsData.enabled ? 'check-circle' : 'x-circle' %>"></i></div>
+                <div class="stat-info">
+                    <div class="stat-value" style="font-size:1rem;color:<%= serverstatsData.enabled ? '#57F287' : '#ED4245' %>"><%= serverstatsData.enabled ? 'Aktif' : 'Nonaktif' %></div>
+                    <div class="stat-label">Status</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Status Toggle ───────────────────────────────────────────── -->
+        <div class="settings-card">
+            <h2>Status Server Stats</h2>
+            <p class="section-desc" style="margin-bottom:1rem;">Aktifkan agar channel voice diperbarui otomatis setiap ada member bergabung atau keluar.</p>
+            <div class="form-group">
+                <label class="toggle-label">
+                    <input type="checkbox" id="ssEnabled" class="toggle-input" <%= serverstatsData.enabled ? 'checked' : '' %>
+                           <% if (!serverstatsData.categoryId || !serverstatsData.totalId) { %>disabled title="Lakukan Setup terlebih dahulu"<% } %>>
+                    <span class="toggle-slider"></span>
+                    <span>Aktifkan Server Stats</span>
+                </label>
+            </div>
+            <div id="statusMsg" class="form-message"></div>
+        </div>
+
+        <% if (serverstatsData.categoryId && serverstatsData.totalId && serverstatsData.humanId && serverstatsData.botId) { %>
+        <!-- ── Label Format ────────────────────────────────────────────── -->
+        <div class="settings-card">
+            <h2>Format Label Channel</h2>
+            <p class="section-desc">Gunakan <code>{count}</code> sebagai placeholder angka. Maksimal 90 karakter per label.</p>
+
+            <div class="form-group" style="margin-top:1.25rem;">
+                <label class="label">Nama Kategori</label>
+                <input type="text" id="lblCategory" class="input" maxlength="90"
+                       value="<%= serverstatsData.categoryLabel %>" placeholder="📊 Server Stats">
+                <div style="font-size:.78rem;color:var(--text-muted);margin-top:.3rem;">
+                    Preview: <strong id="previewCategory"><%= serverstatsData.categoryLabel %></strong>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="label">Format Total Member</label>
+                <input type="text" id="lblTotal" class="input" maxlength="90"
+                       value="<%= serverstatsData.totalLabel %>" placeholder="👥 Total Member: {count}">
+                <div style="font-size:.78rem;color:var(--text-muted);margin-top:.3rem;">
+                    Preview: <strong id="previewTotal"></strong>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="label">Format User</label>
+                <input type="text" id="lblHuman" class="input" maxlength="90"
+                       value="<%= serverstatsData.humanLabel %>" placeholder="👤 User: {count}">
+                <div style="font-size:.78rem;color:var(--text-muted);margin-top:.3rem;">
+                    Preview: <strong id="previewHuman"></strong>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="label">Format Bot</label>
+                <input type="text" id="lblBot" class="input" maxlength="90"
+                       value="<%= serverstatsData.botLabel %>" placeholder="🤖 Bot: {count}">
+                <div style="font-size:.78rem;color:var(--text-muted);margin-top:.3rem;">
+                    Preview: <strong id="previewBot"></strong>
+                </div>
+            </div>
+
+            <div class="form-row" style="gap:.75rem;margin-top:.5rem;">
+                <button class="btn btn-primary" onclick="saveLabels('<%= guild.id %>')">Simpan Label</button>
+            </div>
+            <div id="labelsMsg" class="form-message"></div>
+        </div>
+
+        <!-- ── Danger Zone ─────────────────────────────────────────────── -->
+        <div class="settings-card" style="border:1px solid rgba(237,66,69,.3);">
+            <h2 style="color:#ED4245;">Reset Server Stats</h2>
+            <p class="section-desc" style="margin-bottom:1.25rem;">Menghapus semua konfigurasi <strong>dan</strong> menghapus channel kategori serta ketiga channel voice statistik dari Discord secara permanen.</p>
+            <button class="btn" style="background:#ED4245;color:#fff;" onclick="openResetModal('<%= guild.id %>')">
+                <i data-lucide="trash-2"></i> Reset Server Stats
+            </button>
+        </div>
+
+        <% } else { %>
+        <!-- ── Setup ───────────────────────────────────────────────────── -->
+        <div class="settings-card">
+            <h2>Setup Server Stats</h2>
+            <p class="section-desc" style="margin-bottom:1.25rem;">Server Stats belum disetup. Klik tombol di bawah untuk membuat kategori dan tiga channel voice statistik secara otomatis.</p>
+            <div style="background:rgba(88,101,242,.08);border:1px solid rgba(88,101,242,.25);border-radius:8px;padding:.9rem 1rem;margin-bottom:1.2rem;">
+                <div style="font-size:.85rem;color:var(--text-secondary);line-height:1.6;">
+                    <strong style="color:#5865F2;">Yang akan dibuat:</strong><br>
+                    📁 1 Kategori &nbsp;·&nbsp; 👥 Channel Total Member &nbsp;·&nbsp; 👤 Channel User &nbsp;·&nbsp; 🤖 Channel Bot
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="label">Nama Kategori <span style="color:var(--text-muted);font-weight:400;">(opsional)</span></label>
+                <input type="text" id="setupCategoryName" class="input" maxlength="90"
+                       placeholder="📊 Server Stats" style="max-width:320px;">
+            </div>
+            <div class="form-row">
+                <button class="btn btn-primary" onclick="doSetup('<%= guild.id %>')">+ Buat Channel Statistik</button>
+            </div>
+            <div id="setupMsg" class="form-message"></div>
+        </div>
+        <% } %>
+
+    </div>
+    </main>
+</div>
+
+<!-- ── Reset Confirmation Modal ───────────────────────────────────────── -->
+<div id="resetModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.6);align-items:center;justify-content:center;">
+    <div style="background:var(--bg-2,#2b2d31);border-radius:12px;padding:1.75rem 2rem;max-width:420px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,.4);">
+        <h3 style="margin:0 0 .6rem;color:#ED4245;display:flex;align-items:center;gap:.5rem;"><i data-lucide="alert-triangle"></i> Konfirmasi Reset</h3>
+        <p style="color:var(--text-secondary);font-size:.9rem;margin:0 0 1.25rem;">Tindakan ini akan <strong>menghapus permanen</strong> semua channel statistik dan konfigurasi Server Stats dari server ini. Tidak bisa dibatalkan!</p>
+        <div style="display:flex;gap:.75rem;">
+            <button class="btn" style="background:#ED4245;color:#fff;flex:1;" id="resetConfirmBtn" onclick="confirmReset()">
+                <i data-lucide="trash-2"></i> Ya, Hapus Semuanya
+            </button>
+            <button class="btn" style="background:var(--bg-3);color:var(--text-secondary);flex:1;" onclick="closeResetModal()">Batal</button>
+        </div>
+        <div id="resetMsg" class="form-message" style="margin-top:.75rem;"></div>
+    </div>
+</div>
+
+<script>
+const GUILD_ID   = '<%= guild.id %>';
+const TOTAL_C    = <%= totalCount %>;
+const HUMAN_C    = <%= humanCount %>;
+const BOT_C      = <%= botCount %>;
+
+function parseLabel(tpl, count) {
+    return tpl.replace(/\{count\}/g, String(count));
+}
+
+function updatePreviews() {
+    const total = document.getElementById('lblTotal');
+    const human = document.getElementById('lblHuman');
+    const bot   = document.getElementById('lblBot');
+    const cat   = document.getElementById('lblCategory');
+    if (total)  document.getElementById('previewTotal').textContent  = parseLabel(total.value, TOTAL_C);
+    if (human)  document.getElementById('previewHuman').textContent  = parseLabel(human.value, HUMAN_C);
+    if (bot)    document.getElementById('previewBot').textContent    = parseLabel(bot.value, BOT_C);
+    if (cat)    document.getElementById('previewCategory').textContent = cat.value;
+}
+
+['lblTotal','lblHuman','lblBot','lblCategory'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', updatePreviews);
+});
+
+updatePreviews();
+
+// ── Status toggle ────────────────────────────────────────────────────
+document.getElementById('ssEnabled')?.addEventListener('change', async function() {
+    const msg = document.getElementById('statusMsg');
+    const checked = this.checked;
+    const res  = await fetch(`/api/guild/${GUILD_ID}/serverstats`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enabled: checked })
+    });
+    const data = await res.json();
+    showMsg(msg, data.message, data.success ? 'success' : 'error');
+    if (!data.success) this.checked = !checked;
+});
+
+// ── Save labels ──────────────────────────────────────────────────────
+async function saveLabels(guildId) {
+    const msg = document.getElementById('labelsMsg');
+    const totalLabel    = document.getElementById('lblTotal')?.value.trim();
+    const humanLabel    = document.getElementById('lblHuman')?.value.trim();
+    const botLabel      = document.getElementById('lblBot')?.value.trim();
+    const categoryLabel = document.getElementById('lblCategory')?.value.trim();
+
+    const res  = await fetch(`/api/guild/${guildId}/serverstats`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ totalLabel, humanLabel, botLabel, categoryLabel })
+    });
+    const data = await res.json();
+    showMsg(msg, data.message, data.success ? 'success' : 'error');
+}
+
+// ── Setup ────────────────────────────────────────────────────────────
+async function doSetup(guildId) {
+    const msg  = document.getElementById('setupMsg');
+    const btn  = document.querySelector('[onclick*="doSetup"]');
+    const categoryName = document.getElementById('setupCategoryName')?.value.trim() || '';
+
+    if (btn) { btn.disabled = true; btn.textContent = 'Membuat channel...'; }
+    const res  = await fetch(`/api/guild/${guildId}/serverstats/setup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ categoryName })
+    });
+    const data = await res.json();
+    showMsg(msg, data.message, data.success ? 'success' : 'error');
+    if (btn) { btn.disabled = false; btn.innerHTML = '<i data-lucide="plus-circle"></i> Buat Channel Statistik'; if(window.lucide) lucide.createIcons(); }
+    if (data.success) setTimeout(() => location.reload(), 1500);
+}
+
+// ── Reset ────────────────────────────────────────────────────────────
+function openResetModal(guildId) {
+    const modal = document.getElementById('resetModal');
+    modal.style.display = 'flex';
+    if (window.lucide) lucide.createIcons();
+}
+function closeResetModal() {
+    document.getElementById('resetModal').style.display = 'none';
+}
+
+async function confirmReset() {
+    const msg = document.getElementById('resetMsg');
+    const btn = document.getElementById('resetConfirmBtn');
+    btn.disabled = true;
+    btn.textContent = 'Menghapus...';
+
+    const res  = await fetch(`/api/guild/${GUILD_ID}/serverstats/reset`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+    });
+    const data = await res.json();
+    showMsg(msg, data.message, data.success ? 'success' : 'error');
+    btn.disabled = false;
+    btn.innerHTML = '<i data-lucide="trash-2"></i> Ya, Hapus Semuanya';
+    if (window.lucide) lucide.createIcons();
+    if (data.success) setTimeout(() => { closeResetModal(); location.reload(); }, 1500);
+}
+
+function showMsg(el, text, type) {
+    if (!el) return;
+    el.textContent = text;
+    el.className   = `form-message msg-${type}`;
+    if (type === 'success') setTimeout(() => { el.textContent = ''; el.className = 'form-message'; }, 3500);
+}
+</script>
+
+<%- include('../partials/footer') %>

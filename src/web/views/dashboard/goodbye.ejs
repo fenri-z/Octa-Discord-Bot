@@ -1,0 +1,997 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+
+<div class="dash-layout">
+    <aside class="sidebar">
+        <div class="sidebar-bot-brand">
+            <img style="width:30px;height:30px;border-radius:50%;object-fit:cover;flex-shrink:0;"
+                 src="<%- locals.botNavAvatar || 'https://cdn.discordapp.com/embed/avatars/0.png' %>"
+                 alt="Bot" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+            <span style="font-size:.95rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;background:linear-gradient(135deg,#e3e5e8,#8b8fbd);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">
+                <%- locals.botNavName || 'OCTA BOT' %>
+            </span>
+            <button class="sidebar-bot-close" onclick="closeSidebar()" title="Tutup"><i data-lucide="x"></i></button>
+        </div>
+        <div class="sidebar-guild">
+            <button class="sidebar-server-btn" onclick="toggleServerSelector()">
+                <% if (guild.iconURL()) { %><img src="<%= guild.iconURL() %>" alt="<%= guild.name %>" class="sidebar-guild-icon">
+                <% } else { %><div class="sidebar-guild-icon-placeholder"><%= guild.name.charAt(0) %></div><% } %>
+                <span class="sidebar-guild-name"><%= guild.name %></span>
+                <span class="sidebar-server-chevron"><i data-lucide="chevron-down"></i></span>
+            </button>
+            <div class="sidebar-server-dd" id="sidebarServerDD">
+                <div class="sidebar-server-dd-item active">
+                    <% if (guild.iconURL()) { %><img src="<%= guild.iconURL() %>" alt="" class="sidebar-guild-icon">
+                    <% } else { %><div class="sidebar-guild-icon-placeholder"><%= guild.name.charAt(0) %></div><% } %>
+                    <%= guild.name %>
+                </div>
+                <div class="sidebar-server-dd-divider"></div>
+                <a href="/dashboard" class="sidebar-server-dd-item sidebar-server-dd-change">
+                    <i data-lucide="arrow-left-right"></i> Ganti Server
+                </a>
+            </div>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="/dashboard/<%= guild.id %>"                  class="sidebar-link"><i data-lucide="layout-dashboard"></i> Overview</a>
+            <span class="sidebar-group-label">Notification</span>
+            <a href="/dashboard/<%= guild.id %>/welcome"              class="sidebar-sublink"><i data-lucide="user-plus"></i> Welcome Notification</a>
+            <a href="/dashboard/<%= guild.id %>/goodbye"              class="sidebar-sublink active"><i data-lucide="log-out"></i> Goodbye Notification</a>
+            <a href="/dashboard/<%= guild.id %>/booster?tab=boost"    class="sidebar-sublink"><i data-lucide="zap"></i> Boost Notification</a>
+            <a href="/dashboard/<%= guild.id %>/booster?tab=unboost"  class="sidebar-sublink"><i data-lucide="zap-off"></i> Unboost Notification</a>
+            <span class="sidebar-group-label">Auto Role</span>
+            <a href="/dashboard/<%= guild.id %>/autorole?tab=join"    class="sidebar-sublink"><i data-lucide="users"></i> Autorole Join</a>
+            <a href="/dashboard/<%= guild.id %>/autorole?tab=booster" class="sidebar-sublink"><i data-lucide="zap"></i> Autorole Booster</a>
+            <a href="/dashboard/<%= guild.id %>/autorole?tab=button"  class="sidebar-sublink"><i data-lucide="mouse-pointer-2"></i> Autorole Button</a>
+            <span class="sidebar-group-label">Others</span>
+            <a href="/dashboard/<%= guild.id %>/message-builder"      class="sidebar-sublink"><i data-lucide="mail"></i> Message Builder</a>
+            <a href="/dashboard/<%= guild.id %>/serverstats"          class="sidebar-sublink"><i data-lucide="bar-chart-2"></i> Server Stats</a>
+            <a href="/dashboard/<%= guild.id %>/invites"              class="sidebar-sublink"><i data-lucide="link"></i> Invite Links</a>
+        </nav>
+    </aside>
+
+    <main class="dash-main" style="max-width:100%;">
+        <div class="page-header">
+            <h1>Goodbye Notification</h1>
+            <p>Notifikasi yang dikirim saat member meninggalkan server.</p>
+        </div>
+
+        <div class="goodbye-editor-layout">
+            <!-- ── Kolom kiri: form settings ── -->
+            <div class="settings-card" style="margin-bottom:0;">
+
+                <div class="form-group">
+                    <label class="toggle-label">
+                        <input type="checkbox" id="goodbyeEnabled" class="toggle-input"
+                               <%= goodbyeData.enabled ? 'checked' : '' %>>
+                        <span class="toggle-slider"></span>
+                        <span>Aktifkan Goodbye Notification</span>
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label class="label">Channel</label>
+                    <select id="goodbyeChannel" class="select">
+                        <option value="">— Pilih channel —</option>
+                        <% (locals.channels || []).forEach(ch => { %>
+                            <option value="<%= ch.id %>" <%= goodbyeData.channelId === ch.id ? 'selected' : '' %>>
+                                #<%= ch.name %>
+                            </option>
+                        <% }) %>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="label">Tipe Pesan</label>
+                    <div style="display:flex;gap:.75rem;">
+                        <label class="radio-label" style="display:flex;align-items:center;gap:.5rem;cursor:pointer;">
+                            <input type="radio" name="goodbyeMessageType" id="typeEmbed" value="embed"
+                                   <%= (goodbyeData.messageType || 'embed') === 'embed' ? 'checked' : '' %>>
+                            <span>Embed</span>
+                        </label>
+                        <label class="radio-label" style="display:flex;align-items:center;gap:.5rem;cursor:pointer;">
+                            <input type="radio" name="goodbyeMessageType" id="typePlain" value="plain"
+                                   <%= goodbyeData.messageType === 'plain' ? 'checked' : '' %>>
+                            <span>Teks Biasa</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- ── Panel Teks Biasa ── -->
+                <div id="plainTextPanel" class="form-group" style="display:none;">
+                    <div class="label-with-picker">
+                        <label class="label" style="margin-bottom:0;">Isi Pesan Teks Biasa</label>
+                        <div class="ph-picker-anchor">
+                            <button type="button" class="ph-toggle-btn" onclick="togglePicker('plainPicker',event)">{…} Placeholder</button>
+                            <div class="ph-dropdown" id="plainPicker" style="display:none;"></div>
+                        </div>
+                    </div>
+                    <textarea id="goodbyePlainText" class="textarea" rows="3"
+                              placeholder="Sampai jumpa, {member}! Terima kasih sudah bersama kami di **{server}**."><%= goodbyeData.plainText %></textarea>
+                </div>
+
+                <!-- ── Panel Embed ── -->
+                <div id="embedPanel">
+
+                <div class="form-group">
+                    <div class="label-with-picker">
+                        <label class="label" style="margin-bottom:0;">Judul Embed</label>
+                        <div class="ph-picker-anchor">
+                            <button type="button" class="ph-toggle-btn" onclick="togglePicker('embedPicker',event)">{…} Placeholder</button>
+                            <div class="ph-dropdown" id="embedPicker" style="display:none;"></div>
+                        </div>
+                    </div>
+                    <input type="text" id="goodbyeTitle" class="input"
+                           placeholder="👋 Selamat Tinggal!"
+                           value="<%= goodbyeData.title || '' %>">
+                </div>
+
+                <div class="form-group">
+                    <label class="label">Deskripsi Embed</label>
+                    <textarea id="goodbyeDescription" class="textarea" rows="3"
+                              placeholder="{member} telah meninggalkan server."><%= goodbyeData.description || '' %></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label class="label">Warna Embed</label>
+                    <div style="display:flex;gap:.75rem;align-items:center;">
+                        <input type="color" id="goodbyeColorPicker" value="<%= goodbyeData.color || '#ED4245' %>"
+                               style="width:44px;height:36px;border:none;border-radius:6px;cursor:pointer;padding:0;background:none;"
+                               oninput="syncHex('goodbyeColor','goodbyeColorPicker')">
+                        <input type="text" id="goodbyeColor" class="input" style="max-width:130px;"
+                               placeholder="#ED4245" maxlength="7"
+                               value="<%= goodbyeData.color || '#ED4245' %>"
+                               oninput="syncPicker('goodbyeColor','goodbyeColorPicker')">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="label">Footer <span style="font-weight:400;color:var(--text-muted)">(opsional)</span></label>
+                    <input type="text" id="goodbyeFooter" class="input"
+                           placeholder='Kosongkan untuk menghapus'
+                           value="<%= goodbyeData.footerText || '' %>">
+                </div>
+
+                <div class="form-group">
+                    <label class="toggle-label">
+                        <input type="checkbox" id="goodbyeThumbnail" class="toggle-input"
+                               <%= goodbyeData.thumbnail ? 'checked' : '' %>>
+                        <span class="toggle-slider"></span>
+                        <span>Tampilkan foto profil member (thumbnail)</span>
+                    </label>
+                </div>
+
+                </div><!-- /embedPanel -->
+
+                <div id="fieldsPanel" class="form-group">
+                    <label class="label" style="margin-bottom:.75rem;">Field Info</label>
+                    <div style="display:flex;flex-direction:column;gap:.6rem;">
+                        <label class="toggle-label">
+                            <input type="checkbox" id="field_member" class="toggle-input field-toggle"
+                                   <%= goodbyeData.showMember ? 'checked' : '' %>>
+                            <span class="toggle-slider"></span><span>Member</span>
+                        </label>
+                        <label class="toggle-label">
+                            <input type="checkbox" id="field_bergabung" class="toggle-input field-toggle"
+                                   <%= goodbyeData.showBergabung ? 'checked' : '' %>>
+                            <span class="toggle-slider"></span><span>Bergabung Sejak</span>
+                        </label>
+                        <label class="toggle-label">
+                            <input type="checkbox" id="field_akun_dibuat" class="toggle-input field-toggle"
+                                   <%= goodbyeData.showAkunDibuat ? 'checked' : '' %>>
+                            <span class="toggle-slider"></span><span>Akun Dibuat</span>
+                        </label>
+                        <label class="toggle-label">
+                            <input type="checkbox" id="field_total_member" class="toggle-input field-toggle"
+                                   <%= goodbyeData.showTotalMember ? 'checked' : '' %>>
+                            <span class="toggle-slider"></span><span>Total Member</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-top:1.5rem;border-top:1px solid var(--border);padding-top:1.25rem;">
+                    <label class="label" style="margin-bottom:.75rem;">Goodbye Card</label>
+                    <label class="toggle-label">
+                        <input type="checkbox" id="cardEnabled" class="toggle-input"
+                               <%= goodbyeData.cardEnabled ? 'checked' : '' %>>
+                        <span class="toggle-slider"></span>
+                        <span>Kirim gambar perpisahan (goodbye card)</span>
+                    </label>
+                </div>
+
+                <div id="cardPanel" style="display:none;">
+
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;">
+                        <div class="form-group">
+                            <label class="label">Bentuk Avatar</label>
+                            <div style="display:flex;gap:.6rem;margin-top:.2rem;">
+                                <label style="display:flex;align-items:center;gap:.4rem;cursor:pointer;font-size:.85rem;">
+                                    <input type="radio" name="cardAvatarShape" value="circle" <%= (goodbyeData.cardAvatarShape||'circle')==='circle'?'checked':'' %>>
+                                    <span>Lingkaran</span>
+                                </label>
+                                <label style="display:flex;align-items:center;gap:.4rem;cursor:pointer;font-size:.85rem;">
+                                    <input type="radio" name="cardAvatarShape" value="square" <%= goodbyeData.cardAvatarShape==='square'?'checked':'' %>>
+                                    <span>Kotak</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="label">Font</label>
+                            <select id="cardFont" class="select" style="font-size:.82rem;">
+                                <% [['impact','Impact'],['arial','Arial'],['georgia','Georgia'],['courier','Courier New'],['verdana','Verdana']].forEach(function(f){ %>
+                                    <option value="<%= f[0] %>" <%= (goodbyeData.cardFont||'impact')===f[0]?'selected':'' %>><%= f[1] %></option>
+                                <% }) %>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="label">Tipe Background</label>
+                        <div style="display:flex;gap:.75rem;flex-wrap:wrap;margin-top:.2rem;">
+                            <% [['gradient','Gradien'],['solid','Solid'],['image','Gambar URL'],['transparent','Transparan']].forEach(function(bt){ %>
+                            <label style="display:flex;align-items:center;gap:.4rem;cursor:pointer;font-size:.85rem;">
+                                <input type="radio" name="cardBgType" value="<%= bt[0] %>" <%= (goodbyeData.cardBgType||'gradient')===bt[0]?'checked':'' %>>
+                                <span><%= bt[1] %></span>
+                            </label>
+                            <% }) %>
+                        </div>
+                    </div>
+
+                    <div id="cardBgGradientPanel" style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;">
+                        <div class="form-group">
+                            <label class="label" id="cardBgColor1Label">Latar Kiri</label>
+                            <div style="display:flex;gap:.5rem;align-items:center;">
+                                <input type="color" id="cardBgColorPicker" value="<%= goodbyeData.cardBgColor||'#1a0a0a' %>"
+                                       style="width:38px;height:32px;border:none;border-radius:5px;cursor:pointer;padding:0;background:none;"
+                                       oninput="syncHex('cardBgColor','cardBgColorPicker')" onchange="syncHex('cardBgColor','cardBgColorPicker')">
+                                <input type="text" id="cardBgColor" class="input" style="max-width:110px;" maxlength="7"
+                                       value="<%= goodbyeData.cardBgColor||'#1a0a0a' %>" oninput="syncPicker('cardBgColor','cardBgColorPicker')">
+                            </div>
+                        </div>
+                        <div class="form-group" id="cardBgColor2Group">
+                            <label class="label">Latar Kanan</label>
+                            <div style="display:flex;gap:.5rem;align-items:center;">
+                                <input type="color" id="cardBgColor2Picker" value="<%= goodbyeData.cardBgColor2||'#2e0a0a' %>"
+                                       style="width:38px;height:32px;border:none;border-radius:5px;cursor:pointer;padding:0;background:none;"
+                                       oninput="syncHex('cardBgColor2','cardBgColor2Picker')" onchange="syncHex('cardBgColor2','cardBgColor2Picker')">
+                                <input type="text" id="cardBgColor2" class="input" style="max-width:110px;" maxlength="7"
+                                       value="<%= goodbyeData.cardBgColor2||'#2e0a0a' %>" oninput="syncPicker('cardBgColor2','cardBgColor2Picker')">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="cardBgImagePanel" style="display:none;" class="form-group">
+                        <label class="label">URL Gambar Latar</label>
+                        <input type="text" id="cardBgImageUrl" class="input"
+                               placeholder="https://example.com/background.jpg"
+                               value="<%= goodbyeData.cardBgImageUrl||'' %>">
+                        <div class="hint" style="margin-top:.3rem;">URL gambar JPEG/PNG · Akan di-resize otomatis ke ukuran card</div>
+                    </div>
+
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;">
+                        <div class="form-group">
+                            <label class="label">Warna Overlay</label>
+                            <div style="display:flex;gap:.5rem;align-items:center;">
+                                <input type="color" id="cardOverlayColorPicker" value="<%= goodbyeData.cardOverlayColor||'#000000' %>"
+                                       style="width:38px;height:32px;border:none;border-radius:5px;cursor:pointer;padding:0;background:none;"
+                                       oninput="syncHex('cardOverlayColor','cardOverlayColorPicker')" onchange="syncHex('cardOverlayColor','cardOverlayColorPicker')">
+                                <input type="text" id="cardOverlayColor" class="input" style="max-width:110px;" maxlength="7"
+                                       value="<%= goodbyeData.cardOverlayColor||'#000000' %>" oninput="syncPicker('cardOverlayColor','cardOverlayColorPicker')">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="label" style="display:flex;justify-content:space-between;">
+                                <span>Opasitas Overlay</span>
+                                <span id="cardOverlayOpacityVal" style="color:var(--text-muted);font-weight:400;"><%= goodbyeData.cardOverlayOpacity||'0' %>%</span>
+                            </label>
+                            <input type="range" id="cardOverlayOpacity" min="0" max="100"
+                                   value="<%= goodbyeData.cardOverlayOpacity||'0' %>"
+                                   style="width:100%;margin-top:.45rem;accent-color:var(--accent,#5865f2);"
+                                   oninput="document.getElementById('cardOverlayOpacityVal').textContent=this.value+'%';drawCardPreview()">
+                        </div>
+                    </div>
+
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;">
+                        <div class="form-group">
+                            <label class="label">Warna Judul (GOODBYE)</label>
+                            <div style="display:flex;gap:.5rem;align-items:center;">
+                                <input type="color" id="cardTitleColorPicker" value="<%= goodbyeData.cardTitleColor||'#ffffff' %>"
+                                       style="width:38px;height:32px;border:none;border-radius:5px;cursor:pointer;padding:0;background:none;"
+                                       oninput="syncHex('cardTitleColor','cardTitleColorPicker')" onchange="syncHex('cardTitleColor','cardTitleColorPicker')">
+                                <input type="text" id="cardTitleColor" class="input" style="max-width:110px;" maxlength="7"
+                                       value="<%= goodbyeData.cardTitleColor||'#ffffff' %>" oninput="syncPicker('cardTitleColor','cardTitleColorPicker')">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="label">Warna Nama Pengguna</label>
+                            <div style="display:flex;gap:.5rem;align-items:center;">
+                                <input type="color" id="cardUsernameColorPicker" value="<%= goodbyeData.cardUsernameColor||goodbyeData.cardAccentColor||'#ED4245' %>"
+                                       style="width:38px;height:32px;border:none;border-radius:5px;cursor:pointer;padding:0;background:none;"
+                                       oninput="syncHex('cardUsernameColor','cardUsernameColorPicker')" onchange="syncHex('cardUsernameColor','cardUsernameColorPicker')">
+                                <input type="text" id="cardUsernameColor" class="input" style="max-width:110px;" maxlength="7"
+                                       value="<%= goodbyeData.cardUsernameColor||goodbyeData.cardAccentColor||'#ED4245' %>" oninput="syncPicker('cardUsernameColor','cardUsernameColorPicker')">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="label">Warna Pesan (sub teks)</label>
+                            <div style="display:flex;gap:.5rem;align-items:center;">
+                                <input type="color" id="cardMsgColorPicker" value="<%= goodbyeData.cardMsgColor||'#cccccc' %>"
+                                       style="width:38px;height:32px;border:none;border-radius:5px;cursor:pointer;padding:0;background:none;"
+                                       oninput="syncHex('cardMsgColor','cardMsgColorPicker')" onchange="syncHex('cardMsgColor','cardMsgColorPicker')">
+                                <input type="text" id="cardMsgColor" class="input" style="max-width:110px;" maxlength="7"
+                                       value="<%= goodbyeData.cardMsgColor||'#cccccc' %>" oninput="syncPicker('cardMsgColor','cardMsgColorPicker')">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="label">Warna Border Avatar</label>
+                            <div style="display:flex;gap:.5rem;align-items:center;">
+                                <input type="color" id="cardAccentPicker" value="<%= goodbyeData.cardAccentColor||'#ED4245' %>"
+                                       style="width:38px;height:32px;border:none;border-radius:5px;cursor:pointer;padding:0;background:none;"
+                                       oninput="syncHex('cardAccentColor','cardAccentPicker')" onchange="syncHex('cardAccentColor','cardAccentPicker')">
+                                <input type="text" id="cardAccentColor" class="input" style="max-width:110px;" maxlength="7"
+                                       value="<%= goodbyeData.cardAccentColor||'#ED4245' %>" oninput="syncPicker('cardAccentColor','cardAccentPicker')">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="label">Teks Besar (GOODBYE)</label>
+                        <input type="text" id="cardWelcomeText" class="input" maxlength="20"
+                               placeholder="GOODBYE" value="<%= goodbyeData.cardWelcomeText||'GOODBYE' %>">
+                    </div>
+                    <div class="form-group">
+                        <label class="label">Teks Kecil Bawah</label>
+                        <input type="text" id="cardSubText" class="input" maxlength="60"
+                               placeholder="FROM {server}" value="<%= goodbyeData.cardSubText||'FROM {server}' %>">
+                        <div class="hint" style="margin-top:.3rem;"><code>{server}</code> · <code>{count}</code> · <code>{tag}</code></div>
+                    </div>
+
+                </div><!-- /cardPanel -->
+
+                <div class="form-actions">
+                    <button class="btn btn-primary" onclick="saveGoodbye('<%= guild.id %>')">Simpan</button>
+                </div>
+                <div id="goodbyeMsg" class="form-message"></div>
+            </div>
+
+            <!-- ── Kolom kanan: Discord preview ── -->
+            <div class="preview-panel">
+                <div class="preview-label">Preview</div>
+
+                <div class="dc-window">
+                    <div class="dc-channel-bar">
+                        <span class="dc-channel-hash">#</span>
+                        <span id="prevChannelName">pilih-channel</span>
+                    </div>
+                    <!-- Card preview -->
+                    <div id="cardPreviewWrap" style="display:none;padding:.75rem 1rem .25rem;">
+                        <canvas id="cardCanvas" width="760" height="247"
+                                style="width:100%;border-radius:12px;display:block;"></canvas>
+                        <div style="font-size:.7rem;color:#80848e;margin-top:.3rem;text-align:right;">Goodbye Card Preview</div>
+                    </div>
+
+                    <div class="dc-messages">
+                        <div class="dc-message">
+                            <img class="dc-avatar" src="<%- loginUser && botUser ? botUser.avatarUrl : 'https://cdn.discordapp.com/embed/avatars/0.png' %>" alt="bot avatar" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+                            <div class="dc-msg-body">
+                                <span class="dc-username" style="color:<%- botUser ? botUser.roleColor : '#ffffff' %>"><%= botUser ? botUser.username : 'Bot' %></span>
+                                <span class="dc-timestamp">Hari ini pukul 12:00</span>
+                                <div id="previewPlainMsg" class="dc-plain-msg" style="display:none;"></div>
+                                <img id="previewCardInPlain" style="display:none;width:100%;max-width:440px;border-radius:8px;margin-top:.4rem;" alt="">
+                                <div class="dc-embed" id="previewEmbed">
+                                    <div class="dc-embed-pill" id="previewPill"></div>
+                                    <div class="dc-embed-content">
+                                        <div class="dc-embed-title" id="previewTitle"></div>
+                                        <div class="dc-embed-desc" id="previewDesc"></div>
+                                        <div class="dc-embed-fields" id="previewFields"></div>
+                                        <img id="previewCardInEmbed" style="display:none;width:100%;border-radius:4px;margin-top:.4rem;" alt="">
+                                        <div class="dc-embed-footer" id="previewFooter"></div>
+                                    </div>
+                                    <img class="dc-embed-thumb" id="previewThumb"
+                                         src="<%- loginUser ? loginUser.avatarUrl : 'https://cdn.discordapp.com/embed/avatars/0.png' %>" alt="thumb">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<%- include('../partials/bottom-nav') %>
+
+<style>
+.goodbye-editor-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    align-items: start;
+}
+@media (max-width: 900px) {
+    .goodbye-editor-layout { grid-template-columns: 1fr; }
+}
+.preview-panel { position: sticky; top: calc(var(--navbar-h) + 1.5rem); }
+.preview-label {
+    font-size: .78rem; font-weight: 600; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: .08em; margin-bottom: .6rem;
+}
+.dc-window {
+    background: #313338; border-radius: 10px; overflow: hidden;
+    font-family: 'gg sans', 'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-size: 14px; color: #dbdee1; box-shadow: 0 4px 24px rgba(0,0,0,.5);
+}
+.dc-channel-bar {
+    background: #2b2d31; padding: .55rem 1rem; border-bottom: 1px solid #1e1f22;
+    display: flex; align-items: center; gap: .4rem;
+    font-size: .85rem; font-weight: 600; color: #dbdee1;
+}
+.dc-channel-hash { color: #80848e; font-size: 1.1rem; line-height: 1; }
+.dc-messages { padding: 1rem; }
+.dc-message  { display: flex; gap: .75rem; }
+.dc-avatar   { width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0; object-fit: cover; }
+.dc-msg-body { flex: 1; min-width: 0; }
+.dc-username { font-weight: 600; color: #fff; font-size: .9rem; }
+.dc-timestamp{ font-size: .7rem; color: #80848e; margin-left: .5rem; }
+#cardPanel { margin-top: .5rem; }
+.dc-plain-msg {
+    margin-top: .35rem; font-size: .85rem; color: #dbdee1;
+    line-height: 1.5; word-break: break-word; max-width: 440px;
+}
+.dc-embed {
+    display: flex; background: #2b2d31; border-radius: 4px;
+    margin-top: .35rem; overflow: hidden; max-width: 440px;
+}
+.dc-embed-pill { width: 4px; flex-shrink: 0; background: #ed4245; border-radius: 4px 0 0 4px; }
+.dc-embed-content { flex: 1; padding: .6rem .75rem; min-width: 0; }
+.dc-embed-title { font-size: .9rem; font-weight: 700; color: #fff; margin-bottom: .25rem; word-break: break-word; }
+.dc-embed-title:empty { display: none; }
+.dc-embed-desc { font-size: .82rem; color: #dbdee1; line-height: 1.5; word-break: break-word; }
+.dc-embed-desc:empty { display: none; }
+.dc-spoiler { background: #202225; border-radius: 2px; color: transparent; cursor: pointer; transition: color .1s, background .1s; user-select: none; }
+.dc-spoiler.shown { color: #dbdee1; background: rgba(32,34,37,.5); }
+.dc-embed-fields { display: grid; grid-template-columns: 1fr 1fr; gap: .4rem .75rem; margin-top: .5rem; }
+.dc-embed-fields:empty { display: none; }
+.dc-field-name  { font-size: .75rem; font-weight: 700; color: #dbdee1; margin-bottom: .1rem; }
+.dc-field-value { font-size: .8rem; color: #b5bac1; }
+.dc-embed-footer { font-size: .72rem; color: #80848e; margin-top: .5rem; border-top: 1px solid rgba(255,255,255,.06); padding-top: .4rem; }
+.dc-embed-footer:empty { display: none; border: none; padding: 0; }
+.dc-embed-thumb { width: 60px; height: 60px; border-radius: 4px; object-fit: cover; flex-shrink: 0; margin: .6rem .6rem .6rem 0; align-self: flex-start; }
+.label-with-picker { display: flex; align-items: center; justify-content: space-between; gap: .5rem; margin-bottom: .35rem; }
+.ph-picker-anchor { position: relative; }
+.ph-toggle-btn { font-size: .72rem; padding: 2px 9px; border: 1px solid var(--border, #3f4147); border-radius: 4px; background: rgba(255,255,255,.05); color: var(--text-muted, #80848e); cursor: pointer; font-family: monospace; white-space: nowrap; line-height: 1.6; transition: background .15s, color .15s; }
+.ph-toggle-btn:hover { background: rgba(255,255,255,.12); color: var(--text, #dbdee1); }
+.ph-dropdown { position: absolute; top: calc(100% + 4px); right: 0; z-index: 200; background: #2b2d31; border: 1px solid #3f4147; border-radius: 8px; padding: .5rem; min-width: 260px; box-shadow: 0 8px 28px rgba(0,0,0,.55); display: grid; grid-template-columns: 1fr 1fr; gap: .25rem; }
+.ph-item { display: flex; flex-direction: column; align-items: flex-start; padding: .32rem .5rem; border: 1px solid transparent; border-radius: 5px; background: transparent; cursor: pointer; text-align: left; width: 100%; transition: background .12s; }
+.ph-item:hover { background: rgba(255,255,255,.09); border-color: #4f5660; }
+.ph-item code { font-size: .76rem; color: #7289da; font-family: monospace; }
+.ph-item span { font-size: .67rem; color: #80848e; margin-top: 1px; }
+</style>
+
+<script>
+const SAMPLE = {
+    member:      '@' + <%- JSON.stringify(loginUser.displayName) %>,
+    username:    <%- JSON.stringify(loginUser.username) %>,
+    displayName: <%- JSON.stringify(loginUser.displayName) %>,
+    tag:         <%- JSON.stringify(loginUser.username) %> + '#0',
+    avatarUrl:   <%- JSON.stringify(loginUser.avatarUrl) %>,
+    server:      <%- JSON.stringify(guild.name) %>,
+    count:       '<%= guild.memberCount %>',
+    akun_dibuat: '3 tahun yang lalu',
+};
+
+const guildId = '<%= guild.id %>';
+
+// ── Markdown Discord → HTML ──────────────────────────────────────────────────
+function mdToHtml(text) {
+    if (!text) return '';
+    function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+    function inline(s) {
+        const codeStore = [];
+        s = s.replace(/`(.+?)`/g, (_, code) => {
+            const i = codeStore.length;
+            codeStore.push('<code style="background:#2b2d31;padding:1px 5px;border-radius:3px;font-size:.85em;font-family:\'Consolas\',monospace;">' + code + '</code>');
+            return '\x01C' + i + '\x01';
+        });
+        s = s
+            .replace(/\[([^\]]+)\]\(\s*(https?:\/\/[^\s)]+)\s*\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" style="color:#00b0f4;text-decoration:none;">$1</a>')
+            .replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>')
+            .replace(/\*\*(.+?)\*\*/g,     '<strong>$1</strong>')
+            .replace(/\*(.+?)\*/g,         '<em>$1</em>')
+            .replace(/__(.+?)__/g,         '<u>$1</u>')
+            .replace(/~~(.+?)~~/g,         '<s>$1</s>')
+            .replace(/\|\|(.+?)\|\|/g,     '<span class="dc-spoiler" title="Klik untuk lihat spoiler" onclick="this.classList.toggle(\'shown\')">$1</span>')
+            .replace(/(href="[^"]*")|((https?:\/\/[^\s<>"']+))/g, (match, hrefAttr, _, url) => {
+                if (hrefAttr) return match;
+                const clean = url.replace(/[.,;:!?)\]>]+$/, '');
+                return '<a href="' + clean + '" target="_blank" rel="noopener noreferrer" style="color:#00b0f4;text-decoration:underline;">' + clean + '</a>';
+            });
+        return s.replace(/\x01C(\d+)\x01/g, (_, i) => codeStore[+i]);
+    }
+    const lines = text.split('\n');
+    const out = []; let inCode = false, codeBuf = [];
+    for (let i = 0; i < lines.length; i++) {
+        const raw = lines[i];
+        if (!inCode && /^```/.test(raw)) { inCode = true; codeBuf = []; continue; }
+        if (inCode) {
+            if (/^```\s*$/.test(raw.trim())) {
+                inCode = false;
+                out.push('<div style="display:block;background:#1e1f22;border-radius:4px;padding:.4rem .75rem;font-family:\'Consolas\',monospace;font-size:.82em;white-space:pre;color:#dbdee1;">' + esc(codeBuf.join('\n')) + '</div>');
+            } else { codeBuf.push(raw); }
+            continue;
+        }
+        let m;
+        if ((m = raw.match(/^>>> (.*)$/))) { out.push('<div style="display:block;border-left:4px solid #4e5058;padding:.1em .75em;margin:.1em 0;color:#dbdee1;">' + inline(esc([m[1], ...lines.slice(i+1)].join('\n'))) + '</div>'); break; }
+        if ((m = raw.match(/^> (.+)$/)))   { out.push('<div style="display:block;border-left:4px solid #4e5058;padding:.1em .75em;margin:.05em 0;color:#dbdee1;">' + inline(esc(m[1])) + '</div>'); continue; }
+        if ((m = raw.match(/^### (.+)$/))) { out.push('<div style="display:block;font-size:1.05em;font-weight:700;margin:.3em 0 .1em;">' + inline(esc(m[1])) + '</div>'); continue; }
+        if ((m = raw.match(/^## (.+)$/)))  { out.push('<div style="display:block;font-size:1.25em;font-weight:700;margin:.3em 0 .2em;">' + inline(esc(m[1])) + '</div>'); continue; }
+        if ((m = raw.match(/^# (.+)$/)))   { out.push('<div style="display:block;font-size:1.5em;font-weight:700;line-height:1.3;margin:.3em 0 .2em;">' + inline(esc(m[1])) + '</div>'); continue; }
+        if ((m = raw.match(/^-# (.+)$/)))  { out.push('<div style="display:block;font-size:.75em;color:#80848e;margin:.05em 0;">' + inline(esc(m[1])) + '</div>'); continue; }
+        out.push(inline(esc(raw)));
+    }
+    if (inCode && codeBuf.length) out.push('<div style="display:block;background:#1e1f22;border-radius:4px;padding:.4rem .75rem;font-family:\'Consolas\',monospace;font-size:.82em;white-space:pre;color:#dbdee1;">' + esc(codeBuf.join('\n')) + '</div>');
+    let result = '';
+    for (let j = 0; j < out.length; j++) {
+        const isBlock = out[j].startsWith('<div'), prevBlock = j > 0 && out[j-1].startsWith('<div');
+        if (j > 0 && !isBlock && !prevBlock) result += '<br>';
+        result += out[j];
+    }
+    return result;
+}
+
+// ── Mention cache ────────────────────────────────────────────────────────────
+const memberCache = {}, roleCache = {}, channelCache = {};
+
+function mentionBadge(color, text, bg) {
+    bg = bg || color + '26';
+    return '<span style="color:' + color + ';background:' + bg + ';border-radius:3px;padding:0 2px;font-weight:600;">' + text + '</span>';
+}
+
+async function resolveMentionId(id) {
+    if (memberCache[id] !== undefined) return;
+    memberCache[id] = 'fetching';
+    try {
+        const res  = await fetch('/api/guild/' + guildId + '/members/search?q=' + encodeURIComponent(id));
+        const data = await res.json();
+        memberCache[id] = (data.success && data.members && data.members.length > 0 && data.members[0].display) ? data.members[0].display : null;
+    } catch(e) { memberCache[id] = null; }
+    updatePreview();
+}
+async function resolveRoleId(id) {
+    if (roleCache[id] !== undefined) return;
+    roleCache[id] = 'fetching';
+    try {
+        const res  = await fetch('/api/guild/' + guildId + '/roles/' + id);
+        const data = await res.json();
+        roleCache[id] = (data.success && data.role && data.role.name) ? { name: data.role.name, color: data.role.color } : null;
+    } catch(e) { roleCache[id] = null; }
+    updatePreview();
+}
+async function resolveChannelId(id) {
+    if (channelCache[id] !== undefined) return;
+    channelCache[id] = 'fetching';
+    try {
+        const res  = await fetch('/api/guild/' + guildId + '/channels/' + id);
+        const data = await res.json();
+        channelCache[id] = (data.success && data.channel && data.channel.name) ? { name: data.channel.name } : null;
+    } catch(e) { channelCache[id] = null; }
+    updatePreview();
+}
+
+// Untuk title/footer — {member} → @displayName sebagai teks biasa (sesuai Discord)
+function resolvePlaceholdersTitle(text) {
+    if (!text) return '';
+    return text
+        .replace(/\{member\}/g,      SAMPLE.member)
+        .replace(/\{username\}/g,    SAMPLE.username)
+        .replace(/\{tag\}/g,         SAMPLE.tag)
+        .replace(/\{server\}/g,      SAMPLE.server)
+        .replace(/\{count\}/g,       SAMPLE.count)
+        .replace(/\{akun\.dibuat\}/g,SAMPLE.akun_dibuat);
+}
+
+// Untuk description/plain — {member} → marker mention badge
+function resolvePlaceholders(text) {
+    if (!text) return '';
+    return text
+        .replace(/\{member\}/g,      '\x00MENTION_MEMBER\x00')
+        .replace(/\{username\}/g,    SAMPLE.username)
+        .replace(/\{tag\}/g,         SAMPLE.tag)
+        .replace(/\{server\}/g,      SAMPLE.server)
+        .replace(/\{count\}/g,       SAMPLE.count)
+        .replace(/\{akun\.dibuat\}/g,SAMPLE.akun_dibuat);
+}
+
+function resolveHtmlMentions(html) {
+    if (!html) return '';
+    return html
+        .replace(/\x00MENTION_MEMBER\x00/g, mentionBadge('#7289da', SAMPLE.member, 'rgba(88,101,242,.15)'))
+        .replace(/&lt;@&amp;(\d+)&gt;/g, (_, id) => {
+            const st = ROLES[id];
+            if (st) return mentionBadge(st.color, '@' + st.name);
+            const c = roleCache[id];
+            if (c === undefined) resolveRoleId(id);
+            if (c && c !== 'fetching') return mentionBadge(c.color, '@' + c.name);
+            return mentionBadge('#99aab5', c === null ? '@unknown-role' : '@...');
+        })
+        .replace(/&lt;@!?(\d+)&gt;/g, (_, id) => {
+            const c = memberCache[id];
+            if (c === undefined) resolveMentionId(id);
+            return mentionBadge('#7289da', c && c !== 'fetching' ? '@' + c : c === null ? '@unknown-user' : '@...', 'rgba(88,101,242,.15)');
+        })
+        .replace(/&lt;#(\d+)&gt;/g, (_, id) => {
+            if (CHANNELS[id]) return mentionBadge('#7289da', '#' + CHANNELS[id], 'rgba(88,101,242,.15)');
+            const c = channelCache[id];
+            if (c === undefined) resolveChannelId(id);
+            if (c && c !== 'fetching') return mentionBadge('#7289da', '#' + c.name, 'rgba(88,101,242,.15)');
+            return mentionBadge('#7289da', c === null ? '#unknown-channel' : '#...', 'rgba(88,101,242,.15)');
+        });
+}
+
+// ── Card sync ────────────────────────────────────────────────────────────────
+function _syncCardPlacement() {
+    const enabled  = document.getElementById('cardEnabled').checked;
+    const wrap     = document.getElementById('cardPreviewWrap');
+    const imgEmbed = document.getElementById('previewCardInEmbed');
+    const imgPlain = document.getElementById('previewCardInPlain');
+    if (!enabled) { wrap.style.display = 'none'; if (imgEmbed) imgEmbed.style.display = 'none'; if (imgPlain) imgPlain.style.display = 'none'; return; }
+    const canvas = document.getElementById('cardCanvas');
+    const dataUrl = canvas ? canvas.toDataURL() : '';
+    if (imgEmbed && dataUrl) imgEmbed.src = dataUrl;
+    if (imgPlain && dataUrl) imgPlain.src = dataUrl;
+    const isPlain = document.getElementById('typePlain').checked;
+    if (isPlain) {
+        const plainVal    = (document.getElementById('goodbyePlainText') || {}).value || '';
+        const activeFields = FIELD_DEFS.filter(f => document.getElementById(f.id).checked);
+        const hasContent  = plainVal.trim() || activeFields.length > 0;
+        wrap.style.display = hasContent ? 'none'  : 'block';
+        if (imgEmbed) imgEmbed.style.display = 'none';
+        if (imgPlain) imgPlain.style.display = hasContent ? 'block' : 'none';
+    } else {
+        // Mode embed: card selalu masuk ke dalam embed, tidak pernah standalone
+        wrap.style.display = 'none';
+        if (imgEmbed) imgEmbed.style.display = 'block';
+        if (imgPlain) imgPlain.style.display = 'none';
+    }
+}
+
+// ── Card canvas preview ──────────────────────────────────────────────────────
+async function drawCardPreview() {
+    const enabled = document.getElementById('cardEnabled').checked;
+    if (!enabled) { _syncCardPlacement(); return; }
+    const canvas = document.getElementById('cardCanvas');
+    const ctx    = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+    const bgType   = document.querySelector('input[name="cardBgType"]:checked')?.value || 'gradient';
+    const bg1      = document.getElementById('cardBgColor')?.value      || '#1a0a0a';
+    const bg2      = document.getElementById('cardBgColor2')?.value     || '#2e0a0a';
+    const bgImgUrl = (document.getElementById('cardBgImageUrl')?.value  || '').trim();
+    const overlayClr = document.getElementById('cardOverlayColor')?.value  || '#000000';
+    const overlayOp  = (parseInt(document.getElementById('cardOverlayOpacity')?.value || '0')) / 100;
+    const accent   = document.getElementById('cardAccentColor')?.value  || '#ED4245';
+    const titleClr = document.getElementById('cardTitleColor')?.value   || '#ffffff';
+    const userClr  = document.getElementById('cardUsernameColor')?.value || accent;
+    const msgClr   = document.getElementById('cardMsgColor')?.value     || '#cccccc';
+    const shape    = document.querySelector('input[name="cardAvatarShape"]:checked')?.value || 'circle';
+    const fontSel  = document.getElementById('cardFont')?.value         || 'impact';
+    const fontMap  = { impact:"Impact,'Arial Black',sans-serif", arial:'Arial,Helvetica,sans-serif', georgia:"Georgia,'Times New Roman',serif", courier:"'Courier New',Courier,monospace", verdana:'Verdana,Geneva,sans-serif' };
+    const fontFam  = fontMap[fontSel] || fontMap.impact;
+    const bigText  = document.getElementById('cardWelcomeText')?.value  || 'GOODBYE';
+    const sub      = (document.getElementById('cardSubText')?.value     || 'FROM {server}')
+                       .replace(/{server}/gi, SAMPLE.server).replace(/{count}/gi, SAMPLE.count).replace(/{tag}/gi, SAMPLE.tag);
+
+    const gradPanel = document.getElementById('cardBgGradientPanel');
+    const imgPanel  = document.getElementById('cardBgImagePanel');
+    const col2Grp   = document.getElementById('cardBgColor2Group');
+    const hasBgColor = bgType !== 'image' && bgType !== 'transparent';
+    if (gradPanel) gradPanel.style.display = hasBgColor ? 'grid' : 'none';
+    if (imgPanel)  imgPanel.style.display  = bgType === 'image' ? 'block' : 'none';
+    if (col2Grp)   col2Grp.style.display   = bgType === 'gradient' ? 'block' : 'none';
+    const lbl = document.getElementById('cardBgColor1Label');
+    if (lbl) lbl.textContent = bgType === 'gradient' ? 'Latar Kiri' : 'Warna Latar';
+
+    ctx.clearRect(0, 0, W, H);
+    function rr(x, y, w, h, r) {
+        ctx.beginPath(); ctx.moveTo(x+r, y);
+        ctx.lineTo(x+w-r, y); ctx.quadraticCurveTo(x+w, y, x+w, y+r);
+        ctx.lineTo(x+w, y+h-r); ctx.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
+        ctx.lineTo(x+r, y+h); ctx.quadraticCurveTo(x, y+h, x, y+h-r);
+        ctx.lineTo(x, y+r); ctx.quadraticCurveTo(x, y, x+r, y); ctx.closePath();
+    }
+
+    if (bgType === 'transparent') {
+        const sz = 12;
+        ctx.save(); rr(0, 0, W, H, 16); ctx.clip();
+        for (let y = 0; y < H; y += sz) for (let x = 0; x < W; x += sz) {
+            ctx.fillStyle = (Math.floor(x/sz) + Math.floor(y/sz)) % 2 === 0 ? '#c0c0c0' : '#909090';
+            ctx.fillRect(x, y, sz, sz);
+        }
+        ctx.restore();
+    } else if (bgType === 'image' && bgImgUrl) {
+        const proxyUrl = '/api/guild/<%= guild.id %>/image-proxy?url=' + encodeURIComponent(bgImgUrl);
+        try {
+            await new Promise((res, rej) => {
+                const img = new Image();
+                img.onload = () => { ctx.save(); rr(0,0,W,H,16); ctx.clip(); const sc=Math.max(W/img.width,H/img.height); ctx.drawImage(img,(W-img.width*sc)/2,(H-img.height*sc)/2,img.width*sc,img.height*sc); ctx.restore(); res(); };
+                img.onerror = rej; img.src = proxyUrl;
+            });
+        } catch { rr(0,0,W,H,16); const gd=ctx.createLinearGradient(0,0,W,H); gd.addColorStop(0,bg1); gd.addColorStop(1,bg2); ctx.fillStyle=gd; ctx.fill(); }
+    } else if (bgType === 'solid') {
+        rr(0,0,W,H,16); ctx.fillStyle=bg1; ctx.fill();
+    } else {
+        rr(0,0,W,H,16); const gd=ctx.createLinearGradient(0,0,W,H); gd.addColorStop(0,bg1); gd.addColorStop(1,bg2); ctx.fillStyle=gd; ctx.fill();
+    }
+
+    if (overlayOp > 0) { ctx.save(); rr(0,0,W,H,16); ctx.clip(); ctx.globalAlpha=overlayOp; ctx.fillStyle=overlayClr; ctx.fillRect(0,0,W,H); ctx.globalAlpha=1; ctx.restore(); }
+
+    ctx.globalAlpha=0.07; ctx.fillStyle=accent;
+    ctx.beginPath(); ctx.arc(W-60,40,80,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(W-20,H-20,60,0,Math.PI*2); ctx.fill();
+    ctx.globalAlpha=1;
+
+    const AS=120,BD=5,avL=50,avT=(H-AS-BD*2)/2,TX=avL+AS+BD*2+40;
+    const isSquare = shape==='square';
+    ctx.fillStyle=accent;
+    if (isSquare) { rr(avL,avT,AS+BD*2,AS+BD*2,20); ctx.fill(); }
+    else { ctx.beginPath(); ctx.arc(avL+(AS+BD*2)/2,avT+(AS+BD*2)/2,(AS+BD*2)/2,0,Math.PI*2); ctx.fill(); }
+
+    const avatarProxyUrl = '/api/guild/<%= guild.id %>/image-proxy?url=' + encodeURIComponent(SAMPLE.avatarUrl);
+    await new Promise(resAvatar => {
+        const avImg = new Image();
+        avImg.onload = () => {
+            ctx.save();
+            if (isSquare) { rr(avL+BD,avT+BD,AS,AS,14); ctx.clip(); }
+            else { ctx.beginPath(); ctx.arc(avL+BD+AS/2,avT+BD+AS/2,AS/2,0,Math.PI*2); ctx.clip(); }
+            ctx.drawImage(avImg,avL+BD,avT+BD,AS,AS); ctx.restore(); resAvatar();
+        };
+        avImg.onerror = () => {
+            ctx.fillStyle='#5a6070';
+            if (isSquare) { rr(avL+BD,avT+BD,AS,AS,14); ctx.fill(); }
+            else { ctx.beginPath(); ctx.arc(avL+BD+AS/2,avT+BD+AS/2,AS/2,0,Math.PI*2); ctx.fill(); }
+            const cx=avL+BD+AS/2,cy=avT+BD+AS/2; ctx.fillStyle='#8892a4';
+            ctx.beginPath(); ctx.arc(cx,cy-20,22,0,Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.ellipse(cx,cy+40,35,28,0,0,Math.PI*2); ctx.fill(); resAvatar();
+        };
+        avImg.src = avatarProxyUrl;
+    });
+
+    ctx.shadowColor=titleClr; ctx.shadowBlur=8; ctx.font=`900 54px ${fontFam}`; ctx.fillStyle=titleClr; ctx.fillText(bigText,TX,115); ctx.shadowBlur=0;
+    ctx.shadowColor='rgba(0,0,0,0.5)'; ctx.shadowBlur=4; ctx.font=`700 24px ${fontFam}`; ctx.fillStyle=userClr; ctx.fillText(SAMPLE.username,TX,157); ctx.shadowBlur=0;
+    ctx.font=`600 16px ${fontFam}`; ctx.fillStyle=msgClr; ctx.fillText(sub,TX,192);
+
+    _syncCardPlacement();
+}
+
+// ── Panel toggles ────────────────────────────────────────────────────────────
+function toggleMessageTypePanel() {
+    const isPlain = document.getElementById('typePlain').checked;
+    document.getElementById('plainTextPanel').style.display = isPlain ? 'block' : 'none';
+    document.getElementById('embedPanel').style.display     = isPlain ? 'none'  : 'block';
+    document.getElementById('fieldsPanel').style.display    = 'block';
+    updatePreview();
+}
+document.querySelectorAll('input[name="goodbyeMessageType"]').forEach(el => el.addEventListener('change', toggleMessageTypePanel));
+
+function toggleCardPanel() {
+    const en = document.getElementById('cardEnabled').checked;
+    document.getElementById('cardPanel').style.display = en ? 'block' : 'none';
+    drawCardPreview();
+}
+document.getElementById('cardEnabled').addEventListener('change', toggleCardPanel);
+
+['cardWelcomeText','cardSubText','cardBgColor','cardBgColor2','cardAccentColor','cardTitleColor',
+ 'cardUsernameColor','cardMsgColor','cardBgImageUrl','cardFont'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input',  () => drawCardPreview());
+    if (el) el.addEventListener('change', () => drawCardPreview());
+});
+document.querySelectorAll('input[name="cardAvatarShape"], input[name="cardBgType"]').forEach(el => el.addEventListener('change', () => drawCardPreview()));
+
+// ── Sync hex & picker ─────────────────────────────────────────────────────────
+function syncHex(inputId, pickerId) {
+    document.getElementById(inputId).value = document.getElementById(pickerId).value;
+    updatePreview();
+    if (inputId.startsWith('card')) drawCardPreview();
+}
+function syncPicker(inputId, pickerId) {
+    const val = document.getElementById(inputId).value;
+    if (/^#[0-9A-Fa-f]{6}$/.test(val)) document.getElementById(pickerId).value = val;
+    updatePreview();
+    if (inputId.startsWith('card')) drawCardPreview();
+}
+
+// ── Placeholder picker ────────────────────────────────────────────────────────
+const PLACEHOLDERS = [
+    ['{member}',      'Mention member'],
+    ['{username}',    'Nama pengguna'],
+    ['{tag}',         'Username#tag'],
+    ['{server}',      'Nama server'],
+    ['{count}',       'Total member'],
+    ['{akun.dibuat}', 'Tanggal buat akun'],
+];
+
+let _lastFocusedEmbed = 'goodbyeDescription';
+document.getElementById('goodbyeTitle')?.addEventListener('focus',       () => _lastFocusedEmbed = 'goodbyeTitle');
+document.getElementById('goodbyeDescription')?.addEventListener('focus', () => _lastFocusedEmbed = 'goodbyeDescription');
+
+function buildPicker(pickerId, mode) {
+    const el = document.getElementById(pickerId);
+    if (!el) return;
+    el.innerHTML = PLACEHOLDERS.map(([ph, desc]) => {
+        const tgt = mode === 'embed' ? '_lastFocusedEmbed' : "'goodbyePlainText'";
+        return '<button type="button" class="ph-item" onclick="insertPh(' + tgt + ',\'' + ph + '\')">' +
+               '<code>' + ph + '</code><span>' + desc + '</span></button>';
+    }).join('');
+}
+function togglePicker(id, event) {
+    if (event) event.stopPropagation();
+    const el = document.getElementById(id);
+    const wasHidden = el.style.display === 'none';
+    document.querySelectorAll('.ph-dropdown').forEach(d => d.style.display = 'none');
+    if (wasHidden) el.style.display = 'grid';
+}
+document.addEventListener('click', () => document.querySelectorAll('.ph-dropdown').forEach(d => d.style.display = 'none'));
+function insertPh(targetId, ph) {
+    const el = document.getElementById(targetId);
+    if (!el) return;
+    const s = el.selectionStart ?? el.value.length;
+    el.value = el.value.substring(0, s) + ph + el.value.substring(s);
+    el.selectionStart = el.selectionEnd = s + ph.length;
+    el.focus(); el.dispatchEvent(new Event('input'));
+    document.querySelectorAll('.ph-dropdown').forEach(d => d.style.display = 'none');
+}
+
+// ── Field defs ────────────────────────────────────────────────────────────────
+const FIELD_DEFS = [
+    { id: 'field_member',       name: '👤 Member',       value: SAMPLE.username        },
+    { id: 'field_bergabung',    name: '📅 Bergabung',    value: '2 tahun yang lalu'    },
+    { id: 'field_akun_dibuat',  name: '📅 Akun Dibuat',  value: SAMPLE.akun_dibuat     },
+    { id: 'field_total_member', name: '👥 Total Member', value: SAMPLE.count           },
+];
+
+const CHANNELS = <%- JSON.stringify(Object.fromEntries((locals.channels || []).map(ch => [ch.id, ch.name]))) %>;
+const ROLES    = <%- JSON.stringify(Object.fromEntries((locals.roles    || []).map(r  => [r.id,  { name: r.name, color: r.color }]))) %>;
+
+// ── Update preview ────────────────────────────────────────────────────────────
+function updatePreview() {
+    const color  = document.getElementById('goodbyeColor').value || '#ED4245';
+    const thumb  = document.getElementById('goodbyeThumbnail').checked;
+    const chanId = document.getElementById('goodbyeChannel').value;
+    const isPlain = document.getElementById('typePlain').checked;
+
+    document.getElementById('previewPlainMsg').style.display = isPlain ? 'block' : 'none';
+    document.getElementById('previewEmbed').style.display    = isPlain ? 'none'  : 'flex';
+
+    if (isPlain) {
+        const plainVal = (document.getElementById('goodbyePlainText') || {}).value || '';
+        let plainHtml = resolveHtmlMentions(mdToHtml(resolvePlaceholders(plainVal)));
+        const activeFields = FIELD_DEFS.filter(f => document.getElementById(f.id).checked);
+        if (activeFields.length > 0) { if (plainHtml) plainHtml += '\n'; plainHtml += activeFields.map(f => `<strong>${f.name}:</strong> ${f.value}`).join('\n'); }
+        const msgsEl = document.querySelector('.dc-messages');
+        if (plainHtml.trim()) {
+            document.getElementById('previewPlainMsg').innerHTML = plainHtml;
+            document.getElementById('previewPlainMsg').style.display = 'block';
+            if (msgsEl) msgsEl.style.display = 'block';
+        } else {
+            document.getElementById('previewPlainMsg').style.display = 'none';
+            if (msgsEl) msgsEl.style.display = 'none';
+        }
+        document.getElementById('prevChannelName').textContent = chanId && CHANNELS[chanId] ? CHANNELS[chanId] : 'pilih-channel';
+        _syncCardPlacement(); return;
+    }
+
+    const _titleVal = document.getElementById('goodbyeTitle').value.trim();
+    const _descVal  = document.getElementById('goodbyeDescription').value.trim();
+    const _hasActiveFields = FIELD_DEFS.some(f => document.getElementById(f.id).checked);
+    const _msgsEl = document.querySelector('.dc-messages');
+    if (!_titleVal && !_descVal && !_hasActiveFields) {
+        // Bersihkan semua elemen embed agar konten lama tidak tertinggal
+        document.getElementById('previewTitle').innerHTML  = '';
+        document.getElementById('previewDesc').innerHTML   = '';
+        document.getElementById('previewFields').innerHTML = '';
+        document.getElementById('previewFooter').innerHTML = '';
+        document.getElementById('previewThumb').style.display = 'none';
+        const _cardActive = document.getElementById('cardEnabled').checked;
+        if (_cardActive) {
+            // Card aktif tapi tidak ada teks — embed tetap tampil, card akan muncul sebagai gambar embed
+            if (_msgsEl) _msgsEl.style.display = 'block';
+            document.getElementById('previewEmbed').style.display = 'flex';
+        } else {
+            if (_msgsEl) _msgsEl.style.display = 'none';
+            document.getElementById('previewEmbed').style.display = 'none';
+        }
+        document.getElementById('prevChannelName').textContent = chanId && CHANNELS[chanId] ? CHANNELS[chanId] : 'pilih-channel';
+        _syncCardPlacement(); return;
+    }
+    if (_msgsEl) _msgsEl.style.display = 'block';
+
+    document.getElementById('previewPill').style.background = color;
+    document.getElementById('previewTitle').innerHTML = mdToHtml(resolvePlaceholdersTitle(document.getElementById('goodbyeTitle').value));
+    document.getElementById('previewDesc').innerHTML  = resolveHtmlMentions(mdToHtml(resolvePlaceholders(document.getElementById('goodbyeDescription').value)));
+
+    const footer = document.getElementById('goodbyeFooter').value.trim();
+    document.getElementById('previewFooter').innerHTML = (footer && footer !== '-') ? resolveHtmlMentions(mdToHtml(resolvePlaceholders(footer))) : '';
+
+    const thumbEl = document.getElementById('previewThumb');
+    thumbEl.style.display = thumb ? 'block' : 'none';
+
+    const fieldsEl = document.getElementById('previewFields');
+    fieldsEl.innerHTML = '';
+    FIELD_DEFS.forEach(f => {
+        if (document.getElementById(f.id).checked) {
+            const div = document.createElement('div');
+            div.innerHTML = `<div class="dc-field-name">${f.name}</div><div class="dc-field-value">${f.value}</div>`;
+            fieldsEl.appendChild(div);
+        }
+    });
+
+    document.getElementById('prevChannelName').textContent = chanId && CHANNELS[chanId] ? CHANNELS[chanId] : 'pilih-channel';
+    const hashEl = document.querySelector('.dc-channel-hash');
+    if (hashEl) hashEl.style.color = chanId ? '#dbdee1' : '#80848e';
+    _syncCardPlacement();
+}
+
+['goodbyeTitle','goodbyeDescription','goodbyeFooter','goodbyeColor',
+ 'goodbyeEnabled','goodbyeThumbnail','goodbyeChannel','goodbyePlainText']
+    .forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('input', updatePreview);
+        if (el) el.addEventListener('change', updatePreview);
+    });
+document.querySelectorAll('.field-toggle').forEach(el => el.addEventListener('change', updatePreview));
+
+// Render awal
+toggleCardPanel();
+toggleMessageTypePanel();
+buildPicker('embedPicker', 'embed');
+buildPicker('plainPicker', 'plain');
+
+// ── Save ──────────────────────────────────────────────────────────────────────
+async function saveGoodbye(guildId) {
+    const msg = document.getElementById('goodbyeMsg');
+    const payload = {
+        enabled:       document.getElementById('goodbyeEnabled').checked,
+        channelId:     document.getElementById('goodbyeChannel').value,
+        messageType:   document.querySelector('input[name="goodbyeMessageType"]:checked')?.value || 'embed',
+        plainText:     (document.getElementById('goodbyePlainText') || {}).value?.trim() || '',
+        title:         document.getElementById('goodbyeTitle').value.trim(),
+        description:   document.getElementById('goodbyeDescription').value.trim(),
+        color:         document.getElementById('goodbyeColor').value.trim() || '#ED4245',
+        footerText:    document.getElementById('goodbyeFooter').value.trim(),
+        thumbnail:     document.getElementById('goodbyeThumbnail').checked,
+        cardEnabled:        document.getElementById('cardEnabled').checked,
+        cardWelcomeText:    document.getElementById('cardWelcomeText').value.trim()    || 'GOODBYE',
+        cardSubText:        document.getElementById('cardSubText').value.trim()         || 'FROM {server}',
+        cardBgColor:        document.getElementById('cardBgColor').value.trim()         || '#1a0a0a',
+        cardBgColor2:       document.getElementById('cardBgColor2').value.trim()        || '#2e0a0a',
+        cardAccentColor:    document.getElementById('cardAccentColor').value.trim()     || '#ED4245',
+        cardTextColor:      document.getElementById('cardTitleColor')?.value.trim()     || '#ffffff',
+        cardAvatarShape:    document.querySelector('input[name="cardAvatarShape"]:checked')?.value || 'circle',
+        cardBgType:         document.querySelector('input[name="cardBgType"]:checked')?.value      || 'gradient',
+        cardBgImageUrl:     document.getElementById('cardBgImageUrl')?.value.trim()     || '',
+        cardOverlayColor:   document.getElementById('cardOverlayColor')?.value.trim()   || '#000000',
+        cardOverlayOpacity: parseInt(document.getElementById('cardOverlayOpacity')?.value || '0'),
+        cardTitleColor:     document.getElementById('cardTitleColor')?.value.trim()     || '#ffffff',
+        cardUsernameColor:  document.getElementById('cardUsernameColor')?.value.trim()  || '#ED4245',
+        cardMsgColor:       document.getElementById('cardMsgColor')?.value.trim()       || '#cccccc',
+        cardFont:           document.getElementById('cardFont')?.value                  || 'impact',
+        showMember:      document.getElementById('field_member').checked,
+        showBergabung:   document.getElementById('field_bergabung').checked,
+        showAkunDibuat:  document.getElementById('field_akun_dibuat').checked,
+        showTotalMember: document.getElementById('field_total_member').checked,
+    };
+    const res  = await fetch(`/api/guild/${guildId}/goodbye`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    showMsg(msg, data.message, data.success ? 'success' : 'error');
+}
+
+function showMsg(el, text, type) {
+    el.textContent = text;
+    el.className   = `form-message msg-${type}`;
+    setTimeout(() => { el.textContent = ''; el.className = 'form-message'; }, 3000);
+}
+</script>
+
+<%- include('../partials/footer') %>

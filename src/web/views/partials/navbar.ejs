@@ -1,0 +1,155 @@
+<nav class="navbar">
+    <!-- Kiri: hamburger (mobile) + brand bot -->
+    <div class="navbar-left">
+        <button class="hamburger-btn" id="sidebarToggle" aria-label="Buka menu" onclick="toggleSidebar()"><i data-lucide="menu"></i></button>
+        <a href="/" class="navbar-brand">
+            <img class="navbar-bot-avatar"
+                 src="<%- locals.botNavAvatar || 'https://cdn.discordapp.com/embed/avatars/0.png' %>"
+                 alt="<%- locals.botNavName || 'Bot' %>"
+                 onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+            <span class="navbar-bot-name"><%- locals.botNavName || 'OCTA BOT' %></span>
+        </a>
+    </div>
+
+    <!-- Kanan: avatar user + dropdown atau tombol login -->
+    <div class="navbar-right">
+        <% if (user) { %>
+            <div class="nav-user" id="navUser" onclick="toggleUserMenu()">
+                <img class="user-avatar"
+                     src="https://cdn.discordapp.com/avatars/<%= user.id %>/<%= user.avatar %>.png"
+                     alt="<%= user.username %>"
+                     onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+                <span class="nav-chevron">▾</span>
+            </div>
+            <div class="nav-dropdown" id="navDropdown">
+                <div class="nav-dropdown-user">
+                    <img class="nav-dropdown-avatar"
+                         src="https://cdn.discordapp.com/avatars/<%= user.id %>/<%= user.avatar %>.png"
+                         alt="<%= user.username %>"
+                         onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+                    <span class="nav-dropdown-name"><%= user.username %></span>
+                </div>
+                <div class="nav-dropdown-divider"></div>
+                <a href="/dashboard" class="nav-dropdown-item"><i data-lucide="layout-grid"></i> Dashboard</a>
+                <a href="/auth/logout" class="nav-dropdown-item nav-dropdown-logout"><i data-lucide="log-out"></i> Logout</a>
+            </div>
+        <% } else { %>
+            <a href="/auth/login" class="btn btn-primary btn-sm">Login dengan Discord</a>
+        <% } %>
+    </div>
+</nav>
+
+<!-- Overlay sidebar -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+<script>
+/* ── Sidebar safe area — hitung tinggi sidebar + padding bawah yang aman ──────
+   Strategi: ukur selisih window.screen.height vs window.innerHeight vs
+   visualViewport.height untuk mendapatkan gesture bar height yang akurat,
+   lalu set --sidebar-h dan --nav-pb via CSS custom properties.                */
+(function () {
+    function _setSidebarVars() {
+        var vvh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+        var wih = window.innerHeight;
+
+        // Selisih innerHeight - visualViewport.height ≈ gesture bar (Android)
+        // atau keyboard height (jika keyboard terbuka, diabaikan saat sidebar open)
+        var bottomGap = Math.max(0, wih - vvh);
+
+        // Sidebar height = tinggi visual viewport yang sebenarnya
+        document.documentElement.style.setProperty('--sidebar-h', vvh + 'px');
+
+        // Padding bawah nav: minimal 56px (cukup untuk semua gesture bar yg umum),
+        // atau lebih besar jika bottomGap terdeteksi
+        var pb = Math.max(56, bottomGap + 24);
+        document.documentElement.style.setProperty('--nav-pb', pb + 'px');
+    }
+
+    _setSidebarVars();
+
+    // Update setiap kali viewport berubah (address bar hide/show, orientasi, keyboard)
+    if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', _setSidebarVars);
+        window.visualViewport.addEventListener('scroll', _setSidebarVars);
+    }
+    window.addEventListener('resize', _setSidebarVars);
+    // Update juga saat touch selesai — address bar Android bisa berubah saat scroll
+    document.addEventListener('touchend', function () {
+        requestAnimationFrame(_setSidebarVars);
+    }, { passive: true });
+})();
+
+/* ── Sidebar drawer ── */
+// Simpan posisi scroll body sebelum dikunci agar tidak loncat ke atas
+let _bodyScrollY = 0;
+
+function _lockBodyScroll() {
+    _bodyScrollY = window.scrollY;
+    document.body.style.position   = 'fixed';
+    document.body.style.top        = `-${_bodyScrollY}px`;
+    document.body.style.left       = '0';
+    document.body.style.right      = '0';
+    document.body.style.overflowY  = 'scroll'; // cegah layout shift karena scrollbar hilang
+}
+function _unlockBodyScroll() {
+    document.body.style.position  = '';
+    document.body.style.top       = '';
+    document.body.style.left      = '';
+    document.body.style.right     = '';
+    document.body.style.overflowY = '';
+    window.scrollTo(0, _bodyScrollY); // kembalikan posisi scroll
+}
+
+function toggleSidebar() {
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    const btn     = document.getElementById('sidebarToggle');
+    if (!sidebar) return;
+    const isOpen = sidebar.classList.toggle('open');
+    overlay.classList.toggle('active', isOpen);
+    btn.innerHTML = isOpen ? '<i data-lucide="x"></i>' : '<i data-lucide="menu"></i>';
+    if (window.lucide) lucide.createIcons();
+    // Gunakan position:fixed untuk kunci body scroll — kompatibel iOS Safari
+    isOpen ? _lockBodyScroll() : _unlockBodyScroll();
+}
+function closeSidebar() {
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    const btn     = document.getElementById('sidebarToggle');
+    if (!sidebar) return;
+    sidebar.classList.remove('open');
+    overlay.classList.remove('active');
+    if (btn) { btn.innerHTML = '<i data-lucide="menu"></i>'; if (window.lucide) lucide.createIcons(); }
+    _unlockBodyScroll();
+}
+window.addEventListener('resize', () => { if (window.innerWidth > 900) closeSidebar(); });
+
+/* ── Server selector dropdown ── */
+function toggleServerSelector() {
+    const btn = document.querySelector('.sidebar-server-btn');
+    const dd  = document.getElementById('sidebarServerDD');
+    if (!btn || !dd) return;
+    const isOpen = btn.classList.toggle('open');
+    dd.classList.toggle('open', isOpen);
+}
+document.addEventListener('click', (e) => {
+    const sel = document.querySelector('.sidebar-guild');
+    if (sel && !sel.contains(e.target)) {
+        document.querySelector('.sidebar-server-btn')?.classList.remove('open');
+        document.getElementById('sidebarServerDD')?.classList.remove('open');
+    }
+});
+
+/* ── User dropdown ── */
+function toggleUserMenu() {
+    const dd = document.getElementById('navDropdown');
+    dd.classList.toggle('open');
+}
+document.addEventListener('click', (e) => {
+    const user = document.getElementById('navUser');
+    const dd   = document.getElementById('navDropdown');
+    if (dd && user && !user.contains(e.target) && !dd.contains(e.target)) {
+        dd.classList.remove('open');
+    }
+});
+</script>

@@ -1,0 +1,28 @@
+    <script src="/js/dashboard.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        if (window.lucide) lucide.createIcons();
+
+        // Favicon lingkaran dari avatar bot
+        (function() {
+            const avatarUrl = '<%- locals.botNavAvatar || "https://cdn.discordapp.com/embed/avatars/0.png" %>';
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = function() {
+                const c = document.createElement('canvas');
+                c.width = c.height = 64;
+                const ctx = c.getContext('2d');
+                ctx.beginPath();
+                ctx.arc(32, 32, 32, 0, Math.PI * 2);
+                ctx.closePath();
+                ctx.clip();
+                ctx.drawImage(img, 0, 0, 64, 64);
+                const link = document.querySelector("link[rel='icon']");
+                if (link) link.href = c.toDataURL('image/png');
+            };
+            img.src = avatarUrl;
+        })();
+    });
+    </script>
+</body>
+</html>
