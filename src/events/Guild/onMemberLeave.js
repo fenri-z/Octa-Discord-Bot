@@ -129,7 +129,7 @@ module.exports = new Event({
 
             if (content || cardAttachment) {
                 const payload = {};
-                if (content) payload.content = content;
+                if (content) { payload.content = content; payload.allowedMentions = { users: [member.id] }; }
                 if (cardAttachment) payload.files = [cardAttachment];
                 await goodbyeChannel.send(payload).catch(() => null);
             }
@@ -156,7 +156,11 @@ module.exports = new Event({
         if (fields.length > 0) embed.addFields(...fields);
         if (cardAttachment) embed.setImage('attachment://goodbye-card.png');
 
-        const payload = { embeds: [embed] };
+        const payload = {
+            content: `<@${member.id}>`,
+            embeds: [embed],
+            allowedMentions: { users: [member.id] },
+        };
         if (cardAttachment) payload.files = [cardAttachment];
         await goodbyeChannel.send(payload).catch(() => null);
     }
