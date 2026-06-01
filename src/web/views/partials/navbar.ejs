@@ -97,7 +97,7 @@ function _unlockBodyScroll() {
     document.body.style.left      = '';
     document.body.style.right     = '';
     document.body.style.overflowY = '';
-    window.scrollTo(0, _bodyScrollY); // kembalikan posisi scroll
+    window.scrollTo({ top: _bodyScrollY, behavior: 'instant' }); // instant: bypass css scroll-behavior smooth
 }
 
 function toggleSidebar() {

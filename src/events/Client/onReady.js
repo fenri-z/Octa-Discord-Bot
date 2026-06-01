@@ -123,6 +123,8 @@ module.exports = new Event({
 
         success(`\nInisialisasi selesai: ${ok} server berhasil${fail > 0 ? `, ${fail} gagal` : ''}.`);
         success('Bot siap digunakan!');
+
+        client.user.setPresence({ status: 'online', activities: [{ name: '/help', type: 4 }] });
     }
 }).toJSON();
 

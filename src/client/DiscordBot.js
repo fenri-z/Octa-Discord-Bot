@@ -23,11 +23,6 @@ class DiscordBot extends Client {
     rest_application_commands_array = [];
     login_attempts = 0;
     login_timestamp = 0;
-    statusMessages = [
-        { name: 'Hi !', type: 4 },
-        { name: 'Wassup ?', type: 4 },
-        { name: 'Created by @fen_rie', type: 4 }
-    ];
 
     commands_handler = new CommandsHandler(this);
     components_handler = new ComponentsHandler(this);
@@ -50,24 +45,13 @@ class DiscordBot extends Client {
                 Partials.User
             ],
             presence: {
-                activities: [{
-                    name: 'keep this empty',
-                    type: 4,
-                    state: 'I am online!'
-                }]
+                status: 'online',
+                activities: [{ name: '/help', type: 4 }]
             }
         });
         
         new CommandsListener(this);
         new ComponentsListener(this);
-    }
-
-    startStatusRotation = () => {
-        let index = 0;
-        setInterval(() => {
-            this.user.setPresence({ activities: [this.statusMessages[index]] });
-            index = (index + 1) % this.statusMessages.length;
-        }, 30000); // 30 detik — sebelumnya 4 detik, terlalu sering kirim request API
     }
 
     connect = async () => {
@@ -80,7 +64,6 @@ class DiscordBot extends Client {
             this.commands_handler.load();
             this.components_handler.load();
             this.events_handler.load();
-            this.startStatusRotation();
 
             success('Bot ready. Jalankan "node deploy-commands.js" jika perlu daftarkan ulang commands.');
         } catch (err) {

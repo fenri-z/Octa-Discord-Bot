@@ -1,12 +1,13 @@
 <aside class="sidebar">
     <div class="sidebar-bot-brand">
-        <img style="width:30px;height:30px;border-radius:50%;object-fit:cover;flex-shrink:0;"
+        <img class="sidebar-bot-avatar-img"
              src="<%- locals.botNavAvatar || 'https://cdn.discordapp.com/embed/avatars/0.png' %>"
-             alt="Bot" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
-        <span style="font-size:.95rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;background:linear-gradient(135deg,#e3e5e8,#8b8fbd);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">
-            <%- locals.botNavName || 'OCTA BOT' %>
-        </span>
-        <button class="sidebar-bot-close" onclick="closeSidebar()" title="Tutup"><i data-lucide="x"></i></button>
+             alt="<%- locals.botNavName || 'Bot' %>"
+             onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+        <span class="sidebar-bot-name-text"><%- locals.botNavName || 'OCTA BOT' %></span>
+        <button class="sidebar-bot-close" onclick="closeSidebar()" aria-label="Tutup menu">
+            <i data-lucide="arrow-left"></i>
+        </button>
     </div>
     <div class="sidebar-guild">
         <button class="sidebar-server-btn" onclick="toggleServerSelector()">

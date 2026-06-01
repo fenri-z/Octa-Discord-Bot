@@ -28,6 +28,8 @@ body {
     background: var(--bg);
     color: var(--text);
     min-height: 100vh;
+    display: flex;
+    flex-direction: column;
     -webkit-text-size-adjust: 100%; /* cegah iOS auto-zoom teks */
     overflow-x: hidden;
 }
@@ -45,9 +47,12 @@ code {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 1.25rem;
-    background: var(--bg2);
-    border-bottom: 1px solid var(--border);
+    padding: 0 1.5rem;
+    background: rgba(34, 35, 45, 0.97);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border-bottom: 1px solid rgba(56, 58, 74, 0.7);
+    box-shadow: 0 1px 3px rgba(0,0,0,.45), 0 4px 20px rgba(0,0,0,.15);
     position: sticky; top: 0; z-index: 200;
     height: var(--navbar-h);
     gap: 1rem;
@@ -190,7 +195,7 @@ code {
 .feature-card p  { font-size: .85rem; color: var(--text-muted); line-height: 1.5; }
 
 /* ── Page container (generic) ────────────────────────────────────────────── */
-.page-container { max-width: 1000px; margin: 0 auto; padding: 1.5rem 1.25rem; }
+.page-container { max-width: 1000px; margin: 0 auto; padding: 1.5rem 1.25rem; flex: 1; width: 100%; }
 .page-header    { margin-bottom: 1.75rem; }
 .page-header h1 { font-size: clamp(1.4rem, 5vw, 1.8rem); font-weight: 700; }
 .page-header p  { color: var(--text-muted); margin-top: .3rem; font-size: .9rem; }
@@ -245,16 +250,19 @@ code {
 /* ── Sidebar overlay (mobile) ────────────────────────────────────────────── */
 .sidebar-overlay {
     display: none;
-    position: fixed; inset: 0;
-    background: rgba(0,0,0,.6);
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.65);
     z-index: 299;
     opacity: 0;
-    pointer-events: none; /* FIX: jangan blokir klik saat tidak aktif */
+    pointer-events: none;
     transition: opacity .25s;
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
 }
 .sidebar-overlay.active {
     opacity: 1;
-    pointer-events: auto; /* aktifkan klik hanya saat overlay terlihat */
+    pointer-events: auto;
 }
 
 /* ── Bottom nav (dipertahankan untuk kompatibilitas, disembunyikan) ───────── */
@@ -263,22 +271,25 @@ code {
 /* ── Dashboard layout ────────────────────────────────────────────────────── */
 .dash-layout {
     display: flex;
+    flex: 1;
     min-height: calc(100vh - var(--navbar-h));
     width: 100%;
 }
 
 /* ── Sidebar ─────────────────────────────────────────────────────────────── */
 .sidebar {
-    width: 228px; flex-shrink: 0;
-    background: var(--bg2); border-right: 1px solid var(--border);
+    width: 232px; flex-shrink: 0;
+    background: var(--bg2);
+    border-right: 1px solid rgba(56, 58, 74, 0.6);
     padding: 1.25rem .75rem;
     display: flex; flex-direction: column; gap: .75rem;
     position: sticky; top: var(--navbar-h);
     height: calc(100vh - var(--navbar-h));
     overflow-y: auto;
-    scrollbar-width: none; /* Firefox */
+    scrollbar-width: none;
+    box-shadow: 1px 0 0 rgba(255,255,255,.03) inset, 2px 0 12px rgba(0,0,0,.15);
 }
-.sidebar::-webkit-scrollbar { display: none; } /* Chrome/Safari */
+.sidebar::-webkit-scrollbar { display: none; }
 
 /* ── Server selector (MEE6-style) ────────────────────────────────────────── */
 .sidebar-guild { margin-bottom: .5rem; }
@@ -377,10 +388,11 @@ code {
 
 /* Section label */
 .sidebar-group-label {
-    padding: .8rem .75rem .3rem;
-    font-size: .68rem; font-weight: 700;
-    color: var(--text-muted); letter-spacing: .08em;
+    padding: .9rem .75rem .35rem;
+    font-size: .65rem; font-weight: 700;
+    color: var(--text-muted); letter-spacing: .1em;
     text-transform: uppercase; user-select: none;
+    opacity: .7;
 }
 
 /* Sub-links (Auto Role children) */
@@ -434,10 +446,32 @@ code {
 
 .dash-main {
     flex: 1;
-    min-width: 0; /* cegah overflow */
-    padding: 2rem;
-    /* Tidak ada max-width — isi penuh sisa ruang */
+    min-width: 0;
+    padding: 2rem 2rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg);
 }
+
+/* ── Footer copyright ── */
+.dash-footer {
+    padding: 1rem 1.5rem;
+    text-align: center;
+    font-size: .78rem;
+    color: var(--text-muted);
+    background: var(--bg2);
+    border-top: 1px solid rgba(56, 58, 74, 0.7);
+    box-shadow: 0 -1px 0 rgba(255,255,255,.04), 0 -4px 16px rgba(0,0,0,.1);
+    flex-shrink: 0;
+    letter-spacing: .02em;
+}
+.dash-footer a {
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 600;
+    transition: color .15s, opacity .15s;
+}
+.dash-footer a:hover { color: #7289da; opacity: .9; text-decoration: underline; }
 
 /* Inner content wrapper — centering di layar sangat lebar */
 .dash-content {
@@ -666,31 +700,67 @@ code {
     /* Sembunyikan bot brand di navbar — pindah ke dalam sidebar */
     .navbar-brand { display: none; }
 
-    /* Sidebar jadi drawer: posisi fixed dari kiri, tersembunyi by default.
-       --sidebar-h di-set JS via visualViewport agar tepat di semua device. */
+    /* Sidebar jadi drawer full-height (MEE6-style) */
     .sidebar {
         position: fixed;
         top: 0; left: 0;
         height: var(--sidebar-h, 100dvh);
-        width: 260px;
+        width: 270px;
         z-index: 300;
         transform: translateX(-100%);
-        transition: transform .25s cubic-bezier(.4,0,.2,1);
+        transition: transform .28s cubic-bezier(.4,0,.2,1);
         padding-top: 0;
-        box-shadow: 4px 0 24px rgba(0,0,0,.5);
+        box-shadow: 4px 0 32px rgba(0,0,0,.6);
         overflow: hidden;
         display: flex;
         flex-direction: column;
+        border-right: 1px solid rgba(56,58,74,.7);
     }
     .sidebar.open { transform: translateX(0); }
 
-    /* Bot brand header dalam sidebar (mobile only) */
+    /* Bot brand header — gaya MEE6: [←] [avatar] [nama] */
     .sidebar-bot-brand {
         display: flex;
-        align-items: center; gap: .65rem;
+        align-items: center;
+        gap: .6rem;
         padding: .9rem 1rem;
         border-bottom: 1px solid var(--border);
         flex-shrink: 0;
+        background: var(--bg2);
+    }
+    .sidebar-bot-close {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 30px; height: 30px;
+        background: none; border: none;
+        color: var(--text-muted);
+        cursor: pointer;
+        border-radius: 6px;
+        transition: background .15s, color .15s;
+        -webkit-tap-highlight-color: transparent;
+        flex-shrink: 0;
+        padding: 0;
+        margin-left: auto;
+    }
+    .sidebar-bot-close:hover { background: var(--bg3); color: var(--text); }
+    .sidebar-bot-close svg { width: 17px; height: 17px; display: block; }
+    .sidebar-bot-avatar-img {
+        width: 36px; height: 36px;
+        border-radius: 50%;
+        object-fit: cover;
+        flex-shrink: 0;
+        border: 2px solid rgba(255,255,255,.1);
+    }
+    .sidebar-bot-name-text {
+        font-size: .95rem;
+        font-weight: 700;
+        letter-spacing: .01em;
+        color: var(--text);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        flex: 1; min-width: 0;
     }
 
     /* Guild selector tidak ikut scroll */
@@ -705,30 +775,16 @@ code {
         overscroll-behavior-y: contain;
         touch-action: pan-y pinch-zoom;
         will-change: scroll-position;
-        /* --nav-pb di-set JS: minimal 56px agar item terakhir tidak tertutup
-           gesture bar Android. Fallback 56px jika JS belum jalan. */
         padding-bottom: var(--nav-pb, 56px);
     }
-    /* flex-shrink:0 wajib agar items tidak disusutkan flex → overflow aktif → scroll jalan */
-    .sidebar-nav > * {
-        flex-shrink: 0;
-    }
-    .sidebar-bot-close {
-        margin-left: auto; flex-shrink: 0;
-        background: none; border: none; color: var(--text-muted);
-        cursor: pointer; padding: .25rem .4rem; border-radius: 6px;
-        transition: background .15s, color .15s;
-        -webkit-tap-highlight-color: transparent;
-    }
-    .sidebar-bot-close:hover { background: var(--bg3); color: var(--text); }
-    .sidebar-bot-close svg { width: 18px; height: 18px; display: block; }
+    .sidebar-nav > * { flex-shrink: 0; }
 
     /* Tampilkan overlay */
     .sidebar-overlay { display: block; pointer-events: none; }
     .sidebar-overlay.active { pointer-events: auto; }
 
     /* Konten dashboard penuh */
-    .dash-main { padding: 1.5rem 1.25rem; }
+    .dash-main { padding: 1.5rem 1.25rem 1.25rem; }
     .dash-content,
     .dash-content-wide { max-width: 100%; }
 }
