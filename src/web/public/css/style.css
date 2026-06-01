@@ -269,7 +269,7 @@ code {
 
 /* ── Sidebar ─────────────────────────────────────────────────────────────── */
 .sidebar {
-    width: 232px; flex-shrink: 0;
+    width: 290px; flex-shrink: 0;
     background: var(--bg2); border-right: 1px solid var(--border);
     padding: 1.25rem .75rem;
     display: flex; flex-direction: column; gap: .75rem;
@@ -355,6 +355,7 @@ code {
     transition: background .15s, color .15s;
     -webkit-tap-highlight-color: transparent;
     position: relative;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .sidebar-link svg {
     width: 16px; height: 16px; flex-shrink: 0;
@@ -385,11 +386,12 @@ code {
 /* Sub-links (Auto Role children) */
 .sidebar-sublink {
     display: flex; align-items: center; gap: .5rem;
-    padding: .45rem .75rem .45rem 2.2rem; border-radius: 8px;
+    padding: .45rem .75rem .45rem 1.75rem; border-radius: 8px;
     font-size: .83rem; font-weight: 500; color: var(--text-muted);
     transition: background .15s, color .15s;
     -webkit-tap-highlight-color: transparent;
     position: relative;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .sidebar-sublink svg { width: 14px; height: 14px; flex-shrink: 0; opacity: .7; }
 .sidebar-sublink:hover  { background: var(--bg3); color: var(--text); }

@@ -128,20 +128,25 @@ class ComponentsListener {
                     }
                     if (focused.name === 'nama') {
                         if (interaction.commandName === 'autorole-button') {
-                            // autorole-button buat → tampilkan panel yang sudah ada (untuk edit)
-                            // + input bebas (untuk buat baru)
                             const { autocompleteAutobtnNama } = require('../../utils/autocompleteHelper');
                             await autocompleteAutobtnNama(interaction, client).catch(() => null);
+                        } else if (interaction.commandName === 'autorole-reaction') {
+                            const { autocompleteAutoreactNama } = require('../../utils/autocompleteHelper');
+                            await autocompleteAutoreactNama(interaction, client).catch(() => null);
                         } else {
-                            // /pesan buat dan command lain → daftar template biasa
                             const { autocompleteTemplate } = require('../../utils/autocompleteHelper');
                             await autocompleteTemplate(interaction, client).catch(() => null);
                         }
                         return;
                     }
                     if (focused.name === 'panel') {
-                        const { autocompletePanel } = require('../../utils/autocompleteHelper');
-                        await autocompletePanel(interaction, client).catch(() => null);
+                        if (interaction.commandName === 'autorole-reaction') {
+                            const { autocompleteReactPanel } = require('../../utils/autocompleteHelper');
+                            await autocompleteReactPanel(interaction, client).catch(() => null);
+                        } else {
+                            const { autocompletePanel } = require('../../utils/autocompleteHelper');
+                            await autocompletePanel(interaction, client).catch(() => null);
+                        }
                         return;
                     }
                     if (focused.name === 'sumber') {

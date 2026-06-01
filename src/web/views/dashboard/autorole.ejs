@@ -272,12 +272,155 @@
 
             </div><!-- /ap-page-layout -->
         </div><!-- /tab-button -->
+
+        <!-- ══════════════════════════════════════
+             TAB: AUTOROLE REACTION
+        ══════════════════════════════════════ -->
+        <div id="tab-reaction" class="ar-tab-content" style="display:none;">
+
+            <!-- Toolbar -->
+            <div class="mb-toolbar">
+                <button class="btn btn-primary" onclick="openCreateReactPanel()">＋ Panel Baru</button>
+                <input type="text" class="input mb-search" placeholder="🔍 Cari panel..." oninput="filterReactPanels(this.value)">
+            </div>
+
+            <!-- Layout 2 kolom: list kiri + preview kanan -->
+            <div class="ap-page-layout">
+            <div class="ap-list-col">
+
+            <!-- Grid panel reaction -->
+            <div id="reactPanelGrid">
+                <% if (reactPanels.length === 0) { %>
+                    <div class="empty-state" id="emptyReactPanels">
+                        <p style="font-size:2rem;margin-bottom:.5rem">✨</p>
+                        <p>Belum ada panel. Klik <strong>＋ Panel Baru</strong> untuk membuat panel autorole reaction.</p>
+                        <p style="color:var(--text-muted);font-size:.85rem;margin-top:.5rem">
+                            Panel juga bisa dibuat lewat Discord dengan perintah
+                            <code>/autorole-reaction buat</code>.
+                        </p>
+                    </div>
+                <% } else { %>
+                    <% reactPanels.forEach(p => { %>
+                    <div class="ar-panel-card" data-name="<%= p.name %>" data-type="reaction">
+                        <div class="ar-panel-header">
+                            <span class="ar-panel-name">✨ <%= p.name %></span>
+                            <span class="ar-panel-mode <%= p.mode === 'single' ? 'mode-single' : 'mode-multi' %>">
+                                <%= p.mode === 'single' ? '🔘 Single' : '☑️ Multi' %>
+                            </span>
+                            <% const sentRP = sentReactPanels[p.name]; %>
+                            <span class="ar-panel-status <%= sentRP ? 'status-sent' : 'status-unsent' %>">
+                                <%= sentRP ? '📤 Terkirim' : '⏳ Belum dikirim' %>
+                            </span>
+                        </div>
+
+                        <%
+                          const isPlainRP = p.messageType === 'plain';
+                          const embedColorRP = p.embedColor || '#5865F2';
+                          let previewTextRP = '';
+                          if (isPlainRP) {
+                              previewTextRP = p.plainText
+                                  ? p.plainText.slice(0, 80) + (p.plainText.length > 80 ? '…' : '')
+                                  : '(teks kosong)';
+                          } else {
+                              previewTextRP = p.embedTitle || (p.embedDescription
+                                  ? p.embedDescription.slice(0, 60) + (p.embedDescription.length > 60 ? '…' : '')
+                                  : '');
+                          }
+                        %>
+                        <% if (previewTextRP) { %>
+                        <div class="ar-panel-embed-preview" style="border-left:3px solid <%= isPlainRP ? '#8e9297' : embedColorRP %>;">
+                            <span class="ar-panel-embed-text" style="<%= isPlainRP ? 'color:var(--text-muted);font-style:italic;' : '' %>"><%= previewTextRP %></span>
+                            <% if (isPlainRP) { %><span style="font-size:.7rem;color:var(--text-muted);margin-left:.4rem;"> — Teks Biasa</span><% } %>
+                        </div>
+                        <% } %>
+
+                        <!-- Reaction emoji chips -->
+                        <div class="ar-panel-buttons-preview">
+                            <% if (p.reactions && p.reactions.length > 0) { %>
+                                <% p.reactions.forEach(react => { %>
+                                    <span class="ar-react-chip">
+                                        <%= react.emoji.includes(':') ? '' : react.emoji %>
+                                        <% if (react.emoji.includes(':')) { %><span class="ar-react-custom">:<%= react.emoji.split(':')[0] %>:</span><% } %>
+                                        <span class="ar-btn-role">@<%= roles.find(r => r.id === react.roleId)?.name || react.roleId %></span>
+                                    </span>
+                                <% }) %>
+                            <% } else { %>
+                                <span style="color:var(--text-muted);font-size:.8rem">Belum ada reaction</span>
+                            <% } %>
+                        </div>
+                        <div class="ar-panel-actions">
+                            <button class="btn btn-outline btn-sm" onclick="openEditReactPanel('<%= p.name %>')">✏️ Edit Panel</button>
+                            <% if (sentRP) { %>
+                                <a class="btn btn-outline btn-sm"
+                                   href="https://discord.com/channels/<%= guild.id %>/<%= sentRP.channelId %>/<%= sentRP.messageId %>"
+                                   target="_blank">🔗 Lihat</a>
+                            <% } else { %>
+                                <button class="btn btn-outline btn-sm" onclick="openSendReactPanel('<%= p.name %>')">📨 Kirim</button>
+                            <% } %>
+                            <button class="btn btn-sm ar-btn-delete" onclick="deleteReactPanel('<%= p.name %>')"><i data-lucide="trash-2"></i></button>
+                        </div>
+                    </div>
+                    <% }) %>
+                <% } %>
+            </div><!-- /reactPanelGrid -->
+            </div><!-- /ap-list-col -->
+
+            <!-- Preview panel kanan -->
+            <div class="ap-preview-panel" id="apReactPreviewPanel">
+                <div class="ap-preview-header">
+                    <span class="ap-preview-title" id="apReactPreviewTitle">Preview</span>
+                    <button class="ap-preview-close" onclick="closeReactPreviewPanel()">✕</button>
+                </div>
+                <div class="ap-preview-body">
+                    <div id="apReactPreviewPlaceholder" class="ap-preview-placeholder">
+                        <div style="font-size:1.75rem">✨</div>
+                        <div>Klik panel untuk melihat preview</div>
+                    </div>
+                    <div id="apReactPreviewContent" style="display:none;">
+                        <div class="dc-window">
+                            <div class="dc-channel-bar">
+                                <span class="dc-channel-hash">#</span>
+                                <span>preview-channel</span>
+                            </div>
+                            <div class="dc-messages">
+                                <div class="dc-message">
+                                    <img class="dc-avatar"
+                                         src="<%- locals.botNavAvatar || 'https://cdn.discordapp.com/embed/avatars/0.png' %>"
+                                         alt="avatar" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+                                    <div class="dc-msg-body">
+                                        <span class="dc-username"><%- locals.botNavName || 'Bot' %></span>
+                                        <span class="dc-timestamp">Hari ini pukul 12:00</span>
+                                        <div id="apReactPanelPreviewPlain" class="dc-plain-msg" style="display:none;"></div>
+                                        <div class="dc-embed" id="apReactPanelPreviewEmbed" style="display:none;">
+                                            <div class="dc-embed-pill" id="apReactPanelPreviewPill"></div>
+                                            <div class="dc-embed-content">
+                                                <div class="dc-embed-title"  id="apReactPanelPreviewTitle"></div>
+                                                <div class="dc-embed-desc"   id="apReactPanelPreviewDesc"></div>
+                                                <img id="apReactPanelPreviewImage" src="" alt="" style="display:none;max-width:100%;border-radius:4px;margin-top:.5rem;">
+                                                <div class="dc-embed-footer" id="apReactPanelPreviewFooter"></div>
+                                            </div>
+                                            <img class="dc-embed-thumb" id="apReactPanelPreviewThumb" src="" alt="" style="display:none;">
+                                        </div>
+                                        <!-- Preview reactions -->
+                                        <div id="apReactPanelPreviewReacts" style="display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.5rem;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            </div><!-- /ap-page-layout -->
+        </div><!-- /tab-reaction -->
     </div>
     </main>
 </div>
 
-<!-- Backdrop mobile preview panel -->
+<!-- Backdrop mobile preview panel (button) -->
 <div class="ap-preview-backdrop" id="apPreviewBackdrop" onclick="closePreviewPanel()"></div>
+<!-- Backdrop mobile preview panel (reaction) -->
+<div class="ap-preview-backdrop" id="apReactPreviewBackdrop" onclick="closeReactPreviewPanel()"></div>
 
 <%- include('../partials/bottom-nav') %>
 
@@ -442,14 +585,13 @@
         <div id="panelInlineButtons" style="display:none;margin-top:1.25rem;">
             <div class="ar-divider"></div>
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem;flex-wrap:wrap;gap:.5rem;">
-                <div style="font-size:.8rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;">🔘 Tombol Role</div>
-                <div style="display:flex;gap:.5rem;align-items:center;">
-                    <span style="font-size:.78rem;color:var(--text-muted);" id="inlineBtnCounter">0/25 tombol</span>
-                    <button type="button" class="btn btn-outline btn-sm" onclick="addInlineBtnRow()">＋ Tambah Tombol</button>
+                <div style="display:flex;align-items:center;gap:.5rem;">
+                    <span style="font-size:.8rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;">🔘 Tombol Role</span>
+                    <span id="inlineBtnCounter" style="font-size:.72rem;padding:.15rem .45rem;border-radius:999px;background:var(--bg2);border:1px solid var(--border);color:var(--text-muted);">0/25</span>
                 </div>
-            </div>
-            <div class="btn-editor-header">
-                <span>#</span><span>Role</span><span>Label Tombol</span><span>Warna</span><span></span>
+                <button type="button" class="btn btn-primary btn-sm" onclick="addInlineBtnRow()" style="gap:.3rem;">
+                    <span style="font-size:1rem;line-height:1;">＋</span> Tambah Tombol
+                </button>
             </div>
             <div id="inlineBtnTable"></div>
             <p id="inlineBtnEmpty" style="color:var(--text-muted);font-size:.85rem;padding:.4rem 0;">
@@ -592,6 +734,237 @@
     </div>
 </div>
 
+<!-- ══════════════════════════════════════
+     MODAL: Buat / Edit Panel Reaction
+══════════════════════════════════════ -->
+<div class="mb-modal-backdrop" id="reactPanelBackdrop" onclick="closeReactPanelModal()"></div>
+<div class="mb-modal mb-modal-full" id="reactPanelModal">
+    <div class="mb-modal-header">
+        <h2 id="reactPanelModalTitle">Panel Reaction Baru</h2>
+        <button class="mb-modal-close" onclick="closeReactPanelModal()">✕</button>
+    </div>
+    <div class="mb-modal-body">
+        <input type="hidden" id="reactPanelOriginalName">
+
+        <div class="mb-editor-layout">
+            <!-- ── Form kiri ── -->
+            <div class="mb-editor-form">
+
+                <div class="form-group">
+                    <label class="label">Nama Panel</label>
+                    <input type="text" id="reactPanelName" class="input" placeholder="contoh: pilih-role" maxlength="32">
+                    <div class="hint">Hanya huruf, angka, <code>-</code>, <code>_</code> (maks 32 karakter).</div>
+                </div>
+
+                <div class="form-group" id="reactPanelChannelGroup">
+                    <label class="label">Kirim ke Channel</label>
+                    <select id="reactPanelSendChannelInline" class="select">
+                        <option value="">— Pilih channel —</option>
+                        <% channels.forEach(c => { %>
+                            <option value="<%= c.id %>">#<%= c.name %></option>
+                        <% }) %>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="label">Mode</label>
+                    <select id="reactPanelMode" class="select">
+                        <option value="multi">☑️ Multi — bisa pilih banyak role</option>
+                        <option value="single">🔘 Single — hanya 1 role aktif (radio)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="label">Tipe Pesan</label>
+                    <div style="display:flex;gap:.75rem;">
+                        <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;">
+                            <input type="radio" name="reactPanelMessageType" id="reactPanelTypeEmbed" value="embed" checked>
+                            <span>Embed</span>
+                        </label>
+                        <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;">
+                            <input type="radio" name="reactPanelMessageType" id="reactPanelTypePlain" value="plain">
+                            <span>Teks Biasa</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div id="reactPanelPlainPanel" style="display:none;">
+                    <div class="form-group">
+                        <label class="label">Isi Pesan Teks Biasa</label>
+                        <textarea id="reactPanelPlainText" class="textarea" rows="5"
+                                  placeholder="Tulis isi pesan di sini..."
+                                  oninput="updateReactPanelPreview()"></textarea>
+                    </div>
+                </div>
+
+                <div id="reactPanelEmbedPanel">
+                <div class="ar-divider"></div>
+                <div style="font-size:.8rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:.75rem;">Tampilan Embed</div>
+
+                <div class="form-group">
+                    <label class="label">Judul</label>
+                    <input type="text" id="reactPanelEmbedTitle" class="input" placeholder="Contoh: Pilih Role Kamu"
+                           maxlength="256" oninput="updateReactPanelPreview()">
+                </div>
+                <div class="form-group">
+                    <label class="label">Deskripsi</label>
+                    <textarea id="reactPanelEmbedDescription" class="textarea" rows="4"
+                              placeholder="Jelaskan cara menggunakan reaction di sini..." maxlength="4000"
+                              oninput="updateReactPanelPreview()"></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="label">Footer</label>
+                    <input type="text" id="reactPanelEmbedFooter" class="input" placeholder="Teks di bagian bawah embed..."
+                           maxlength="2048" oninput="updateReactPanelPreview()">
+                </div>
+                <div class="form-group">
+                    <label class="label">URL Gambar <span class="hint-inline">(bawah embed, opsional)</span></label>
+                    <input type="text" id="reactPanelEmbedImage" class="input" placeholder="https://... (ketik - untuk hapus)"
+                           oninput="updateReactPanelPreview()">
+                </div>
+                <div class="form-group">
+                    <label class="label">URL Thumbnail <span class="hint-inline">(pojok kanan, opsional)</span></label>
+                    <input type="text" id="reactPanelEmbedThumbnail" class="input" placeholder="https://... (ketik - untuk hapus)"
+                           oninput="updateReactPanelPreview()">
+                </div>
+                <div class="form-group">
+                    <label class="label">Warna Embed</label>
+                    <div style="display:flex;gap:.75rem;align-items:center;">
+                        <input type="color" id="reactPanelColorPicker" value="#5865F2"
+                               style="width:44px;height:36px;border:none;border-radius:6px;cursor:pointer;padding:0;background:none;"
+                               oninput="syncPicker('reactPanelEmbedColor','reactPanelColorPicker');updateReactPanelPreview()">
+                        <input type="text" id="reactPanelEmbedColor" class="input" style="max-width:130px;"
+                               placeholder="#5865F2" maxlength="7" value="#5865F2"
+                               oninput="syncHex('reactPanelEmbedColor','reactPanelColorPicker');updateReactPanelPreview()">
+                    </div>
+                </div>
+                </div><!-- /reactPanelEmbedPanel -->
+
+            </div>
+
+            <!-- ── Preview kanan ── -->
+            <div class="mb-editor-preview">
+                <div class="preview-label">Preview</div>
+                <div class="dc-window">
+                    <div class="dc-channel-bar">
+                        <span class="dc-channel-hash">#</span>
+                        <span>preview-channel</span>
+                    </div>
+                    <div class="dc-messages">
+                        <div class="dc-message">
+                            <img class="dc-avatar" src="<%- locals.botNavAvatar || 'https://cdn.discordapp.com/embed/avatars/0.png' %>" alt="avatar" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+                            <div class="dc-msg-body">
+                                <span class="dc-username" style="color:<%- locals.botNavColor || '#ffffff' %>"><%- locals.botNavName || 'Bot' %></span>
+                                <span class="dc-timestamp">Hari ini pukul 12:00</span>
+                                <div id="reactPanelPreviewPlain" class="dc-plain-msg" style="display:none;"></div>
+                                <div class="dc-embed" id="reactPanelPreviewEmbed">
+                                    <div class="dc-embed-pill" id="reactPanelPreviewPill"></div>
+                                    <div class="dc-embed-content">
+                                        <div class="dc-embed-title"  id="reactPanelPreviewTitle"></div>
+                                        <div class="dc-embed-desc"   id="reactPanelPreviewDesc"></div>
+                                        <img class="dc-embed-image"  id="reactPanelPreviewImage" src="" alt=""
+                                             style="display:none;max-width:100%;border-radius:4px;margin-top:.5rem;">
+                                        <div class="dc-embed-footer" id="reactPanelPreviewFooter"></div>
+                                    </div>
+                                    <img class="dc-embed-thumb" id="reactPanelPreviewThumb" src="" alt="" style="display:none;">
+                                </div>
+                                <!-- Preview reactions dummy -->
+                                <div id="reactPanelPreviewReacts" style="display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.5rem;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div style="margin-top:.75rem;font-size:.78rem;color:var(--text-muted);">
+                    💡 Perubahan reaction di bawah akan langsung disimpan bersama embed saat klik <strong>Simpan</strong>.
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Section Reactions ── -->
+        <div id="reactPanelInlineReactions" style="display:none;margin-top:1.25rem;">
+            <div class="ar-divider"></div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem;flex-wrap:wrap;gap:.5rem;">
+                <div style="display:flex;align-items:center;gap:.5rem;">
+                    <span style="font-size:.8rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;">✨ Emoji Reactions</span>
+                    <span id="inlineReactCounter" style="font-size:.72rem;padding:.15rem .45rem;border-radius:999px;background:var(--bg2);border:1px solid var(--border);color:var(--text-muted);">0/20</span>
+                </div>
+                <button type="button" class="btn btn-primary btn-sm" onclick="addInlineReactRow()" style="gap:.3rem;">
+                    <span style="font-size:1rem;line-height:1;">＋</span> Tambah Reaction
+                </button>
+            </div>
+            <div id="inlineReactTable"></div>
+            <div id="inlineReactEmpty" style="text-align:center;padding:1.5rem 1rem;color:var(--text-muted);border:2px dashed var(--border);border-radius:10px;margin:.5rem 0;">
+                <div style="font-size:2rem;margin-bottom:.4rem;">✨</div>
+                <div style="font-size:.85rem;">Belum ada reaction. Klik <strong style="color:var(--text);">＋ Tambah Reaction</strong> untuk menambahkan.</div>
+            </div>
+            <div style="margin-top:.75rem;padding:.6rem .75rem;background:rgba(88,101,242,.08);border-radius:8px;border:1px solid rgba(88,101,242,.2);font-size:.78rem;color:var(--text-muted);line-height:1.6;">
+                💡 <strong style="color:var(--text);">Tips:</strong>
+                Gunakan emoji unicode seperti <span style="font-size:1rem;">👍 🎮 ⭐ 🎭</span> atau emoji kustom server dengan format <code style="background:var(--bg3);padding:1px 4px;border-radius:3px;">&lt;:nama:id&gt;</code>.
+                Maks <strong style="color:var(--text);">20 reaction</strong> per panel.
+            </div>
+        </div>
+
+        <div id="reactPanelMsg" class="form-message" style="margin-top:.75rem;"></div>
+    </div>
+    <div class="mb-modal-footer">
+        <div id="reactPanelFooterForm" style="display:flex;gap:.75rem;justify-content:flex-end;">
+            <button class="btn btn-outline" onclick="closeReactPanelModal()">Batal</button>
+            <button class="btn btn-primary" id="reactPanelSaveBtn" onclick="saveReactPanel()">Simpan</button>
+        </div>
+        <div id="reactPanelFooterSend" style="display:none;">
+            <div style="display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;justify-content:space-between;">
+                <div style="display:flex;gap:.6rem;align-items:center;flex:1;min-width:200px;">
+                    <span style="font-size:.85rem;white-space:nowrap;">📨 Kirim ke:</span>
+                    <select id="reactPanelSendChannel" class="select" style="flex:1;">
+                        <option value="">— Pilih channel —</option>
+                        <% channels.forEach(c => { %>
+                            <option value="<%= c.id %>">#<%= c.name %></option>
+                        <% }) %>
+                    </select>
+                </div>
+                <div style="display:flex;gap:.6rem;">
+                    <button class="btn btn-outline" onclick="closeReactPanelModal()">Lewati</button>
+                    <button class="btn btn-primary" onclick="sendReactAfterSave()">📨 Kirim</button>
+                </div>
+            </div>
+            <div id="reactPanelSendMsg" class="form-message" style="margin-top:.5rem;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     MODAL: Kirim Panel Reaction
+══════════════════════════════════════ -->
+<div class="mb-modal-backdrop" id="sendReactPanelBackdrop" onclick="closeSendReactPanel()"></div>
+<div class="mb-modal mb-modal-sm" id="sendReactPanelModal">
+    <div class="mb-modal-header">
+        <h2>📨 Kirim Panel Reaction</h2>
+        <button class="mb-modal-close" onclick="closeSendReactPanel()">✕</button>
+    </div>
+    <div class="mb-modal-body">
+        <p style="margin-bottom:1rem;color:var(--text-muted);font-size:.9rem;">
+            Kirim panel <strong id="sendReactPanelName"></strong> ke channel:
+        </p>
+        <select id="sendReactPanelChannel" class="select">
+            <option value="">— Pilih channel —</option>
+            <% channels.forEach(c => { %>
+                <option value="<%= c.id %>">#<%= c.name %></option>
+            <% }) %>
+        </select>
+        <div class="hint" style="margin-top:.5rem;">
+            ⚠️ Panel hanya bisa dikirim <strong>1 kali</strong>. Setelah terkirim, gunakan
+            <strong>Edit Panel</strong> untuk memperbarui embed atau reaction.
+        </div>
+        <div id="sendReactPanelMsg" class="form-message" style="margin-top:.75rem;"></div>
+    </div>
+    <div class="mb-modal-footer">
+        <div style="display:flex;gap:.75rem;justify-content:flex-end;">
+            <button class="btn btn-outline" onclick="closeSendReactPanel()">Batal</button>
+            <button class="btn btn-primary" onclick="doSendReactPanel()">Kirim</button>
+        </div>
+    </div>
+</div>
+
 <style>
 /* ── Tabs ── */
 .ar-tabs { display:flex; gap:.5rem; margin-bottom:1.25rem; flex-wrap:wrap; }
@@ -654,41 +1027,98 @@
 }
 .ar-btn-delete:hover { background:rgba(237,66,69,.1); border-color:var(--red); }
 
-/* ── Bulk Button Editor Table ── */
-.btn-editor-row {
-    display:grid;
-    grid-template-columns: 1fr 1.5fr auto auto;
-    gap:.5rem; align-items:center;
-    background:var(--bg3); border-radius:var(--radius);
-    padding:.6rem .75rem; margin-bottom:.4rem;
-    border:1px solid var(--border); transition:border-color .15s;
+/* ══════════════════════════════════════
+   BUTTON EDITOR — card-based redesign
+══════════════════════════════════════ */
+.btn-card {
+    background: var(--bg3);
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    padding: .75rem 1rem;
+    margin-bottom: .6rem;
+    transition: border-color .2s, box-shadow .2s;
 }
-.btn-editor-row:hover { border-color:var(--accent); }
-.btn-editor-row .row-num { display:none; }
-@media(min-width:600px){
-    .btn-editor-row {
-        grid-template-columns: 22px 1fr 1.5fr 130px auto;
+.btn-card:hover {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px rgba(88,101,242,.12), 0 4px 14px rgba(0,0,0,.15);
+}
+.btn-card.has-duplicate {
+    border-color: var(--red) !important;
+    box-shadow: 0 0 0 1px rgba(237,66,69,.25) !important;
+}
+
+/* ── Card top bar: badge + preview chip + delete ── */
+.btn-card-top {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    margin-bottom: .6rem;
+}
+.btn-num-badge {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: var(--bg2);
+    border: 1.5px solid var(--border);
+    color: var(--text-muted);
+    font-size: .68rem; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+}
+.btn-preview-chip {
+    font-size: .8rem;
+    padding: .3rem .8rem;
+    border-radius: 6px;
+    font-weight: 500;
+    max-width: 220px;
+    min-width: 60px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    transition: background .2s, color .2s, border-color .2s;
+    flex-shrink: 1;
+    cursor: default;
+    user-select: none;
+}
+.btn-preview-chip.style-1 { background:rgba(88,101,242,.2);  color:#949cf7; border:1px solid rgba(88,101,242,.35); }
+.btn-preview-chip.style-2 { background:rgba(79,84,92,.3);    color:#b5bac1; border:1px solid rgba(79,84,92,.5); }
+.btn-preview-chip.style-3 { background:rgba(87,242,135,.15); color:#57F287; border:1px solid rgba(87,242,135,.35); }
+.btn-preview-chip.style-4 { background:rgba(237,66,69,.18);  color:#f27f81; border:1px solid rgba(237,66,69,.35); }
+.btn-preview-chip.style-empty { background:var(--bg2); color:var(--text-muted); border:1px dashed var(--border); font-style:italic; }
+
+/* ── Card fields: 3-column grid ── */
+.btn-card-fields {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr minmax(130px,160px);
+    gap: .5rem;
+}
+@media(max-width:600px) {
+    .btn-card-fields { grid-template-columns: 1fr; }
+    .btn-num-badge { display: none; }
+}
+
+/* ── Column header ── */
+.btn-col-header { display: none; }
+@media(min-width:600px) {
+    .btn-col-header {
+        display: grid;
+        grid-template-columns: 22px auto 1fr 1.5fr minmax(130px,160px) auto;
+        gap: .6rem;
+        padding: .15rem .25rem .4rem 1rem;
+        font-size: .68rem; font-weight: 700;
+        color: var(--text-muted);
+        text-transform: uppercase; letter-spacing: .06em;
+        align-items: center;
     }
-    .btn-editor-row .row-num { display:block; color:var(--text-muted); font-size:.78rem; text-align:center; }
 }
-.btn-editor-row .select-sm {
-    font-size:.8rem; padding:.3rem .5rem; background:var(--bg2);
-    border:1px solid var(--border); border-radius:6px; color:var(--text); width:100%;
+
+/* ── Field inputs (shared with react editor) ── */
+.btn-card .react-select,
+.btn-card .react-input {
+    /* inherits from .react-select / .react-input defined above */
 }
-.btn-editor-row .input-sm {
-    font-size:.8rem; padding:.3rem .55rem; background:var(--bg2);
-    border:1px solid var(--border); border-radius:6px; color:var(--text); width:100%;
-}
-.btn-editor-header { display:none; }
-@media(min-width:600px){
-    .btn-editor-header {
-        display:grid;
-        grid-template-columns: 22px 1fr 1.5fr 130px auto;
-        gap:.5rem; padding:.3rem .75rem;
-        font-size:.72rem; color:var(--text-muted);
-        text-transform:uppercase; letter-spacing:.04em;
-    }
-}
+
+/* legacy — hide old header (jaga kompatibilitas) */
+.btn-editor-header { display: none !important; }
 
 /* ── Modal editor layout ── */
 .mb-editor-layout { display:flex; gap:1.5rem; flex-direction:column; }
@@ -828,6 +1258,147 @@
 /* ── Multi count buttons ── */
 .multi-count-btn { min-width:80px; }
 .multi-count-btn:hover { background:var(--accent); border-color:var(--accent); color:#fff; }
+
+/* ── Reaction chips ── */
+.ar-react-chip {
+    font-size:.8rem; padding:.2rem .55rem; border-radius:6px;
+    display:flex; align-items:center; gap:.35rem;
+    background:rgba(88,101,242,.15); color:#7289da;
+}
+.ar-react-chip .ar-btn-role { opacity:.65; font-size:.7rem; }
+.ar-react-custom { font-size:.78rem; color:var(--text-muted); }
+
+/* ── Reaction editor card ── */
+.react-editor-card {
+    background: var(--bg3);
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    padding: .75rem 1rem;
+    margin-bottom: .6rem;
+    transition: border-color .2s, box-shadow .2s;
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+}
+.react-editor-card:hover {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px rgba(88,101,242,.15), 0 4px 14px rgba(0,0,0,.18);
+}
+.react-num-badge {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: var(--bg2);
+    border: 1.5px solid var(--border);
+    color: var(--text-muted);
+    font-size: .68rem; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+}
+.react-emoji-bubble {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    background: var(--bg2);
+    border: 2px dashed var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+    transition: border-color .2s, background .2s, transform .15s;
+    cursor: default;
+    user-select: none;
+    overflow: hidden;
+    text-align: center;
+    line-height: 1;
+}
+.react-emoji-bubble.has-emoji {
+    border: 2px solid rgba(88,101,242,.5);
+    background: rgba(88,101,242,.08);
+    transform: scale(1.05);
+}
+.react-emoji-bubble.has-emoji:hover { transform: scale(1.12); }
+.react-emoji-bubble .react-empty-icon {
+    font-size: 1.1rem; opacity: .3;
+}
+.react-emoji-bubble .react-custom-tag {
+    font-size: .55rem;
+    font-weight: 700;
+    color: var(--accent);
+    line-height: 1.2;
+    max-width: 44px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: center;
+    padding: 0 2px;
+}
+.react-fields {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1.1fr;
+    gap: .5rem;
+    min-width: 0;
+}
+@media(max-width:540px) {
+    .react-fields { grid-template-columns: 1fr; }
+    .react-num-badge { display: none; }
+}
+/* ── Reaction column header ── */
+.react-col-header {
+    display: none;
+}
+@media(min-width:540px) {
+    .react-col-header {
+        display: grid;
+        grid-template-columns: 22px 48px 1fr 1.1fr auto;
+        gap: .75rem;
+        align-items: center;
+        padding: .2rem .25rem .4rem 1rem;
+        font-size: .68rem;
+        font-weight: 700;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: .06em;
+    }
+}
+
+.react-select, .react-input {
+    background: var(--bg2);
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-size: .85rem;
+    padding: .5rem .65rem;
+    width: 100%;
+    outline: none;
+    transition: border-color .18s, box-shadow .18s;
+    line-height: 1.4;
+    min-height: 36px;
+    box-sizing: border-box;
+}
+.react-select { cursor: pointer; }
+.react-select:focus, .react-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(88,101,242,.18);
+}
+.react-select:hover, .react-input:hover {
+    border-color: rgba(88,101,242,.5);
+}
+.react-select option { background: var(--bg2); color: var(--text); }
+
+/* ── Emoji input with prefix icon ── */
+.react-emoji-input-wrap { position: relative; }
+.react-emoji-input-wrap .react-emoji-prefix {
+    position: absolute;
+    left: .6rem; top: 50%; transform: translateY(-50%);
+    font-size: .85rem;
+    pointer-events: none;
+    user-select: none;
+    opacity: .55;
+    line-height: 1;
+}
+.react-emoji-input-wrap .react-input { padding-left: 1.85rem; }
+
+/* ── Card: everything vertically centered ── */
+.react-editor-card { align-items: center; }
 </style>
 
 <script>
@@ -896,9 +1467,10 @@ function resolveHtmlMentions(html){
 
 // ── Tab ──────────────────────────────────────────────────────────────────────
 const TAB_META = {
-    join:    { title: 'Autorole Join',    desc: 'Role otomatis diberikan saat member atau bot bergabung ke server.' },
-    booster: { title: 'Autorole Booster', desc: 'Role otomatis diberikan saat member melakukan boost server.' },
-    button:  { title: 'Autorole Button',  desc: 'Panel tombol interaktif untuk member memilih role sendiri.' },
+    join:     { title: 'Autorole Join',     desc: 'Role otomatis diberikan saat member atau bot bergabung ke server.' },
+    booster:  { title: 'Autorole Booster',  desc: 'Role otomatis diberikan saat member melakukan boost server.' },
+    button:   { title: 'Autorole Button',   desc: 'Panel tombol interaktif untuk member memilih role sendiri.' },
+    reaction: { title: 'Autorole Reaction', desc: 'Panel reaction emoji untuk member memilih role dengan klik emoji.' },
 };
 
 function switchTab(tab) {
@@ -906,12 +1478,14 @@ function switchTab(tab) {
     document.getElementById(`tab-${tab}`).style.display = '';
     sessionStorage.setItem('ar_tab', tab);
 
-    const subJoin    = document.getElementById('sidebarSubJoin');
-    const subBooster = document.getElementById('sidebarSubBooster');
-    const subButton  = document.getElementById('sidebarSubButton');
-    if (subJoin)    subJoin.classList.toggle('active',    tab === 'join');
-    if (subBooster) subBooster.classList.toggle('active', tab === 'booster');
-    if (subButton)  subButton.classList.toggle('active',  tab === 'button');
+    const subJoin     = document.getElementById('sidebarSubJoin');
+    const subBooster  = document.getElementById('sidebarSubBooster');
+    const subButton   = document.getElementById('sidebarSubButton');
+    const subReaction = document.getElementById('sidebarSubReaction');
+    if (subJoin)     subJoin.classList.toggle('active',     tab === 'join');
+    if (subBooster)  subBooster.classList.toggle('active',  tab === 'booster');
+    if (subButton)   subButton.classList.toggle('active',   tab === 'button');
+    if (subReaction) subReaction.classList.toggle('active', tab === 'reaction');
 
     const meta = TAB_META[tab];
     if (meta) {
@@ -925,7 +1499,8 @@ function switchTab(tab) {
 function _restoreTab() {
     const urlTab = new URLSearchParams(window.location.search).get('tab');
     const tab    = urlTab || sessionStorage.getItem('ar_tab') || 'join';
-    switchTab(tab);
+    const valid  = ['join', 'booster', 'button', 'reaction'];
+    switchTab(valid.includes(tab) ? tab : 'join');
 }
 document.addEventListener('DOMContentLoaded', _restoreTab);
 
@@ -1365,41 +1940,60 @@ function renderInlineBtnTable() {
     const empty   = document.getElementById('inlineBtnEmpty');
     const counter = document.getElementById('inlineBtnCounter');
     if (!table) return;
-    counter.textContent = `${_inlineBtns.length}/25 tombol`;
+    counter.textContent = `${_inlineBtns.length}/25`;
     if (_inlineBtns.length === 0) {
         table.innerHTML = '';
         empty.style.display = '';
         return;
     }
     empty.style.display = 'none';
-    table.innerHTML = _inlineBtns.map((btn, i) => `
-        <div class="btn-editor-row" id="inrow-${i}">
-            <span class="row-num">${i + 1}</span>
-            <select class="select-sm" id="inrow-role-${i}" onchange="updateInlineBtn(${i})">
-                <option value="">— Role —</option>
-                ${ALL_ROLES.map(r => `<option value="${r.id}" style="color:${r.color}" ${r.id === btn.roleId ? 'selected' : ''}>@${r.name}</option>`).join('')}
-            </select>
-            <input type="text" class="input-sm" id="inrow-label-${i}"
-                   value="${(btn.label || '').replace(/"/g, '&quot;')}"
-                   placeholder="Label tombol..." maxlength="80"
-                   oninput="updateInlineBtn(${i})">
-            <select class="select-sm" id="inrow-style-${i}" onchange="updateInlineBtn(${i})">
-                ${STYLE_OPTIONS.map(o => `<option value="${o.v}" ${String(btn.style || '1') === o.v ? 'selected' : ''}>${o.l}</option>`).join('')}
-            </select>
-            <button class="ar-btn-delete" onclick="removeInlineBtn(${i})" title="Hapus"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>
-        </div>
-    `).join('');
-    // Update live preview tombol di embed preview
+    const trashSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>`;
+    table.innerHTML = _inlineBtns.map((btn, i) => {
+        const style    = btn.style || 1;
+        const label    = btn.label || '';
+        const chipCls  = label ? `style-${style}` : 'style-empty';
+        const chipText = label || 'Label tombol...';
+        return `
+        <div class="btn-card" id="inrow-${i}">
+            <div class="btn-card-top">
+                <span class="btn-num-badge">${i + 1}</span>
+                <span class="btn-preview-chip ${chipCls}" id="inrow-preview-${i}">${chipText}</span>
+                <span style="flex:1;"></span>
+                <button class="ar-btn-delete" onclick="removeInlineBtn(${i})" title="Hapus">${trashSvg}</button>
+            </div>
+            <div class="btn-card-fields">
+                <select class="react-select" id="inrow-role-${i}" onchange="updateInlineBtn(${i})">
+                    <option value="">— Pilih Role —</option>
+                    ${ALL_ROLES.map(r => `<option value="${r.id}" style="color:${r.color}" ${r.id === btn.roleId ? 'selected' : ''}>@${r.name}</option>`).join('')}
+                </select>
+                <input type="text" class="react-input" id="inrow-label-${i}"
+                       value="${label.replace(/"/g, '&quot;')}"
+                       placeholder="Label tombol..." maxlength="80"
+                       oninput="updateInlineBtn(${i})">
+                <select class="react-select" id="inrow-style-${i}" onchange="updateInlineBtn(${i})">
+                    ${STYLE_OPTIONS.map(o => `<option value="${o.v}" ${String(style) === o.v ? 'selected' : ''}>${o.l}</option>`).join('')}
+                </select>
+            </div>
+        </div>`;
+    }).join('');
     updatePanelPreviewBtns();
 }
 
 function updateInlineBtn(i) {
+    const label = (document.getElementById(`inrow-label-${i}`)?.value || '').trim();
+    const style = parseInt(document.getElementById(`inrow-style-${i}`)?.value || '1');
     _inlineBtns[i] = {
         roleId: document.getElementById(`inrow-role-${i}`)?.value || '',
-        label:  (document.getElementById(`inrow-label-${i}`)?.value || '').trim(),
-        style:  parseInt(document.getElementById(`inrow-style-${i}`)?.value || '1'),
+        label,
+        style,
     };
-    document.getElementById('inlineBtnCounter').textContent = `${_inlineBtns.length}/25 tombol`;
+    // Live-update preview chip
+    const chip = document.getElementById(`inrow-preview-${i}`);
+    if (chip) {
+        chip.textContent = label || 'Label tombol...';
+        chip.className   = `btn-preview-chip ${label ? `style-${style}` : 'style-empty'}`;
+    }
+    document.getElementById('inlineBtnCounter').textContent = `${_inlineBtns.length}/25`;
     updatePanelPreviewBtns();
 }
 
@@ -1503,38 +2097,45 @@ function renderBtnEditorTable() {
     const counter = document.getElementById('btnCounter');
     counter.textContent = `${_btnData.length}/25 tombol`;
 
+    const trashSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>`;
+
     if (_btnData.length === 0) {
         table.innerHTML = `
-            <div class="btn-editor-header">
-                <span>#</span><span>Role</span><span>Label Tombol</span><span>Warna</span><span></span>
-            </div>
-            <p style="color:var(--text-muted);font-size:.875rem;padding:.5rem 0">
-                Belum ada tombol. Klik <strong>＋ Tambah Tombol</strong> untuk menambahkan.
-            </p>`;
+            <div style="text-align:center;padding:1.5rem 1rem;color:var(--text-muted);border:2px dashed var(--border);border-radius:10px;margin:.5rem 0;">
+                <div style="font-size:2rem;margin-bottom:.4rem;">🔘</div>
+                <div style="font-size:.85rem;">Belum ada tombol. Klik <strong style="color:var(--text);">＋ Tambah Tombol</strong> untuk menambahkan.</div>
+            </div>`;
         return;
     }
 
-    table.innerHTML = `
-        <div class="btn-editor-header">
-            <span>#</span><span>Role</span><span>Label Tombol</span><span>Warna</span><span></span>
-        </div>
-        ${_btnData.map((btn, i) => `
-        <div class="btn-editor-row" id="btnrow-${i}">
-            <span class="row-num">${i + 1}</span>
-            <select class="select-sm" id="brow-role-${i}" onchange="checkDuplicateRoles()">
-                <option value="">— Role —</option>
-                ${buildRoleOptions(btn.roleId)}
-            </select>
-            <input type="text" class="input-sm" id="brow-label-${i}"
-                   value="${(btn.label || '').replace(/"/g, '&quot;')}"
-                   placeholder="Label tombol..." maxlength="80">
-            <select class="select-sm" id="brow-style-${i}">
-                ${buildStyleOptions(String(btn.style || '1'))}
-            </select>
-            <button class="ar-btn-delete" onclick="removeButtonRow(${i})" title="Hapus"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>
-        </div>
-        `).join('')}
-    `;
+    table.innerHTML = _btnData.map((btn, i) => {
+        const style    = btn.style || 1;
+        const label    = btn.label || '';
+        const chipCls  = label ? `style-${style}` : 'style-empty';
+        const chipText = label || 'Label tombol...';
+        return `
+        <div class="btn-card" id="btnrow-${i}">
+            <div class="btn-card-top">
+                <span class="btn-num-badge">${i + 1}</span>
+                <span class="btn-preview-chip ${chipCls}" id="brow-preview-${i}">${chipText}</span>
+                <span style="flex:1;"></span>
+                <button class="ar-btn-delete" onclick="removeButtonRow(${i})" title="Hapus">${trashSvg}</button>
+            </div>
+            <div class="btn-card-fields">
+                <select class="react-select" id="brow-role-${i}" onchange="checkDuplicateRoles();updateBulkPreview(${i})">
+                    <option value="">— Pilih Role —</option>
+                    ${buildRoleOptions(btn.roleId)}
+                </select>
+                <input type="text" class="react-input" id="brow-label-${i}"
+                       value="${label.replace(/"/g, '&quot;')}"
+                       placeholder="Label tombol..." maxlength="80"
+                       oninput="updateBulkPreview(${i})">
+                <select class="react-select" id="brow-style-${i}" onchange="updateBulkPreview(${i})">
+                    ${buildStyleOptions(String(style))}
+                </select>
+            </div>
+        </div>`;
+    }).join('');
     setTimeout(checkDuplicateRoles, 0);
 }
 
@@ -1594,27 +2195,537 @@ function collectButtonsFromEditor() {
     }));
 }
 
+function updateBulkPreview(i) {
+    const label = (document.getElementById(`brow-label-${i}`)?.value || '').trim();
+    const style = parseInt(document.getElementById(`brow-style-${i}`)?.value || '1');
+    const chip  = document.getElementById(`brow-preview-${i}`);
+    if (chip) {
+        chip.textContent = label || 'Label tombol...';
+        chip.className   = `btn-preview-chip ${label ? `style-${style}` : 'style-empty'}`;
+    }
+}
+
 function checkDuplicateRoles() {
     const buttons   = collectButtonsFromEditor();
     const roleCount = {};
     buttons.forEach(b => { if (b.roleId) roleCount[b.roleId] = (roleCount[b.roleId] || 0) + 1; });
 
     buttons.forEach((b, i) => {
-        const row = document.getElementById(`btnrow-${i}`);
-        const sel = document.getElementById(`brow-role-${i}`);
-        if (!row || !sel) return;
+        const card = document.getElementById(`btnrow-${i}`);
+        const sel  = document.getElementById(`brow-role-${i}`);
+        if (!card || !sel) return;
         const isDup = b.roleId && roleCount[b.roleId] > 1;
-        row.style.borderColor = isDup ? 'var(--red)' : '';
-        sel.style.borderColor  = isDup ? 'var(--red)' : '';
+        card.classList.toggle('has-duplicate', isDup);
+        sel.style.borderColor = isDup ? 'var(--red)' : '';
         sel.title = isDup ? '⚠️ Role ini sudah dipakai tombol lain' : '';
     });
 
     const dupCount = Object.values(roleCount).filter(c => c > 1).length;
     const counter  = document.getElementById('btnCounter');
     if (counter) {
-        counter.textContent = `${buttons.length}/25 tombol` + (dupCount ? ` · ⚠️ ${dupCount} role duplikat` : '');
+        counter.textContent = `${buttons.length}/25 tombol` + (dupCount ? ` · ⚠️ ${dupCount} duplikat` : '');
         counter.style.color = dupCount ? 'var(--red)' : '';
     }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// AUTOROLE REACTION — PANEL PREVIEW (side panel)
+// ══════════════════════════════════════════════════════════════════════════════
+
+let _selectedReactPanel = null;
+
+document.getElementById('reactPanelGrid').addEventListener('click', e => {
+    if (e.target.closest('.ar-panel-actions')) return;
+    const card = e.target.closest('.ar-panel-card[data-type="reaction"]');
+    if (card) selectReactPanelPreview(card.dataset.name);
+});
+
+async function selectReactPanelPreview(name) {
+    if (_selectedReactPanel === name) { closeReactPreviewPanel(); return; }
+    if (_selectedReactPanel) {
+        document.querySelector(`.ar-panel-card[data-type="reaction"][data-name="${_selectedReactPanel}"]`)?.classList.remove('selected');
+    }
+    _selectedReactPanel = name;
+    document.querySelector(`.ar-panel-card[data-type="reaction"][data-name="${name}"]`)?.classList.add('selected');
+
+    const res  = await fetch(`/api/guild/${GUILD_ID}/autorole-reaction/${encodeURIComponent(name)}`);
+    const data = await res.json();
+    if (!data.success) return;
+
+    renderReactPreviewPanel(data.panel);
+    document.getElementById('apReactPreviewTitle').textContent = name;
+    document.getElementById('apReactPreviewPlaceholder').style.display = 'none';
+    document.getElementById('apReactPreviewContent').style.display = '';
+    document.getElementById('apReactPreviewPanel').classList.add('open');
+    document.getElementById('apReactPreviewBackdrop').classList.add('open');
+}
+
+function renderReactPreviewPanel(panel) {
+    const isPlain = panel.messageType === 'plain';
+    const plainEl = document.getElementById('apReactPanelPreviewPlain');
+    const embedEl = document.getElementById('apReactPanelPreviewEmbed');
+
+    if (isPlain) {
+        plainEl.style.display = 'block';
+        embedEl.style.display = 'none';
+        plainEl.innerHTML = resolveHtmlMentions(mdToHtml(panel.plainText || ''));
+    } else {
+        plainEl.style.display = 'none';
+        embedEl.style.display = 'flex';
+        const color = panel.embedColor || '#5865F2';
+        document.getElementById('apReactPanelPreviewPill').style.background = color;
+        document.getElementById('apReactPanelPreviewTitle').textContent      = panel.embedTitle       || '';
+        document.getElementById('apReactPanelPreviewDesc').textContent       = panel.embedDescription || '';
+        document.getElementById('apReactPanelPreviewFooter').textContent     = panel.embedFooter      || '';
+
+        const imgEl = document.getElementById('apReactPanelPreviewImage');
+        if (panel.embedImage && /^https?:\/\//.test(panel.embedImage)) { imgEl.src = panel.embedImage; imgEl.style.display = 'block'; }
+        else imgEl.style.display = 'none';
+
+        const thumbEl = document.getElementById('apReactPanelPreviewThumb');
+        if (panel.embedThumbnail && /^https?:\/\//.test(panel.embedThumbnail)) { thumbEl.src = panel.embedThumbnail; thumbEl.style.display = 'block'; }
+        else thumbEl.style.display = 'none';
+    }
+
+    document.getElementById('apReactPanelPreviewReacts').innerHTML = (panel.reactions || [])
+        .map(r => {
+            const emojiDisplay = r.emoji.includes(':') ? `<span style="font-size:.8rem;color:var(--text-muted);">:${r.emoji.split(':')[0]}:</span>` : r.emoji;
+            return `<span class="ar-react-chip">${emojiDisplay}</span>`;
+        }).join('');
+}
+
+function closeReactPreviewPanel() {
+    document.getElementById('apReactPreviewPanel').classList.remove('open');
+    document.getElementById('apReactPreviewBackdrop').classList.remove('open');
+    document.getElementById('apReactPreviewPlaceholder').style.display = '';
+    document.getElementById('apReactPreviewContent').style.display = 'none';
+    document.getElementById('apReactPreviewTitle').textContent = 'Preview';
+    if (_selectedReactPanel) {
+        document.querySelector(`.ar-panel-card[data-type="reaction"][data-name="${_selectedReactPanel}"]`)?.classList.remove('selected');
+        _selectedReactPanel = null;
+    }
+}
+
+function filterReactPanels(q) {
+    q = q.toLowerCase();
+    document.querySelectorAll('.ar-panel-card[data-type="reaction"]').forEach(c => {
+        c.style.display = c.dataset.name.toLowerCase().includes(q) ? '' : 'none';
+    });
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// AUTOROLE REACTION — PANEL MODAL (Buat / Edit)
+// ══════════════════════════════════════════════════════════════════════════════
+
+function toggleReactPanelTypePanel() {
+    const isPlain = document.getElementById('reactPanelTypePlain').checked;
+    document.getElementById('reactPanelPlainPanel').style.display = isPlain ? 'block' : 'none';
+    document.getElementById('reactPanelEmbedPanel').style.display = isPlain ? 'none'  : 'block';
+    updateReactPanelPreview();
+}
+document.querySelectorAll('input[name="reactPanelMessageType"]').forEach(el =>
+    el.addEventListener('change', toggleReactPanelTypePanel)
+);
+
+function updateReactPanelPreview() {
+    const isPlain  = document.getElementById('reactPanelTypePlain').checked;
+    const plainEl  = document.getElementById('reactPanelPreviewPlain');
+    const embedEl  = document.getElementById('reactPanelPreviewEmbed');
+
+    if (isPlain) {
+        const text = document.getElementById('reactPanelPlainText').value;
+        const html = resolveHtmlMentions(mdToHtml(text));
+        plainEl.innerHTML     = html;
+        plainEl.style.display = html.trim() ? 'block' : 'none';
+        embedEl.style.display = 'none';
+        return;
+    }
+
+    plainEl.style.display = 'none';
+    embedEl.style.display = 'flex';
+
+    const title  = document.getElementById('reactPanelEmbedTitle').value;
+    const desc   = document.getElementById('reactPanelEmbedDescription').value;
+    const footer = document.getElementById('reactPanelEmbedFooter').value;
+    const image  = document.getElementById('reactPanelEmbedImage').value.trim();
+    const thumb  = document.getElementById('reactPanelEmbedThumbnail').value.trim();
+    const color  = document.getElementById('reactPanelEmbedColor').value || '#5865F2';
+
+    document.getElementById('reactPanelPreviewPill').style.background = color;
+    document.getElementById('reactPanelPreviewTitle').textContent     = title;
+    document.getElementById('reactPanelPreviewDesc').textContent      = desc;
+    document.getElementById('reactPanelPreviewFooter').textContent    = footer;
+
+    const validUrl = v => v && v !== '-' && /^https?:\/\/.+\..+/.test(v);
+    const imgEl   = document.getElementById('reactPanelPreviewImage');
+    const thumbEl = document.getElementById('reactPanelPreviewThumb');
+    if (validUrl(image)) { imgEl.src = image; imgEl.style.display = ''; } else { imgEl.src = ''; imgEl.style.display = 'none'; }
+    if (validUrl(thumb)) { thumbEl.src = thumb; thumbEl.style.display = ''; } else { thumbEl.src = ''; thumbEl.style.display = 'none'; }
+}
+
+function _fillReactPanelForm(panel) {
+    document.getElementById('reactPanelEmbedTitle').value       = panel.embedTitle       || '';
+    document.getElementById('reactPanelEmbedDescription').value = panel.embedDescription || '';
+    document.getElementById('reactPanelEmbedFooter').value      = panel.embedFooter      || '';
+    document.getElementById('reactPanelEmbedImage').value       = panel.embedImage       || '';
+    document.getElementById('reactPanelEmbedThumbnail').value   = panel.embedThumbnail   || '';
+    const color = panel.embedColor && /^#[0-9A-Fa-f]{6}$/.test(panel.embedColor) ? panel.embedColor : '#5865F2';
+    document.getElementById('reactPanelEmbedColor').value  = color;
+    document.getElementById('reactPanelColorPicker').value = color;
+    document.getElementById('reactPanelMode').value        = panel.mode || 'multi';
+    const isPlain = panel.messageType === 'plain';
+    document.getElementById(isPlain ? 'reactPanelTypePlain' : 'reactPanelTypeEmbed').checked = true;
+    document.getElementById('reactPanelPlainText').value = panel.plainText || '';
+    toggleReactPanelTypePanel();
+}
+
+function _resetReactPanelForm() {
+    document.getElementById('reactPanelName').value             = '';
+    document.getElementById('reactPanelEmbedTitle').value       = '';
+    document.getElementById('reactPanelEmbedDescription').value = '';
+    document.getElementById('reactPanelEmbedFooter').value      = '';
+    document.getElementById('reactPanelEmbedImage').value       = '';
+    document.getElementById('reactPanelEmbedThumbnail').value   = '';
+    document.getElementById('reactPanelEmbedColor').value       = '#5865F2';
+    document.getElementById('reactPanelColorPicker').value      = '#5865F2';
+    document.getElementById('reactPanelMode').value             = 'multi';
+    document.getElementById('reactPanelMsg').textContent        = '';
+    document.getElementById('reactPanelTypeEmbed').checked = true;
+    document.getElementById('reactPanelPlainText').value   = '';
+    _inlineReacts = [];
+    renderInlineReactTable();
+    toggleReactPanelTypePanel();
+}
+
+function _showReactPanelFooter(state) {
+    document.getElementById('reactPanelFooterForm').style.display = state === 'form' ? '' : 'none';
+    document.getElementById('reactPanelFooterSend').style.display = state === 'send' ? '' : 'none';
+}
+
+function openCreateReactPanel() {
+    document.getElementById('reactPanelModalTitle').textContent = 'Panel Reaction Baru';
+    document.getElementById('reactPanelOriginalName').value     = '';
+    document.getElementById('reactPanelName').disabled          = false;
+    _resetReactPanelForm();
+    document.getElementById('reactPanelInlineReactions').style.display = '';
+    document.getElementById('reactPanelChannelGroup').style.display    = '';
+    document.getElementById('reactPanelSendChannelInline').value       = '';
+    _showReactPanelFooter('form');
+    openModal('reactPanelBackdrop', 'reactPanelModal');
+}
+
+async function openEditReactPanel(name) {
+    document.getElementById('reactPanelModalTitle').textContent = `Edit Panel: ${name}`;
+    document.getElementById('reactPanelOriginalName').value     = name;
+    document.getElementById('reactPanelName').value             = name;
+    document.getElementById('reactPanelName').disabled          = true;
+    document.getElementById('reactPanelMsg').textContent        = '';
+    document.getElementById('reactPanelInlineReactions').style.display = '';
+    document.getElementById('reactPanelChannelGroup').style.display    = 'none';
+
+    try {
+        const res  = await fetch(`/api/guild/${GUILD_ID}/autorole-reaction/${encodeURIComponent(name)}`);
+        const data = await res.json();
+        if (data.success && data.panel) {
+            _fillReactPanelForm(data.panel);
+            _inlineReacts = (data.panel.reactions || []).map(r => ({ emoji: r.emoji, roleId: r.roleId }));
+            renderInlineReactTable();
+        }
+    } catch(e) { console.error(e); }
+
+    _showReactPanelFooter('form');
+    openModal('reactPanelBackdrop', 'reactPanelModal');
+}
+
+function closeReactPanelModal() { closeModal('reactPanelBackdrop', 'reactPanelModal'); }
+
+let _savedReactPanelName = '';
+
+async function sendReactAfterSave() {
+    const msg       = document.getElementById('reactPanelSendMsg');
+    const channelId = document.getElementById('reactPanelSendChannel').value;
+    if (!channelId) return showMsg(msg, 'Pilih channel terlebih dahulu.', 'error');
+
+    const res  = await fetch(`/api/guild/${GUILD_ID}/autorole-reaction/${encodeURIComponent(_savedReactPanelName)}/send`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ channelId })
+    });
+    const data = await res.json();
+    if (!data.success) return showMsg(msg, data.message, 'error');
+    showMsg(msg, '✅ Panel berhasil dikirim!', 'success');
+    setTimeout(() => { closeReactPanelModal(); _reloadKeepHash(); }, 900);
+}
+
+async function saveReactPanel() {
+    const msg          = document.getElementById('reactPanelMsg');
+    const originalName = document.getElementById('reactPanelOriginalName').value;
+    const name         = originalName || document.getElementById('reactPanelName').value.trim().toLowerCase();
+
+    if (!name || !/^[a-zA-Z0-9_-]{1,32}$/.test(name))
+        return showMsg(msg, 'Nama panel tidak valid. Gunakan huruf, angka, - atau _.', 'error');
+
+    const isPlainType      = document.getElementById('reactPanelTypePlain').checked;
+    const embedTitle       = document.getElementById('reactPanelEmbedTitle').value.trim();
+    const embedDescription = document.getElementById('reactPanelEmbedDescription').value.trim();
+    const embedFooter      = document.getElementById('reactPanelEmbedFooter').value.trim();
+    const rawImage         = document.getElementById('reactPanelEmbedImage').value.trim();
+    const rawThumb         = document.getElementById('reactPanelEmbedThumbnail').value.trim();
+    const embedColor       = document.getElementById('reactPanelEmbedColor').value.trim() || '#5865F2';
+    const mode             = document.getElementById('reactPanelMode').value;
+    const panelPlainText   = document.getElementById('reactPanelPlainText').value.trim();
+
+    if (isPlainType) {
+        if (!panelPlainText) return showMsg(msg, 'Isi pesan teks biasa tidak boleh kosong.', 'error');
+    } else {
+        const urlOk = v => !v || v === '-' || /^https?:\/\/.+\..+/.test(v);
+        if (!urlOk(rawImage)) return showMsg(msg, 'URL Gambar tidak valid. Harus https://...', 'error');
+        if (!urlOk(rawThumb)) return showMsg(msg, 'URL Thumbnail tidak valid. Harus https://...', 'error');
+        if (!/^#[0-9A-Fa-f]{6}$/.test(embedColor))
+            return showMsg(msg, 'Warna embed tidak valid. Contoh: #5865F2', 'error');
+    }
+
+    if (!originalName) {
+        const inlineChannelVal = document.getElementById('reactPanelSendChannelInline').value;
+        if (!inlineChannelVal)
+            return showMsg(msg, 'Pilih channel tujuan pengiriman panel.', 'error');
+
+        const validReacts = _inlineReacts.filter(r => r.emoji && r.roleId);
+        if (validReacts.length === 0)
+            return showMsg(msg, 'Tambahkan minimal 1 reaction sebelum menyimpan panel.', 'error');
+    }
+
+    const payload = {
+        name, mode,
+        messageType: isPlainType ? 'plain' : 'embed',
+        plainText: panelPlainText, embedTitle, embedDescription, embedFooter, embedColor,
+        embedImage:     rawImage === '-' ? '' : rawImage,
+        embedThumbnail: rawThumb === '-' ? '' : rawThumb,
+    };
+
+    const url = originalName
+        ? `/api/guild/${GUILD_ID}/autorole-reaction/${encodeURIComponent(originalName)}`
+        : `/api/guild/${GUILD_ID}/autorole-reaction`;
+
+    const res  = await fetch(url, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (!data.success) return showMsg(msg, data.message, 'error');
+
+    // Simpan reactions inline
+    const reacts = _inlineReacts.filter(r => r.emoji && r.roleId);
+    try {
+        await fetch(`/api/guild/${GUILD_ID}/autorole-reaction/${encodeURIComponent(name)}/reactions`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reactions: reacts })
+        });
+    } catch(e) { console.error('Gagal simpan reactions inline:', e); }
+
+    if (originalName) {
+        showMsg(msg, data.message, 'success');
+        setTimeout(() => { closeReactPanelModal(); _reloadKeepHash(); }, 800);
+    } else {
+        const inlineChannelId = document.getElementById('reactPanelSendChannelInline').value;
+        if (inlineChannelId) {
+            showMsg(msg, '✅ Panel disimpan! Mengirim ke channel...', 'success');
+            try {
+                const sendRes  = await fetch(`/api/guild/${GUILD_ID}/autorole-reaction/${encodeURIComponent(name)}/send`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ channelId: inlineChannelId })
+                });
+                const sendData = await sendRes.json();
+                if (sendData.success) {
+                    showMsg(msg, '✅ Panel berhasil disimpan dan dikirim ke channel!', 'success');
+                } else {
+                    showMsg(msg, `⚠️ Panel disimpan, tapi gagal kirim: ${sendData.message}`, 'error');
+                }
+            } catch { showMsg(msg, '⚠️ Panel disimpan, tapi gagal kirim.', 'error'); }
+            setTimeout(() => { closeReactPanelModal(); _reloadKeepHash(); }, 1200);
+        } else {
+            showMsg(msg, '✅ Panel disimpan! Pilih channel untuk mengirimnya.', 'success');
+            document.getElementById('reactPanelSendChannel').value   = '';
+            document.getElementById('reactPanelSendMsg').textContent = '';
+            _savedReactPanelName = name;
+            _showReactPanelFooter('send');
+        }
+    }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// INLINE REACTION EDITOR
+// ══════════════════════════════════════════════════════════════════════════════
+let _inlineReacts = [];
+
+function renderInlineReactTable() {
+    const table   = document.getElementById('inlineReactTable');
+    const empty   = document.getElementById('inlineReactEmpty');
+    const counter = document.getElementById('inlineReactCounter');
+    if (!table) return;
+    counter.textContent = `${_inlineReacts.length}/20`;
+    if (_inlineReacts.length === 0) {
+        table.innerHTML = '';
+        empty.style.display = '';
+        return;
+    }
+    empty.style.display = 'none';
+    const header = `
+        <div class="react-col-header">
+            <span></span><span></span>
+            <span>🎭 Role</span>
+            <span>✨ Emoji</span>
+            <span></span>
+        </div>`;
+    const rows = _inlineReacts.map((r, i) => {
+        const emojiDisplay = _emojiDisplayFromStored(r.emoji);
+        const hasEmoji     = !!r.emoji;
+        const inputVal     = r.emoji ? (r.emoji.includes(':') ? `<:${r.emoji}>` : r.emoji) : '';
+        return `
+        <div class="react-editor-card" id="inreact-${i}">
+            <span class="react-num-badge">${i + 1}</span>
+            <div class="react-emoji-bubble ${hasEmoji ? 'has-emoji' : ''}" id="inreact-bubble-${i}"
+                 title="${hasEmoji ? 'Preview emoji' : 'Belum ada emoji'}">
+                ${hasEmoji ? emojiDisplay : '<span class="react-empty-icon">✨</span>'}
+            </div>
+            <div class="react-fields">
+                <select class="react-select" id="inreact-role-${i}" onchange="updateInlineReact(${i})">
+                    <option value="">— Pilih Role —</option>
+                    ${ALL_ROLES.map(role => `<option value="${role.id}" style="color:${role.color}" ${role.id === r.roleId ? 'selected' : ''}>@${role.name}</option>`).join('')}
+                </select>
+                <div class="react-emoji-input-wrap">
+                    <span class="react-emoji-prefix">✨</span>
+                    <input type="text" class="react-input" id="inreact-emoji-${i}"
+                           value="${inputVal.replace(/"/g, '&quot;')}"
+                           placeholder="👍 🎮 ⭐ atau &lt;:nama:id&gt;" maxlength="100"
+                           oninput="updateInlineReact(${i})">
+                </div>
+            </div>
+            <button class="ar-btn-delete" onclick="removeInlineReact(${i})" title="Hapus">
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+            </button>
+        </div>`;
+    }).join('');
+    table.innerHTML = header + rows;
+    updateReactPanelPreviewReacts();
+}
+
+// Konversi stored emoji (name:id atau unicode) ke HTML di dalam bubble
+function _emojiDisplayFromStored(stored) {
+    if (!stored) return '';
+    if (stored.includes(':')) {
+        // Custom emoji — tampilkan nama terpotong di dalam bubble
+        const name = stored.split(':')[0];
+        const label = name.length > 6 ? name.slice(0, 5) + '…' : name;
+        return `<span class="react-custom-tag">:${label}:</span>`;
+    }
+    // Unicode emoji — validasi apakah benar-benar emoji (bukan teks biasa)
+    const isEmoji = /\p{Emoji}/u.test(stored) && !/^[a-zA-Z0-9\s]+$/.test(stored);
+    if (!isEmoji) {
+        // Bukan emoji valid — tampilkan tanda tanya
+        return `<span style="font-size:1rem;opacity:.4;">?</span>`;
+    }
+    return stored;
+}
+
+function updateInlineReact(i) {
+    const emojiRaw    = (document.getElementById(`inreact-emoji-${i}`)?.value || '').trim();
+    const customMatch = emojiRaw.match(/^<a?:([^:]+):(\d+)>$/);
+    const emojiStored = customMatch ? `${customMatch[1]}:${customMatch[2]}` : emojiRaw;
+
+    _inlineReacts[i] = {
+        roleId: document.getElementById(`inreact-role-${i}`)?.value || '',
+        emoji:  emojiStored,
+    };
+
+    // Live-update emoji bubble
+    const bubble = document.getElementById(`inreact-bubble-${i}`);
+    if (bubble) {
+        const isCustom = emojiStored.includes(':');
+        const isUnicodeEmoji = !isCustom && /\p{Emoji}/u.test(emojiStored) && !/^[a-zA-Z0-9\s]+$/.test(emojiStored);
+        const isValid  = isCustom || isUnicodeEmoji;
+
+        if (emojiStored && isValid) {
+            bubble.innerHTML = _emojiDisplayFromStored(emojiStored);
+            bubble.classList.add('has-emoji');
+            bubble.title = 'Preview emoji';
+        } else if (emojiStored) {
+            // Ada teks tapi bukan emoji valid
+            bubble.innerHTML = `<span style="font-size:.9rem;opacity:.35;">?</span>`;
+            bubble.classList.remove('has-emoji');
+            bubble.title = 'Bukan emoji yang valid';
+        } else {
+            bubble.innerHTML = '<span class="react-empty-icon">✨</span>';
+            bubble.classList.remove('has-emoji');
+            bubble.title = 'Belum ada emoji';
+        }
+    }
+
+    document.getElementById('inlineReactCounter').textContent = `${_inlineReacts.length}/20`;
+    updateReactPanelPreviewReacts();
+}
+
+function addInlineReactRow() {
+    if (_inlineReacts.length >= 20) return alert('Maks 20 reaction per panel.');
+    _inlineReacts.push({ emoji: '', roleId: '' });
+    renderInlineReactTable();
+    const body = document.getElementById('reactPanelModal').querySelector('.mb-modal-body');
+    setTimeout(() => { body.scrollTop = body.scrollHeight; }, 50);
+}
+
+function removeInlineReact(i) {
+    _inlineReacts.splice(i, 1);
+    renderInlineReactTable();
+}
+
+function updateReactPanelPreviewReacts() {
+    const container = document.getElementById('reactPanelPreviewReacts');
+    if (!container) return;
+    container.innerHTML = _inlineReacts
+        .filter(r => r.emoji)
+        .map(r => {
+            const isCustom = r.emoji.includes(':');
+            const display  = isCustom ? `<span style="font-size:.75rem;color:var(--text-muted)">:${r.emoji.split(':')[0]}:</span>` : r.emoji;
+            const roleName = ALL_ROLES.find(role => role.id === r.roleId)?.name || '';
+            return `<span class="ar-react-chip">${display}${roleName ? `<span class="ar-btn-role">@${roleName}</span>` : ''}</span>`;
+        }).join('');
+}
+
+async function deleteReactPanel(name) {
+    const card   = document.querySelector(`.ar-panel-card[data-type="reaction"][data-name="${name}"]`);
+    const isSent = card?.querySelector('.status-sent') !== null;
+    const msg    = isSent
+        ? `Hapus panel "${name}"?\n\n⚠️ Pesan yang sudah terkirim di Discord juga akan dihapus secara permanen.`
+        : `Hapus panel "${name}"?`;
+    if (!confirm(msg)) return;
+    const res  = await fetch(`/api/guild/${GUILD_ID}/autorole-reaction/${encodeURIComponent(name)}`, { method: 'DELETE' });
+    const data = await res.json();
+    if (data.success) _reloadKeepHash();
+    else alert(data.message);
+}
+
+let _sendReactPanelName = '';
+function openSendReactPanel(name) {
+    _sendReactPanelName = name;
+    document.getElementById('sendReactPanelName').textContent = name;
+    document.getElementById('sendReactPanelChannel').value    = '';
+    document.getElementById('sendReactPanelMsg').textContent  = '';
+    openModal('sendReactPanelBackdrop', 'sendReactPanelModal');
+}
+function closeSendReactPanel() { closeModal('sendReactPanelBackdrop', 'sendReactPanelModal'); }
+
+async function doSendReactPanel() {
+    const msg       = document.getElementById('sendReactPanelMsg');
+    const channelId = document.getElementById('sendReactPanelChannel').value;
+    if (!channelId) return showMsg(msg, 'Pilih channel terlebih dahulu.', 'error');
+
+    const res  = await fetch(`/api/guild/${GUILD_ID}/autorole-reaction/${encodeURIComponent(_sendReactPanelName)}/send`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ channelId })
+    });
+    const data = await res.json();
+    if (!data.success) return showMsg(msg, data.message, 'error');
+    showMsg(msg, data.message, 'success');
+    setTimeout(() => { closeSendReactPanel(); _reloadKeepHash(); }, 1000);
 }
 
 async function saveAllButtons() {

@@ -4,172 +4,453 @@
 <div class="dash-layout">
     <%- include('../partials/sidebar', { activePage: 'home' }) %>
 
-    <!-- Main content -->
     <main class="dash-main">
     <div class="dash-content-wide">
-        <div class="page-header">
-            <h1>Overview</h1>
-            <p>Selamat datang di dashboard <strong><%= guild.name %></strong>.</p>
-        </div>
 
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-icon"><i data-lucide="users"></i></div>
-                <div class="stat-info">
-                    <div class="stat-value"><%= guild.memberCount %></div>
-                    <div class="stat-label">Total Member</div>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon"><i data-lucide="hash"></i></div>
-                <div class="stat-info">
-                    <div class="stat-value"><%= guild.channels.cache.filter(c => c.type === 0).size %></div>
-                    <div class="stat-label">Text Channel</div>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon"><i data-lucide="shield"></i></div>
-                <div class="stat-info">
-                    <div class="stat-value"><%= guild.roles.cache.size %></div>
-                    <div class="stat-label">Role</div>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon"><i data-lucide="pencil"></i></div>
-                <div class="stat-info">
-                    <div class="stat-value" style="font-size:1rem;"><%= botNickname %></div>
-                    <div class="stat-label">Nickname Bot</div>
+        <!-- ── Server Banner ─────────────────────────────────────── -->
+        <div class="ov-banner">
+            <div class="ov-banner-bg"></div>
+            <div class="ov-banner-content">
+                <% if (guild.iconURL()) { %>
+                    <img src="<%= guild.iconURL() %>" alt="<%= guild.name %>" class="ov-server-icon">
+                <% } else { %>
+                    <div class="ov-server-icon-placeholder"><%= guild.name.charAt(0) %></div>
+                <% } %>
+                <div class="ov-server-info">
+                    <h1 class="ov-server-name"><%= guild.name %></h1>
+                    <p class="ov-server-sub">Selamat datang di dashboard — kelola server dari sini.</p>
                 </div>
             </div>
         </div>
 
-        <!-- Permission Status -->
+        <!-- ── Stats Grid ─────────────────────────────────────────── -->
+        <div class="ov-stats-grid">
+            <div class="ov-stat-card" style="--accent-c:#5865F2;">
+                <div class="ov-stat-icon" style="background:rgba(88,101,242,.15);color:#5865F2;">
+                    <i data-lucide="users"></i>
+                </div>
+                <div class="ov-stat-body">
+                    <div class="ov-stat-value"><%= guild.memberCount %></div>
+                    <div class="ov-stat-label">Total Member</div>
+                </div>
+                <div class="ov-stat-bar"></div>
+            </div>
+            <div class="ov-stat-card" style="--accent-c:#57F287;">
+                <div class="ov-stat-icon" style="background:rgba(87,242,135,.12);color:#57F287;">
+                    <i data-lucide="hash"></i>
+                </div>
+                <div class="ov-stat-body">
+                    <div class="ov-stat-value"><%= guild.channels.cache.filter(c => c.type === 0).size %></div>
+                    <div class="ov-stat-label">Text Channel</div>
+                </div>
+                <div class="ov-stat-bar"></div>
+            </div>
+            <div class="ov-stat-card" style="--accent-c:#FEE75C;">
+                <div class="ov-stat-icon" style="background:rgba(254,231,92,.12);color:#FEE75C;">
+                    <i data-lucide="shield"></i>
+                </div>
+                <div class="ov-stat-body">
+                    <div class="ov-stat-value"><%= guild.roles.cache.size %></div>
+                    <div class="ov-stat-label">Role</div>
+                </div>
+                <div class="ov-stat-bar"></div>
+            </div>
+            <div class="ov-stat-card" style="--accent-c:#FF73FA;">
+                <div class="ov-stat-icon" style="background:rgba(255,115,250,.12);color:#FF73FA;">
+                    <i data-lucide="pencil"></i>
+                </div>
+                <div class="ov-stat-body">
+                    <div class="ov-stat-value ov-stat-nickname"><%= botNickname %></div>
+                    <div class="ov-stat-label">Nickname Bot</div>
+                </div>
+                <div class="ov-stat-bar"></div>
+            </div>
+        </div>
+
+        <!-- ── Permission Status ──────────────────────────────────── -->
         <% if (missingPerms.length === 0) { %>
-        <div class="perm-card perm-ok">
-            <i data-lucide="check-circle"></i>
+        <div class="ov-perm-ok">
+            <i data-lucide="check-circle-2"></i>
             <span>Semua permission yang diperlukan sudah dimiliki bot.</span>
         </div>
         <% } else { %>
-        <div class="perm-card perm-warn">
-            <div class="perm-header">
+        <div class="ov-perm-warn">
+            <div class="ov-perm-header">
                 <i data-lucide="alert-triangle"></i>
-                <span><strong><%= missingPerms.length %> permission</strong> yang diperlukan bot belum diberikan:</span>
+                <span><strong><%= missingPerms.length %> permission</strong> yang diperlukan belum diberikan:</span>
             </div>
             <ul class="perm-list">
                 <% missingPerms.forEach(p => { %>
-                <li>
-                    <code class="perm-name"><%= p.name %></code>
-                    <span class="perm-desc">— <%= p.desc %></span>
-                </li>
+                <li><code class="perm-name"><%= p.name %></code><span class="perm-desc"> — <%= p.desc %></span></li>
                 <% }); %>
             </ul>
             <p class="perm-hint">Buka pengaturan server Discord → Roles → pilih role bot → centang permission di atas.</p>
         </div>
         <% } %>
 
-        <!-- Ubah Nickname Bot -->
-        <div class="settings-card">
-            <h2>Nickname Bot</h2>
-            <div class="form-row">
+        <!-- ── Nickname Bot ───────────────────────────────────────── -->
+        <div class="ov-nickname-card">
+            <div class="ov-nickname-left">
+                <div class="ov-nickname-icon"><i data-lucide="pencil-line"></i></div>
+                <div>
+                    <div class="ov-nickname-title">Nickname Bot</div>
+                    <div class="ov-nickname-sub">Ubah nama tampilan bot di server ini</div>
+                </div>
+            </div>
+            <div class="ov-nickname-right">
                 <input type="text" id="nicknameInput" class="input" value="<%= botNickname %>"
-                       maxlength="32" placeholder="Kosongkan untuk reset ke nama asli" style="max-width:240px">
+                       maxlength="32" placeholder="Kosongkan untuk reset ke nama asli">
                 <button class="btn btn-primary" onclick="saveNickname('<%= guild.id %>')">Simpan</button>
             </div>
-            <div id="nicknameMsg" class="form-message"></div>
+            <div id="nicknameMsg" class="form-message" style="width:100%;margin-top:.5rem;"></div>
         </div>
 
-        <div class="feat-section-title">Fitur Dashboard</div>
-        <div class="feat-grid">
-            <a href="/dashboard/<%= guild.id %>/welcome" class="feat-card">
-                <div class="feat-icon-wrap blue"><i data-lucide="user-plus"></i></div>
-                <div class="feat-body">
-                    <div class="feat-title">Welcome Notification</div>
-                    <div class="feat-desc">Kartu & notifikasi sambutan otomatis saat member bergabung.</div>
-                </div>
-                <div class="feat-arrow"><i data-lucide="chevron-right"></i></div>
-            </a>
-            <a href="/dashboard/<%= guild.id %>/goodbye" class="feat-card">
-                <div class="feat-icon-wrap red"><i data-lucide="log-out"></i></div>
-                <div class="feat-body">
-                    <div class="feat-title">Goodbye Notification</div>
-                    <div class="feat-desc">Kartu & notifikasi perpisahan otomatis saat member keluar.</div>
-                </div>
-                <div class="feat-arrow"><i data-lucide="chevron-right"></i></div>
-            </a>
-            <a href="/dashboard/<%= guild.id %>/booster?tab=boost" class="feat-card">
-                <div class="feat-icon-wrap" style="background:rgba(255,115,250,.15);color:#FF73FA;"><i data-lucide="zap"></i></div>
-                <div class="feat-body">
-                    <div class="feat-title">Boost Notification</div>
-                    <div class="feat-desc">Notifikasi otomatis saat member melakukan boost server.</div>
-                </div>
-                <div class="feat-arrow"><i data-lucide="chevron-right"></i></div>
-            </a>
-            <a href="/dashboard/<%= guild.id %>/booster?tab=unboost" class="feat-card">
-                <div class="feat-icon-wrap" style="background:rgba(237,66,69,.15);color:#ED4245;"><i data-lucide="zap-off"></i></div>
-                <div class="feat-body">
-                    <div class="feat-title">Unboost Notification</div>
-                    <div class="feat-desc">Notifikasi otomatis saat member menghapus boost server.</div>
-                </div>
-                <div class="feat-arrow"><i data-lucide="chevron-right"></i></div>
-            </a>
-            <a href="/dashboard/<%= guild.id %>/message-builder" class="feat-card">
-                <div class="feat-icon-wrap purple"><i data-lucide="mail"></i></div>
-                <div class="feat-body">
-                    <div class="feat-title">Message Builder</div>
-                    <div class="feat-desc">Buat dan kirim template pesan embed ke channel manapun.</div>
-                </div>
-                <div class="feat-arrow"><i data-lucide="chevron-right"></i></div>
-            </a>
-            <a href="/dashboard/<%= guild.id %>/autorole?tab=join" class="feat-card">
-                <div class="feat-icon-wrap green"><i data-lucide="users"></i></div>
-                <div class="feat-body">
-                    <div class="feat-title">Autorole Join</div>
-                    <div class="feat-desc">Berikan role otomatis saat member baru bergabung.</div>
-                </div>
-                <div class="feat-arrow"><i data-lucide="chevron-right"></i></div>
-            </a>
-            <a href="/dashboard/<%= guild.id %>/autorole?tab=booster" class="feat-card">
-                <div class="feat-icon-wrap" style="background:rgba(88,101,242,.15);color:#5865f2;"><i data-lucide="zap"></i></div>
-                <div class="feat-body">
-                    <div class="feat-title">Autorole Booster</div>
-                    <div class="feat-desc">Berikan role otomatis saat member melakukan boost server.</div>
-                </div>
-                <div class="feat-arrow"><i data-lucide="chevron-right"></i></div>
-            </a>
-            <a href="/dashboard/<%= guild.id %>/autorole?tab=button" class="feat-card">
-                <div class="feat-icon-wrap orange"><i data-lucide="mouse-pointer-2"></i></div>
-                <div class="feat-body">
-                    <div class="feat-title">Autorole Button</div>
-                    <div class="feat-desc">Panel tombol interaktif untuk member memilih role sendiri.</div>
-                </div>
-                <div class="feat-arrow"><i data-lucide="chevron-right"></i></div>
-            </a>
-            <a href="/dashboard/<%= guild.id %>/serverstats" class="feat-card">
-                <div class="feat-icon-wrap" style="background:rgba(87,242,135,.12);color:#57F287;"><i data-lucide="bar-chart-2"></i></div>
-                <div class="feat-body">
-                    <div class="feat-title">Server Stats</div>
-                    <div class="feat-desc">Tampilkan statistik member secara otomatis via channel voice.</div>
-                </div>
-                <div class="feat-arrow"><i data-lucide="chevron-right"></i></div>
-            </a>
-            <a href="/dashboard/<%= guild.id %>/invites" class="feat-card">
-                <div class="feat-icon-wrap" style="background:rgba(88,101,242,.15);color:#5865F2;"><i data-lucide="link"></i></div>
-                <div class="feat-body">
-                    <div class="feat-title">Invite Links</div>
-                    <div class="feat-desc">Lihat semua invite link server beserta statistik penggunaannya.</div>
-                </div>
-                <div class="feat-arrow"><i data-lucide="chevron-right"></i></div>
-            </a>
+        <!-- ══════════════════════════════════════════════════
+             FITUR DASHBOARD
+        ══════════════════════════════════════════════════ -->
+
+        <!-- ── Notification ────────────────────────────────── -->
+        <div class="ov-feat-section">
+            <div class="ov-section-header">
+                <div class="ov-section-dot" style="background:#5865F2;"></div>
+                <span>Notifikasi</span>
+                <div class="ov-section-line"></div>
+            </div>
+            <div class="ov-feat-grid">
+                <a href="/dashboard/<%= guild.id %>/welcome" class="ov-feat-card">
+                    <div class="ov-feat-icon" style="--ic:#5865F2;background:rgba(88,101,242,.15);color:#7289da;">
+                        <i data-lucide="user-plus"></i>
+                    </div>
+                    <div class="ov-feat-body">
+                        <div class="ov-feat-title">Welcome Notification</div>
+                        <div class="ov-feat-desc">Kartu & pesan sambutan otomatis saat member bergabung.</div>
+                    </div>
+                    <i data-lucide="arrow-right" class="ov-feat-arrow"></i>
+                </a>
+                <a href="/dashboard/<%= guild.id %>/goodbye" class="ov-feat-card">
+                    <div class="ov-feat-icon" style="--ic:#ED4245;background:rgba(237,66,69,.12);color:#ED4245;">
+                        <i data-lucide="log-out"></i>
+                    </div>
+                    <div class="ov-feat-body">
+                        <div class="ov-feat-title">Goodbye Notification</div>
+                        <div class="ov-feat-desc">Kartu & pesan perpisahan otomatis saat member keluar.</div>
+                    </div>
+                    <i data-lucide="arrow-right" class="ov-feat-arrow"></i>
+                </a>
+                <a href="/dashboard/<%= guild.id %>/booster?tab=boost" class="ov-feat-card">
+                    <div class="ov-feat-icon" style="--ic:#FF73FA;background:rgba(255,115,250,.12);color:#FF73FA;">
+                        <i data-lucide="zap"></i>
+                    </div>
+                    <div class="ov-feat-body">
+                        <div class="ov-feat-title">Boost Notification</div>
+                        <div class="ov-feat-desc">Notifikasi otomatis saat member melakukan boost server.</div>
+                    </div>
+                    <i data-lucide="arrow-right" class="ov-feat-arrow"></i>
+                </a>
+                <a href="/dashboard/<%= guild.id %>/booster?tab=unboost" class="ov-feat-card">
+                    <div class="ov-feat-icon" style="--ic:#ED4245;background:rgba(237,66,69,.1);color:#f27f81;">
+                        <i data-lucide="zap-off"></i>
+                    </div>
+                    <div class="ov-feat-body">
+                        <div class="ov-feat-title">Unboost Notification</div>
+                        <div class="ov-feat-desc">Notifikasi otomatis saat member menghapus boost server.</div>
+                    </div>
+                    <i data-lucide="arrow-right" class="ov-feat-arrow"></i>
+                </a>
+            </div>
         </div>
+
+        <!-- ── Auto Role ────────────────────────────────────── -->
+        <div class="ov-feat-section">
+            <div class="ov-section-header">
+                <div class="ov-section-dot" style="background:#57F287;"></div>
+                <span>Auto Role</span>
+                <div class="ov-section-line"></div>
+            </div>
+            <div class="ov-feat-grid">
+                <a href="/dashboard/<%= guild.id %>/autorole?tab=join" class="ov-feat-card">
+                    <div class="ov-feat-icon" style="background:rgba(59,165,93,.15);color:#3ba55d;">
+                        <i data-lucide="users"></i>
+                    </div>
+                    <div class="ov-feat-body">
+                        <div class="ov-feat-title">Autorole Join</div>
+                        <div class="ov-feat-desc">Berikan role otomatis saat member atau bot baru bergabung.</div>
+                    </div>
+                    <i data-lucide="arrow-right" class="ov-feat-arrow"></i>
+                </a>
+                <a href="/dashboard/<%= guild.id %>/autorole?tab=booster" class="ov-feat-card">
+                    <div class="ov-feat-icon" style="background:rgba(255,115,250,.12);color:#FF73FA;">
+                        <i data-lucide="zap"></i>
+                    </div>
+                    <div class="ov-feat-body">
+                        <div class="ov-feat-title">Autorole Booster</div>
+                        <div class="ov-feat-desc">Berikan & cabut role otomatis saat member boost/unboost.</div>
+                    </div>
+                    <i data-lucide="arrow-right" class="ov-feat-arrow"></i>
+                </a>
+                <a href="/dashboard/<%= guild.id %>/autorole?tab=button" class="ov-feat-card">
+                    <div class="ov-feat-icon" style="background:rgba(240,160,50,.15);color:#f0a032;">
+                        <i data-lucide="mouse-pointer-2"></i>
+                    </div>
+                    <div class="ov-feat-body">
+                        <div class="ov-feat-title">Autorole Button</div>
+                        <div class="ov-feat-desc">Panel tombol interaktif untuk member memilih role sendiri.</div>
+                    </div>
+                    <i data-lucide="arrow-right" class="ov-feat-arrow"></i>
+                </a>
+                <a href="/dashboard/<%= guild.id %>/autorole?tab=reaction" class="ov-feat-card">
+                    <div class="ov-feat-icon" style="background:rgba(88,101,242,.15);color:#949cf7;">
+                        <i data-lucide="smile"></i>
+                    </div>
+                    <div class="ov-feat-body">
+                        <div class="ov-feat-title">Autorole Reaction</div>
+                        <div class="ov-feat-desc">Panel emoji reaction untuk member memilih role dengan klik emoji.</div>
+                    </div>
+                    <i data-lucide="arrow-right" class="ov-feat-arrow"></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- ── Others ───────────────────────────────────────── -->
+        <div class="ov-feat-section">
+            <div class="ov-section-header">
+                <div class="ov-section-dot" style="background:#FEE75C;"></div>
+                <span>Lainnya</span>
+                <div class="ov-section-line"></div>
+            </div>
+            <div class="ov-feat-grid">
+                <a href="/dashboard/<%= guild.id %>/message-builder" class="ov-feat-card">
+                    <div class="ov-feat-icon" style="background:rgba(155,89,182,.15);color:#9b59b6;">
+                        <i data-lucide="mail"></i>
+                    </div>
+                    <div class="ov-feat-body">
+                        <div class="ov-feat-title">Message Builder</div>
+                        <div class="ov-feat-desc">Buat dan kirim template pesan embed ke channel manapun.</div>
+                    </div>
+                    <i data-lucide="arrow-right" class="ov-feat-arrow"></i>
+                </a>
+                <a href="/dashboard/<%= guild.id %>/serverstats" class="ov-feat-card">
+                    <div class="ov-feat-icon" style="background:rgba(87,242,135,.12);color:#57F287;">
+                        <i data-lucide="bar-chart-2"></i>
+                    </div>
+                    <div class="ov-feat-body">
+                        <div class="ov-feat-title">Server Stats</div>
+                        <div class="ov-feat-desc">Tampilkan statistik server secara otomatis via channel voice.</div>
+                    </div>
+                    <i data-lucide="arrow-right" class="ov-feat-arrow"></i>
+                </a>
+                <a href="/dashboard/<%= guild.id %>/invites" class="ov-feat-card">
+                    <div class="ov-feat-icon" style="background:rgba(88,101,242,.12);color:#5865F2;">
+                        <i data-lucide="link"></i>
+                    </div>
+                    <div class="ov-feat-body">
+                        <div class="ov-feat-title">Invite Links</div>
+                        <div class="ov-feat-desc">Lihat semua invite link server beserta statistik penggunaannya.</div>
+                    </div>
+                    <i data-lucide="arrow-right" class="ov-feat-arrow"></i>
+                </a>
+            </div>
+        </div>
+
     </div>
     </main>
 </div>
+
+<style>
+/* ── Server Banner ── */
+.ov-banner {
+    position: relative; overflow: hidden;
+    border-radius: 14px; margin-bottom: 1.5rem;
+    background: linear-gradient(135deg, #1e2035 0%, #16182b 60%, #1a1c2e 100%);
+    border: 1px solid var(--border);
+    padding: 1.75rem 1.75rem;
+}
+.ov-banner-bg {
+    position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(circle at 80% 50%, rgba(88,101,242,.18) 0%, transparent 60%),
+                radial-gradient(circle at 10% 80%, rgba(87,242,135,.07) 0%, transparent 50%);
+}
+.ov-banner-content {
+    position: relative; display: flex; align-items: center; gap: 1.25rem;
+}
+.ov-server-icon {
+    width: 64px; height: 64px; border-radius: 16px;
+    border: 2px solid rgba(255,255,255,.12); flex-shrink: 0;
+    object-fit: cover;
+}
+.ov-server-icon-placeholder {
+    width: 64px; height: 64px; border-radius: 16px;
+    background: var(--accent); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.6rem; font-weight: 700; flex-shrink: 0;
+    border: 2px solid rgba(255,255,255,.12);
+}
+.ov-server-name {
+    font-size: 1.5rem; font-weight: 800; color: #fff;
+    letter-spacing: -.02em; margin: 0 0 .2rem;
+}
+.ov-server-sub { color: rgba(255,255,255,.5); font-size: .875rem; margin: 0; }
+
+/* ── Stats Grid ── */
+.ov-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: .85rem; margin-bottom: 1.25rem;
+}
+@media(max-width:780px) { .ov-stats-grid { grid-template-columns: repeat(2,1fr); } }
+@media(max-width:400px) { .ov-stats-grid { grid-template-columns: 1fr; } }
+
+.ov-stat-card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.1rem 1rem 1rem;
+    display: flex; align-items: center; gap: .9rem;
+    position: relative; overflow: hidden;
+    transition: border-color .2s, box-shadow .2s;
+}
+.ov-stat-card:hover {
+    border-color: var(--accent-c, var(--accent));
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent-c, var(--accent)) 25%, transparent),
+                0 4px 16px rgba(0,0,0,.18);
+}
+.ov-stat-bar {
+    position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: var(--accent-c, var(--accent));
+    border-radius: 12px 12px 0 0;
+    opacity: .7;
+}
+.ov-stat-icon {
+    width: 42px; height: 42px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+}
+.ov-stat-icon svg { width: 20px; height: 20px; }
+.ov-stat-value {
+    font-size: 1.6rem; font-weight: 800; line-height: 1;
+    color: var(--text); letter-spacing: -.02em;
+}
+.ov-stat-nickname { font-size: 1rem !important; font-weight: 700 !important; }
+.ov-stat-label {
+    font-size: .72rem; font-weight: 600; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: .06em; margin-top: .3rem;
+}
+
+/* ── Permission cards ── */
+.ov-perm-ok {
+    display: flex; align-items: center; gap: .6rem;
+    background: rgba(87,242,135,.1); border: 1px solid rgba(87,242,135,.25);
+    border-radius: 10px; padding: .85rem 1.1rem;
+    color: #57F287; font-size: .875rem; margin-bottom: 1.25rem;
+}
+.ov-perm-ok svg { width: 18px; height: 18px; flex-shrink: 0; }
+.ov-perm-warn {
+    background: rgba(237,66,69,.1); border: 1px solid rgba(237,66,69,.25);
+    border-radius: 10px; padding: .85rem 1.1rem;
+    color: var(--text); font-size: .875rem; margin-bottom: 1.25rem;
+}
+.ov-perm-header { display: flex; align-items: center; gap: .55rem; color: #f27f81; margin-bottom: .6rem; }
+.ov-perm-header svg { width: 17px; height: 17px; flex-shrink: 0; }
+
+/* ── Nickname card ── */
+.ov-nickname-card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1rem 1.25rem;
+    display: flex; align-items: center; gap: 1rem;
+    flex-wrap: wrap; margin-bottom: 1.75rem;
+    transition: border-color .2s;
+}
+.ov-nickname-card:focus-within { border-color: var(--accent); }
+.ov-nickname-left {
+    display: flex; align-items: center; gap: .75rem; flex: 1; min-width: 180px;
+}
+.ov-nickname-icon {
+    width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0;
+    background: rgba(255,115,250,.12); color: #FF73FA;
+    display: flex; align-items: center; justify-content: center;
+}
+.ov-nickname-icon svg { width: 18px; height: 18px; }
+.ov-nickname-title { font-size: .9rem; font-weight: 600; margin-bottom: .1rem; }
+.ov-nickname-sub { font-size: .75rem; color: var(--text-muted); }
+.ov-nickname-right { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; }
+.ov-nickname-right .input { min-width: 180px; max-width: 240px; }
+
+/* ── Feature section ── */
+.ov-feat-section { margin-bottom: 1.5rem; }
+.ov-section-header {
+    display: flex; align-items: center; gap: .6rem;
+    margin-bottom: .9rem;
+}
+.ov-section-dot {
+    width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+}
+.ov-section-header > span {
+    font-size: .72rem; font-weight: 700;
+    color: var(--text-muted); text-transform: uppercase; letter-spacing: .1em;
+    white-space: nowrap;
+}
+.ov-section-line {
+    flex: 1; height: 1px; background: var(--border);
+}
+
+/* ── Feature grid ── */
+.ov-feat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+    gap: .7rem;
+}
+.ov-feat-card {
+    background: var(--bg2); border: 1.5px solid var(--border);
+    border-radius: 12px; padding: 1rem 1.1rem;
+    display: flex; align-items: center; gap: .9rem;
+    text-decoration: none; color: inherit;
+    transition: border-color .2s, box-shadow .2s, transform .15s;
+    cursor: pointer;
+}
+.ov-feat-card:hover {
+    border-color: rgba(88,101,242,.5);
+    box-shadow: 0 0 0 1px rgba(88,101,242,.15), 0 6px 20px rgba(0,0,0,.18);
+    transform: translateY(-2px);
+}
+.ov-feat-card:active { transform: translateY(0); opacity: .85; }
+.ov-feat-icon {
+    width: 44px; height: 44px; border-radius: 11px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: transform .15s;
+}
+.ov-feat-card:hover .ov-feat-icon { transform: scale(1.1); }
+.ov-feat-icon svg { width: 20px; height: 20px; }
+.ov-feat-body { flex: 1; min-width: 0; }
+.ov-feat-title {
+    font-size: .875rem; font-weight: 600;
+    margin-bottom: .2rem; color: var(--text);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.ov-feat-desc {
+    font-size: .75rem; color: var(--text-muted); line-height: 1.45;
+    display: -webkit-box; -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical; overflow: hidden;
+}
+.ov-feat-arrow {
+    width: 16px; height: 16px; flex-shrink: 0;
+    color: var(--text-muted); opacity: 0;
+    transition: opacity .15s, transform .15s;
+}
+.ov-feat-card:hover .ov-feat-arrow { opacity: 1; transform: translateX(3px); }
+@media(hover:none) { .ov-feat-arrow { opacity: .4; } }
+
+@media(max-width:600px) {
+    .ov-banner { padding: 1.25rem; }
+    .ov-server-icon, .ov-server-icon-placeholder { width: 48px; height: 48px; border-radius: 12px; }
+    .ov-server-name { font-size: 1.2rem; }
+    .ov-feat-grid { grid-template-columns: 1fr; }
+    .ov-nickname-right { width: 100%; }
+    .ov-nickname-right .input { min-width: 0; flex: 1; max-width: none; }
+}
+</style>
 
 <script>
 async function saveNickname(guildId) {
     const nickname = document.getElementById('nicknameInput').value.trim();
     const msg      = document.getElementById('nicknameMsg');
-
     const res  = await fetch(`/api/guild/${guildId}/nickname`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

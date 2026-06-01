@@ -774,6 +774,318 @@ router.post('/guild/:guildId/autorole-button/:name/send', requireLogin, requireM
     }
 });
 
+// ════════════════════════════════════════════════════════════════════════════
+// AUTOROLE REACTION API
+// ════════════════════════════════════════════════════════════════════════════
+
+// ── GET /api/guild/:guildId/autorole-reaction/:name ────────────────────────
+router.get('/guild/:guildId/autorole-reaction/:name', requireLogin, requireManageGuild, (req, res) => {
+    const db      = req.discordClient?.database;
+    const guildId = req.params.guildId;
+    const name    = req.params.name.trim().toLowerCase();
+    const raw     = db?.get(`autoreact-${guildId}-${name}`);
+    if (!raw) return res.json({ success: false, message: 'Panel tidak ditemukan.' });
+    try {
+        const panel   = JSON.parse(raw);
+        const sentRaw = db?.get(`autoreact-sent-${guildId}-${name}`);
+        panel.isSent  = !!sentRaw;
+        res.json({ success: true, panel });
+    } catch {
+        res.json({ success: false, message: 'Data panel rusak.' });
+    }
+});
+
+// ── POST /api/guild/:guildId/autorole-reaction — buat panel baru ───────────
+router.post('/guild/:guildId/autorole-reaction', requireLogin, requireManageGuild, (req, res) => {
+    const db      = req.discordClient?.database;
+    const guildId = req.params.guildId;
+    const {
+        name, mode,
+        messageType, plainText,
+        embedTitle, embedDescription, embedFooter,
+        embedColor, embedImage, embedThumbnail
+    } = req.body;
+
+    const panelName = (name || '').trim().toLowerCase();
+    if (!panelName || !/^[a-zA-Z0-9_-]{1,32}$/.test(panelName))
+        return res.json({ success: false, message: 'Nama panel tidak valid.' });
+
+    if (embedColor && !/^#?[0-9A-Fa-f]{6}$/.test(embedColor.trim()))
+        return res.json({ success: false, message: 'Format warna tidak valid. Gunakan hex, contoh: #5865F2' });
+
+    const urlOk = v => !v || v === '' || /^https?:\/\/.+\..+/.test(v);
+    if (!urlOk(embedImage))     return res.json({ success: false, message: 'URL Gambar tidak valid.' });
+    if (!urlOk(embedThumbnail)) return res.json({ success: false, message: 'URL Thumbnail tidak valid.' });
+
+    const existing = (() => {
+        try { const r = db?.get(`autoreact-${guildId}-${panelName}`); return r ? JSON.parse(r) : null; } catch { return null; }
+    })();
+
+    const colorHex = embedColor
+        ? (embedColor.startsWith('#') ? embedColor : `#${embedColor}`)
+        : (existing?.embedColor || '#5865F2');
+
+    const now   = Date.now();
+    const panel = {
+        name:             panelName,
+        mode:             mode             || existing?.mode             || 'multi',
+        embedTitle:       embedTitle       !== undefined ? embedTitle.trim()       : (existing?.embedTitle       || ''),
+        embedDescription: embedDescription !== undefined ? embedDescription.trim() : (existing?.embedDescription || ''),
+        embedFooter:      embedFooter      !== undefined ? embedFooter.trim()      : (existing?.embedFooter      || ''),
+        embedColor:       colorHex,
+        embedImage:       embedImage       !== undefined ? embedImage.trim()       : (existing?.embedImage       || ''),
+        embedThumbnail:   embedThumbnail   !== undefined ? embedThumbnail.trim()   : (existing?.embedThumbnail   || ''),
+        reactions:        existing?.reactions || [],
+        messageType: messageType === 'plain' ? 'plain' : (existing?.messageType || 'embed'),
+        plainText:   messageType === 'plain' ? (plainText || '').trim() : (existing?.plainText || ''),
+        createdAt:        existing?.createdAt || now,
+        updatedAt:        now,
+    };
+    db.set(`autoreact-${guildId}-${panelName}`, JSON.stringify(panel));
+
+    if (db) db.modifyList(`autoreact-list-${guildId}`, list => {
+        if (!list.includes(panelName)) list.push(panelName);
+        return list;
+    });
+
+    res.json({ success: true, message: `Panel "${panelName}" berhasil ${existing ? 'diperbarui' : 'dibuat'}.` });
+});
+
+// ── POST /api/guild/:guildId/autorole-reaction/:name — edit panel ──────────
+router.post('/guild/:guildId/autorole-reaction/:name', requireLogin, requireManageGuild, async (req, res) => {
+    const db      = req.discordClient?.database;
+    const client  = req.discordClient;
+    const guildId = req.params.guildId;
+    const name    = req.params.name.trim().toLowerCase();
+    const {
+        mode,
+        messageType, plainText,
+        embedTitle, embedDescription, embedFooter,
+        embedColor, embedImage, embedThumbnail
+    } = req.body;
+
+    const raw = db?.get(`autoreact-${guildId}-${name}`);
+    if (!raw) return res.json({ success: false, message: 'Panel tidak ditemukan.' });
+
+    let panel;
+    try { panel = JSON.parse(raw); } catch { return res.json({ success: false, message: 'Data panel rusak.' }); }
+
+    if (embedColor && !/^#?[0-9A-Fa-f]{6}$/.test(embedColor.trim()))
+        return res.json({ success: false, message: 'Format warna tidak valid.' });
+    const urlOk = v => !v || v === '' || /^https?:\/\/.+\..+/.test(v);
+    if (!urlOk(embedImage))     return res.json({ success: false, message: 'URL Gambar tidak valid.' });
+    if (!urlOk(embedThumbnail)) return res.json({ success: false, message: 'URL Thumbnail tidak valid.' });
+
+    if (mode)             panel.mode             = mode;
+    if (embedTitle       !== undefined) panel.embedTitle       = embedTitle.trim();
+    if (embedDescription !== undefined) panel.embedDescription = embedDescription.trim();
+    if (embedFooter      !== undefined) panel.embedFooter      = embedFooter.trim();
+    if (embedColor       !== undefined) panel.embedColor       = embedColor.startsWith('#') ? embedColor : `#${embedColor}`;
+    if (embedImage       !== undefined) panel.embedImage       = embedImage.trim();
+    if (embedThumbnail   !== undefined) panel.embedThumbnail   = embedThumbnail.trim();
+    if (messageType !== undefined) panel.messageType = messageType === 'plain' ? 'plain' : 'embed';
+    if (plainText   !== undefined) panel.plainText   = plainText.trim();
+    panel.updatedAt = Date.now();
+    db.set(`autoreact-${guildId}-${name}`, JSON.stringify(panel));
+
+    let liveUpdate = '';
+    try {
+        const sentRaw = db?.get(`autoreact-sent-${guildId}-${name}`);
+        if (sentRaw) {
+            const { EmbedBuilder } = require('discord.js');
+            const sent    = JSON.parse(sentRaw);
+            const guild   = await client?.guilds.fetch(guildId).catch(() => null);
+            const channel = guild ? await guild.channels.fetch(sent.channelId).catch(() => null) : null;
+            if (channel) {
+                const discordMsg = await channel.messages.fetch(sent.messageId).catch(() => null);
+                if (discordMsg) {
+                    const colorHex = panel.embedColor && /^#?[0-9A-Fa-f]{6}$/.test(panel.embedColor.trim())
+                        ? (panel.embedColor.startsWith('#') ? panel.embedColor : `#${panel.embedColor}`)
+                        : '#5865F2';
+                    const embed = new EmbedBuilder().setColor(colorHex);
+                    if (panel.embedTitle)       embed.setTitle(panel.embedTitle.slice(0, 256));
+                    if (panel.embedDescription) embed.setDescription(panel.embedDescription.slice(0, 4096));
+                    if (panel.embedFooter)      embed.setFooter({ text: panel.embedFooter.slice(0, 2048) });
+                    if (panel.embedImage)       embed.setImage(panel.embedImage);
+                    if (panel.embedThumbnail)   embed.setThumbnail(panel.embedThumbnail);
+
+                    if (panel.messageType === 'plain') {
+                        await discordMsg.edit({ content: (panel.plainText || '').slice(0, 2000), embeds: [] });
+                    } else {
+                        await discordMsg.edit({ embeds: [embed], content: null });
+                    }
+                    liveUpdate = ' Pesan Discord diperbarui secara langsung.';
+                }
+            }
+        }
+    } catch (err) { console.error('[autorole-reaction/edit]', err.message); }
+
+    res.json({ success: true, message: `Panel "${name}" berhasil diperbarui.${liveUpdate}` });
+});
+
+// ── DELETE /api/guild/:guildId/autorole-reaction/:name ─────────────────────
+router.delete('/guild/:guildId/autorole-reaction/:name', requireLogin, requireManageGuild, async (req, res) => {
+    const db      = req.discordClient?.database;
+    const client  = req.discordClient;
+    const guildId = req.params.guildId;
+    const name    = req.params.name.trim().toLowerCase();
+
+    const sentRaw = db?.get(`autoreact-sent-${guildId}-${name}`);
+    if (sentRaw) {
+        try {
+            const sent    = JSON.parse(sentRaw);
+            const guild   = client?.guilds.cache.get(guildId);
+            const channel = guild ? await guild.channels.fetch(sent.channelId).catch(() => null) : null;
+            if (channel) {
+                const msg = await channel.messages.fetch(sent.messageId).catch(() => null);
+                if (msg) await msg.delete().catch(() => null);
+            }
+            db?.delete(`autoreact-msgmap-${guildId}-${sent.messageId}`);
+        } catch (err) {
+            console.error('[autorole-reaction/delete]', err.message);
+        }
+    }
+
+    db?.delete(`autoreact-${guildId}-${name}`);
+    db?.delete(`autoreact-sent-${guildId}-${name}`);
+    if (db) db.modifyList(`autoreact-list-${guildId}`, list => list.filter(n => n !== name));
+
+    res.json({ success: true, message: `Panel "${name}" berhasil dihapus.` });
+});
+
+// ── POST /api/guild/:guildId/autorole-reaction/:name/reactions — simpan reactions
+router.post('/guild/:guildId/autorole-reaction/:name/reactions', requireLogin, requireManageGuild, async (req, res) => {
+    const db      = req.discordClient?.database;
+    const client  = req.discordClient;
+    const guildId = req.params.guildId;
+    const name    = req.params.name.trim().toLowerCase();
+    const { reactions } = req.body;
+
+    const raw = db?.get(`autoreact-${guildId}-${name}`);
+    if (!raw) return res.json({ success: false, message: 'Panel tidak ditemukan.' });
+
+    let panel;
+    try { panel = JSON.parse(raw); } catch { return res.json({ success: false, message: 'Data panel rusak.' }); }
+
+    panel.reactions = (reactions || []).map(r => ({
+        emoji:  (r.emoji || '').trim(),
+        roleId: r.roleId,
+    }));
+    panel.updatedAt = Date.now();
+    db.set(`autoreact-${guildId}-${name}`, JSON.stringify(panel));
+
+    // Jika sudah terkirim, sinkronkan reactions di pesan Discord
+    try {
+        const sentRaw = db?.get(`autoreact-sent-${guildId}-${name}`);
+        if (sentRaw) {
+            const sent    = JSON.parse(sentRaw);
+            const guild   = await client?.guilds.fetch(guildId).catch(() => null);
+            const channel = guild ? await guild.channels.fetch(sent.channelId).catch(() => null) : null;
+            if (channel) {
+                const discordMsg = await channel.messages.fetch(sent.messageId).catch(() => null);
+                if (discordMsg) {
+                    // Hapus semua reaction bot, lalu tambahkan ulang sesuai daftar baru
+                    await discordMsg.reactions.removeAll().catch(() => null);
+                    for (const react of panel.reactions) {
+                        try {
+                            const customMatch = react.emoji.match(/^([a-zA-Z0-9_]+):(\d+)$/);
+                            await discordMsg.react(customMatch ? customMatch[2] : react.emoji);
+                        } catch { /* emoji tidak valid, lewati */ }
+                    }
+                }
+            }
+        }
+    } catch (err) { console.error('[autorole-reaction/reactions]', err.message); }
+
+    res.json({ success: true, message: 'Reactions berhasil disimpan.' });
+});
+
+// ── POST /api/guild/:guildId/autorole-reaction/:name/send — kirim panel ────
+router.post('/guild/:guildId/autorole-reaction/:name/send', requireLogin, requireManageGuild, async (req, res) => {
+    const db      = req.discordClient?.database;
+    const client  = req.discordClient;
+    const guildId = req.params.guildId;
+    const name    = req.params.name.trim().toLowerCase();
+    const { channelId } = req.body;
+
+    const raw = db?.get(`autoreact-${guildId}-${name}`);
+    if (!raw) return res.json({ success: false, message: 'Panel tidak ditemukan.' });
+
+    let panel;
+    try { panel = JSON.parse(raw); } catch { return res.json({ success: false, message: 'Data panel rusak.' }); }
+
+    if (!panel.reactions || panel.reactions.length === 0)
+        return res.json({ success: false, message: 'Panel belum punya reaction. Tambahkan dulu.' });
+
+    const lockKey = `autoreact-sending-lock-${guildId}-${name}`;
+    if (!db?.tryLock(lockKey)) {
+        return res.json({ success: false, message: 'Panel sedang dalam proses pengiriman, tunggu sebentar.' });
+    }
+
+    try {
+        const existingSentRaw = db?.get(`autoreact-sent-${guildId}-${name}`);
+        if (existingSentRaw) {
+            try {
+                const existingSent = JSON.parse(existingSentRaw);
+                const g  = client?.guilds.cache.get(guildId);
+                const ch = g ? await g.channels.fetch(existingSent.channelId).catch(() => null) : null;
+                if (ch) {
+                    const m = await ch.messages.fetch(existingSent.messageId).catch(() => null);
+                    if (m) return res.json({
+                        success: false,
+                        message: `Panel "${name}" sudah terkirim dan masih aktif.`
+                    });
+                }
+                db?.delete(`autoreact-sent-${guildId}-${name}`);
+                db?.delete(`autoreact-msgmap-${guildId}-${existingSent.messageId}`);
+            } catch {
+                db?.delete(`autoreact-sent-${guildId}-${name}`);
+            }
+        }
+
+        const { EmbedBuilder } = require('discord.js');
+        const guild   = client?.guilds.cache.get(guildId);
+        const channel = await guild?.channels.fetch(channelId).catch(() => null);
+        if (!channel) return res.json({ success: false, message: 'Channel tidak ditemukan.' });
+
+        const colorHex = panel.embedColor && /^#?[0-9A-Fa-f]{6}$/.test(panel.embedColor.trim())
+            ? (panel.embedColor.startsWith('#') ? panel.embedColor : `#${panel.embedColor}`)
+            : '#5865F2';
+        const embed = new EmbedBuilder().setColor(colorHex);
+        if (panel.embedTitle)       embed.setTitle(panel.embedTitle.slice(0, 256));
+        if (panel.embedDescription) embed.setDescription(panel.embedDescription.slice(0, 4096));
+        if (panel.embedFooter)      embed.setFooter({ text: panel.embedFooter.slice(0, 2048) });
+        if (panel.embedImage)       embed.setImage(panel.embedImage);
+        if (panel.embedThumbnail)   embed.setThumbnail(panel.embedThumbnail);
+
+        let sent;
+        if (panel.messageType === 'plain') {
+            if (!panel.plainText) return res.json({ success: false, message: 'Isi pesan teks biasa masih kosong.' });
+            sent = await channel.send({ content: panel.plainText.slice(0, 2000) });
+        } else {
+            sent = await channel.send({ embeds: [embed] });
+        }
+
+        db?.set(`autoreact-sent-${guildId}-${name}`, JSON.stringify({ messageId: sent.id, channelId: channel.id }));
+        db?.set(`autoreact-msgmap-${guildId}-${sent.id}`, name);
+
+        // Tambahkan reactions ke pesan
+        for (const react of panel.reactions) {
+            try {
+                const customMatch = react.emoji.match(/^([a-zA-Z0-9_]+):(\d+)$/);
+                await sent.react(customMatch ? customMatch[2] : react.emoji);
+            } catch { /* emoji tidak valid, lewati */ }
+        }
+
+        res.json({ success: true, message: `Panel berhasil dikirim ke #${channel.name}!` });
+    } catch (err) {
+        console.error('[autorole-reaction/send]', err);
+        res.json({ success: false, message: 'Gagal mengirim panel. Cek permission bot.' });
+    } finally {
+        db?.unlock(lockKey);
+    }
+});
+
 // ── POST /api/guild/:guildId/prefix ───────────────────────────────────────────
 router.post('/guild/:guildId/prefix', requireLogin, requireManageGuild, (req, res) => {
     const { prefix } = req.body;

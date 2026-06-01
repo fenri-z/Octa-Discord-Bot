@@ -102,7 +102,8 @@ app.use('/api',       apiRoutes);
 
 app.get('/', (req, res) => {
     if (req.isAuthenticated()) return res.redirect('/dashboard');
-    res.render('index', { title: 'OCTA BOT', hasSidebar: false });
+    const botName = discordClient?.user?.username || 'OCTA BOT';
+    res.render('index', { title: botName, botName, hasSidebar: false });
 });
 
 app.use((req, res) => {

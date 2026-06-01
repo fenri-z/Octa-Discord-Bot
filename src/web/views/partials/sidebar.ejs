@@ -48,7 +48,8 @@
         <span class="sidebar-group-label">Auto Role</span>
         <a href="/dashboard/<%= guild.id %>/autorole?tab=join"    class="sidebar-sublink" id="sidebarSubJoin"><i data-lucide="users"></i> Autorole Join</a>
         <a href="/dashboard/<%= guild.id %>/autorole?tab=booster" class="sidebar-sublink" id="sidebarSubBooster"><i data-lucide="zap"></i> Autorole Booster</a>
-        <a href="/dashboard/<%= guild.id %>/autorole?tab=button"  class="sidebar-sublink" id="sidebarSubButton"><i data-lucide="mouse-pointer-2"></i> Autorole Button</a>
+        <a href="/dashboard/<%= guild.id %>/autorole?tab=button"   class="sidebar-sublink" id="sidebarSubButton"><i data-lucide="mouse-pointer-2"></i> Autorole Button</a>
+        <a href="/dashboard/<%= guild.id %>/autorole?tab=reaction" class="sidebar-sublink" id="sidebarSubReaction"><i data-lucide="smile"></i> Autorole Reaction</a>
         <span class="sidebar-group-label">Others</span>
         <a href="/dashboard/<%= guild.id %>/message-builder"      class="sidebar-sublink<%= activePage === 'message-builder'  ? ' active' : '' %>"><i data-lucide="mail"></i> Message Builder</a>
         <a href="/dashboard/<%= guild.id %>/serverstats"          class="sidebar-sublink<%= activePage === 'serverstats'      ? ' active' : '' %>"><i data-lucide="bar-chart-2"></i> Server Stats</a>
@@ -59,7 +60,7 @@
 (function () {
     var tab = new URLSearchParams(window.location.search).get('tab');
     if (!tab) return;
-    var map = { boost: 'sidebarSubBoost', unboost: 'sidebarSubUnboost', join: 'sidebarSubJoin', booster: 'sidebarSubBooster', button: 'sidebarSubButton' };
+    var map = { boost: 'sidebarSubBoost', unboost: 'sidebarSubUnboost', join: 'sidebarSubJoin', booster: 'sidebarSubBooster', button: 'sidebarSubButton', reaction: 'sidebarSubReaction' };
     var el = document.getElementById(map[tab]);
     if (el) el.classList.add('active');
 })();

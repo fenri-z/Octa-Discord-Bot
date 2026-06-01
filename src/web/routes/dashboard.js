@@ -605,6 +605,29 @@ router.get('/:guildId/autorole', requireLogin, requireManageGuild, async (req, r
         autoremoveEnabled: getDbBool(`booster-autoremove-enabled-${guildId}`, false),
     };
 
+    // ── Autorole Reaction: ambil semua panel ──────────────────────────────
+    let reactPanelNames = [];
+    try {
+        const raw = db?.get(`autoreact-list-${guildId}`);
+        reactPanelNames = raw ? JSON.parse(raw) : [];
+    } catch { reactPanelNames = []; }
+
+    const reactPanels = reactPanelNames.map(name => {
+        try {
+            const raw = db?.get(`autoreact-${guildId}-${name}`);
+            if (!raw) return null;
+            return JSON.parse(raw);
+        } catch { return null; }
+    }).filter(Boolean);
+
+    const sentReactPanels = {};
+    for (const p of reactPanels) {
+        try {
+            const raw = db?.get(`autoreact-sent-${guildId}-${p.name}`);
+            if (raw) sentReactPanels[p.name] = JSON.parse(raw);
+        } catch {}
+    }
+
     // ── Roles & Channels ──────────────────────────────────────────────────
     const botRolePosition = guild.members.me?.roles.highest.position || 0;
     const roles = [...guild.roles.cache.values()]
@@ -626,6 +649,8 @@ router.get('/:guildId/autorole', requireLogin, requireManageGuild, async (req, r
         boosterData,
         panels,
         sentPanels,
+        reactPanels,
+        sentReactPanels,
         activePage: 'autorole',
         hasSidebar: true
     });

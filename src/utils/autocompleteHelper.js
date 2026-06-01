@@ -427,6 +427,82 @@ async function autocompleteAutobtnNama(interaction, client) {
     await interaction.respond([...suggestions, ...existing]).catch(() => null);
 }
 
+// ─────────────────────────────────────────────────────────────────────────
+// PANEL AUTOROLE REACTION — untuk field 'panel' di autorole-reaction
+// ─────────────────────────────────────────────────────────────────────────
+
+async function autocompleteReactPanel(interaction, client) {
+    const guildId = resolveGuildId(interaction, client);
+    if (!guildId) return interaction.respond([]).catch(() => null);
+
+    const focused = interaction.options.getFocused().toLowerCase();
+
+    let list = [];
+    try {
+        const raw = client.database.get(`autoreact-list-${guildId}`);
+        if (raw && typeof raw === 'string') list = JSON.parse(raw);
+    } catch { list = []; }
+
+    if (!Array.isArray(list) || list.length === 0) {
+        return interaction.respond([
+            { name: '📭 Belum ada panel — buat dulu dengan /autorole-reaction buat', value: '__none__' }
+        ]).catch(() => null);
+    }
+
+    const choices = list
+        .filter(name => !focused || name.toLowerCase().includes(focused))
+        .map(name => {
+            try {
+                const raw      = client.database.get(`autoreact-${guildId}-${name}`);
+                const panel    = raw ? JSON.parse(raw) : null;
+                const modeIcon = panel?.mode === 'single' ? '🔘' : '✅';
+                const count    = panel?.reactions?.length ?? 0;
+                return { name: `${modeIcon} ${name} ✨ (${count} reaction)`.slice(0, 100), value: name };
+            } catch {
+                return { name: `✨ ${name}`, value: name };
+            }
+        })
+        .slice(0, 25);
+
+    await interaction.respond(choices).catch(() => null);
+}
+
+async function autocompleteAutoreactNama(interaction, client) {
+    const guildId = resolveGuildId(interaction, client);
+    if (!guildId) return interaction.respond([]).catch(() => null);
+
+    const focused = interaction.options.getFocused().toLowerCase();
+
+    let list = [];
+    try {
+        const raw = client.database.get(`autoreact-list-${guildId}`);
+        if (raw && typeof raw === 'string') list = JSON.parse(raw);
+    } catch { list = []; }
+
+    const suggestions = [];
+
+    if (focused && !list.map(n => n.toLowerCase()).includes(focused) && /^[a-zA-Z0-9_-]{1,32}$/.test(focused)) {
+        suggestions.push({ name: `✅ "${focused}" — buat panel baru`, value: focused });
+    }
+
+    const existing = list
+        .filter(name => !focused || name.toLowerCase().includes(focused))
+        .map(name => {
+            try {
+                const raw   = client.database.get(`autoreact-${guildId}-${name}`);
+                const panel = raw ? JSON.parse(raw) : null;
+                const mode  = panel?.mode === 'single' ? '🔘' : '✅';
+                const count = panel?.reactions?.length ?? 0;
+                return { name: `✏️ ${mode} ${name} — ${count} reaction`.slice(0, 100), value: name };
+            } catch {
+                return { name: `✏️ ${name}`, value: name };
+            }
+        })
+        .slice(0, 25 - suggestions.length);
+
+    await interaction.respond([...suggestions, ...existing]).catch(() => null);
+}
+
 module.exports = {
     autocompleteChannel,
     autocompleteRole,
@@ -436,6 +512,8 @@ module.exports = {
     autocompletePesanForPanel,
     autocompleteSumberSalin,
     autocompleteTujuanSalin,
+    autocompleteReactPanel,
+    autocompleteAutoreactNama,
     resolveGuild,
     resolveGuildId
 };
