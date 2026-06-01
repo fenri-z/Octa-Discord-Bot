@@ -423,6 +423,18 @@ code {
 /* sidebar-bot-brand tersembunyi di desktop (hanya tampil di mobile via @media) */
 .sidebar-bot-brand { display: none; }
 
+/* Avatar bot di header sidebar mobile — ukuran & bentuk lingkaran dipaksa di base CSS
+   agar tidak tertimpa oleh rule global `img { max-width: 100%; }` */
+.sidebar-bot-avatar-img {
+    width: 36px !important;
+    height: 36px !important;
+    min-width: 36px;
+    border-radius: 50% !important;
+    object-fit: cover;
+    flex-shrink: 0;
+    border: 2px solid rgba(255,255,255,.12);
+}
+
 /* ── Lucide icon global sizing ────────────────────────────────────────────── */
 .nav-dropdown-item svg { width: 15px; height: 15px; flex-shrink: 0; opacity: .75; }
 .hamburger-btn svg { width: 20px; height: 20px; }
@@ -461,9 +473,9 @@ code {
     color: var(--text-muted);
     background: var(--bg2);
     border-top: 1px solid rgba(56, 58, 74, 0.7);
-    box-shadow: 0 -1px 0 rgba(255,255,255,.04), 0 -4px 16px rgba(0,0,0,.1);
     flex-shrink: 0;
     letter-spacing: .02em;
+    width: 100%;
 }
 .dash-footer a {
     color: var(--accent);
@@ -745,13 +757,6 @@ code {
     }
     .sidebar-bot-close:hover { background: var(--bg3); color: var(--text); }
     .sidebar-bot-close svg { width: 17px; height: 17px; display: block; }
-    .sidebar-bot-avatar-img {
-        width: 36px; height: 36px;
-        border-radius: 50%;
-        object-fit: cover;
-        flex-shrink: 0;
-        border: 2px solid rgba(255,255,255,.1);
-    }
     .sidebar-bot-name-text {
         font-size: .95rem;
         font-weight: 700;
