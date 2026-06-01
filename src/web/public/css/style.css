@@ -28,9 +28,9 @@ body {
     background: var(--bg);
     color: var(--text);
     min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    -webkit-text-size-adjust: 100%; /* cegah iOS auto-zoom teks */
+    display: grid;
+    grid-template-rows: var(--navbar-h) 1fr auto; /* navbar | konten | footer */
+    -webkit-text-size-adjust: 100%;
     overflow-x: hidden;
 }
 
@@ -271,9 +271,8 @@ code {
 /* ── Dashboard layout ────────────────────────────────────────────────────── */
 .dash-layout {
     display: flex;
-    flex: 1;
-    min-height: calc(100vh - var(--navbar-h));
     width: 100%;
+    /* grid-area row-2 sudah menentukan tinggi via 1fr — tidak perlu min-height lagi */
 }
 
 /* ── Sidebar ─────────────────────────────────────────────────────────────── */
@@ -473,9 +472,7 @@ code {
     color: var(--text-muted);
     background: var(--bg2);
     border-top: 1px solid rgba(56, 58, 74, 0.7);
-    flex-shrink: 0;
     letter-spacing: .02em;
-    width: 100%;
 }
 .dash-footer a {
     color: var(--accent);
