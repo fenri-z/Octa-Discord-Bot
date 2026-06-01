@@ -32,7 +32,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use(express.static(path.join(__dirname, 'public'), {
-    maxAge: '1h',
+    maxAge: process.env.NODE_ENV === 'production' ? '1h' : 0,
     etag: true,
 }));
 

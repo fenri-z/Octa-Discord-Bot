@@ -269,7 +269,7 @@ code {
 
 /* ── Sidebar ─────────────────────────────────────────────────────────────── */
 .sidebar {
-    width: 290px; flex-shrink: 0;
+    width: 228px; flex-shrink: 0;
     background: var(--bg2); border-right: 1px solid var(--border);
     padding: 1.25rem .75rem;
     display: flex; flex-direction: column; gap: .75rem;

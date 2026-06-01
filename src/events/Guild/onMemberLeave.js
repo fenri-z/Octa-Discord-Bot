@@ -156,11 +156,7 @@ module.exports = new Event({
         if (fields.length > 0) embed.addFields(...fields);
         if (cardAttachment) embed.setImage('attachment://goodbye-card.png');
 
-        const payload = {
-            content: `<@${member.id}>`,
-            embeds: [embed],
-            allowedMentions: { users: [member.id] },
-        };
+        const payload = { embeds: [embed] };
         if (cardAttachment) payload.files = [cardAttachment];
         await goodbyeChannel.send(payload).catch(() => null);
     }

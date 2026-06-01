@@ -209,11 +209,7 @@ module.exports = new Event({
             if (fields.length > 0) embed.addFields(...fields);
             if (cardAttachment) embed.setImage('attachment://welcome-card.png');
 
-            const embedPayload = {
-                content: `<@${member.id}>`,
-                embeds: [embed],
-                allowedMentions: { users: [member.id] },
-            };
+            const embedPayload = { embeds: [embed] };
             if (cardAttachment) embedPayload.files = [cardAttachment];
             await welcomeChannel.send(embedPayload).catch(() => null);
         }

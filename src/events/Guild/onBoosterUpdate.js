@@ -201,11 +201,7 @@ module.exports = new Event({
                 if (boostFields.length) embed.addFields(...boostFields);
                 if (cfg.boostFooter) embed.setFooter({ text: parseTitle(cfg.boostFooter, newMember, guild) });
                 if (boostCard) embed.setImage('attachment://boost-card.png');
-                const payload = {
-                    content: `<@${newMember.id}>`,
-                    embeds: [embed],
-                    allowedMentions: { users: [newMember.id] },
-                };
+                const payload = { embeds: [embed] };
                 if (boostCard) payload.files = [boostCard];
                 await channel.send(payload).catch(() => null);
             }
@@ -290,11 +286,7 @@ module.exports = new Event({
                 if (unboostFields.length) embed.addFields(...unboostFields);
                 if (cfg.unboostFooter) embed.setFooter({ text: parseTitle(cfg.unboostFooter, newMember, guild) });
                 if (unboostCard) embed.setImage('attachment://unboost-card.png');
-                const payload = {
-                    content: `<@${newMember.id}>`,
-                    embeds: [embed],
-                    allowedMentions: { users: [newMember.id] },
-                };
+                const payload = { embeds: [embed] };
                 if (unboostCard) payload.files = [unboostCard];
                 await channel.send(payload).catch(() => null);
             }

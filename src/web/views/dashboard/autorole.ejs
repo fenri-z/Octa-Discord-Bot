@@ -1384,18 +1384,51 @@
 }
 .react-select option { background: var(--bg2); color: var(--text); }
 
-/* ── Emoji input with prefix icon ── */
+/* ── Emoji input ── */
 .react-emoji-input-wrap { position: relative; }
 .react-emoji-input-wrap .react-emoji-prefix {
     position: absolute;
     left: .6rem; top: 50%; transform: translateY(-50%);
-    font-size: .85rem;
-    pointer-events: none;
-    user-select: none;
-    opacity: .55;
-    line-height: 1;
+    font-size: .85rem; pointer-events: none; user-select: none;
+    opacity: .45; line-height: 1;
+    transition: opacity .15s;
 }
 .react-emoji-input-wrap .react-input { padding-left: 1.85rem; }
+
+/* Emoji valid: besar, centered, prefix disembunyikan */
+.react-emoji-input-wrap .react-input.emoji-valid {
+    font-size: 1.3rem;
+    text-align: center;
+    padding-left: .65rem !important;
+    letter-spacing: .05em;
+    border-color: rgba(88,101,242,.5) !important;
+}
+.react-emoji-input-wrap:has(.emoji-valid) .react-emoji-prefix { opacity: 0; }
+
+/* Mobile: emoji input lebih kecil & compact */
+@media(max-width:540px) {
+    .react-fields { grid-template-columns: 1fr auto; }
+    .react-emoji-input-wrap { width: 72px; }
+    .react-emoji-input-wrap .react-input {
+        width: 72px !important; text-align: center;
+        padding-left: .5rem !important; padding-right: .5rem;
+    }
+    .react-emoji-input-wrap .react-input.emoji-valid { font-size: 1.1rem; }
+    .react-emoji-input-wrap .react-emoji-prefix { display: none; }
+}
+
+/* Emoji invalid: goyangan merah */
+.react-emoji-input-wrap .react-input.emoji-invalid {
+    border-color: var(--red) !important;
+    box-shadow: 0 0 0 2px rgba(237,66,69,.2) !important;
+    animation: emoji-shake .35s ease;
+}
+@keyframes emoji-shake {
+    0%,100% { transform: translateX(0); }
+    20%      { transform: translateX(-5px); }
+    60%      { transform: translateX(5px); }
+    80%      { transform: translateX(-3px); }
+}
 
 /* ── Card: everything vertically centered ── */
 .react-editor-card { align-items: center; }
@@ -2594,10 +2627,11 @@ function renderInlineReactTable() {
                 </select>
                 <div class="react-emoji-input-wrap">
                     <span class="react-emoji-prefix">✨</span>
-                    <input type="text" class="react-input" id="inreact-emoji-${i}"
+                    <input type="text" class="react-input${inputVal ? ' emoji-valid' : ''}" id="inreact-emoji-${i}"
                            value="${inputVal.replace(/"/g, '&quot;')}"
-                           placeholder="👍 🎮 ⭐ atau &lt;:nama:id&gt;" maxlength="100"
-                           oninput="updateInlineReact(${i})">
+                           placeholder="Ketuk emoji…" maxlength="8"
+                           oninput="_onEmojiInput(${i})"
+                           onpaste="_onEmojiPaste(event,${i})">
                 </div>
             </div>
             <button class="ar-btn-delete" onclick="removeInlineReact(${i})" title="Hapus">
@@ -2607,6 +2641,96 @@ function renderInlineReactTable() {
     }).join('');
     table.innerHTML = header + rows;
     updateReactPanelPreviewReacts();
+}
+
+// ── Emoji input: hanya 1 emoji yang valid ────────────────────────────────────
+
+function _extractFirstEmoji(raw) {
+    raw = (raw || '').trim();
+    if (!raw) return null;
+    // Custom emoji Discord: <:name:id> atau <a:name:id>
+    const custom = raw.match(/^<a?:([^:>\s]{1,32}):(\d{5,20})>/);
+    if (custom) return custom[0];
+    // Unicode emoji via Intl.Segmenter (modern browsers)
+    if (typeof Intl !== 'undefined' && Intl.Segmenter) {
+        try {
+            const seg = new Intl.Segmenter(undefined, { granularity: 'grapheme' });
+            for (const { segment } of seg.segment(raw)) {
+                if (/\p{Emoji}/u.test(segment) && !/^[0-9#*]$/.test(segment)) return segment;
+            }
+        } catch {}
+    }
+    // Fallback regex
+    const m = raw.match(/\p{Extended_Pictographic}(?:‍\p{Extended_Pictographic}|️|⃣|[\u{1F3FB}-\u{1F3FF}])*/u);
+    return m ? m[0] : null;
+}
+
+function _applyEmojiToInput(i, emoji) {
+    const input = document.getElementById(`inreact-emoji-${i}`);
+    if (!input) return;
+    if (emoji) {
+        input.value = emoji;
+        input.classList.add('emoji-valid');
+        input.classList.remove('emoji-invalid');
+    } else {
+        input.classList.remove('emoji-valid');
+    }
+    updateInlineReact(i);
+}
+
+// Cek apakah teks sedang dalam proses pengetikan custom emoji <:nama:id>
+function _isTypingCustomEmoji(raw) {
+    // Izinkan selama belum ada '>' (masih dalam proses mengetik format custom emoji)
+    return raw.startsWith('<') && !raw.includes('>');
+}
+
+function _onEmojiInput(i) {
+    const input = document.getElementById(`inreact-emoji-${i}`);
+    if (!input) return;
+    const raw   = input.value;
+
+    // Sedang mengetik custom emoji <:nama:id> — jangan interupsi
+    if (_isTypingCustomEmoji(raw)) {
+        input.classList.remove('emoji-valid', 'emoji-invalid');
+        updateInlineReact(i);
+        return;
+    }
+
+    const emoji = _extractFirstEmoji(raw);
+
+    if (emoji) {
+        input.value = emoji;
+        input.classList.add('emoji-valid');
+        input.classList.remove('emoji-invalid');
+    } else if (raw.length > 0) {
+        // Bukan emoji & bukan custom emoji — tolak dengan animasi
+        input.classList.add('emoji-invalid');
+        input.classList.remove('emoji-valid');
+        setTimeout(() => {
+            const el = document.getElementById(`inreact-emoji-${i}`);
+            if (el && !_extractFirstEmoji(el.value) && !_isTypingCustomEmoji(el.value)) {
+                el.value = '';
+                el.classList.remove('emoji-invalid', 'emoji-valid');
+            }
+        }, 500);
+    } else {
+        input.classList.remove('emoji-valid', 'emoji-invalid');
+    }
+    updateInlineReact(i);
+}
+
+function _onEmojiPaste(e, i) {
+    e.preventDefault();
+    const pasted = (e.clipboardData || window.clipboardData).getData('text');
+    const emoji  = _extractFirstEmoji(pasted);
+    _applyEmojiToInput(i, emoji);
+    if (!emoji) {
+        const input = document.getElementById(`inreact-emoji-${i}`);
+        if (input) {
+            input.classList.add('emoji-invalid');
+            setTimeout(() => input.classList.remove('emoji-invalid'), 600);
+        }
+    }
 }
 
 // Konversi stored emoji (name:id atau unicode) ke HTML di dalam bubble
@@ -2629,7 +2753,7 @@ function _emojiDisplayFromStored(stored) {
 
 function updateInlineReact(i) {
     const emojiRaw    = (document.getElementById(`inreact-emoji-${i}`)?.value || '').trim();
-    const customMatch = emojiRaw.match(/^<a?:([^:]+):(\d+)>$/);
+    const customMatch = emojiRaw.match(/^<a?:([^:>\s]{1,32}):(\d{5,20})>$/);
     const emojiStored = customMatch ? `${customMatch[1]}:${customMatch[2]}` : emojiRaw;
 
     _inlineReacts[i] = {
@@ -2640,16 +2764,22 @@ function updateInlineReact(i) {
     // Live-update emoji bubble
     const bubble = document.getElementById(`inreact-bubble-${i}`);
     if (bubble) {
-        const isCustom = emojiStored.includes(':');
-        const isUnicodeEmoji = !isCustom && /\p{Emoji}/u.test(emojiStored) && !/^[a-zA-Z0-9\s]+$/.test(emojiStored);
-        const isValid  = isCustom || isUnicodeEmoji;
+        const rawInput   = document.getElementById(`inreact-emoji-${i}`)?.value || '';
+        const isTyping   = _isTypingCustomEmoji(rawInput);
+        const isCustom   = emojiStored.includes(':');
+        const isUnicode  = !isCustom && /\p{Emoji}/u.test(emojiStored) && !/^[a-zA-Z0-9\s]+$/.test(emojiStored);
+        const isValid    = isCustom || isUnicode;
 
-        if (emojiStored && isValid) {
+        if (isTyping) {
+            // Sedang mengetik custom emoji — tampilkan animasi loading
+            bubble.innerHTML = `<span style="font-size:.75rem;opacity:.5;letter-spacing:.05em;">…</span>`;
+            bubble.classList.remove('has-emoji');
+            bubble.title = 'Mengetik format custom emoji';
+        } else if (emojiStored && isValid) {
             bubble.innerHTML = _emojiDisplayFromStored(emojiStored);
             bubble.classList.add('has-emoji');
             bubble.title = 'Preview emoji';
         } else if (emojiStored) {
-            // Ada teks tapi bukan emoji valid
             bubble.innerHTML = `<span style="font-size:.9rem;opacity:.35;">?</span>`;
             bubble.classList.remove('has-emoji');
             bubble.title = 'Bukan emoji yang valid';
