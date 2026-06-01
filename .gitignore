@@ -2,4 +2,7 @@ node_modules/
 .env
 database.db
 *.log
+*.db-shm
+*.db-wal
 terminal.log
+.claude

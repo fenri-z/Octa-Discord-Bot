@@ -146,12 +146,15 @@ function requireManageGuild(req, res, next) {
     );
     res.locals.mutualGuilds = manageableGuilds
         .filter(g => req.discordClient?.guilds.cache.has(g.id))
-        .map(g => ({
-            id:       g.id,
-            name:     g.name,
-            iconURL:  g.icon ? `https://cdn.discordapp.com/icons/${g.id}/${g.icon}.png` : null,
-            isActive: g.id === guildId
-        }));
+        .map(g => {
+            const djs = req.discordClient.guilds.cache.get(g.id);
+            return {
+                id:       g.id,
+                name:     djs?.name ?? g.name,
+                iconURL:  djs?.iconURL({ size: 64 }) ?? (g.icon ? `https://cdn.discordapp.com/icons/${g.id}/${g.icon}.png` : null),
+                isActive: g.id === guildId
+            };
+        });
 
     req.botGuild = botGuild;
     req.userGuildData = guild;
