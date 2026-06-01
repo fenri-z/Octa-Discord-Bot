@@ -1086,6 +1086,93 @@ router.post('/guild/:guildId/autorole-reaction/:name/send', requireLogin, requir
     }
 });
 
+// ════════════════════════════════════════════════════════════════════════════
+// TICKET API
+// ════════════════════════════════════════════════════════════════════════════
+
+// ── POST /api/guild/:guildId/ticket/config ────────────────────────────────
+router.post('/guild/:guildId/ticket/config', requireLogin, requireManageGuild, (req, res) => {
+    const db      = req.discordClient?.database;
+    const guildId = req.params.guildId;
+    const { enabled, categoryId, logChannelId, staffRoles } = req.body;
+
+    if (enabled) db.set(`ticket-enabled-${guildId}`, '1');
+    else         db.delete(`ticket-enabled-${guildId}`);
+
+    if (categoryId)   db.set(`ticket-category-${guildId}`, categoryId);
+    else              db.delete(`ticket-category-${guildId}`);
+
+    if (logChannelId) db.set(`ticket-log-channel-${guildId}`, logChannelId);
+    else              db.delete(`ticket-log-channel-${guildId}`);
+
+    db.set(`ticket-staff-roles-${guildId}`, JSON.stringify(Array.isArray(staffRoles) ? staffRoles : []));
+
+    res.json({ success: true, message: 'Konfigurasi tiket berhasil disimpan.' });
+});
+
+// ── POST /api/guild/:guildId/ticket/panel-embed ────────────────────────────
+router.post('/guild/:guildId/ticket/panel-embed', requireLogin, requireManageGuild, (req, res) => {
+    const db      = req.discordClient?.database;
+    const guildId = req.params.guildId;
+    const { embedTitle, embedDesc, embedColor, btnLabel } = req.body;
+
+    if (embedTitle) db.set(`ticket-embed-title-${guildId}`, embedTitle.slice(0, 256));
+    if (embedDesc)  db.set(`ticket-embed-desc-${guildId}`,  embedDesc.slice(0, 4000));
+    if (embedColor && /^#?[0-9A-Fa-f]{6}$/.test(embedColor.trim())) {
+        db.set(`ticket-embed-color-${guildId}`, embedColor.startsWith('#') ? embedColor : `#${embedColor}`);
+    }
+    if (btnLabel) db.set(`ticket-embed-btn-label-${guildId}`, btnLabel.slice(0, 80));
+
+    res.json({ success: true, message: 'Tampilan panel berhasil disimpan.' });
+});
+
+// ── POST /api/guild/:guildId/ticket/send-panel ────────────────────────────
+router.post('/guild/:guildId/ticket/send-panel', requireLogin, requireManageGuild, async (req, res) => {
+    const db      = req.discordClient?.database;
+    const client  = req.discordClient;
+    const guildId = req.params.guildId;
+    const { channelId } = req.body;
+
+    if (!channelId) return res.json({ success: false, message: 'Channel tidak dipilih.' });
+
+    try {
+        const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+        const guild   = client?.guilds.cache.get(guildId);
+        const channel = await guild?.channels.fetch(channelId).catch(() => null);
+        if (!channel) return res.json({ success: false, message: 'Channel tidak ditemukan.' });
+
+        // Hapus panel lama
+        const oldRaw = db?.get(`ticket-panel-msg-${guildId}`);
+        if (oldRaw) {
+            try {
+                const old   = JSON.parse(oldRaw);
+                const oldCh = guild.channels.cache.get(old.channelId);
+                if (oldCh) { const oldMsg = await oldCh.messages.fetch(old.messageId).catch(() => null); if (oldMsg) await oldMsg.delete().catch(() => null); }
+            } catch {}
+        }
+
+        const title    = db?.get(`ticket-embed-title-${guildId}`)     || '🎫 Support Ticket';
+        const desc     = db?.get(`ticket-embed-desc-${guildId}`)      || 'Klik tombol di bawah untuk membuat tiket.';
+        const colorRaw = db?.get(`ticket-embed-color-${guildId}`)     || '#5865F2';
+        const btnLabel = db?.get(`ticket-embed-btn-label-${guildId}`) || '📩 Buat Ticket';
+        const color    = colorRaw.startsWith('#') ? colorRaw : `#${colorRaw}`;
+
+        const embed = new EmbedBuilder().setColor(color).setTitle(title).setDescription(desc);
+        const row   = new ActionRowBuilder().addComponents(
+            new ButtonBuilder().setCustomId('ticket-open').setLabel(btnLabel).setStyle(ButtonStyle.Primary)
+        );
+
+        const sent = await channel.send({ embeds: [embed], components: [row] });
+        db?.set(`ticket-panel-msg-${guildId}`, JSON.stringify({ messageId: sent.id, channelId: channel.id }));
+        db?.set(`ticket-panel-channel-${guildId}`, channel.id);
+
+        res.json({ success: true, message: `Panel berhasil dikirim ke #${channel.name}!` });
+    } catch (err) {
+        console.error('[ticket/send-panel]', err);
+        res.json({ success: false, message: 'Gagal mengirim panel. Cek permission bot.' });
+    }
+});
+
 // ── POST /api/guild/:guildId/prefix ───────────────────────────────────────────
 router.post('/guild/:guildId/prefix', requireLogin, requireManageGuild, (req, res) => {
     const { prefix } = req.body;

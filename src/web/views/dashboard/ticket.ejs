@@ -1,0 +1,403 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+
+<div class="dash-layout">
+    <%- include('../partials/sidebar', { activePage: 'ticket' }) %>
+
+    <main class="dash-main">
+    <div class="dash-content-wide">
+        <div class="page-header">
+            <h1>🎫 Ticketing</h1>
+            <p>Sistem tiket privat untuk member meminta bantuan staff.</p>
+        </div>
+
+        <div class="tk-layout">
+
+        <!-- ── Kolom kiri: konfigurasi ── -->
+        <div class="tk-config-col">
+
+        <!-- Enable/Disable -->
+        <div class="settings-card" style="margin-bottom:1rem;">
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;">
+                <div>
+                    <div style="font-weight:600;font-size:.95rem;">Aktifkan Ticketing</div>
+                    <div style="font-size:.8rem;color:var(--text-muted);margin-top:.15rem;">Member bisa membuat tiket via tombol panel.</div>
+                </div>
+                <label class="toggle-label">
+                    <input type="checkbox" id="ticketEnabled" class="toggle-input" <%= ticketData.enabled ? 'checked' : '' %>>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Channel & Kategori -->
+        <div class="settings-card" style="margin-bottom:1rem;">
+            <div style="font-size:.8rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.9rem;">⚙️ Konfigurasi Channel</div>
+
+            <div class="form-group">
+                <label class="label">Kategori Tiket <span class="hint-inline">(opsional)</span></label>
+                <select id="ticketCategory" class="select">
+                    <option value="">— Tanpa Kategori —</option>
+                    <% categories.forEach(c => { %>
+                        <option value="<%= c.id %>" <%= ticketData.categoryId === c.id ? 'selected' : '' %>>📁 <%= c.name %></option>
+                    <% }) %>
+                </select>
+                <div class="hint">Channel tiket akan dibuat di dalam kategori ini.</div>
+            </div>
+
+            <div class="form-group">
+                <label class="label">Channel Log Transcript</label>
+                <select id="ticketLogChannel" class="select">
+                    <option value="">— Tidak ada —</option>
+                    <% channels.forEach(c => { %>
+                        <option value="<%= c.id %>" <%= ticketData.logChannelId === c.id ? 'selected' : '' %>>#<%= c.name %></option>
+                    <% }) %>
+                </select>
+                <div class="hint">Transcript dikirim ke channel ini saat tiket ditutup.</div>
+            </div>
+        </div>
+
+        <!-- Staff Roles -->
+        <div class="settings-card" style="margin-bottom:1rem;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.9rem;flex-wrap:wrap;gap:.5rem;">
+                <div style="font-size:.8rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;">🛡️ Staff Roles</div>
+                <span style="font-size:.72rem;padding:.15rem .45rem;border-radius:999px;background:var(--bg2);border:1px solid var(--border);color:var(--text-muted);" id="staffRoleCounter"><%= ticketData.staffRoles.length %> role</span>
+            </div>
+            <div id="staffRoleList" style="display:flex;flex-direction:column;gap:.45rem;margin-bottom:.75rem;">
+                <% ticketData.staffRoles.forEach(roleId => { %>
+                    <% const role = roles.find(r => r.id === roleId); %>
+                    <% if (role) { %>
+                    <div class="tk-role-chip" data-id="<%= role.id %>">
+                        <span class="tk-role-dot" style="background:<%= role.color %>;"></span>
+                        <span>@<%= role.name %></span>
+                        <button class="tk-role-remove" onclick="removeStaffRole('<%= role.id %>')" title="Hapus">✕</button>
+                    </div>
+                    <% } %>
+                <% }) %>
+                <div id="staffRoleEmpty" style="color:var(--text-muted);font-size:.82rem;padding:.3rem 0;<%= ticketData.staffRoles.length > 0 ? 'display:none;' : '' %>">
+                    Belum ada staff role. Tambahkan di bawah.
+                </div>
+            </div>
+            <div style="display:flex;gap:.5rem;">
+                <select id="staffRoleAdd" class="select" style="flex:1;">
+                    <option value="">— Pilih role —</option>
+                    <% roles.forEach(r => { %>
+                        <option value="<%= r.id %>" style="color:<%= r.color %>">@<%= r.name %></option>
+                    <% }) %>
+                </select>
+                <button class="btn btn-primary btn-sm" onclick="addStaffRole()">＋ Tambah</button>
+            </div>
+            <div class="hint" style="margin-top:.5rem;">Role yang bisa melihat dan mengelola semua tiket. Owner server selalu bisa melihat tiket.</div>
+        </div>
+
+        <!-- Simpan Konfigurasi -->
+        <div style="display:flex;justify-content:flex-end;margin-bottom:1rem;">
+            <button class="btn btn-primary" onclick="saveConfig()">💾 Simpan Konfigurasi</button>
+        </div>
+        <div id="configMsg" class="form-message"></div>
+
+        </div><!-- /tk-config-col -->
+
+        <!-- ── Kolom kanan: panel embed ── -->
+        <div class="tk-panel-col">
+
+        <div class="settings-card">
+            <div style="font-size:.8rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.9rem;">🎨 Tampilan Panel</div>
+
+            <div class="form-group">
+                <label class="label">Judul Embed</label>
+                <input type="text" id="panelTitle" class="input" maxlength="256"
+                       value="<%= ticketData.embedTitle %>" placeholder="🎫 Support Ticket"
+                       oninput="updateTicketPreview()">
+            </div>
+            <div class="form-group">
+                <label class="label">Deskripsi</label>
+                <textarea id="panelDesc" class="textarea" rows="4" maxlength="4000"
+                          placeholder="Klik tombol di bawah untuk membuat tiket..."
+                          oninput="updateTicketPreview()"><%= ticketData.embedDesc %></textarea>
+            </div>
+            <div class="form-group">
+                <label class="label">Warna Embed</label>
+                <div style="display:flex;gap:.75rem;align-items:center;">
+                    <input type="color" id="panelColorPicker" value="<%= ticketData.embedColor || '#5865F2' %>"
+                           style="width:44px;height:36px;border:none;border-radius:6px;cursor:pointer;padding:0;background:none;"
+                           oninput="syncPicker('panelColor','panelColorPicker');updateTicketPreview()">
+                    <input type="text" id="panelColor" class="input" style="max-width:130px;"
+                           value="<%= ticketData.embedColor || '#5865F2' %>" maxlength="7"
+                           oninput="syncHex('panelColor','panelColorPicker');updateTicketPreview()">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="label">Label Tombol</label>
+                <input type="text" id="panelBtnLabel" class="input" maxlength="80"
+                       value="<%= ticketData.btnLabel %>" placeholder="📩 Buat Ticket"
+                       oninput="updateTicketPreview()">
+            </div>
+
+            <!-- Preview Discord -->
+            <div class="preview-label" style="margin-top:1.25rem;">Preview</div>
+            <div class="dc-window">
+                <div class="dc-channel-bar"><span class="dc-channel-hash">#</span><span>ticket-panel</span></div>
+                <div class="dc-messages">
+                    <div class="dc-message">
+                        <img class="dc-avatar" src="<%- locals.botNavAvatar || 'https://cdn.discordapp.com/embed/avatars/0.png' %>" alt="bot" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+                        <div class="dc-msg-body">
+                            <span class="dc-username" style="color:<%- locals.botNavColor||'#fff' %>"><%- locals.botNavName||'Bot' %></span>
+                            <span class="dc-timestamp">Hari ini pukul 12:00</span>
+                            <div class="dc-embed" id="tkPreviewEmbed">
+                                <div class="dc-embed-pill" id="tkPreviewPill" style="background:<%= ticketData.embedColor||'#5865F2' %>;"></div>
+                                <div class="dc-embed-content">
+                                    <div class="dc-embed-title" id="tkPreviewTitle"><%= ticketData.embedTitle || '🎫 Support Ticket' %></div>
+                                    <div class="dc-embed-desc" id="tkPreviewDesc"><%= ticketData.embedDesc || 'Klik tombol di bawah untuk membuat tiket.' %></div>
+                                </div>
+                            </div>
+                            <!-- Preview tombol -->
+                            <div style="margin-top:.4rem;">
+                                <span class="tk-btn-preview" id="tkPreviewBtn"><%= ticketData.btnLabel || '📩 Buat Ticket' %></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display:flex;gap:.75rem;margin-top:1rem;flex-wrap:wrap;">
+                <button class="btn btn-outline" onclick="savePanelEmbed()">💾 Simpan Embed</button>
+                <button class="btn btn-primary" onclick="sendPanel()">📨 Kirim Panel</button>
+            </div>
+            <div id="panelMsg" class="form-message" style="margin-top:.5rem;"></div>
+
+            <!-- Pilih channel kirim -->
+            <div class="form-group" style="margin-top:.85rem;" id="panelSendChannelGroup">
+                <label class="label">Channel tujuan panel</label>
+                <select id="panelSendChannel" class="select">
+                    <option value="">— Pilih channel —</option>
+                    <% channels.forEach(c => { %>
+                        <option value="<%= c.id %>">#<%= c.name %></option>
+                    <% }) %>
+                </select>
+                <% if (ticketData.panelSent) { %>
+                <div class="hint" style="margin-top:.4rem;">
+                    ✅ Panel sudah terkirim — <a href="https://discord.com/channels/<%= guild.id %>/<%= ticketData.panelChannelId %>/<%= ticketData.panelMsgId %>" target="_blank" style="color:var(--accent);">Lihat</a>.
+                    Klik <strong>Kirim Panel</strong> untuk memperbarui.
+                </div>
+                <% } %>
+            </div>
+        </div>
+
+        <!-- Daftar Tiket Aktif -->
+        <% if (openTickets.length > 0) { %>
+        <div class="settings-card" style="margin-top:1rem;">
+            <div style="font-size:.8rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.9rem;">
+                📋 Tiket Aktif
+                <span style="font-size:.72rem;padding:.15rem .45rem;border-radius:999px;background:var(--bg2);border:1px solid rgba(87,242,135,.3);color:#57F287;margin-left:.5rem;"><%= openTickets.length %> terbuka</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:.45rem;">
+                <% openTickets.forEach(t => { %>
+                <div class="tk-ticket-row">
+                    <div class="tk-ticket-num">#<%= String(t.ticketNumber).padStart(4,'0') %></div>
+                    <div class="tk-ticket-body">
+                        <div class="tk-ticket-user"><%= t.username %></div>
+                        <div class="tk-ticket-time">Dibuka <span title="<%= new Date(t.openedAt).toLocaleString('id-ID') %>"><%= Math.floor((Date.now()-t.openedAt)/60000) %> menit lalu</span></div>
+                    </div>
+                    <a href="https://discord.com/channels/<%= guild.id %>/<%= t.channelId %>" target="_blank" class="btn btn-outline btn-sm" style="flex-shrink:0;">🔗 Lihat</a>
+                </div>
+                <% }) %>
+            </div>
+        </div>
+        <% } %>
+
+        </div><!-- /tk-panel-col -->
+        </div><!-- /tk-layout -->
+    </div>
+    </main>
+</div>
+
+<style>
+/* ── Discord preview ── */
+.dc-window { background:#36393f; border-radius:8px; overflow:hidden; margin-top:.5rem; }
+.dc-channel-bar { background:#2f3136; padding:.45rem .75rem; font-size:.78rem; color:#8e9297; display:flex; align-items:center; gap:.4rem; }
+.dc-channel-hash { font-weight:700; }
+.dc-messages { padding:.75rem; }
+.dc-message { display:flex; gap:.75rem; }
+.dc-avatar { width:40px; height:40px; border-radius:50%; flex-shrink:0; object-fit:cover; }
+.dc-msg-body { flex:1; min-width:0; }
+.dc-username { color:#fff; font-weight:600; font-size:.875rem; margin-right:.4rem; }
+.dc-timestamp { color:#72767d; font-size:.72rem; }
+.dc-embed {
+    margin-top:.35rem; background:#2f3136; border-radius:4px;
+    display:flex; max-width:432px; overflow:hidden;
+}
+.dc-embed-pill { width:4px; flex-shrink:0; border-radius:4px 0 0 4px; }
+.dc-embed-content { padding:.6rem .75rem; flex:1; min-width:0; }
+.dc-embed-title { color:#fff; font-weight:600; font-size:.9rem; margin-bottom:.2rem; }
+.dc-embed-desc { color:#dcddde; font-size:.83rem; line-height:1.4; word-break:break-word; }
+
+/* ── Dashboard layout ── */
+.tk-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+    align-items: start;
+}
+@media(max-width:860px) { .tk-layout { grid-template-columns: 1fr; } }
+
+/* Role chips */
+.tk-role-chip {
+    display: flex; align-items: center; gap: .5rem;
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 8px; padding: .35rem .65rem;
+    font-size: .82rem;
+}
+.tk-role-dot {
+    width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+}
+.tk-role-chip span:nth-child(2) { flex: 1; }
+.tk-role-remove {
+    background: none; border: none; color: var(--text-muted);
+    cursor: pointer; font-size: .85rem; padding: 0 .2rem;
+    border-radius: 4px; transition: color .15s;
+}
+.tk-role-remove:hover { color: var(--red); }
+
+/* Ticket row */
+.tk-ticket-row {
+    display: flex; align-items: center; gap: .75rem;
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 8px; padding: .55rem .75rem;
+}
+.tk-ticket-num {
+    font-weight: 700; font-size: .8rem; color: var(--accent);
+    min-width: 48px; font-family: monospace;
+}
+.tk-ticket-body { flex: 1; min-width: 0; }
+.tk-ticket-user { font-size: .85rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tk-ticket-time { font-size: .72rem; color: var(--text-muted); }
+
+/* Preview button */
+.tk-btn-preview {
+    display: inline-flex; align-items: center;
+    background: rgba(88,101,242,.25); color: #949cf7;
+    border: 1px solid rgba(88,101,242,.4);
+    border-radius: 6px; padding: .3rem .85rem;
+    font-size: .82rem; font-weight: 500;
+    cursor: default; user-select: none;
+}
+</style>
+
+<script>
+const GUILD_ID = '<%= guild.id %>';
+let _staffRoles = <%- JSON.stringify(ticketData.staffRoles) %>;
+
+// ── Color sync ────────────────────────────────────────────────────────────────
+function syncHex(hexId, pickId) {
+    const v = document.getElementById(hexId).value.trim();
+    if (/^#[0-9A-Fa-f]{6}$/.test(v)) document.getElementById(pickId).value = v;
+}
+function syncPicker(hexId, pickId) {
+    document.getElementById(hexId).value = document.getElementById(pickId).value;
+}
+
+// ── Preview ───────────────────────────────────────────────────────────────────
+function updateTicketPreview() {
+    const title = document.getElementById('panelTitle').value;
+    const desc  = document.getElementById('panelDesc').value;
+    const color = document.getElementById('panelColor').value || '#5865F2';
+    const btn   = document.getElementById('panelBtnLabel').value || '📩 Buat Ticket';
+
+    document.getElementById('tkPreviewTitle').textContent = title || '🎫 Support Ticket';
+    document.getElementById('tkPreviewDesc').textContent  = desc  || 'Klik tombol di bawah untuk membuat tiket.';
+    document.getElementById('tkPreviewPill').style.background = color;
+    document.getElementById('tkPreviewBtn').textContent   = btn;
+}
+
+// ── Staff roles ───────────────────────────────────────────────────────────────
+function addStaffRole() {
+    const sel    = document.getElementById('staffRoleAdd');
+    const roleId = sel.value;
+    if (!roleId) return;
+    if (_staffRoles.includes(roleId)) { sel.value = ''; return; }
+
+    const roleName  = sel.options[sel.selectedIndex].textContent;
+    _staffRoles.push(roleId);
+    sel.value = '';
+
+    const list = document.getElementById('staffRoleList');
+    document.getElementById('staffRoleEmpty').style.display = 'none';
+    const chip = document.createElement('div');
+    chip.className = 'tk-role-chip';
+    chip.dataset.id = roleId;
+    chip.innerHTML = `<span class="tk-role-dot" style="background:gray;"></span><span>${roleName}</span><button class="tk-role-remove" onclick="removeStaffRole('${roleId}')" title="Hapus">✕</button>`;
+    list.appendChild(chip);
+    document.getElementById('staffRoleCounter').textContent = `${_staffRoles.length} role`;
+}
+
+function removeStaffRole(roleId) {
+    _staffRoles = _staffRoles.filter(id => id !== roleId);
+    document.querySelector(`.tk-role-chip[data-id="${roleId}"]`)?.remove();
+    document.getElementById('staffRoleCounter').textContent = `${_staffRoles.length} role`;
+    if (_staffRoles.length === 0) document.getElementById('staffRoleEmpty').style.display = '';
+}
+
+// ── showMsg helper ────────────────────────────────────────────────────────────
+function showMsg(el, text, type) {
+    el.textContent = text;
+    el.className   = `form-message msg-${type}`;
+    setTimeout(() => { el.textContent = ''; el.className = 'form-message'; }, 3500);
+}
+
+// ── Simpan konfigurasi ────────────────────────────────────────────────────────
+async function saveConfig() {
+    const msg = document.getElementById('configMsg');
+    const payload = {
+        enabled:      document.getElementById('ticketEnabled').checked,
+        categoryId:   document.getElementById('ticketCategory').value,
+        logChannelId: document.getElementById('ticketLogChannel').value,
+        staffRoles:   _staffRoles,
+    };
+    const res  = await fetch(`/api/guild/${GUILD_ID}/ticket/config`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    showMsg(msg, data.message, data.success ? 'success' : 'error');
+}
+
+// ── Simpan embed panel ────────────────────────────────────────────────────────
+async function savePanelEmbed() {
+    const msg = document.getElementById('panelMsg');
+    const payload = {
+        embedTitle: document.getElementById('panelTitle').value.trim(),
+        embedDesc:  document.getElementById('panelDesc').value.trim(),
+        embedColor: document.getElementById('panelColor').value.trim(),
+        btnLabel:   document.getElementById('panelBtnLabel').value.trim(),
+    };
+    const res  = await fetch(`/api/guild/${GUILD_ID}/ticket/panel-embed`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    showMsg(msg, data.message, data.success ? 'success' : 'error');
+}
+
+// ── Kirim panel ───────────────────────────────────────────────────────────────
+async function sendPanel() {
+    const msg       = document.getElementById('panelMsg');
+    const channelId = document.getElementById('panelSendChannel').value;
+    if (!channelId) return showMsg(msg, 'Pilih channel tujuan terlebih dahulu.', 'error');
+
+    // Simpan embed dulu
+    await savePanelEmbed();
+
+    const res  = await fetch(`/api/guild/${GUILD_ID}/ticket/send-panel`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ channelId })
+    });
+    const data = await res.json();
+    if (data.success) showMsg(msg, '✅ Panel berhasil dikirim!', 'success');
+    else              showMsg(msg, data.message, 'error');
+
+    if (data.success) setTimeout(() => location.reload(), 1200);
+}
+</script>
+
+<%- include('../partials/footer') %>

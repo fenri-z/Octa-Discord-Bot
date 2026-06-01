@@ -824,4 +824,75 @@ router.get('/:guildId/serverstats', requireLogin, requireManageGuild, async (req
     }
 });
 
+// ── GET /dashboard/:guildId/ticket ────────────────────────────────────────────
+router.get('/:guildId/ticket', requireLogin, requireManageGuild, async (req, res) => {
+    const db      = req.discordClient?.database;
+    const guildId = req.params.guildId;
+    const guild   = req.botGuild;
+
+    await _ensureRoles(guild);
+    await _ensureChannels(guild);
+
+    const staffRolesRaw = db?.get(`ticket-staff-roles-${guildId}`);
+    let staffRoles = [];
+    try { staffRoles = staffRolesRaw ? JSON.parse(staffRolesRaw) : []; } catch {}
+
+    const panelMsgRaw = db?.get(`ticket-panel-msg-${guildId}`);
+    let panelSent = false, panelMsgId = null, panelChannelId = null;
+    try {
+        if (panelMsgRaw) {
+            const p = JSON.parse(panelMsgRaw);
+            panelSent = true; panelMsgId = p.messageId; panelChannelId = p.channelId;
+        }
+    } catch {}
+
+    const ticketData = {
+        enabled:       !!db?.get(`ticket-enabled-${guildId}`),
+        categoryId:    db?.get(`ticket-category-${guildId}`)    ?? '',
+        logChannelId:  db?.get(`ticket-log-channel-${guildId}`) ?? '',
+        staffRoles,
+        embedTitle:    db?.get(`ticket-embed-title-${guildId}`) ?? '🎫 Support Ticket',
+        embedDesc:     db?.get(`ticket-embed-desc-${guildId}`)  ?? 'Klik tombol di bawah untuk membuat tiket dan mendapatkan bantuan dari tim staff.',
+        embedColor:    db?.get(`ticket-embed-color-${guildId}`) ?? '#5865F2',
+        btnLabel:      db?.get(`ticket-embed-btn-label-${guildId}`) ?? '📩 Buat Ticket',
+        panelSent,
+        panelMsgId,
+        panelChannelId,
+    };
+
+    // Ambil tiket yang sedang terbuka
+    const openListRaw = db?.get(`ticket-open-list-${guildId}`);
+    let openList = [];
+    try { openList = openListRaw ? JSON.parse(openListRaw) : []; } catch {}
+
+    const openTickets = openList.map(channelId => {
+        try {
+            const info = JSON.parse(db?.get(`ticket-info-${guildId}-${channelId}`) || '{}');
+            return { ...info, channelId };
+        } catch { return null; }
+    }).filter(Boolean);
+
+    const botRolePosition = guild.members.me?.roles.highest.position || 0;
+    const roles = [...guild.roles.cache.values()]
+        .filter(r => r.id !== guild.id && r.position < botRolePosition)
+        .map(r => ({ id: r.id, name: r.name, color: r.hexColor === '#000000' ? '#99aab5' : r.hexColor }))
+        .sort((a, b) => a.name.localeCompare(b.name));
+
+    const channels = [...guild.channels.cache.values()]
+        .filter(c => c.type === 0)
+        .map(c => ({ id: c.id, name: c.name }))
+        .sort((a, b) => a.name.localeCompare(b.name));
+
+    const categories = [...guild.channels.cache.values()]
+        .filter(c => c.type === 4)
+        .map(c => ({ id: c.id, name: c.name }))
+        .sort((a, b) => a.name.localeCompare(b.name));
+
+    res.render('dashboard/ticket', {
+        title: `Ticket — ${guild.name}`,
+        guild, roles, channels, categories, ticketData, openTickets,
+        activePage: 'ticket', hasSidebar: true
+    });
+});
+
 module.exports = router;
