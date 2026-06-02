@@ -217,6 +217,11 @@ class YouTubeNotifier {
 
             info(`[WebSub] ${type.toUpperCase()} | ${title} → guild ${guild.name}`);
 
+            // Jika live, tandai agar live poll tidak double-send notifikasi yang sama
+            if (type === 'live') {
+                db.set(`youtube-liveNotified-${guild.id}-${videoId}`, String(Date.now()));
+            }
+
             await this._sendNotification(guild, ytCh, type, {
                 videoId, url: videoUrl, title,
                 channel:   ytCh.name || channelName,
@@ -271,8 +276,10 @@ class YouTubeNotifier {
 
         const channelIds = this._getAllTrackedChannelIds(db);
         for (const id of channelIds) {
-            const meta = this._getSubMeta(db, id);
-            if (meta.status !== 'active' && meta.status !== 'pending') {
+            const meta      = this._getSubMeta(db, id);
+            const isExpired = meta.expiresAt && meta.expiresAt < Date.now();
+            const needsSub  = (meta.status !== 'active' && meta.status !== 'pending') || isExpired;
+            if (needsSub) {
                 await this.subscribe(id).catch(() => {});
                 await new Promise(r => setTimeout(r, 500)); // hindari rate limit hub
             }
