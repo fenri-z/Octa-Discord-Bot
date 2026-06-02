@@ -176,7 +176,11 @@ class YouTubeNotifier {
         const channelName = channelNameM ? this._decodeXml(channelNameM[1]) : channelId;
         const videoUrl    = `https://www.youtube.com/watch?v=${videoId}`;
 
-        info(`[WebSub] Push diterima: "${title}" (${videoId}) ch=${channelId}`);
+        info(`[WebSub] Push diterima: "${title}" (${videoId}) ch=${channelId} — tunggu 30 detik agar thumbnail siap...`);
+
+        // YouTube butuh waktu generate thumbnail setelah upload.
+        // WebSub push datang sangat cepat, tunggu sebentar agar thumbnail tersedia.
+        await new Promise(r => setTimeout(r, 30_000));
 
         // Cari semua guild yang memantau channel ini
         for (const guild of this.client.guilds.cache.values()) {
