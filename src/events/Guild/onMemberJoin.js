@@ -71,8 +71,6 @@ module.exports = new Event({
 
         if (!welcomeChannel || !welcomeChannel.isTextBased()) return;
 
-// Tunggu sebentar agar Discord cache user terlebih dahulu
-await new Promise(resolve => setTimeout(resolve, 1500));
 
         // ── Deteksi invite yang digunakan ─────────────────────────────────
         let fetchedInvites = null;
