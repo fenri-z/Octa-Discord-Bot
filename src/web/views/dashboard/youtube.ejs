@@ -643,10 +643,17 @@ function updateYtPreview(chId, type) {
     prevEl.querySelector('.yt-prev-ch-name').textContent = chName;
 
     // Custom message dengan Discord markdown
-    const ytChName = document.querySelector(`#ytCard-${chId} .yt-card-name`)?.textContent?.trim() || 'Channel';
-    const msgArea  = document.getElementById(`${type}Message-${chId}`);
-    const msgEl    = prevEl.querySelector('.yt-prev-msg');
-    const rawMsg   = msgArea?.value?.trim() || '';
+    const ytChName  = document.querySelector(`#ytCard-${chId} .yt-card-name`)?.textContent?.trim() || 'Channel';
+    const msgArea   = document.getElementById(`${type}Message-${chId}`);
+    const customEl  = prevEl.querySelector('.yt-prev-msg:not(.yt-prev-desc)');
+    const defaultEl = prevEl.querySelector('.yt-prev-desc');
+    const rawMsg    = msgArea?.value?.trim() || '';
+
+    const defaultDescs = {
+        video: `Hey, <strong>${ytChName}</strong> baru aja upload video baru di YouTube!<br>Jangan ketinggalan, tonton sekarang! 🎉`,
+        short: `<strong>${ytChName}</strong> baru aja posting Short terbaru!<br>Cek video pendeknya, jangan sampai ketinggalan! ⚡`,
+        live:  `Hey, <strong>${ytChName}</strong> lagi <strong>LIVE</strong> di YouTube sekarang!<br>Yuk, join dan saksikan streamnya~ 🎉`,
+    };
 
     if (rawMsg) {
         const filled = rawMsg
@@ -654,10 +661,11 @@ function updateYtPreview(chId, type) {
             .replace(/{title}/g,   'Contoh Judul Video')
             .replace(/{url}/g,     'https://youtube.com/watch?v=dQw4w9WgXcQ')
             .replace(/{id}/g,      'dQw4w9WgXcQ');
-        msgEl.innerHTML     = discordMd(filled);
-        msgEl.style.display = '';
+        if (customEl)  { customEl.innerHTML = discordMd(filled); customEl.style.display = ''; }
+        if (defaultEl) defaultEl.style.display = 'none';
     } else {
-        msgEl.style.display = 'none';
+        if (customEl)  customEl.style.display = 'none';
+        if (defaultEl) { defaultEl.innerHTML = defaultDescs[type] || ''; defaultEl.style.display = ''; }
     }
 
     // Update warna pill sesuai tipe

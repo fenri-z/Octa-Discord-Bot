@@ -522,23 +522,32 @@ class YouTubeNotifier {
             short: `🎬 ${data.channel} — Short Baru!`,
             live:  `🔴 ${data.channel} is Live Now!`,
         };
-        const fields = { video: 'Judul Video', short: 'Judul Short', live: 'Streaming Title' };
+        const fields = { video: '🎬 Judul Video', short: '🎬 Judul Short', live: '🎙️ Judul Stream' };
         const colors = { video: 0xFF0000, short: 0xFF6B35, live: 0xCC0000 };
 
+        // Default description menarik jika user tidak isi pesan tambahan
+        const defaultDescs = {
+            video: `Hey, **${data.channel}** baru aja upload video baru di YouTube!\nJangan ketinggalan, tonton sekarang! 🎉`,
+            short: `**${data.channel}** baru aja posting Short terbaru!\nCek video pendeknya, jangan sampai ketinggalan! ⚡`,
+            live:  `Hey, **${data.channel}** lagi **LIVE** di YouTube sekarang!\nYuk, join dan saksikan streamnya~ 🎉`,
+        };
+
         const customMsg = fill(ytCh[cfg.msg]).trim();
+        const description = customMsg || defaultDescs[type];
+
+        const channelUrl = `https://www.youtube.com/channel/${ytCh.id}`;
 
         const embed = new EmbedBuilder()
             .setColor(colors[type])
             .setTitle(titles[type])
-            .setURL(`https://www.youtube.com/channel/${ytCh.id}`)
-            .setTimestamp();
+            .setURL(channelUrl)
+            .setDescription(description);
 
-        if (customMsg)      embed.setDescription(customMsg);
         if (ytCh.thumbnail) embed.setThumbnail(ytCh.thumbnail);
 
         embed.addFields(
             { name: fields[type], value: `[${data.title}](${data.url})`, inline: false },
-            { name: 'Link',       value: `[Tonton sekarang](${data.url})`, inline: false },
+            { name: '🔗 Link',    value: `[Tonton sekarang ▶](${data.url})`, inline: false },
         );
         if (data.thumbnail) embed.setImage(data.thumbnail);
 
