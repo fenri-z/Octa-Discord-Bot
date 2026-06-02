@@ -72,6 +72,38 @@ class YouTubeNotifier {
         await this._pollGuild(guild, db);
     }
 
+    // ─── Channel Lookup ────────────────────────────────────────────────────────
+
+    async lookupChannel(input) {
+        const url = this._resolveChannelUrl(input);
+        const res = await fetch(url, { signal: AbortSignal.timeout(12_000), headers: BROWSER_HEADERS });
+        if (!res.ok) throw new Error(`HTTP ${res.status} saat fetch halaman channel`);
+        const html = await res.text();
+
+        const idMatch = html.match(/"channelId"\s*:\s*"(UC[\w-]+)"/)
+                     || html.match(/channel\/(UC[\w-]{22})/);
+        if (!idMatch) throw new Error('Channel tidak ditemukan. Coba gunakan Channel ID (UCxxxxxx) langsung.');
+        const id = idMatch[1];
+
+        const nameMatch = html.match(/<meta[^>]+property="og:title"[^>]+content="([^"]+)"/i)
+                       || html.match(/<title>([^<]+)<\/title>/i);
+        const name = nameMatch ? nameMatch[1].replace(/\s*[-–|]\s*YouTube\s*$/i, '').trim() : input;
+
+        const thumbMatch = html.match(/<meta[^>]+property="og:image"[^>]+content="([^"]+)"/i);
+        const thumbnail  = thumbMatch ? thumbMatch[1] : null;
+
+        return { id, name, thumbnail };
+    }
+
+    _resolveChannelUrl(input) {
+        const s = input.trim();
+        if (/^UC[\w-]{22}$/.test(s))  return `https://www.youtube.com/channel/${s}`;
+        if (/^https?:\/\//.test(s))   return s;
+        if (/youtube\.com/.test(s))   return `https://${s}`;
+        const handle = s.startsWith('@') ? s : `@${s}`;
+        return `https://www.youtube.com/${handle}`;
+    }
+
     // ─── WebSub Public API ─────────────────────────────────────────────────────
 
     // Dipanggil saat channel ditambahkan via dashboard
