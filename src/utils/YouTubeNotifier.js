@@ -13,6 +13,9 @@ const TOPIC_BASE = 'https://www.youtube.com/xml/feeds/videos.xml?channel_id=';
 const POLL_INTERVAL_WEBSUB = 30 * 60 * 1000;
 const POLL_INTERVAL_RSS    =  5 * 60 * 1000;
 
+// Live stream poll terpisah setiap 3 menit (lebih andal dari WebSub untuk live)
+const LIVE_POLL_INTERVAL_MS = 3 * 60 * 1000;
+
 // Renewal check setiap 6 jam
 const RENEW_INTERVAL_MS = 6 * 60 * 60 * 1000;
 // Lease 10 hari (maksimum YouTube)
@@ -30,6 +33,7 @@ class YouTubeNotifier {
     constructor(client) {
         this.client      = client;
         this._pollTimer  = null;
+        this._liveTimer  = null;
         this._renewTimer = null;
 
         this._secret   = process.env.YOUTUBE_WEBSUB_SECRET || '';
@@ -56,12 +60,18 @@ class YouTubeNotifier {
             this._poll();
             this._pollTimer = setInterval(() => this._poll(), pollMs);
         }, 30_000);
+
+        // Live-stream dedicated poll — WebSub tidak andal untuk live (push bisa datang
+        // saat stream masih "upcoming"). Poll 3 menit khusus cek status live.
+        this._liveTimer = setInterval(() => this._pollLive(), LIVE_POLL_INTERVAL_MS);
+        info('[YouTube] Live-stream poll aktif (interval 3 menit).');
     }
 
     stop() {
         if (this._pollTimer)  clearInterval(this._pollTimer);
+        if (this._liveTimer)  clearInterval(this._liveTimer);
         if (this._renewTimer) clearInterval(this._renewTimer);
-        this._pollTimer = this._renewTimer = null;
+        this._pollTimer = this._liveTimer = this._renewTimer = null;
     }
 
     // Force poll untuk satu guild (dipanggil dari API)
@@ -396,14 +406,95 @@ class YouTubeNotifier {
     async _isLive(videoId) {
         try {
             const res = await fetch(`https://www.youtube.com/watch?v=${videoId}`, {
-                signal: AbortSignal.timeout(8_000), headers: BROWSER_HEADERS,
+                signal: AbortSignal.timeout(10_000), headers: BROWSER_HEADERS,
             });
             if (!res.ok) return false;
             const html = await res.text();
-            return html.includes('"isLiveContent":true')
-                || html.includes('"isLive":true')
-                || html.includes('"liveBroadcastDetails"');
+            // "isLive":true → stream sedang live sekarang
+            // "isLiveNow":true → konfirmasi live dari liveBroadcastDetails
+            // Hindari "isLiveContent" (juga true untuk stream yg sudah berakhir)
+            // Hindari bare "liveBroadcastDetails" (juga true untuk upcoming)
+            if (html.includes('"isLive":true'))    return true;
+            if (html.includes('"isLiveNow":true')) return true;
+            // Fallback: liveBroadcastDetails ada DAN isLiveNow tidak false
+            if (html.includes('"liveBroadcastDetails"')
+                && !html.includes('"isLiveNow":false')) return true;
+            return false;
         } catch { return false; }
+    }
+
+    // ─── Live-stream dedicated poll ────────────────────────────────────────────
+
+    async _pollLive() {
+        const db = this.client.database;
+        if (!db) return;
+        for (const guild of this.client.guilds.cache.values()) {
+            this._pollGuildLive(guild, db).catch(err =>
+                warn(`[YouTube/Live] Poll error guild ${guild.id}: ${err.message}`)
+            );
+        }
+    }
+
+    async _pollGuildLive(guild, db) {
+        const raw = db.get(`youtube-channels-${guild.id}`);
+        if (!raw) return;
+        let channels;
+        try { channels = JSON.parse(raw); } catch { return; }
+
+        // Hanya channel yang aktifkan notif live
+        const liveChannels = channels.filter(c => c.liveEnabled && c.liveChannelId);
+        if (liveChannels.length === 0) return;
+
+        for (const ytCh of liveChannels) {
+            await this._checkLive(guild, db, ytCh).catch(err =>
+                warn(`[YouTube/Live] Check error ${ytCh.name}: ${err.message}`)
+            );
+        }
+    }
+
+    async _checkLive(guild, db, ytCh) {
+        const rssRes = await fetch(`${RSS_BASE}${ytCh.id}`, {
+            signal:  AbortSignal.timeout(10_000),
+            headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' },
+        });
+        if (!rssRes.ok) return;
+
+        const entries = this._parseRssEntries(await rssRes.text());
+        // Cek 3 video terbaru — live stream biasanya ada di antara entri terbaru
+        const recent = entries.slice(0, 3);
+
+        for (const entry of recent) {
+            const notifKey = `youtube-liveNotified-${guild.id}-${entry.id}`;
+            if (db.get(notifKey)) continue; // sudah pernah kirim notif live untuk video ini
+
+            const isLive = await this._isLive(entry.id);
+            if (!isLive) continue;
+
+            // Tandai dulu sebelum kirim (hindari double-send jika poll overlap)
+            db.set(notifKey, String(Date.now()));
+
+            const videoUrl  = `https://www.youtube.com/watch?v=${entry.id}`;
+            const thumbnail = entry.thumbnail || `https://i.ytimg.com/vi/${entry.id}/hqdefault.jpg`;
+
+            info(`[YouTube/Live] LIVE terdeteksi | ${entry.title} → guild ${guild.name}`);
+
+            await this._sendNotification(guild, ytCh, 'live', {
+                videoId:   entry.id,
+                url:       videoUrl,
+                title:     entry.title || 'Live Stream',
+                channel:   ytCh.name,
+                thumbnail,
+            }).catch(err => warn(`[YouTube/Live] Kirim notif gagal: ${err.message}`));
+        }
+
+        // Bersihkan notifKey yang sudah > 48 jam untuk cegah bloat DB
+        for (const entry of entries) {
+            const notifKey = `youtube-liveNotified-${guild.id}-${entry.id}`;
+            const ts = parseInt(db.get(notifKey) || '0', 10);
+            if (ts && Date.now() - ts > 48 * 60 * 60 * 1000) {
+                db.delete(notifKey);
+            }
+        }
     }
 
     // ─── Notification ──────────────────────────────────────────────────────────
