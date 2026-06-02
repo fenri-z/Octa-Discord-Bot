@@ -69,7 +69,10 @@ module.exports = new Event({
             guild.channels.cache.find(ch => ch.name === 'general') ||
             guild.systemChannel;
 
-        if (!welcomeChannel || !welcomeChannel.isTextBased()) return;
+        if (!welcomeChannel || !welcomeChannel.isTextBased()) {
+            console.warn(`[welcome] Channel tidak ditemukan untuk guild: ${guild.name} (${guild.id}), channelId: ${channelId}`);
+            return;
+        }
 
 
         // ── Deteksi invite yang digunakan ─────────────────────────────────
@@ -174,9 +177,9 @@ module.exports = new Event({
             if (content) {
                 const plainPayload = { content, allowedMentions: { users: [member.id] } };
                 if (cardAttachment) plainPayload.files = [cardAttachment];
-                await welcomeChannel.send(plainPayload).catch(() => null);
+                await welcomeChannel.send(plainPayload).catch(err => console.error(`[welcome:plain] Gagal kirim di ${guild.name}:`, err.message));
             } else if (cardAttachment) {
-                await welcomeChannel.send({ files: [cardAttachment] }).catch(() => null);
+                await welcomeChannel.send({ files: [cardAttachment] }).catch(err => console.error(`[welcome:plain:card] Gagal kirim di ${guild.name}:`, err.message));
             }
         } else {
             // Mode embed (default)
@@ -212,7 +215,7 @@ module.exports = new Event({
 
             const embedPayload = { embeds: [embed] };
             if (cardAttachment) embedPayload.files = [cardAttachment];
-            await welcomeChannel.send(embedPayload).catch(() => null);
+            await welcomeChannel.send(embedPayload).catch(err => console.error(`[welcome:embed] Gagal kirim di ${guild.name}:`, err.message));
         }
     }
 }).toJSON();
