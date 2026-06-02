@@ -92,13 +92,16 @@ app.use((req, res, next) => {
 });
 
 // ─── Routes ───────────────────────────────────────────────────────────────────
-const authRoutes = require('./routes/auth');
-const dashRoutes = require('./routes/dashboard');
-const apiRoutes  = require('./routes/api');
+const authRoutes    = require('./routes/auth');
+const dashRoutes    = require('./routes/dashboard');
+const apiRoutes     = require('./routes/api');
+const webhookRoutes = require('./routes/webhook');
 
 app.use('/auth',      authRoutes);
 app.use('/dashboard', dashRoutes);
 app.use('/api',       apiRoutes);
+// WebSub callback — harus public (tanpa auth), tapi tetap dapat req.discordClient
+app.use('/webhook',   webhookRoutes);
 
 app.get('/', (req, res) => {
     if (req.isAuthenticated()) return res.redirect('/dashboard');

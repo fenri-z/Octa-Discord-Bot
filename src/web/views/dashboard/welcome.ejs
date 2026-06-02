@@ -5,6 +5,7 @@
     <%- include('../partials/sidebar', { activePage: 'welcome' }) %>
 
     <main class="dash-main" style="max-width:100%;">
+        <%- include('../partials/perm-notice') %>
         <div class="page-header">
             <h1>Welcome Notification</h1>
             <p>Notifikasi yang dikirim saat member baru bergabung ke server.</p>
@@ -1307,6 +1308,8 @@ buildPicker('plainPicker', 'plain');
 // ── Save ───────────────────────────────────────────────────────────────────
 async function saveWelcome(guildId) {
     const msg = document.getElementById('welcomeMsg');
+    if (!document.getElementById('welcomeChannel').value)
+        return showMsg(msg, 'Pilih channel tujuan terlebih dahulu.', 'error');
     const payload = {
         enabled:           document.getElementById('welcomeEnabled').checked,
         channelId:         document.getElementById('welcomeChannel').value,

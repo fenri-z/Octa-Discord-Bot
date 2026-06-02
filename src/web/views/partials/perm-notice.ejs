@@ -1,0 +1,17 @@
+<% if (locals.missingPerms && missingPerms.length > 0) { %>
+<div class="perm-warn" style="border-radius:10px;padding:.85rem 1.1rem;margin-bottom:1.25rem;background:rgba(237,66,69,.1);border:1px solid rgba(237,66,69,.25);font-size:.875rem;">
+    <div class="perm-header">
+        <i data-lucide="alert-triangle" style="width:17px;height:17px;flex-shrink:0;color:#f27f81;"></i>
+        <span style="color:#f27f81;font-weight:600;"><%= missingPerms.length %> permission belum diberikan ke bot:</span>
+    </div>
+    <ul class="perm-list" style="margin:.5rem 0 0;padding-left:1.25rem;">
+        <% missingPerms.forEach(p => { %>
+        <li style="font-size:.85rem;margin-bottom:.2rem;">
+            <code class="perm-name"><%= p.name %></code>
+            <span class="perm-desc"> — <%= p.desc %></span>
+        </li>
+        <% }); %>
+    </ul>
+    <p class="perm-hint" style="font-size:.8rem;color:var(--text-muted);margin:.5rem 0 0;">Buka pengaturan server Discord → Roles → pilih role bot → centang permission di atas.</p>
+</div>
+<% } %>

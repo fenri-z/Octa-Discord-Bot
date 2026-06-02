@@ -200,6 +200,8 @@ module.exports = new ApplicationCommand({
         // ── TOGGLE ────────────────────────────────────────────────────────
         if (sub === 'toggle') {
             const val = interaction.options.getBoolean('aktif');
+            if (val && !client.database.get(`goodbye-channel-${guildId}`))
+                return interaction.reply({ content: '❌ Atur channel goodbye terlebih dahulu dengan `/goodbye channel`.', flags: MessageFlags.Ephemeral });
             setBool(client, `goodbye-enabled-${guildId}`, val);
             return interaction.reply({
                 content: val ? '✅ Pesan perpisahan **diaktifkan**.' : '❌ Pesan perpisahan **dinonaktifkan**.',

@@ -5,6 +5,7 @@
     <%- include('../partials/sidebar', { activePage: 'booster' }) %>
 
     <main class="dash-main" style="max-width:100%;">
+        <%- include('../partials/perm-notice') %>
         <div class="page-header">
             <h1>Boost Notification</h1>
             <p>Notifikasi otomatis saat member melakukan boost server.</p>
@@ -1084,6 +1085,8 @@ function insertPhDyn(pickerId, ph) {
 // ── Save ────────────────────────────────────────────────────────────────────
 async function saveBoost() {
     const msg         = document.getElementById('boostMsg');
+    if (!document.getElementById('boostChannel').value)
+        return showMsg(msg, 'Pilih channel tujuan terlebih dahulu.', 'error');
     const messageType = document.querySelector('input[name="boostMessageType"]:checked')?.value || 'embed';
     const color       = document.getElementById('boostColor').value.trim() || '#FF73FA';
     if (messageType === 'embed' && !/^#[0-9A-Fa-f]{6}$/.test(color))
@@ -1128,6 +1131,8 @@ async function saveBoost() {
 
 async function saveUnboost() {
     const msg         = document.getElementById('unboostMsg');
+    if (!document.getElementById('unboostChannel').value)
+        return showMsg(msg, 'Pilih channel tujuan terlebih dahulu.', 'error');
     const messageType = document.querySelector('input[name="unboostMessageType"]:checked')?.value || 'embed';
     const color       = document.getElementById('unboostColor').value.trim() || '#ED4245';
     if (messageType === 'embed' && !/^#[0-9A-Fa-f]{6}$/.test(color))

@@ -5,8 +5,38 @@
  * Semua endpoint return JSON.
  */
 
-const express = require('express');
+const express              = require('express');
+const { PermissionsBitField } = require('discord.js');
 const router  = express.Router();
+
+// ── Permission helpers ────────────────────────────────────────────────────────
+const PERM_LABELS = {
+    [PermissionsBitField.Flags.SendMessages]:       'Send Messages',
+    [PermissionsBitField.Flags.EmbedLinks]:         'Embed Links',
+    [PermissionsBitField.Flags.AttachFiles]:        'Attach Files',
+    [PermissionsBitField.Flags.ManageRoles]:        'Manage Roles',
+    [PermissionsBitField.Flags.ManageChannels]:     'Manage Channels',
+    [PermissionsBitField.Flags.ViewChannel]:        'View Channel',
+    [PermissionsBitField.Flags.ReadMessageHistory]: 'Read Message History',
+    [PermissionsBitField.Flags.AddReactions]:       'Add Reactions',
+    [PermissionsBitField.Flags.ManageMessages]:     'Manage Messages',
+};
+
+// Cek permission bot di channel tertentu — return array nama permission yang kurang
+function missingChannelPerms(guild, channelId, flags) {
+    const channel   = guild.channels.cache.get(channelId);
+    const botMember = guild.members.me;
+    if (!channel || !botMember) return [];
+    const perms = channel.permissionsFor(botMember);
+    return flags.filter(f => !perms.has(f)).map(f => PERM_LABELS[f] ?? String(f));
+}
+
+// Cek permission bot secara global — return array nama permission yang kurang
+function missingGlobalPerms(guild, flags) {
+    const botMember = guild.members.me;
+    if (!botMember) return [];
+    return flags.filter(f => !botMember.permissions.has(f)).map(f => PERM_LABELS[f] ?? String(f));
+}
 
 // ── Middleware: wajib login (return JSON error jika tidak) ────────────────────
 function requireLogin(req, res, next) {
@@ -79,11 +109,18 @@ router.post('/guild/:guildId/welcome', requireLogin, requireManageGuild, (req, r
 
     if (!db) return res.status(500).json({ success: false, message: 'Database tidak tersedia.' });
 
-    // Validasi channel
-    if (channelId) {
-        const channel = req.botGuild.channels.cache.get(channelId);
-        if (!channel) return res.status(400).json({ success: false, message: 'Channel tidak ditemukan.' });
-    }
+    // Channel wajib diisi
+    if (!channelId) return res.status(400).json({ success: false, message: 'Channel tujuan wajib dipilih.' });
+    if (!req.botGuild.channels.cache.get(channelId)) return res.status(400).json({ success: false, message: 'Channel tidak ditemukan.' });
+
+    // Cek permission bot di channel welcome
+    const wpMissing = missingChannelPerms(req.botGuild, channelId, [
+        PermissionsBitField.Flags.ViewChannel,
+        PermissionsBitField.Flags.SendMessages,
+        PermissionsBitField.Flags.EmbedLinks,
+        PermissionsBitField.Flags.AttachFiles,
+    ]);
+    if (wpMissing.length) return res.status(400).json({ success: false, message: `Bot tidak punya permission di channel ini:\n${wpMissing.map(p => `• ${p}`).join('\n')}` });
 
     // Validasi warna hex
     if (color && !/^#[0-9A-Fa-f]{6}$/.test(color)) {
@@ -166,10 +203,18 @@ router.post('/guild/:guildId/goodbye', requireLogin, requireManageGuild, (req, r
 
     if (!db) return res.status(500).json({ success: false, message: 'Database tidak tersedia.' });
 
-    if (channelId) {
-        const channel = req.botGuild.channels.cache.get(channelId);
-        if (!channel) return res.status(400).json({ success: false, message: 'Channel tidak ditemukan.' });
-    }
+    // Channel wajib diisi
+    if (!channelId) return res.status(400).json({ success: false, message: 'Channel tujuan wajib dipilih.' });
+    if (!req.botGuild.channels.cache.get(channelId)) return res.status(400).json({ success: false, message: 'Channel tidak ditemukan.' });
+
+    // Cek permission bot di channel goodbye
+    const gbMissing = missingChannelPerms(req.botGuild, channelId, [
+        PermissionsBitField.Flags.ViewChannel,
+        PermissionsBitField.Flags.SendMessages,
+        PermissionsBitField.Flags.EmbedLinks,
+        PermissionsBitField.Flags.AttachFiles,
+    ]);
+    if (gbMissing.length) return res.status(400).json({ success: false, message: `Bot tidak punya permission di channel ini:\n${gbMissing.map(p => `• ${p}`).join('\n')}` });
 
     if (color && !/^#[0-9A-Fa-f]{6}$/.test(color)) {
         return res.status(400).json({ success: false, message: 'Format warna tidak valid. Gunakan format hex, contoh: #ED4245' });
@@ -227,6 +272,10 @@ router.post('/guild/:guildId/autorole-join', requireLogin, requireManageGuild, (
     if (!db) return res.status(500).json({ success: false, message: 'Database tidak tersedia.' });
 
     const { memberEnabled, memberRoleId, botEnabled, botRoleId } = req.body;
+
+    const arjMissing = missingGlobalPerms(req.botGuild, [PermissionsBitField.Flags.ManageRoles]);
+    if (arjMissing.length) return res.json({ success: false, message: `Bot tidak punya permission:\n${arjMissing.map(p => `• ${p}`).join('\n')}` });
+
     const botHighest = req.botGuild.members.me?.roles.highest.position || 0;
 
     function validateRole(id, label) {
@@ -268,6 +317,17 @@ router.post('/guild/:guildId/booster-boost', requireLogin, requireManageGuild, (
             cardAccentColor, cardAvatarShape, cardBgType, cardBgImageUrl,
             cardOverlayColor, cardOverlayOpacity, cardTitleColor, cardUsernameColor,
             cardMsgColor, cardFont } = req.body;
+
+    if (!channelId) return res.json({ success: false, message: 'Channel tujuan wajib dipilih.' });
+    if (!req.botGuild.channels.cache.get(channelId)) return res.json({ success: false, message: 'Channel tidak ditemukan.' });
+
+    const boostMissing = missingChannelPerms(req.botGuild, channelId, [
+        PermissionsBitField.Flags.ViewChannel,
+        PermissionsBitField.Flags.SendMessages,
+        PermissionsBitField.Flags.EmbedLinks,
+        PermissionsBitField.Flags.AttachFiles,
+    ]);
+    if (boostMissing.length) return res.json({ success: false, message: `Bot tidak punya permission di channel ini:\n${boostMissing.map(p => `• ${p}`).join('\n')}` });
 
     if (color && !/^#[0-9A-Fa-f]{6}$/.test(color))
         return res.json({ success: false, message: 'Format warna tidak valid. Contoh: #FF73FA' });
@@ -321,6 +381,17 @@ router.post('/guild/:guildId/booster-unboost', requireLogin, requireManageGuild,
             cardOverlayColor, cardOverlayOpacity, cardTitleColor, cardUsernameColor,
             cardMsgColor, cardFont } = req.body;
 
+    if (!channelId) return res.json({ success: false, message: 'Channel tujuan wajib dipilih.' });
+    if (!req.botGuild.channels.cache.get(channelId)) return res.json({ success: false, message: 'Channel tidak ditemukan.' });
+
+    const unboostMissing = missingChannelPerms(req.botGuild, channelId, [
+        PermissionsBitField.Flags.ViewChannel,
+        PermissionsBitField.Flags.SendMessages,
+        PermissionsBitField.Flags.EmbedLinks,
+        PermissionsBitField.Flags.AttachFiles,
+    ]);
+    if (unboostMissing.length) return res.json({ success: false, message: `Bot tidak punya permission di channel ini:\n${unboostMissing.map(p => `• ${p}`).join('\n')}` });
+
     if (color && !/^#[0-9A-Fa-f]{6}$/.test(color))
         return res.json({ success: false, message: 'Format warna tidak valid. Contoh: #ED4245' });
 
@@ -366,6 +437,10 @@ router.post('/guild/:guildId/autorole-booster', requireLogin, requireManageGuild
     if (!db) return res.status(500).json({ success: false, message: 'Database tidak tersedia.' });
 
     const { autoroleEnabled, autoroleRoleId, autoremoveEnabled } = req.body;
+
+    const arbMissing = missingGlobalPerms(req.botGuild, [PermissionsBitField.Flags.ManageRoles]);
+    if (arbMissing.length) return res.json({ success: false, message: `Bot tidak punya permission:\n${arbMissing.map(p => `• ${p}`).join('\n')}` });
+
     const botHighest = req.botGuild.members.me?.roles.highest.position || 0;
 
     if (autoroleRoleId) {
@@ -1096,6 +1171,15 @@ router.post('/guild/:guildId/ticket/config', requireLogin, requireManageGuild, (
     const guildId = req.params.guildId;
     const { enabled, categoryId, logChannelId, staffRoles } = req.body;
 
+    // Cek permission global untuk ticket
+    const tkMissing = missingGlobalPerms(req.botGuild, [
+        PermissionsBitField.Flags.ManageChannels,
+        PermissionsBitField.Flags.SendMessages,
+        PermissionsBitField.Flags.EmbedLinks,
+        PermissionsBitField.Flags.ManageMessages,
+    ]);
+    if (tkMissing.length) return res.json({ success: false, message: `Bot tidak punya permission untuk ticket:\n${tkMissing.map(p => `• ${p}`).join('\n')}` });
+
     if (enabled) db.set(`ticket-enabled-${guildId}`, '1');
     else         db.delete(`ticket-enabled-${guildId}`);
 
@@ -1632,6 +1716,9 @@ router.post('/guild/:guildId/serverstats/setup', requireLogin, requireManageGuil
     const guild   = req.botGuild;
     if (!db) return res.status(500).json({ success: false, message: 'Database tidak tersedia.' });
 
+    const ssMissing = missingGlobalPerms(guild, [PermissionsBitField.Flags.ManageChannels]);
+    if (ssMissing.length) return res.json({ success: false, message: `Bot tidak punya permission untuk membuat channel statistik:\n${ssMissing.map(p => `• ${p}`).join('\n')}` });
+
     const { getServerStatsConfig, parseLabel } = require('../../utils/serverStatsHelper');
     const cfg = getServerStatsConfig({ database: db }, guildId);
 
@@ -1750,6 +1837,232 @@ router.get('/guild/:guildId/image-proxy', requireLogin, requireManageGuild, (req
     });
     request.on('error', () => res.status(500).json({ success: false, message: 'Gagal fetch gambar.' }));
     request.on('timeout', () => { request.destroy(); res.status(504).json({ success: false, message: 'Timeout.' }); });
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// YouTube Notifications
+// ══════════════════════════════════════════════════════════════════════════════
+
+const MAX_YT_CHANNELS = 10;
+
+function getYtChannels(db, guildId) {
+    try { return JSON.parse(db.get(`youtube-channels-${guildId}`) || '[]'); }
+    catch { return []; }
+}
+function setYtChannels(db, guildId, channels) {
+    db.set(`youtube-channels-${guildId}`, JSON.stringify(channels));
+}
+
+// POST /api/guild/:guildId/youtube/lookup — cari channel YouTube dari ID / handle
+router.post('/guild/:guildId/youtube/lookup', requireLogin, requireManageGuild, async (req, res) => {
+    const { input } = req.body;
+    if (!input?.trim()) return res.json({ success: false, message: 'Input tidak boleh kosong.' });
+
+    const notifier = req.discordClient?.youtubeNotifier;
+    if (!notifier) return res.json({ success: false, message: 'YouTubeNotifier tidak tersedia. Pastikan bot sudah terhubung ke Discord.' });
+
+    try {
+        const ch = await notifier.lookupChannel(input.trim());
+        res.json({ success: true, channel: ch });
+    } catch (err) {
+        res.json({ success: false, message: err.message });
+    }
+});
+
+// POST /api/guild/:guildId/youtube/channels — tambah channel baru
+router.post('/guild/:guildId/youtube/channels', requireLogin, requireManageGuild, (req, res) => {
+    const db      = req.discordClient?.database;
+    const guildId = req.params.guildId;
+    if (!db) return res.status(500).json({ success: false, message: 'Database tidak tersedia.' });
+
+    const { id, name, thumbnail } = req.body;
+    if (!id || !name) return res.json({ success: false, message: 'Data channel tidak lengkap.' });
+
+    const channels = getYtChannels(db, guildId);
+    if (channels.length >= MAX_YT_CHANNELS)
+        return res.json({ success: false, message: `Maksimal ${MAX_YT_CHANNELS} channel YouTube per server.` });
+    if (channels.find(c => c.id === id))
+        return res.json({ success: false, message: 'Channel ini sudah ditambahkan.' });
+
+    channels.push({
+        id, name, thumbnail: thumbnail || null,
+        videoEnabled: false, videoChannelId: '', videoMessage: '',
+        shortEnabled: false, shortChannelId: '', shortMessage: '',
+        liveEnabled:  false, liveChannelId:  '', liveMessage:  '',
+        addedAt: Date.now(),
+    });
+    setYtChannels(db, guildId, channels);
+
+    // WebSub: subscribe ke hub agar notifikasi instan
+    const notifier = req.discordClient?.youtubeNotifier;
+    if (notifier) notifier.subscribe(id).catch(() => {});
+
+    res.json({ success: true, message: `Channel "${name}" berhasil ditambahkan.` });
+});
+
+// PUT /api/guild/:guildId/youtube/channels/:ytChannelId — update settings notif
+router.put('/guild/:guildId/youtube/channels/:ytChannelId', requireLogin, requireManageGuild, (req, res) => {
+    const db      = req.discordClient?.database;
+    const guildId = req.params.guildId;
+    const ytId    = req.params.ytChannelId;
+    if (!db) return res.status(500).json({ success: false, message: 'Database tidak tersedia.' });
+
+    const channels = getYtChannels(db, guildId);
+    const idx      = channels.findIndex(c => c.id === ytId);
+    if (idx === -1) return res.json({ success: false, message: 'Channel tidak ditemukan.' });
+
+    const guild = req.botGuild;
+    const {
+        videoEnabled, videoChannelId, videoMessage,
+        shortEnabled, shortChannelId, shortMessage,
+        liveEnabled,  liveChannelId,  liveMessage,
+    } = req.body;
+
+    const REQUIRED_PERMS = [
+        PermissionsBitField.Flags.ViewChannel,
+        PermissionsBitField.Flags.SendMessages,
+        PermissionsBitField.Flags.EmbedLinks,
+    ];
+
+    const typeLabels = { video: 'Video', short: 'Short', live: 'Live' };
+    const entries = [
+        { label: 'Video', flag: videoEnabled, chId: videoChannelId },
+        { label: 'Short', flag: shortEnabled, chId: shortChannelId },
+        { label: 'Live',  flag: liveEnabled,  chId: liveChannelId  },
+    ];
+
+    for (const { label, flag, chId } of entries) {
+        if (!flag) continue;
+
+        // Wajib pilih channel jika notifikasi diaktifkan
+        if (!chId) {
+            return res.json({ success: false, message: `Notifikasi ${label} diaktifkan tapi channel Discord belum dipilih.` });
+        }
+
+        // Cek channel ada di server
+        if (!guild.channels.cache.get(chId)) {
+            return res.json({ success: false, message: `Channel Discord untuk notifikasi ${label} tidak ditemukan.` });
+        }
+
+        // Cek permission bot di channel tersebut
+        const missing = missingChannelPerms(guild, chId, REQUIRED_PERMS);
+        if (missing.length) {
+            return res.json({
+                success: false,
+                message: `Bot tidak punya permission di channel notifikasi ${label}:\n${missing.map(p => `• ${p}`).join('\n')}`,
+            });
+        }
+    }
+
+    channels[idx] = {
+        ...channels[idx],
+        videoEnabled: !!videoEnabled, videoChannelId: videoChannelId || '', videoMessage: videoMessage || '',
+        shortEnabled: !!shortEnabled, shortChannelId: shortChannelId || '', shortMessage: shortMessage || '',
+        liveEnabled:  !!liveEnabled,  liveChannelId:  liveChannelId  || '', liveMessage:  liveMessage  || '',
+    };
+    setYtChannels(db, guildId, channels);
+    res.json({ success: true, message: 'Pengaturan notifikasi berhasil disimpan.' });
+});
+
+// POST /api/guild/:guildId/youtube/channels/:ytChannelId/test — kirim test notif
+router.post('/guild/:guildId/youtube/channels/:ytChannelId/test', requireLogin, requireManageGuild, async (req, res) => {
+    const db      = req.discordClient?.database;
+    const guildId = req.params.guildId;
+    const ytId    = req.params.ytChannelId;
+    const { type } = req.body;
+
+    if (!['video', 'short', 'live'].includes(type)) {
+        return res.json({ success: false, message: 'Tipe tidak valid.' });
+    }
+
+    if (!db) return res.status(500).json({ success: false, message: 'Database tidak tersedia.' });
+
+    const channels = getYtChannels(db, guildId);
+    const ytCh     = channels.find(c => c.id === ytId);
+    if (!ytCh) return res.json({ success: false, message: 'Channel tidak ditemukan.' });
+
+    const notifier = req.discordClient?.youtubeNotifier;
+    if (!notifier) return res.json({ success: false, message: 'YouTubeNotifier tidak tersedia.' });
+
+    const typeLabels = { video: 'Video', short: 'Short', live: 'Live' };
+    const chIdKey    = { video: 'videoChannelId', short: 'shortChannelId', live: 'liveChannelId' };
+    const enabledKey = { video: 'videoEnabled',   short: 'shortEnabled',   live: 'liveEnabled'   };
+
+    if (!ytCh[enabledKey[type]]) {
+        return res.json({ success: false, message: `Notifikasi ${typeLabels[type]} belum diaktifkan.` });
+    }
+    if (!ytCh[chIdKey[type]]) {
+        return res.json({ success: false, message: `Channel Discord untuk ${typeLabels[type]} belum dipilih.` });
+    }
+
+    try {
+        await notifier._sendNotification(req.botGuild, ytCh, type, {
+            videoId:   'dQw4w9WgXcQ',
+            url:       'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+            title:     `[TEST] Contoh Notifikasi ${typeLabels[type]} dari ${ytCh.name}`,
+            channel:   ytCh.name,
+            thumbnail: null,
+        });
+        res.json({ success: true, message: `Test notifikasi ${typeLabels[type]} berhasil dikirim ke Discord!` });
+    } catch (err) {
+        res.json({ success: false, message: `Gagal kirim: ${err.message}` });
+    }
+});
+
+// POST /api/guild/:guildId/youtube/force-poll — paksa poll sekarang
+router.post('/guild/:guildId/youtube/force-poll', requireLogin, requireManageGuild, async (req, res) => {
+    const notifier = req.discordClient?.youtubeNotifier;
+    if (!notifier) return res.json({ success: false, message: 'YouTubeNotifier tidak tersedia.' });
+    try {
+        await notifier.pollGuild(req.params.guildId);
+        res.json({ success: true, message: 'Poll selesai. Cek console bot untuk detailnya.' });
+    } catch (err) {
+        res.json({ success: false, message: `Gagal: ${err.message}` });
+    }
+});
+
+// POST /api/guild/:guildId/youtube/channels/:ytChannelId/reset — reset last video ID
+router.post('/guild/:guildId/youtube/channels/:ytChannelId/reset', requireLogin, requireManageGuild, (req, res) => {
+    const db      = req.discordClient?.database;
+    const guildId = req.params.guildId;
+    const ytId    = req.params.ytChannelId;
+    if (!db) return res.status(500).json({ success: false, message: 'Database tidak tersedia.' });
+
+    const channels = getYtChannels(db, guildId);
+    const ytCh     = channels.find(c => c.id === ytId);
+    if (!ytCh) return res.json({ success: false, message: 'Channel tidak ditemukan.' });
+
+    db.delete(`youtube-lastVideo-${guildId}-${ytId}`);
+    res.json({ success: true, message: `Reset berhasil. Poll berikutnya akan inisialisasi ulang dari video terbaru "${ytCh.name}".` });
+});
+
+// DELETE /api/guild/:guildId/youtube/channels/:ytChannelId — hapus channel
+router.delete('/guild/:guildId/youtube/channels/:ytChannelId', requireLogin, requireManageGuild, (req, res) => {
+    const db      = req.discordClient?.database;
+    const guildId = req.params.guildId;
+    const ytId    = req.params.ytChannelId;
+    if (!db) return res.status(500).json({ success: false, message: 'Database tidak tersedia.' });
+
+    const channels = getYtChannels(db, guildId);
+    const ch       = channels.find(c => c.id === ytId);
+    if (!ch) return res.json({ success: false, message: 'Channel tidak ditemukan.' });
+
+    setYtChannels(db, guildId, channels.filter(c => c.id !== ytId));
+    db.delete(`youtube-lastVideo-${guildId}-${ytId}`);
+
+    // WebSub: unsubscribe hanya jika tidak ada guild lain yang masih pantau channel ini
+    const notifier = req.discordClient?.youtubeNotifier;
+    if (notifier) {
+        const stillTracked = [...req.discordClient.guilds.cache.values()].some(g => {
+            if (g.id === guildId) return false;
+            const raw = db.get(`youtube-channels-${g.id}`);
+            if (!raw) return false;
+            try { return JSON.parse(raw).some(c => c.id === ytId); } catch { return false; }
+        });
+        if (!stillTracked) notifier.unsubscribe(ytId).catch(() => {});
+    }
+
+    res.json({ success: true, message: `Channel "${ch.name}" berhasil dihapus.` });
 });
 
 module.exports = router;

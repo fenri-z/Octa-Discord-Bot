@@ -105,6 +105,11 @@ const REQUIRED_PERMS = [
     { flag: PermissionsBitField.Flags.ReadMessageHistory, name: 'Read Message History', desc: 'Membaca riwayat pesan' },
 ];
 
+function getMissingPerms(guild) {
+    const me = guild.members.me;
+    return me ? REQUIRED_PERMS.filter(p => !me.permissions.has(p.flag)) : [];
+}
+
 function requireLogin(req, res, next) {
     if (!req.isAuthenticated()) {
         req.session.returnTo = req.originalUrl;
@@ -262,7 +267,7 @@ router.get('/:guildId/welcome', requireLogin, requireManageGuild, async (req, re
         };
 
         const channels = [...guild.channels.cache.values()]
-            .filter(c => c.type === 0)
+            .filter(c => c.type === 0 || c.type === 5 || c.type === 10 || c.type === 11 || c.type === 12)
             .map(c => ({ id: c.id, name: c.name }))
             .sort((a, b) => a.name.localeCompare(b.name));
 
@@ -308,6 +313,7 @@ router.get('/:guildId/welcome', requireLogin, requireManageGuild, async (req, re
             channels,
             roles,
             welcomeData,
+            missingPerms: getMissingPerms(guild),
             loginUser,
             botUser,
             activePage: 'welcome',
@@ -366,7 +372,7 @@ router.get('/:guildId/goodbye', requireLogin, requireManageGuild, async (req, re
         };
 
         const channels = [...guild.channels.cache.values()]
-            .filter(c => c.type === 0)
+            .filter(c => c.type === 0 || c.type === 5 || c.type === 10 || c.type === 11 || c.type === 12)
             .map(c => ({ id: c.id, name: c.name }))
             .sort((a, b) => a.name.localeCompare(b.name));
 
@@ -408,6 +414,7 @@ router.get('/:guildId/goodbye', requireLogin, requireManageGuild, async (req, re
             channels,
             roles,
             goodbyeData,
+            missingPerms: getMissingPerms(guild),
             loginUser,
             botUser,
             activePage: 'goodbye',
@@ -493,7 +500,7 @@ router.get('/:guildId/booster', requireLogin, requireManageGuild, async (req, re
         };
 
         const channels = [...guild.channels.cache.values()]
-            .filter(c => c.type === 0)
+            .filter(c => c.type === 0 || c.type === 5 || c.type === 10 || c.type === 11 || c.type === 12)
             .map(c => ({ id: c.id, name: c.name }))
             .sort((a, b) => a.name.localeCompare(b.name));
 
@@ -528,6 +535,7 @@ router.get('/:guildId/booster', requireLogin, requireManageGuild, async (req, re
             title: `Booster — ${guild.name}`,
             guild,
             channels,
+            missingPerms: getMissingPerms(guild),
             boostData,
             unboostData,
             loginUser,
@@ -636,7 +644,7 @@ router.get('/:guildId/autorole', requireLogin, requireManageGuild, async (req, r
         .sort((a, b) => a.name.localeCompare(b.name));
 
     const channels = [...guild.channels.cache.values()]
-        .filter(c => c.type === 0)
+        .filter(c => c.type === 0 || c.type === 5 || c.type === 10 || c.type === 11 || c.type === 12)
         .map(c => ({ id: c.id, name: c.name }))
         .sort((a, b) => a.name.localeCompare(b.name));
 
@@ -645,6 +653,7 @@ router.get('/:guildId/autorole', requireLogin, requireManageGuild, async (req, r
         guild,
         roles,
         channels,
+        missingPerms: getMissingPerms(guild),
         joinData,
         boosterData,
         panels,
@@ -668,7 +677,7 @@ router.get('/:guildId/message-builder', requireLogin, requireManageGuild, async 
         await _ensureRoles(guild);
 
         const channels = [...guild.channels.cache.values()]
-            .filter(c => c.type === 0)
+            .filter(c => c.type === 0 || c.type === 5 || c.type === 10 || c.type === 11 || c.type === 12)
             .map(c => ({ id: c.id, name: c.name }))
             .sort((a, b) => a.name.localeCompare(b.name));
 
@@ -724,6 +733,7 @@ router.get('/:guildId/message-builder', requireLogin, requireManageGuild, async 
             guild,
             channels,
             roles,
+            missingPerms: getMissingPerms(guild),
             templates,
             loginUser,
             botUser,
@@ -763,6 +773,7 @@ router.get('/:guildId/invites', requireLogin, requireManageGuild, async (req, re
             guild,
             invites,
             totalUses,
+            missingPerms: getMissingPerms(guild),
             uniqueInviters,
             fetchError,
             activePage: 'invites',
@@ -802,6 +813,7 @@ router.get('/:guildId/serverstats', requireLogin, requireManageGuild, async (req
             title: `Server Stats — ${guild.name}`,
             guild,
             serverstatsData: cfg,
+            missingPerms: getMissingPerms(guild),
             totalCount,
             humanCount,
             botCount,
@@ -879,7 +891,7 @@ router.get('/:guildId/ticket', requireLogin, requireManageGuild, async (req, res
         .sort((a, b) => a.name.localeCompare(b.name));
 
     const channels = [...guild.channels.cache.values()]
-        .filter(c => c.type === 0)
+        .filter(c => c.type === 0 || c.type === 5 || c.type === 10 || c.type === 11 || c.type === 12)
         .map(c => ({ id: c.id, name: c.name }))
         .sort((a, b) => a.name.localeCompare(b.name));
 
@@ -891,8 +903,61 @@ router.get('/:guildId/ticket', requireLogin, requireManageGuild, async (req, res
     res.render('dashboard/ticket', {
         title: `Ticket — ${guild.name}`,
         guild, roles, channels, categories, ticketData, openTickets,
+        missingPerms: getMissingPerms(guild),
         activePage: 'ticket', hasSidebar: true
     });
+});
+
+// ── GET /dashboard/:guildId/youtube ──────────────────────────────────────────
+router.get('/:guildId/youtube', requireLogin, requireManageGuild, async (req, res) => {
+    try {
+        const db      = req.discordClient?.database;
+        const guildId = req.params.guildId;
+        const guild   = req.botGuild;
+
+        await _ensureChannels(guild);
+
+        let ytChannels = [];
+        try { ytChannels = JSON.parse(db?.get(`youtube-channels-${guildId}`) || '[]'); }
+        catch { ytChannels = []; }
+
+        const channels = [...guild.channels.cache.values()]
+            .filter(c => c.type === 0 || c.type === 5 || c.type === 10 || c.type === 11 || c.type === 12)
+            .map(c => ({ id: c.id, name: c.name }))
+            .sort((a, b) => a.name.localeCompare(b.name));
+
+        const useWebSub = !!process.env.BASE_URL;
+
+        // Ambil last video ID dan WebSub metadata per channel
+        const lastVideoIds = {};
+        const websubMeta   = {};
+        for (const ch of ytChannels) {
+            lastVideoIds[ch.id] = db?.get(`youtube-lastVideo-${guildId}-${ch.id}`) || null;
+            try { websubMeta[ch.id] = JSON.parse(db?.get(`youtube-websub-${ch.id}`) || '{}'); }
+            catch { websubMeta[ch.id] = {}; }
+        }
+
+        res.render('dashboard/youtube', {
+            title: `YouTube Notifications — ${guild.name}`,
+            guild,
+            channels,
+            ytChannels,
+            useWebSub,
+            lastVideoIds,
+            websubMeta,
+            maxChannels: 10,
+            missingPerms: getMissingPerms(guild),
+            activePage: 'youtube',
+            hasSidebar: true,
+        });
+    } catch (err) {
+        console.error('[dashboard/youtube] Error:', err);
+        res.status(500).render('error', {
+            hasSidebar: false,
+            title: 'Server Error',
+            message: 'Gagal memuat halaman YouTube Notifications.'
+        });
+    }
 });
 
 module.exports = router;

@@ -5,6 +5,7 @@
     <%- include('../partials/sidebar', { activePage: 'goodbye' }) %>
 
     <main class="dash-main" style="max-width:100%;">
+        <%- include('../partials/perm-notice') %>
         <div class="page-header">
             <h1>Goodbye Notification</h1>
             <p>Notifikasi yang dikirim saat member meninggalkan server.</p>
@@ -903,6 +904,8 @@ buildPicker('plainPicker', 'plain');
 // ── Save ──────────────────────────────────────────────────────────────────────
 async function saveGoodbye(guildId) {
     const msg = document.getElementById('goodbyeMsg');
+    if (!document.getElementById('goodbyeChannel').value)
+        return showMsg(msg, 'Pilih channel tujuan terlebih dahulu.', 'error');
     const payload = {
         enabled:       document.getElementById('goodbyeEnabled').checked,
         channelId:     document.getElementById('goodbyeChannel').value,

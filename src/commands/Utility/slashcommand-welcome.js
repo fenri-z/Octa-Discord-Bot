@@ -225,6 +225,8 @@ module.exports = new ApplicationCommand({
         // ── TOGGLE ────────────────────────────────────────────────────────
         if (sub === 'toggle') {
             const val = interaction.options.getBoolean('aktif');
+            if (val && !client.database.get(`welcome-channel-${guildId}`))
+                return interaction.reply({ content: '❌ Atur channel welcome terlebih dahulu dengan `/welcome channel`.', flags: MessageFlags.Ephemeral });
             setBool(client, `welcome-enabled-${guildId}`, val);
             return interaction.reply({
                 content: val ? '✅ Pesan sambutan **diaktifkan**.' : '❌ Pesan sambutan **dinonaktifkan**.',
