@@ -87,14 +87,63 @@
 }
 .tt-card-name { font-weight: 600; font-size: .98rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-/* Responsive */
-@media (max-width: 680px) {
-    .tt-panel-layout { grid-template-columns: 1fr; }
-    .settings-card   { padding: 1rem !important; }
+/* ── Responsive: Tablet (≤ 860px) ───────────────────────────────────────── */
+@media (max-width: 860px) {
+    .tt-panel-layout  { grid-template-columns: 1fr; }
+    /* Preview tampil di bawah form, tidak sticky */
+    .tt-preview-col   { position: static; }
 }
+
+/* ── Responsive: Tablet kecil (≤ 680px) ─────────────────────────────────── */
+@media (max-width: 680px) {
+    .dash-main        { padding: 1.25rem 1rem 1.5rem !important; }
+    .settings-card    { padding: 1rem !important; }
+    .tt-channel-card  { padding: .9rem; }
+
+    /* Stats: 2 kolom */
+    .tt-stats-grid    { grid-template-columns: 1fr 1fr !important; }
+    .tt-stats-grid .stat-card { min-width: 0; padding: .75rem; gap: .5rem; }
+    .tt-stats-grid .stat-info { min-width: 0; overflow: hidden; }
+    .tt-stats-grid .stat-label { white-space: normal; line-height: 1.3; }
+
+    /* Card header lebih kompak */
+    .tt-card-header   { gap: .6rem; }
+    .tt-card-avatar,
+    .tt-card-avatar-placeholder { width: 38px; height: 38px; }
+    .tt-card-name     { font-size: .9rem; }
+
+    /* Tombol aksi di header lebih kecil */
+    .tt-card-header .btn-sm { padding: .25rem .4rem; }
+
+    /* Search row stack vertikal */
+    .tt-search-row    { flex-direction: column !important; }
+    .tt-search-row .btn { width: 100%; justify-content: center; }
+
+    /* Tombol simpan/test full width */
+    .tt-action-row    { flex-direction: column !important; }
+    .tt-action-row .btn { width: 100%; justify-content: center; }
+}
+
+/* ── Responsive: Mobile (≤ 480px) ───────────────────────────────────────── */
 @media (max-width: 480px) {
-    .tt-tabs-row { grid-template-columns: 1fr 1fr; }
-    .tt-tab-btn  { font-size: .76rem !important; padding: .35rem .3rem !important; }
+    .dash-main        { padding: 1rem .75rem 1.5rem !important; }
+    .tt-channel-card  { padding: .75rem; }
+
+    /* Stats: 2 kolom lebih kompak */
+    .tt-stats-grid .stat-card { padding: .6rem .5rem; gap: .4rem; }
+    .tt-stats-grid .stat-icon { width: 30px !important; height: 30px !important; border-radius: 7px !important; flex-shrink: 0; }
+    .tt-stats-grid .stat-icon svg { width: 14px !important; height: 14px !important; }
+    .tt-stats-grid .stat-value { font-size: 1.1rem; }
+    .tt-stats-grid .stat-label { font-size: .63rem; }
+
+    /* Tab buttons lebih kecil */
+    .tt-tab-btn       { font-size: .76rem !important; padding: .32rem .3rem !important; }
+
+    /* Tombol header lebih kompak di mobile */
+    .tt-card-header .btn-sm { padding: .3rem .45rem; }
+
+    /* Label dengan picker: wrap */
+    .label-with-picker { flex-wrap: wrap; gap: .35rem; }
 }
 </style>
 
@@ -126,7 +175,7 @@
         <% } %>
 
         <!-- Stats -->
-        <div class="stats-grid" style="margin-bottom:1.5rem;grid-template-columns:repeat(4,1fr);">
+        <div class="stats-grid tt-stats-grid" style="margin-bottom:1.5rem;grid-template-columns:repeat(4,1fr);">
             <div class="stat-card">
                 <div class="stat-icon" style="color:#010101;background:rgba(1,1,1,.3);">
                     <i data-lucide="music-2"></i>
@@ -171,7 +220,7 @@
             </p>
             <div class="form-group" style="margin-bottom:0;">
                 <label class="label">Username / URL TikTok</label>
-                <div style="display:flex;gap:.6rem;">
+                <div class="tt-search-row" style="display:flex;gap:.6rem;">
                     <input type="text" id="ttLookupInput" class="input"
                            placeholder="@username  atau  https://tiktok.com/@username"
                            style="flex:1;min-width:0;" maxlength="200"
@@ -350,7 +399,7 @@
                     </div>
 
                     <!-- Tombol aksi -->
-                    <div style="display:flex;justify-content:flex-end;gap:.5rem;padding-top:.25rem;">
+                    <div class="tt-action-row" style="display:flex;justify-content:flex-end;gap:.5rem;padding-top:.25rem;">
                         <button class="btn btn-secondary" id="testBtn-<%= key %>" onclick="testNotif('<%= acc.username %>','<%= key %>')">
                             <i data-lucide="send" style="width:14px;height:14px;"></i> Test Notif
                         </button>

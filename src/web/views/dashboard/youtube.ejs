@@ -176,6 +176,18 @@
     }
 }
 
+/* ── Tombol Test Notif & Simpan responsif ────────────────────────────── */
+@media (max-width: 680px) {
+    .yt-action-row {
+        flex-direction: column !important;
+        justify-content: stretch !important;
+    }
+    .yt-action-row .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
 /* ── Lookup result: tombol Tambah wrap di layar sangat sempit ─────────── */
 @media (max-width: 380px) {
     .yt-lookup-result-inner {
@@ -382,7 +394,7 @@
                                   placeholder="Video baru dari {channel}: {title}&#10;{url}"
                                   oninput="updateYtPreview('<%= ytCh.id %>','video')"><%= ytCh.videoMessage %></textarea>
                     </div>
-                    <div style="display:flex;justify-content:flex-end;gap:.5rem;padding-top:.25rem;">
+                    <div class="yt-action-row" style="display:flex;justify-content:flex-end;gap:.5rem;padding-top:.25rem;">
                         <button class="btn btn-secondary" onclick="testYtNotif(this,'<%= ytCh.id %>')" title="Kirim test notifikasi ke Discord">
                             <i data-lucide="send" style="width:14px;height:14px;"></i> Test Notif
                         </button>
@@ -433,7 +445,7 @@
                                   placeholder="Short baru dari {channel}: {title}&#10;{url}"
                                   oninput="updateYtPreview('<%= ytCh.id %>','short')"><%= ytCh.shortMessage %></textarea>
                     </div>
-                    <div style="display:flex;justify-content:flex-end;gap:.5rem;padding-top:.25rem;">
+                    <div class="yt-action-row" style="display:flex;justify-content:flex-end;gap:.5rem;padding-top:.25rem;">
                         <button class="btn btn-secondary" onclick="testYtNotif(this,'<%= ytCh.id %>')" title="Kirim test notifikasi ke Discord">
                             <i data-lucide="send" style="width:14px;height:14px;"></i> Test Notif
                         </button>
@@ -483,7 +495,7 @@
                                   placeholder="{channel} sedang LIVE! {title}&#10;{url}"
                                   oninput="updateYtPreview('<%= ytCh.id %>','live')"><%= ytCh.liveMessage %></textarea>
                     </div>
-                    <div style="display:flex;justify-content:flex-end;gap:.5rem;padding-top:.25rem;">
+                    <div class="yt-action-row" style="display:flex;justify-content:flex-end;gap:.5rem;padding-top:.25rem;">
                         <button class="btn btn-secondary" onclick="testYtNotif(this,'<%= ytCh.id %>')" title="Kirim test notifikasi ke Discord">
                             <i data-lucide="send" style="width:14px;height:14px;"></i> Test Notif
                         </button>
