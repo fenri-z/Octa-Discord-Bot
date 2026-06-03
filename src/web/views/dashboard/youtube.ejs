@@ -316,23 +316,9 @@
                 <% } %>
                 <div style="flex:1;min-width:0;">
                     <div class="yt-card-name" style="font-weight:600;font-size:.98rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><%= ytCh.name %></div>
-                    <% if (useWebSub) { %>
-                    <div style="margin-top:.2rem;">
-                        <% if (_subStatus === 'active') { %>
-                        <span style="font-size:.68rem;font-weight:600;color:#57F287;background:rgba(87,242,135,.12);border-radius:20px;padding:.1rem .55rem;white-space:nowrap;">
-                            ⚡ WebSub Aktif
-                        </span>
-                        <% } else if (_subStatus === 'pending') { %>
-                        <span style="font-size:.68rem;font-weight:600;color:#FEE75C;background:rgba(254,231,92,.12);border-radius:20px;padding:.1rem .55rem;white-space:nowrap;">
-                            ⏳ WebSub Pending
-                        </span>
-                        <% } else { %>
-                        <span style="font-size:.68rem;font-weight:600;color:#80848e;background:rgba(255,255,255,.06);border-radius:20px;padding:.1rem .55rem;white-space:nowrap;">
-                            📡 RSS Fallback
-                        </span>
-                        <% } %>
+                    <div style="font-size:.78rem;color:var(--text-muted);margin-top:.1rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                        <%= ytCh.handle || ytCh.id %>
                     </div>
-                    <% } %>
                 </div>
                 <a href="https://www.youtube.com/channel/<%= ytCh.id %>" target="_blank" class="btn btn-sm" style="flex-shrink:0;" title="Buka di YouTube">
                     <i data-lucide="external-link" style="width:13px;height:13px;"></i>

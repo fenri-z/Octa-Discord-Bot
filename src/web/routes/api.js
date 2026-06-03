@@ -1875,7 +1875,7 @@ router.post('/guild/:guildId/youtube/channels', requireLogin, requireManageGuild
     const guildId = req.params.guildId;
     if (!db) return res.status(500).json({ success: false, message: 'Database tidak tersedia.' });
 
-    const { id, name, thumbnail } = req.body;
+    const { id, name, thumbnail, handle } = req.body;
     if (!id || !name) return res.json({ success: false, message: 'Data channel tidak lengkap.' });
 
     const channels = getYtChannels(db, guildId);
@@ -1885,7 +1885,7 @@ router.post('/guild/:guildId/youtube/channels', requireLogin, requireManageGuild
         return res.json({ success: false, message: 'Channel ini sudah ditambahkan.' });
 
     channels.push({
-        id, name, thumbnail: thumbnail || null,
+        id, name, thumbnail: thumbnail || null, handle: handle || null,
         videoEnabled: false, videoChannelId: '', videoMessage: '',
         shortEnabled: false, shortChannelId: '', shortMessage: '',
         liveEnabled:  false, liveChannelId:  '', liveMessage:  '',
@@ -2063,6 +2063,198 @@ router.delete('/guild/:guildId/youtube/channels/:ytChannelId', requireLogin, req
     }
 
     res.json({ success: true, message: `Channel "${ch.name}" berhasil dihapus.` });
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// TikTok Notifications
+// ══════════════════════════════════════════════════════════════════════════════
+
+const MAX_TT_ACCOUNTS = 10;
+
+function getTtAccounts(db, guildId) {
+    try { return JSON.parse(db.get(`tiktok-accounts-${guildId}`) || '[]'); }
+    catch { return []; }
+}
+function setTtAccounts(db, guildId, accounts) {
+    db.set(`tiktok-accounts-${guildId}`, JSON.stringify(accounts));
+}
+
+// POST /api/guild/:guildId/tiktok/lookup
+router.post('/guild/:guildId/tiktok/lookup', requireLogin, requireManageGuild, async (req, res) => {
+    const { input } = req.body;
+    if (!input?.trim()) return res.json({ success: false, message: 'Input tidak boleh kosong.' });
+
+    const notifier = req.discordClient?.tiktokNotifier;
+    if (!notifier) return res.json({ success: false, message: 'TikTokNotifier tidak tersedia.' });
+
+    try {
+        const account = await notifier.lookupAccount(input.trim());
+        res.json({ success: true, account });
+    } catch (err) {
+        res.json({ success: false, message: err.message });
+    }
+});
+
+// POST /api/guild/:guildId/tiktok/accounts — tambah akun TikTok
+router.post('/guild/:guildId/tiktok/accounts', requireLogin, requireManageGuild, (req, res) => {
+    const db      = req.discordClient?.database;
+    const guildId = req.params.guildId;
+    if (!db) return res.status(500).json({ success: false, message: 'Database tidak tersedia.' });
+
+    const { username, name, thumbnail } = req.body;
+    if (!username) return res.json({ success: false, message: 'Username tidak boleh kosong.' });
+
+    const accounts = getTtAccounts(db, guildId);
+    if (accounts.length >= MAX_TT_ACCOUNTS)
+        return res.json({ success: false, message: `Maksimal ${MAX_TT_ACCOUNTS} akun TikTok per server.` });
+    if (accounts.find(a => a.username === username))
+        return res.json({ success: false, message: 'Akun ini sudah ditambahkan.' });
+
+    accounts.push({
+        username,
+        name:           name || username,
+        thumbnail:      thumbnail || null,
+        videoEnabled:   false,
+        videoChannelId: '',
+        videoMessage:   '',
+        liveEnabled:    false,
+        liveChannelId:  '',
+        liveMessage:    '',
+        addedAt:        Date.now(),
+    });
+    setTtAccounts(db, guildId, accounts);
+    res.json({ success: true, message: `Akun "${username}" berhasil ditambahkan.` });
+});
+
+// PUT /api/guild/:guildId/tiktok/accounts/:username — update settings notifikasi
+router.put('/guild/:guildId/tiktok/accounts/:username', requireLogin, requireManageGuild, (req, res) => {
+    const db       = req.discordClient?.database;
+    const guildId  = req.params.guildId;
+    const username = decodeURIComponent(req.params.username);
+    if (!db) return res.status(500).json({ success: false, message: 'Database tidak tersedia.' });
+
+    const accounts = getTtAccounts(db, guildId);
+    const idx      = accounts.findIndex(a => a.username === username);
+    if (idx === -1) return res.json({ success: false, message: 'Akun tidak ditemukan.' });
+
+    const { videoEnabled, videoChannelId, videoMessage,
+            liveEnabled,  liveChannelId,  liveMessage  } = req.body;
+    const guild = req.botGuild;
+
+    const REQUIRED_PERMS = [
+        PermissionsBitField.Flags.ViewChannel,
+        PermissionsBitField.Flags.SendMessages,
+        PermissionsBitField.Flags.EmbedLinks,
+    ];
+
+    for (const { label, flag, chId } of [
+        { label: 'Video', flag: videoEnabled, chId: videoChannelId },
+        { label: 'Live',  flag: liveEnabled,  chId: liveChannelId  },
+    ]) {
+        if (!flag) continue;
+        if (!chId)
+            return res.json({ success: false, message: `Notifikasi ${label} diaktifkan tapi channel Discord belum dipilih.` });
+        if (!guild.channels.cache.get(chId))
+            return res.json({ success: false, message: `Channel Discord untuk ${label} tidak ditemukan.` });
+        const missing = missingChannelPerms(guild, chId, REQUIRED_PERMS);
+        if (missing.length)
+            return res.json({ success: false, message: `Bot tidak punya permission di channel ${label}:\n${missing.map(p => `• ${p}`).join('\n')}` });
+    }
+
+    accounts[idx] = {
+        ...accounts[idx],
+        videoEnabled:   !!videoEnabled,
+        videoChannelId: videoChannelId || '',
+        videoMessage:   videoMessage   || '',
+        liveEnabled:    !!liveEnabled,
+        liveChannelId:  liveChannelId  || '',
+        liveMessage:    liveMessage    || '',
+    };
+    setTtAccounts(db, guildId, accounts);
+    res.json({ success: true, message: 'Pengaturan berhasil disimpan.' });
+});
+
+// POST /api/guild/:guildId/tiktok/accounts/:username/test — kirim test notifikasi
+router.post('/guild/:guildId/tiktok/accounts/:username/test', requireLogin, requireManageGuild, async (req, res) => {
+    const db       = req.discordClient?.database;
+    const guildId  = req.params.guildId;
+    const username = decodeURIComponent(req.params.username);
+    if (!db) return res.status(500).json({ success: false, message: 'Database tidak tersedia.' });
+
+    const { type = 'video' } = req.body;
+    if (!['video', 'live'].includes(type))
+        return res.json({ success: false, message: 'Tipe tidak valid.' });
+
+    const accounts = getTtAccounts(db, guildId);
+    const account  = accounts.find(a => a.username === username);
+    if (!account) return res.json({ success: false, message: 'Akun tidak ditemukan.' });
+
+    if (type === 'video') {
+        if (!account.videoEnabled)   return res.json({ success: false, message: 'Notifikasi Video belum diaktifkan.' });
+        if (!account.videoChannelId) return res.json({ success: false, message: 'Channel Discord untuk Video belum dipilih.' });
+    } else {
+        if (!account.liveEnabled)    return res.json({ success: false, message: 'Notifikasi Live belum diaktifkan.' });
+        if (!account.liveChannelId)  return res.json({ success: false, message: 'Channel Discord untuk Live belum dipilih.' });
+        const notifier = req.discordClient?.tiktokNotifier;
+        if (!notifier?.liveSupported) return res.json({ success: false, message: 'Live detection tidak aktif. Jalankan: npm install tiktok-live-connector' });
+    }
+
+    const notifier = req.discordClient?.tiktokNotifier;
+    if (!notifier) return res.json({ success: false, message: 'TikTokNotifier tidak tersedia.' });
+
+    try {
+        await notifier._sendNotification(req.botGuild, account, type, {
+            id:    '0000000000000000000',
+            url:   `https://www.tiktok.com/${username}/video/0000000000000000000`,
+            title: `[TEST] Contoh Notifikasi ${type === 'live' ? 'Live' : 'Video'} dari ${account.name || username}`,
+        });
+        res.json({ success: true, message: `Test notifikasi ${type === 'live' ? 'Live' : 'Video'} berhasil dikirim!` });
+    } catch (err) {
+        res.json({ success: false, message: `Gagal kirim: ${err.message}` });
+    }
+});
+
+// POST /api/guild/:guildId/tiktok/force-poll — paksa poll sekarang
+router.post('/guild/:guildId/tiktok/force-poll', requireLogin, requireManageGuild, async (req, res) => {
+    const notifier = req.discordClient?.tiktokNotifier;
+    if (!notifier) return res.json({ success: false, message: 'TikTokNotifier tidak tersedia.' });
+    try {
+        await notifier.pollGuild(req.params.guildId);
+        res.json({ success: true, message: 'Poll selesai.' });
+    } catch (err) {
+        res.json({ success: false, message: `Gagal: ${err.message}` });
+    }
+});
+
+// POST /api/guild/:guildId/tiktok/accounts/:username/reset — reset last video
+router.post('/guild/:guildId/tiktok/accounts/:username/reset', requireLogin, requireManageGuild, (req, res) => {
+    const db       = req.discordClient?.database;
+    const guildId  = req.params.guildId;
+    const username = decodeURIComponent(req.params.username);
+    if (!db) return res.status(500).json({ success: false, message: 'Database tidak tersedia.' });
+
+    const accounts = getTtAccounts(db, guildId);
+    if (!accounts.find(a => a.username === username))
+        return res.json({ success: false, message: 'Akun tidak ditemukan.' });
+
+    db.delete(`tiktok-lastVideo-${guildId}-${username}`);
+    res.json({ success: true, message: `Reset berhasil untuk ${username}.` });
+});
+
+// DELETE /api/guild/:guildId/tiktok/accounts/:username — hapus akun
+router.delete('/guild/:guildId/tiktok/accounts/:username', requireLogin, requireManageGuild, (req, res) => {
+    const db       = req.discordClient?.database;
+    const guildId  = req.params.guildId;
+    const username = decodeURIComponent(req.params.username);
+    if (!db) return res.status(500).json({ success: false, message: 'Database tidak tersedia.' });
+
+    const accounts = getTtAccounts(db, guildId);
+    const account  = accounts.find(a => a.username === username);
+    if (!account) return res.json({ success: false, message: 'Akun tidak ditemukan.' });
+
+    setTtAccounts(db, guildId, accounts.filter(a => a.username !== username));
+    db.delete(`tiktok-lastVideo-${guildId}-${username}`);
+    res.json({ success: true, message: `Akun "${username}" berhasil dihapus.` });
 });
 
 module.exports = router;

@@ -43,12 +43,12 @@
                     <div style="display:flex;gap:.75rem;">
                         <label class="radio-label" style="display:flex;align-items:center;gap:.5rem;cursor:pointer;">
                             <input type="radio" name="boostMessageType" id="boostTypeEmbed" value="embed"
-                                   <%= (boostData.messageType || 'embed') === 'embed' ? 'checked' : '' %>>
+                                   <%= (boostData.messageType || 'plain') === 'embed' ? 'checked' : '' %>>
                             <span>Embed</span>
                         </label>
                         <label class="radio-label" style="display:flex;align-items:center;gap:.5rem;cursor:pointer;">
                             <input type="radio" name="boostMessageType" id="boostTypePlain" value="plain"
-                                   <%= boostData.messageType === 'plain' ? 'checked' : '' %>>
+                                   <%= (boostData.messageType || 'plain') === 'plain' ? 'checked' : '' %>>
                             <span>Teks Biasa</span>
                         </label>
                     </div>
@@ -351,12 +351,12 @@
                     <div style="display:flex;gap:.75rem;">
                         <label class="radio-label" style="display:flex;align-items:center;gap:.5rem;cursor:pointer;">
                             <input type="radio" name="unboostMessageType" id="unboostTypeEmbed" value="embed"
-                                   <%= (unboostData.messageType || 'embed') === 'embed' ? 'checked' : '' %>>
+                                   <%= (unboostData.messageType || 'plain') === 'embed' ? 'checked' : '' %>>
                             <span>Embed</span>
                         </label>
                         <label class="radio-label" style="display:flex;align-items:center;gap:.5rem;cursor:pointer;">
                             <input type="radio" name="unboostMessageType" id="unboostTypePlain" value="plain"
-                                   <%= unboostData.messageType === 'plain' ? 'checked' : '' %>>
+                                   <%= (unboostData.messageType || 'plain') === 'plain' ? 'checked' : '' %>>
                             <span>Teks Biasa</span>
                         </label>
                     </div>
@@ -561,7 +561,7 @@
                     </div>
                     <div class="form-group">
                         <label class="label">Teks Besar</label>
-                        <input type="text" id="unboostCardWelcomeText" class="input" maxlength="20" placeholder="GOODBYE" value="<%= unboostData.cardWelcomeText||'GOODBYE' %>">
+                        <input type="text" id="unboostCardWelcomeText" class="input" maxlength="20" placeholder="UNBOOST" value="<%= unboostData.cardWelcomeText||'UNBOOST' %>">
                     </div>
                     <div class="form-group">
                         <label class="label">Teks Kecil Bawah</label>
@@ -917,7 +917,7 @@ async function drawBoostCard() {
     await _drawCard('boost','boostCardCanvas','boostCardPreviewWrap','BOOST!','Thank you for boosting!','#FF73FA','#0a0a1e','#1e0a2e');
 }
 async function drawUnboostCard() {
-    await _drawCard('unboost','unboostCardCanvas','unboostCardPreviewWrap','GOODBYE','Boost berakhir...','#ED4245','#1e0a0a','#2e0a0a');
+    await _drawCard('unboost','unboostCardCanvas','unboostCardPreviewWrap','UNBOOST','Boost berakhir...','#ED4245','#1e0a0a','#2e0a0a');
 }
 
 // ── Field sample data ──────────────────────────────────────────────────────
@@ -1154,7 +1154,7 @@ async function saveUnboost() {
             showLevelServer: document.getElementById('unboostShowLevelServer').checked,
             showThumbnail:   document.getElementById('unboostShowThumbnail').checked,
             cardEnabled:        document.getElementById('unboostCardEnabled').checked,
-            cardWelcomeText:    document.getElementById('unboostCardWelcomeText').value.trim()    || 'GOODBYE',
+            cardWelcomeText:    document.getElementById('unboostCardWelcomeText').value.trim()    || 'UNBOOST',
             cardSubText:        document.getElementById('unboostCardSubText').value.trim()        || 'Boost berakhir...',
             cardBgColor:        document.getElementById('unboostCardBgColor').value.trim()        || '#1e0a0a',
             cardBgColor2:       document.getElementById('unboostCardBgColor2').value.trim()       || '#2e0a0a',
@@ -1186,17 +1186,18 @@ buildEmbedPicker('unboostEmbedPicker');
 buildPlainPicker('boostPlainPicker',   'boostPlainText');
 buildPlainPicker('unboostPlainPicker', 'unboostPlainText');
 
-toggleBoostType();
-toggleUnboostType();
-
 // restore card panels
 if (document.getElementById('boostCardEnabled').checked)
     document.getElementById('boostCardPanel').style.display = 'block';
 if (document.getElementById('unboostCardEnabled').checked)
     document.getElementById('unboostCardPanel').style.display = 'block';
 
-drawBoostCard();
-drawUnboostCard();
+// Gambar card selesai dulu sebelum toggleType memanggil updatePreview/_syncCardPlacement
+// (cegah race condition: canvas belum digambar saat imgPlain.src diset)
+Promise.all([drawBoostCard(), drawUnboostCard()]).then(() => {
+    toggleBoostType();
+    toggleUnboostType();
+});
 </script>
 
 <%- include('../partials/footer') %>

@@ -102,7 +102,12 @@ class YouTubeNotifier {
         const thumbMatch = html.match(/<meta[^>]+property="og:image"[^>]+content="([^"]+)"/i);
         const thumbnail  = thumbMatch ? thumbMatch[1] : null;
 
-        return { id, name, thumbnail };
+        // Coba ambil handle (@username) dari halaman
+        const handleMatch = html.match(/"canonicalBaseUrl"\s*:\s*"\/\@([\w.-]+)"/)
+                         || html.match(/youtube\.com\/@([\w.-]+)(?:\/|")/);
+        const handle = handleMatch ? '@' + handleMatch[1] : null;
+
+        return { id, name, thumbnail, handle };
     }
 
     _resolveChannelUrl(input) {

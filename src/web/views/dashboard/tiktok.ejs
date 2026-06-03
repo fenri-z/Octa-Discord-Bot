@@ -1,0 +1,715 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+<style>
+/* ── Layout 2 kolom per card (sama pola YouTube) ───────────────────────── */
+.tt-panel-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+    align-items: start;
+}
+@media (max-width: 860px) { .tt-panel-layout { grid-template-columns: 1fr; } }
+
+/* ── Preview sticky ──────────────────────────────────────────────────────── */
+.tt-preview-col { position: sticky; top: calc(var(--navbar-h, 56px) + 1rem); }
+.preview-label  {
+    font-size: .72rem; font-weight: 700; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: .08em; margin-bottom: .5rem;
+}
+
+/* ── Discord mock ────────────────────────────────────────────────────────── */
+.dc-window {
+    background: #313338; border-radius: 8px; overflow: hidden;
+    font-family: 'gg sans','Noto Sans','Helvetica Neue',Arial,sans-serif;
+    font-size: 14px; color: #dbdee1; box-shadow: 0 4px 20px rgba(0,0,0,.5);
+}
+.dc-channel-bar {
+    background: #2b2d31; padding: .45rem .85rem;
+    border-bottom: 1px solid #1e1f22;
+    display: flex; align-items: center; gap: .35rem;
+    font-size: .82rem; font-weight: 600; color: #dbdee1;
+}
+.dc-channel-hash { color: #80848e; font-size: 1rem; }
+.dc-messages     { padding: .85rem; }
+.dc-message      { display: flex; gap: .65rem; }
+.dc-avatar       { width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0; object-fit: cover; }
+.dc-msg-body     { flex: 1; min-width: 0; }
+.dc-username     { font-weight: 600; font-size: .85rem; }
+.dc-timestamp    { font-size: .66rem; color: #80848e; margin-left: .45rem; }
+.dc-embed {
+    display: flex; background: #2b2d31; border-radius: 4px;
+    margin-top: .3rem; overflow: hidden; max-width: 420px;
+}
+.dc-embed-inner  { padding: .55rem .7rem; flex: 1; min-width: 0; }
+.dc-embed-title  { font-size: .88rem; font-weight: 700; color: #00b0f4; word-break: break-word; margin-bottom: .2rem; }
+.dc-embed-title:empty { display: none; }
+.dc-embed-desc   { font-size: .8rem; color: #dbdee1; line-height: 1.4; }
+.dc-embed-desc:empty { display: none; }
+.dc-embed-field  { margin-top: .4rem; }
+.dc-field-name   { font-size: .72rem; font-weight: 700; color: #dbdee1; }
+.dc-field-value  { font-size: .78rem; color: #00b0f4; }
+
+/* ── Tab buttons (YouTube-style) ─────────────────────────────────────────── */
+.tt-tabs-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: .4rem;
+    margin-bottom: 1.1rem;
+    border-bottom: 1px solid var(--border, rgba(255,255,255,.06));
+    padding-bottom: .75rem;
+}
+.tt-tab-btn {
+    text-align: center; padding: .38rem .4rem;
+    border-radius: 20px; font-size: .82rem; font-weight: 500;
+    cursor: pointer; border: none; background: transparent;
+    color: var(--text-muted); transition: all .15s; white-space: nowrap;
+}
+.tt-tab-btn.active-video { background: rgba(1,1,1,.5);    color: #fff;    }
+.tt-tab-btn.active-live  { background: rgba(254,44,85,.18); color: #FE2C55; }
+
+/* ── Account card ────────────────────────────────────────────────────────── */
+.tt-channel-card {
+    background: var(--card-bg, #1e1f22);
+    border: 1px solid var(--border, rgba(255,255,255,.06));
+    border-radius: 10px; padding: 1.1rem; margin-bottom: 1.25rem;
+}
+.tt-card-header {
+    display: flex; align-items: center; gap: .85rem; margin-bottom: 1rem;
+}
+.tt-card-avatar {
+    width: 44px; height: 44px; border-radius: 50%;
+    object-fit: cover; flex-shrink: 0; background: #111;
+}
+.tt-card-avatar-placeholder {
+    width: 44px; height: 44px; border-radius: 50%;
+    background: #010101; display: flex; align-items: center;
+    justify-content: center; flex-shrink: 0;
+}
+.tt-card-name { font-weight: 600; font-size: .98rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Responsive */
+@media (max-width: 680px) {
+    .tt-panel-layout { grid-template-columns: 1fr; }
+    .settings-card   { padding: 1rem !important; }
+}
+@media (max-width: 480px) {
+    .tt-tabs-row { grid-template-columns: 1fr 1fr; }
+    .tt-tab-btn  { font-size: .76rem !important; padding: .35rem .3rem !important; }
+}
+</style>
+
+<div class="dash-layout">
+    <%- include('../partials/sidebar', { activePage: 'tiktok' }) %>
+    <main class="dash-main">
+    <div class="dash-content-wide">
+        <%- include('../partials/perm-notice') %>
+
+        <!-- Header -->
+        <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
+            <div>
+                <h1>TikTok Notification</h1>
+                <p>Pantau akun TikTok dan kirim notifikasi otomatis ke Discord saat ada Video baru atau mulai Live.</p>
+            </div>
+            <% if (ttAccounts.length > 0) { %>
+            <button class="btn btn-secondary" onclick="forcePoll(this)" style="flex-shrink:0;margin-top:.25rem;" title="Paksa cek video baru sekarang">
+                <i data-lucide="refresh-cw" style="width:14px;height:14px;"></i> Poll Sekarang
+            </button>
+            <% } %>
+        </div>
+
+        <!-- Live warning -->
+        <% if (!liveSupported) { %>
+        <div class="perm-card perm-warn" style="margin-bottom:1.5rem;">
+            <i data-lucide="alert-triangle"></i>
+            <span><strong>Live detection tidak aktif.</strong> Jalankan <code>npm install tiktok-live-connector</code> lalu restart bot.</span>
+        </div>
+        <% } %>
+
+        <!-- Stats -->
+        <div class="stats-grid" style="margin-bottom:1.5rem;grid-template-columns:repeat(4,1fr);">
+            <div class="stat-card">
+                <div class="stat-icon" style="color:#010101;background:rgba(1,1,1,.3);">
+                    <i data-lucide="music-2"></i>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-value" id="statAccounts"><%= ttAccounts.length %></div>
+                    <div class="stat-label">Akun Dipantau</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="color:#57F287;"><i data-lucide="video"></i></div>
+                <div class="stat-info">
+                    <div class="stat-value"><%= ttAccounts.filter(a => a.videoEnabled).length %></div>
+                    <div class="stat-label">Video Aktif</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="color:#FE2C55;"><i data-lucide="radio"></i></div>
+                <div class="stat-info">
+                    <div class="stat-value"><%= ttAccounts.filter(a => a.liveEnabled).length %></div>
+                    <div class="stat-label">Live Aktif</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="color:#80848e;"><i data-lucide="list"></i></div>
+                <div class="stat-info">
+                    <div class="stat-value"><%= maxAccounts - ttAccounts.length %></div>
+                    <div class="stat-label">Slot Tersisa</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tambah Akun -->
+        <% if (ttAccounts.length < maxAccounts) { %>
+        <div class="settings-card" style="margin-bottom:1.5rem;">
+            <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:1rem;">
+                <i data-lucide="plus-circle" style="color:#FE2C55;width:18px;height:18px;flex-shrink:0;"></i>
+                <h2 style="margin:0;font-size:1rem;font-weight:600;">Tambah Akun TikTok</h2>
+            </div>
+            <p style="font-size:.85rem;color:var(--text-muted);margin:0 0 1rem 0;">
+                Masukkan username atau URL TikTok. Sisa slot: <strong><%= maxAccounts - ttAccounts.length %></strong> dari <%= maxAccounts %>.
+            </p>
+            <div class="form-group" style="margin-bottom:0;">
+                <label class="label">Username / URL TikTok</label>
+                <div style="display:flex;gap:.6rem;">
+                    <input type="text" id="ttLookupInput" class="input"
+                           placeholder="@username  atau  https://tiktok.com/@username"
+                           style="flex:1;min-width:0;" maxlength="200"
+                           onkeydown="if(event.key==='Enter') lookupTikTok()">
+                    <button class="btn btn-primary" onclick="lookupTikTok()" id="ttLookupBtn" style="white-space:nowrap;flex-shrink:0;">
+                        <i data-lucide="search" style="width:14px;height:14px;"></i> Cari
+                    </button>
+                </div>
+            </div>
+            <div id="ttLookupResult" style="display:none;margin-top:1rem;padding:.85rem;background:var(--card-2,rgba(255,255,255,.04));border-radius:10px;border:1px solid var(--border,rgba(255,255,255,.06));">
+                <div style="display:flex;align-items:center;gap:.75rem;">
+                    <img id="ttLookupThumb" src="" alt=""
+                         style="width:42px;height:42px;border-radius:50%;object-fit:cover;flex-shrink:0;background:#111;"
+                         onerror="this.style.display='none'">
+                    <div style="flex:1;min-width:0;">
+                        <div id="ttLookupName" style="font-weight:600;font-size:.95rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></div>
+                        <div id="ttLookupUsername" style="font-size:.78rem;color:var(--text-muted);"></div>
+                    </div>
+                    <button class="btn btn-success" onclick="addAccount()" style="flex-shrink:0;">
+                        <i data-lucide="plus" style="width:14px;height:14px;"></i> Tambah
+                    </button>
+                </div>
+            </div>
+            <div id="ttLookupError" style="display:none;margin-top:.75rem;font-size:.82rem;color:#ed4245;"></div>
+        </div>
+        <% } else { %>
+        <div class="perm-card perm-warn" style="margin-bottom:1.5rem;">
+            <i data-lucide="info"></i>
+            <span>Sudah mencapai batas maksimal <strong><%= maxAccounts %> akun TikTok</strong> per server.</span>
+        </div>
+        <% } %>
+
+        <!-- Daftar Akun -->
+        <div id="ttAccountList">
+        <% if (ttAccounts.length === 0) { %>
+            <div class="settings-card" style="text-align:center;padding:3rem 1.5rem;">
+                <i data-lucide="music-2" style="width:48px;height:48px;color:#FE2C55;opacity:.4;display:block;margin:0 auto .75rem;"></i>
+                <p style="color:var(--text-muted);margin:0;">Belum ada akun TikTok yang dipantau.</p>
+            </div>
+        <% } else { %>
+        <% ttAccounts.forEach(function(acc) {
+            const key = acc.username.replace('@','').replace(/\./g,'_');
+            acc.name = (acc.name||acc.username).replace(/\s+on\s+TikTok\s*$/i,'').trim();
+        %>
+        <div class="settings-card tt-channel-card" id="ttCard-<%= key %>">
+
+            <!-- Header akun -->
+            <div class="tt-card-header">
+                <% if (acc.thumbnail) { %>
+                <img src="<%= acc.thumbnail %>" alt="" class="tt-card-avatar"
+                     referrerpolicy="no-referrer"
+                     onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                <div class="tt-card-avatar-placeholder" style="display:none;">
+                    <i data-lucide="music-2" style="width:22px;height:22px;color:#fff;"></i>
+                </div>
+                <% } else { %>
+                <div class="tt-card-avatar-placeholder">
+                    <i data-lucide="music-2" style="width:22px;height:22px;color:#fff;"></i>
+                </div>
+                <% } %>
+                <div style="flex:1;min-width:0;">
+                    <div class="tt-card-name"><%= acc.name || acc.username %></div>
+                    <div style="font-size:.78rem;color:var(--text-muted);margin-top:.1rem;">
+                        <%= acc.username %>
+                    </div>
+                </div>
+                <a href="https://www.tiktok.com/<%= acc.username %>" target="_blank" class="btn btn-sm" style="flex-shrink:0;" title="Buka di TikTok">
+                    <i data-lucide="external-link" style="width:13px;height:13px;"></i>
+                </a>
+                <button class="btn btn-sm" onclick="resetLastVideo('<%= acc.username %>')" style="flex-shrink:0;" title="Reset posisi video terakhir">
+                    <i data-lucide="rotate-ccw" style="width:13px;height:13px;"></i>
+                </button>
+                <button class="btn btn-sm btn-danger"
+                        data-username="<%= acc.username %>"
+                        data-name="<%= (acc.name||acc.username).replace(/"/g,'&quot;') %>"
+                        onclick="removeAccount(this.dataset.username, this.dataset.name)"
+                        style="flex-shrink:0;" title="Hapus akun">
+                    <i data-lucide="trash-2" style="width:13px;height:13px;"></i>
+                </button>
+            </div>
+
+            <!-- Tab Video / Live -->
+            <div class="tt-tabs-row">
+                <button class="tt-tab-btn active-video" id="tab-video-<%= key %>"
+                        onclick="switchTab('<%= key %>','video')">🎬 Video</button>
+                <button class="tt-tab-btn" id="tab-live-<%= key %>"
+                        onclick="switchTab('<%= key %>','live')">
+                    🔴 Live<% if (!liveSupported) { %> <span style="font-size:.65rem;opacity:.5;">(nonaktif)</span><% } %>
+                </button>
+            </div>
+
+            <!-- 2-kolom: form | preview -->
+            <div class="tt-panel-layout">
+
+                <!-- Kiri: form -->
+                <div>
+                    <!-- Panel Video -->
+                    <div id="panel-video-<%= key %>">
+                        <div class="form-group">
+                            <label class="toggle-label">
+                                <input type="checkbox" class="toggle-input" id="vidEnabled-<%= key %>"
+                                       <%= acc.videoEnabled ? 'checked' : '' %>
+                                       onchange="updatePreview('<%= key %>')">
+                                <span class="toggle-slider"></span>
+                                <span>Aktifkan notifikasi Video</span>
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label class="label">Channel Discord</label>
+                            <select class="select" id="vidChannel-<%= key %>" onchange="updatePreview('<%= key %>')">
+                                <option value="">— Pilih channel —</option>
+                                <% (locals.channels||[]).forEach(ch => { %>
+                                <option value="<%= ch.id %>" <%= acc.videoChannelId===ch.id?'selected':'' %>>#<%= ch.name %></option>
+                                <% }) %>
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin-bottom:0;">
+                            <div class="label-with-picker">
+                                <label class="label" style="margin-bottom:0;">Pesan kustom <span style="font-weight:400;color:var(--text-muted);">(opsional)</span></label>
+                                <div class="ph-picker-anchor">
+                                    <button type="button" class="ph-toggle-btn" onclick="togglePicker('vidPicker-<%= key %>',event)">{…} Placeholder</button>
+                                    <div class="ph-dropdown" id="vidPicker-<%= key %>" style="display:none;"></div>
+                                </div>
+                            </div>
+                            <textarea class="textarea" rows="3" id="vidMessage-<%= key %>"
+                                      style="font-size:.82rem;"
+                                      placeholder="🎵 {account} baru upload video! Tonton: {url}"
+                                      oninput="updatePreview('<%= key %>')"
+                            ><%= acc.videoMessage||'' %></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Panel Live -->
+                    <div id="panel-live-<%= key %>" style="display:none;">
+                        <% if (!liveSupported) { %>
+                        <div style="font-size:.82rem;color:#ed4245;padding:.5rem .75rem;background:rgba(237,66,69,.08);border-radius:6px;margin-bottom:.75rem;">
+                            ⚠️ Install <code>tiktok-live-connector</code> untuk mengaktifkan fitur ini.
+                        </div>
+                        <% } %>
+                        <div class="form-group">
+                            <label class="toggle-label">
+                                <input type="checkbox" class="toggle-input" id="liveEnabled-<%= key %>"
+                                       <%= acc.liveEnabled?'checked':'' %>
+                                       <%= !liveSupported?'disabled':'' %>
+                                       onchange="updatePreview('<%= key %>')">
+                                <span class="toggle-slider"></span>
+                                <span>Aktifkan notifikasi Live</span>
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label class="label">Channel Discord</label>
+                            <select class="select" id="liveChannel-<%= key %>" <%= !liveSupported?'disabled':'' %> onchange="updatePreview('<%= key %>')">
+                                <option value="">— Pilih channel —</option>
+                                <% (locals.channels||[]).forEach(ch => { %>
+                                <option value="<%= ch.id %>" <%= acc.liveChannelId===ch.id?'selected':'' %>>#<%= ch.name %></option>
+                                <% }) %>
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin-bottom:0;">
+                            <div class="label-with-picker">
+                                <label class="label" style="margin-bottom:0;">Pesan kustom <span style="font-weight:400;color:var(--text-muted);">(opsional)</span></label>
+                                <% if (liveSupported) { %>
+                                <div class="ph-picker-anchor">
+                                    <button type="button" class="ph-toggle-btn" onclick="togglePicker('livePicker-<%= key %>',event)">{…} Placeholder</button>
+                                    <div class="ph-dropdown" id="livePicker-<%= key %>" style="display:none;"></div>
+                                </div>
+                                <% } %>
+                            </div>
+                            <textarea class="textarea" rows="3" id="liveMessage-<%= key %>"
+                                      style="font-size:.82rem;"
+                                      placeholder="🔴 {account} lagi LIVE di TikTok! {url}"
+                                      <%= !liveSupported?'disabled':'' %>
+                                      oninput="updatePreview('<%= key %>')"
+                            ><%= acc.liveMessage||'' %></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Tombol aksi -->
+                    <div style="display:flex;justify-content:flex-end;gap:.5rem;padding-top:.25rem;">
+                        <button class="btn btn-secondary" id="testBtn-<%= key %>" onclick="testNotif('<%= acc.username %>','<%= key %>')">
+                            <i data-lucide="send" style="width:14px;height:14px;"></i> Test Notif
+                        </button>
+                        <button class="btn btn-primary" onclick="saveAccount('<%= acc.username %>')">
+                            <i data-lucide="save" style="width:14px;height:14px;"></i> Simpan
+                        </button>
+                    </div>
+                    <div id="msg-<%= key %>" class="form-message" style="margin-top:.4rem;"></div>
+                </div>
+
+                <!-- Kanan: preview -->
+                <div class="tt-preview-col">
+                    <div class="preview-label">Preview</div>
+                    <div class="dc-window">
+                        <div class="dc-channel-bar">
+                            <span class="dc-channel-hash">#</span>
+                            <span id="prevCh-<%= key %>">pilih-channel</span>
+                        </div>
+                        <div class="dc-messages">
+                            <div class="dc-message">
+                                <img class="dc-avatar"
+                                     src="<%- botUser ? botUser.avatarUrl : 'https://cdn.discordapp.com/embed/avatars/0.png' %>"
+                                     alt="bot" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+                                <div class="dc-msg-body">
+                                    <span class="dc-username" style="color:<%- botUser ? botUser.roleColor : '#ffffff' %>">
+                                        <%= botUser ? botUser.username : 'Bot' %>
+                                    </span>
+                                    <span class="dc-timestamp">Hari ini pukul 12:00</span>
+
+                                    <!-- Video preview -->
+                                    <div id="prev-video-<%= key %>" class="dc-embed">
+                                        <div style="width:4px;flex-shrink:0;background:#010101;"></div>
+                                        <div class="dc-embed-inner">
+                                            <div class="dc-embed-title">🎵 <%= acc.name||acc.username %> — Video Baru!</div>
+                                            <div class="dc-embed-desc" id="prevVideoDesc-<%= key %>">
+                                                <strong><%= acc.name||acc.username %></strong> baru aja posting video baru di TikTok!<br>Jangan ketinggalan, tonton sekarang! 🎉
+                                            </div>
+                                            <div class="dc-embed-field">
+                                                <div class="dc-field-name">🎬 Judul</div>
+                                                <div class="dc-field-value" style="color:#dbdee1;">(judul video TikTok)</div>
+                                            </div>
+                                            <div class="dc-embed-field">
+                                                <div class="dc-field-name">🔗 Tonton di</div>
+                                                <div class="dc-field-value">Buka TikTok ▶</div>
+                                            </div>
+                                        </div>
+                                        <% if (acc.thumbnail) { %>
+                                        <img src="<%= acc.thumbnail %>" referrerpolicy="no-referrer"
+                                             style="width:48px;height:48px;border-radius:4px;object-fit:cover;flex-shrink:0;margin:.55rem .55rem .55rem 0;align-self:flex-start;"
+                                             onerror="this.style.display='none'">
+                                        <% } %>
+                                    </div>
+
+                                    <!-- Live preview -->
+                                    <div id="prev-live-<%= key %>" class="dc-embed" style="display:none;">
+                                        <div style="width:4px;flex-shrink:0;background:#FE2C55;"></div>
+                                        <div class="dc-embed-inner">
+                                            <div class="dc-embed-title" style="color:#FE2C55;">🔴 <%= acc.name||acc.username %> is Live Now!</div>
+                                            <div class="dc-embed-desc" id="prevLiveDesc-<%= key %>">
+                                                Hey, <strong><%= acc.name||acc.username %></strong> lagi <strong>LIVE</strong> di TikTok sekarang!<br>Yuk, join dan saksikan streamnya~ 🎉
+                                            </div>
+                                            <div class="dc-embed-field">
+                                                <div class="dc-field-name">🔗 Tonton Live</div>
+                                                <div class="dc-field-value">Join sekarang ▶</div>
+                                            </div>
+                                        </div>
+                                        <% if (acc.thumbnail) { %>
+                                        <img src="<%= acc.thumbnail %>" referrerpolicy="no-referrer"
+                                             style="width:48px;height:48px;border-radius:4px;object-fit:cover;flex-shrink:0;margin:.55rem .55rem .55rem 0;align-self:flex-start;"
+                                             onerror="this.style.display='none'">
+                                        <% } %>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div><!-- /tt-panel-layout -->
+        </div><!-- /tt-channel-card -->
+        <% }); %>
+        <% } %>
+        </div><!-- /ttAccountList -->
+
+
+    </div><!-- /dash-content-wide -->
+    </main>
+</div>
+
+<%- include('../partials/bottom-nav') %>
+
+<script>
+const GUILD_ID  = '<%= guild.id %>';
+const CHANNELS  = <%- JSON.stringify(Object.fromEntries((locals.channels||[]).map(ch=>[ch.id,ch.name]))) %>;
+
+// ── Lookup ────────────────────────────────────────────────────────────────────
+let _lookupData = null;
+
+async function lookupTikTok() {
+    const input  = document.getElementById('ttLookupInput').value.trim();
+    const btn    = document.getElementById('ttLookupBtn');
+    const resEl  = document.getElementById('ttLookupResult');
+    const errEl  = document.getElementById('ttLookupError');
+    if (!input) return;
+
+    btn.disabled = true;
+    btn.innerHTML = '<i data-lucide="loader" style="width:14px;height:14px;"></i> Mencari...';
+    lucide.createIcons();
+    resEl.style.display = 'none';
+    errEl.style.display = 'none';
+    _lookupData = null;
+
+    try {
+        const r    = await fetch(`/api/guild/${GUILD_ID}/tiktok/lookup`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ input }),
+        });
+        const data = await r.json();
+        if (!data.success) {
+            errEl.textContent = data.message;
+            errEl.style.display = 'block';
+            return;
+        }
+        _lookupData = data.account;
+        const thumb = document.getElementById('ttLookupThumb');
+        thumb.src = _lookupData.thumbnail || '';
+        thumb.style.display = _lookupData.thumbnail ? 'block' : 'none';
+        document.getElementById('ttLookupName').textContent     = _lookupData.name;
+        document.getElementById('ttLookupUsername').textContent = _lookupData.username;
+        resEl.style.display = 'block';
+    } catch (err) {
+        errEl.textContent = 'Error: ' + err.message;
+        errEl.style.display = 'block';
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="search" style="width:14px;height:14px;"></i> Cari';
+        lucide.createIcons();
+    }
+}
+
+async function addAccount() {
+    if (!_lookupData) return;
+    const r    = await fetch(`/api/guild/${GUILD_ID}/tiktok/accounts`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: _lookupData.username, name: _lookupData.name, thumbnail: _lookupData.thumbnail }),
+    });
+    const data = await r.json();
+    if (data.success) location.reload();
+    else alert(data.message);
+}
+
+// ── Tab switching ─────────────────────────────────────────────────────────────
+function switchTab(key, tab) {
+    const isVideo = tab === 'video';
+    document.getElementById(`tab-video-${key}`).className = isVideo ? 'tt-tab-btn active-video' : 'tt-tab-btn';
+    document.getElementById(`tab-live-${key}`).className  = isVideo ? 'tt-tab-btn' : 'tt-tab-btn active-live';
+    document.getElementById(`panel-video-${key}`).style.display = isVideo ? '' : 'none';
+    document.getElementById(`panel-live-${key}`).style.display  = isVideo ? 'none' : '';
+    document.getElementById(`prev-video-${key}`).style.display  = isVideo ? 'flex' : 'none';
+    document.getElementById(`prev-live-${key}`).style.display   = isVideo ? 'none' : 'flex';
+    // Update test button label
+    const testBtn = document.getElementById(`testBtn-${key}`);
+    if (testBtn) testBtn.dataset.tab = tab;
+    updatePreview(key);
+}
+
+// ── Update preview ────────────────────────────────────────────────────────────
+function updatePreview(key) {
+    const chanId  = document.getElementById(`vidChannel-${key}`)?.value || '';
+    document.getElementById(`prevCh-${key}`).textContent = chanId && CHANNELS[chanId] ? CHANNELS[chanId] : 'pilih-channel';
+
+    // Ambil nama akun dari header card
+    const accName = document.getElementById(`ttCard-${key}`)?.querySelector('.tt-card-name')?.textContent?.trim() || key;
+
+    const ph = s => s
+        .replace(/{account}/g,  accName)
+        .replace(/{username}/g, '@' + key)
+        .replace(/{title}/g,    '(judul video)')
+        .replace(/{url}/g,      'https://tiktok.com/...')
+        .replace(/{id}/g,       '0000000000');
+
+    // Video desc — jika kosong tampilkan default
+    const videoMsg   = (document.getElementById(`vidMessage-${key}`)?.value || '').trim();
+    const videoDescEl = document.getElementById(`prevVideoDesc-${key}`);
+    if (videoDescEl) {
+        if (videoMsg) {
+            videoDescEl.innerHTML = ph(videoMsg).replace(/\n/g, '<br>');
+        } else {
+            videoDescEl.innerHTML = `<strong>${accName}</strong> baru aja posting video baru di TikTok!<br>Jangan ketinggalan, tonton sekarang! 🎉`;
+        }
+    }
+
+    // Live desc — jika kosong tampilkan default
+    const liveMsg   = (document.getElementById(`liveMessage-${key}`)?.value || '').trim();
+    const liveDescEl = document.getElementById(`prevLiveDesc-${key}`);
+    if (liveDescEl) {
+        if (liveMsg) {
+            liveDescEl.innerHTML = ph(liveMsg).replace(/\n/g, '<br>');
+        } else {
+            liveDescEl.innerHTML = `Hey, <strong>${accName}</strong> lagi <strong>LIVE</strong> di TikTok sekarang!<br>Yuk, join dan saksikan streamnya~ 🎉`;
+        }
+    }
+}
+
+// ── Simpan ────────────────────────────────────────────────────────────────────
+async function saveAccount(username) {
+    const key   = username.replace('@','').replace(/\./g,'_');
+    const msgEl = document.getElementById(`msg-${key}`);
+
+    const videoEnabled   = document.getElementById(`vidEnabled-${key}`)?.checked  || false;
+    const videoChannelId = document.getElementById(`vidChannel-${key}`)?.value    || '';
+    const liveEnabled    = document.getElementById(`liveEnabled-${key}`)?.checked || false;
+    const liveChannelId  = document.getElementById(`liveChannel-${key}`)?.value   || '';
+
+    // Validasi client-side
+    if (videoEnabled && !videoChannelId) {
+        switchTab(key, 'video');
+        showMsg(msgEl, 'Notifikasi Video diaktifkan tapi channel Discord belum dipilih.', 'error');
+        document.getElementById(`vidChannel-${key}`)?.focus();
+        return;
+    }
+    if (liveEnabled && !liveChannelId) {
+        switchTab(key, 'live');
+        showMsg(msgEl, 'Notifikasi Live diaktifkan tapi channel Discord belum dipilih.', 'error');
+        document.getElementById(`liveChannel-${key}`)?.focus();
+        return;
+    }
+
+    const payload = {
+        videoEnabled,
+        videoChannelId,
+        videoMessage:  document.getElementById(`vidMessage-${key}`)?.value?.trim() || '',
+        liveEnabled,
+        liveChannelId,
+        liveMessage:   document.getElementById(`liveMessage-${key}`)?.value?.trim() || '',
+    };
+    const r    = await fetch(`/api/guild/${GUILD_ID}/tiktok/accounts/${encodeURIComponent(username)}`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+    });
+    const data = await r.json();
+    showMsg(msgEl, data.message, data.success ? 'success' : 'error');
+}
+
+// ── Test notif ────────────────────────────────────────────────────────────────
+async function testNotif(username, key) {
+    const msgEl = document.getElementById(`msg-${key}`);
+    const btn   = document.getElementById(`testBtn-${key}`);
+    const tab   = btn?.dataset.tab || 'video';
+    showMsg(msgEl, `Mengirim test ${tab}...`, 'info');
+    const r    = await fetch(`/api/guild/${GUILD_ID}/tiktok/accounts/${encodeURIComponent(username)}/test`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: tab }),
+    });
+    const data = await r.json();
+    showMsg(msgEl, data.message, data.success ? 'success' : 'error');
+}
+
+// ── Reset last video ──────────────────────────────────────────────────────────
+async function resetLastVideo(username) {
+    const key   = username.replace('@','').replace(/\./g,'_');
+    const msgEl = document.getElementById(`msg-${key}`);
+    const r     = await fetch(`/api/guild/${GUILD_ID}/tiktok/accounts/${encodeURIComponent(username)}/reset`, { method: 'POST' });
+    const data  = await r.json();
+    showMsg(msgEl, data.message, data.success ? 'success' : 'error');
+}
+
+// ── Hapus akun ────────────────────────────────────────────────────────────────
+async function removeAccount(username, name) {
+    if (!confirm(`Hapus akun "${name}"?`)) return;
+    const r    = await fetch(`/api/guild/${GUILD_ID}/tiktok/accounts/${encodeURIComponent(username)}`, { method: 'DELETE' });
+    const data = await r.json();
+    if (data.success) location.reload();
+    else alert(data.message);
+}
+
+// ── Force poll ────────────────────────────────────────────────────────────────
+async function forcePoll(btn) {
+    const orig = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i data-lucide="loader" style="width:14px;height:14px;"></i> Polling...';
+    if (window.lucide) lucide.createIcons();
+    try {
+        const r    = await fetch(`/api/guild/${GUILD_ID}/tiktok/force-poll`, { method: 'POST' });
+        const data = await r.json();
+        showMsg(null, data.message, data.success ? 'success' : 'error');
+        if (data.success) setTimeout(() => location.reload(), 1500);
+    } catch {
+        showMsg(null, 'Gagal terhubung ke server.', 'error');
+    } finally {
+        btn.disabled  = false;
+        btn.innerHTML = orig;
+        if (window.lucide) lucide.createIcons();
+    }
+}
+
+// ── Helper ────────────────────────────────────────────────────────────────────
+function showMsg(el, text, type) {
+    if (!el) return;
+    el.textContent = text;
+    el.className   = `form-message msg-${type}`;
+    setTimeout(() => { el.textContent = ''; el.className = 'form-message'; }, 4000);
+}
+
+// ── Placeholder picker ────────────────────────────────────────────────────────
+const PH_VIDEO = [
+    ['{account}',  'Nama akun'],
+    ['{username}', 'Username (@)'],
+    ['{title}',    'Judul video'],
+    ['{url}',      'Link video'],
+    ['{id}',       'ID video'],
+];
+const PH_LIVE = [
+    ['{account}',  'Nama akun'],
+    ['{username}', 'Username (@)'],
+    ['{url}',      'Link live'],
+];
+
+function buildPickers() {
+    document.querySelectorAll('[id^="vidPicker-"]').forEach(el => {
+        const key    = el.id.replace('vidPicker-','');
+        el.innerHTML = PH_VIDEO.map(([ph, desc]) =>
+            `<button type="button" class="ph-item" onclick="insertPh('vidMessage-${key}','${ph}')"><code>${ph}</code><span>${desc}</span></button>`
+        ).join('');
+    });
+    document.querySelectorAll('[id^="livePicker-"]').forEach(el => {
+        const key    = el.id.replace('livePicker-','');
+        el.innerHTML = PH_LIVE.map(([ph, desc]) =>
+            `<button type="button" class="ph-item" onclick="insertPh('liveMessage-${key}','${ph}')"><code>${ph}</code><span>${desc}</span></button>`
+        ).join('');
+    });
+}
+
+function togglePicker(id, event) {
+    if (event) event.stopPropagation();
+    const el        = document.getElementById(id);
+    const wasHidden = el.style.display === 'none';
+    document.querySelectorAll('.ph-dropdown').forEach(d => d.style.display = 'none');
+    if (wasHidden) el.style.display = 'grid';
+}
+document.addEventListener('click', () =>
+    document.querySelectorAll('.ph-dropdown').forEach(d => d.style.display = 'none')
+);
+
+function insertPh(targetId, ph) {
+    const el = document.getElementById(targetId);
+    if (!el) return;
+    const s = el.selectionStart ?? el.value.length;
+    el.value = el.value.substring(0, s) + ph + el.value.substring(s);
+    el.selectionStart = el.selectionEnd = s + ph.length;
+    el.focus();
+    el.dispatchEvent(new Event('input'));
+    document.querySelectorAll('.ph-dropdown').forEach(d => d.style.display = 'none');
+}
+
+// Init
+buildPickers();
+document.querySelectorAll('[id^="testBtn-"]').forEach(btn => btn.dataset.tab = 'video');
+document.getElementById('ttLookupInput')?.addEventListener('keydown', e => { if (e.key==='Enter') lookupTikTok(); });
+</script>
+
+<%- include('../partials/footer') %>

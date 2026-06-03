@@ -233,10 +233,10 @@ router.get('/:guildId/welcome', requireLogin, requireManageGuild, async (req, re
         const welcomeData = {
             enabled:           getDbBool(db, `welcome-enabled-${guildId}`,           false),
             channelId:         db?.get(`welcome-channel-${guildId}`)                 ?? '',
-            messageType:       db?.get(`welcome-messageType-${guildId}`)             ?? 'embed',
-            plainText:         db?.get(`welcome-plainText-${guildId}`)               ?? '',
-            title:             db?.get(`welcome-title-${guildId}`)                   ?? '',
-            description:       db?.get(`welcome-description-${guildId}`)             ?? '',
+            messageType:       db?.get(`welcome-messageType-${guildId}`)             ?? 'plain',
+            plainText:         db?.get(`welcome-plainText-${guildId}`)               ?? 'Halo {member}, selamat datang di **{server}**! 🎉 Kamu adalah member ke-**{count}**.',
+            title:             db?.get(`welcome-title-${guildId}`)                   ?? '👋 Selamat Datang di {server}!',
+            description:       db?.get(`welcome-description-${guildId}`)             ?? 'Halo {member}, senang kamu bergabung! 🎉\nKamu adalah member ke-**{count}**.',
             color:             db?.get(`welcome-color-${guildId}`)                   ?? '#5865F2',
             footerText:        db?.get(`welcome-footer-${guildId}`)                  ?? '',
             thumbnail:         getDbBool(db, `welcome-thumbnail-${guildId}`,          false),
@@ -341,10 +341,10 @@ router.get('/:guildId/goodbye', requireLogin, requireManageGuild, async (req, re
         const goodbyeData = {
             enabled:       getDbBool(db, `goodbye-enabled-${guildId}`,        false),
             channelId:     db?.get(`goodbye-channel-${guildId}`)              ?? '',
-            messageType:   db?.get(`goodbye-messageType-${guildId}`)          ?? 'embed',
-            plainText:     db?.get(`goodbye-plainText-${guildId}`)            ?? '',
-            title:         db?.get(`goodbye-title-${guildId}`)                ?? '',
-            description:   db?.get(`goodbye-description-${guildId}`)          ?? '',
+            messageType:   db?.get(`goodbye-messageType-${guildId}`)          ?? 'plain',
+            plainText:     db?.get(`goodbye-plainText-${guildId}`)            ?? 'Sampai jumpa, {member}! Terima kasih sudah bersama kami di **{server}**.',
+            title:         db?.get(`goodbye-title-${guildId}`)                ?? '👋 Selamat Tinggal!',
+            description:   db?.get(`goodbye-description-${guildId}`)          ?? '{member} telah meninggalkan server.',
             color:         db?.get(`goodbye-color-${guildId}`)                ?? '#ED4245',
             footerText:    db?.get(`goodbye-footer-${guildId}`)               ?? '',
             thumbnail:     getDbBool(db, `goodbye-thumbnail-${guildId}`,       false),
@@ -441,8 +441,8 @@ router.get('/:guildId/booster', requireLogin, requireManageGuild, async (req, re
         const boostData = {
             enabled:            getDbBool(db, `booster-boost-enabled-${guildId}`,          false),
             channelId:          db?.get(`booster-boost-channel-${guildId}`)                 ?? '',
-            messageType:        db?.get(`booster-boost-messageType-${guildId}`)             ?? 'embed',
-            plainText:          db?.get(`booster-boost-plainText-${guildId}`)               ?? '',
+            messageType:        db?.get(`booster-boost-messageType-${guildId}`)             ?? 'plain',
+            plainText:          db?.get(`booster-boost-plainText-${guildId}`)               ?? '🚀 {member} baru saja boost **{server}**! Total boost: **{boosts}**.',
             title:              db?.get(`booster-boost-title-${guildId}`)                   ?? '🚀 Server Boost Baru!',
             description:        db?.get(`booster-boost-desc-${guildId}`)                    ?? 'Terima kasih {member} sudah boost server ini! 💖\nTotal boost sekarang: **{boosts}**.',
             color:              db?.get(`booster-boost-color-${guildId}`)                   ?? '#FF73FA',
@@ -472,8 +472,8 @@ router.get('/:guildId/booster', requireLogin, requireManageGuild, async (req, re
         const unboostData = {
             enabled:            getDbBool(db, `booster-unboost-enabled-${guildId}`,         false),
             channelId:          db?.get(`booster-unboost-channel-${guildId}`)                ?? '',
-            messageType:        db?.get(`booster-unboost-messageType-${guildId}`)            ?? 'embed',
-            plainText:          db?.get(`booster-unboost-plainText-${guildId}`)              ?? '',
+            messageType:        db?.get(`booster-unboost-messageType-${guildId}`)            ?? 'plain',
+            plainText:          db?.get(`booster-unboost-plainText-${guildId}`)              ?? '💔 {member} telah berhenti boost **{server}**. Total boost: **{boosts}**.',
             title:              db?.get(`booster-unboost-title-${guildId}`)                  ?? '💔 Boost Berakhir',
             description:        db?.get(`booster-unboost-desc-${guildId}`)                   ?? '{member} telah mencabut boost-nya dari server.\nTotal boost sekarang: **{boosts}**.',
             color:              db?.get(`booster-unboost-color-${guildId}`)                  ?? '#ED4245',
@@ -483,7 +483,7 @@ router.get('/:guildId/booster', requireLogin, requireManageGuild, async (req, re
             showLevelServer:    getDbBool(db, `booster-unboost-showLevelServer-${guildId}`,  true),
             showThumbnail:      getDbBool(db, `booster-unboost-showThumbnail-${guildId}`,    true),
             cardEnabled:        getDbBool(db, `booster-unboost-cardEnabled-${guildId}`,      false),
-            cardWelcomeText:    db?.get(`booster-unboost-cardWelcomeText-${guildId}`)        ?? 'GOODBYE',
+            cardWelcomeText:    db?.get(`booster-unboost-cardWelcomeText-${guildId}`)        ?? 'UNBOOST',
             cardSubText:        db?.get(`booster-unboost-cardSubText-${guildId}`)            ?? 'Boost berakhir...',
             cardBgColor:        db?.get(`booster-unboost-cardBgColor-${guildId}`)            ?? '#1e0a0a',
             cardBgColor2:       db?.get(`booster-unboost-cardBgColor2-${guildId}`)           ?? '#2e0a0a',
@@ -906,6 +906,82 @@ router.get('/:guildId/ticket', requireLogin, requireManageGuild, async (req, res
         missingPerms: getMissingPerms(guild),
         activePage: 'ticket', hasSidebar: true
     });
+});
+
+// ── GET /dashboard/:guildId/tiktok ───────────────────────────────────────────
+router.get('/:guildId/tiktok', requireLogin, requireManageGuild, async (req, res) => {
+    try {
+        const db      = req.discordClient?.database;
+        const guildId = req.params.guildId;
+        const guild   = req.botGuild;
+
+        await _ensureChannels(guild);
+
+        let ttAccounts = [];
+        try { ttAccounts = JSON.parse(db?.get(`tiktok-accounts-${guildId}`) || '[]'); }
+        catch { ttAccounts = []; }
+
+        const lastVideoIds = {};
+        for (const acc of ttAccounts) {
+            lastVideoIds[acc.username] = db?.get(`tiktok-lastVideo-${guildId}-${acc.username}`) || null;
+        }
+
+        const channels = [...guild.channels.cache.values()]
+            .filter(c => c.type === 0 || c.type === 5 || c.type === 10 || c.type === 11 || c.type === 12)
+            .map(c => ({ id: c.id, name: c.name }))
+            .sort((a, b) => a.name.localeCompare(b.name));
+
+        const rsshubBase    = (process.env.RSSHUB_BASE_URL || 'https://rsshub.app').replace(/\/$/, '');
+        const liveSupported = !!(req.discordClient?.tiktokNotifier?.liveSupported);
+
+        const u = req.user || {};
+        let loginMember = null;
+        loginMember = await _getMember(guild, u.id);
+        const loginUser = {
+            username:    u.username || 'User',
+            displayName: loginMember?.displayName || u.username || 'User',
+            avatarUrl:   u.avatar
+                ? `https://cdn.discordapp.com/avatars/${u.id}/${u.avatar}.png?size=256`
+                : 'https://cdn.discordapp.com/embed/avatars/0.png',
+            roleColor: (loginMember?.displayHexColor && loginMember.displayHexColor !== '#000000')
+                ? loginMember.displayHexColor : '#ffffff',
+        };
+
+        const botClientUser = req.discordClient?.user;
+        let botMember = null;
+        if (botClientUser) botMember = await _getMember(guild, botClientUser.id);
+        const botUser = {
+            username:  botMember?.displayName || botClientUser?.username || 'Bot',
+            avatarUrl: botClientUser?.avatar
+                ? `https://cdn.discordapp.com/avatars/${botClientUser.id}/${botClientUser.avatar}.png?size=256`
+                : 'https://cdn.discordapp.com/embed/avatars/0.png',
+            roleColor: (botMember?.displayHexColor && botMember.displayHexColor !== '#000000')
+                ? botMember.displayHexColor : '#ffffff',
+        };
+
+        res.render('dashboard/tiktok', {
+            title: `TikTok Notifications — ${guild.name}`,
+            guild,
+            channels,
+            ttAccounts,
+            lastVideoIds,
+            rsshubBase,
+            liveSupported,
+            loginUser,
+            botUser,
+            maxAccounts: 10,
+            missingPerms: getMissingPerms(guild),
+            activePage: 'tiktok',
+            hasSidebar: true,
+        });
+    } catch (err) {
+        console.error('[dashboard/tiktok] Error:', err);
+        res.status(500).render('error', {
+            hasSidebar: false,
+            title: 'Server Error',
+            message: 'Gagal memuat halaman TikTok Notifications.',
+        });
+    }
 });
 
 // ── GET /dashboard/:guildId/youtube ──────────────────────────────────────────

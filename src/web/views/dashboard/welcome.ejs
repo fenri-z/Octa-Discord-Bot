@@ -41,12 +41,12 @@
                     <div style="display:flex;gap:.75rem;">
                         <label class="radio-label" style="display:flex;align-items:center;gap:.5rem;cursor:pointer;">
                             <input type="radio" name="welcomeMessageType" id="typeEmbed" value="embed"
-                                   <%= (welcomeData.messageType || 'embed') === 'embed' ? 'checked' : '' %>>
+                                   <%= (welcomeData.messageType || 'plain') === 'embed' ? 'checked' : '' %>>
                             <span>Embed</span>
                         </label>
                         <label class="radio-label" style="display:flex;align-items:center;gap:.5rem;cursor:pointer;">
                             <input type="radio" name="welcomeMessageType" id="typePlain" value="plain"
-                                   <%= welcomeData.messageType === 'plain' ? 'checked' : '' %>>
+                                   <%= (welcomeData.messageType || 'plain') === 'plain' ? 'checked' : '' %>>
                             <span>Teks Biasa</span>
                         </label>
                     </div>
@@ -1082,7 +1082,7 @@ document.querySelectorAll('input[name="welcomeMessageType"]').forEach(el =>
 function toggleCardPanel() {
     const en = document.getElementById('cardEnabled').checked;
     document.getElementById('cardPanel').style.display = en ? 'block' : 'none';
-    drawCardPreview();   // async, dipanggil tanpa await — _syncCardPlacement dipanggil di akhirnya
+    return drawCardPreview();
 }
 document.getElementById('cardEnabled').addEventListener('change', toggleCardPanel);
 
@@ -1300,11 +1300,10 @@ document.querySelectorAll('.field-toggle').forEach(el =>
     el.addEventListener('change', updatePreview)
 );
 
-// Render awal (card digambar dulu agar canvas siap saat updatePreview dipanggil)
-toggleCardPanel();
-toggleMessageTypePanel();
 buildPicker('embedPicker', 'embed');
 buildPicker('plainPicker', 'plain');
+// Gambar card selesai dulu sebelum updatePreview (cegah race condition canvas vs imgPlain)
+toggleCardPanel().then(() => toggleMessageTypePanel());
 // ── Save ───────────────────────────────────────────────────────────────────
 async function saveWelcome(guildId) {
     const msg = document.getElementById('welcomeMsg');

@@ -41,12 +41,12 @@
                     <div style="display:flex;gap:.75rem;">
                         <label class="radio-label" style="display:flex;align-items:center;gap:.5rem;cursor:pointer;">
                             <input type="radio" name="goodbyeMessageType" id="typeEmbed" value="embed"
-                                   <%= (goodbyeData.messageType || 'embed') === 'embed' ? 'checked' : '' %>>
+                                   <%= (goodbyeData.messageType || 'plain') === 'embed' ? 'checked' : '' %>>
                             <span>Embed</span>
                         </label>
                         <label class="radio-label" style="display:flex;align-items:center;gap:.5rem;cursor:pointer;">
                             <input type="radio" name="goodbyeMessageType" id="typePlain" value="plain"
-                                   <%= goodbyeData.messageType === 'plain' ? 'checked' : '' %>>
+                                   <%= (goodbyeData.messageType || 'plain') === 'plain' ? 'checked' : '' %>>
                             <span>Teks Biasa</span>
                         </label>
                     </div>
@@ -730,7 +730,7 @@ document.querySelectorAll('input[name="goodbyeMessageType"]').forEach(el => el.a
 function toggleCardPanel() {
     const en = document.getElementById('cardEnabled').checked;
     document.getElementById('cardPanel').style.display = en ? 'block' : 'none';
-    drawCardPreview();
+    return drawCardPreview();
 }
 document.getElementById('cardEnabled').addEventListener('change', toggleCardPanel);
 
@@ -895,11 +895,10 @@ function updatePreview() {
     });
 document.querySelectorAll('.field-toggle').forEach(el => el.addEventListener('change', updatePreview));
 
-// Render awal
-toggleCardPanel();
-toggleMessageTypePanel();
 buildPicker('embedPicker', 'embed');
 buildPicker('plainPicker', 'plain');
+// Gambar card selesai dulu sebelum updatePreview (cegah race condition canvas vs imgPlain)
+toggleCardPanel().then(() => toggleMessageTypePanel());
 
 // ── Save ──────────────────────────────────────────────────────────────────────
 async function saveGoodbye(guildId) {

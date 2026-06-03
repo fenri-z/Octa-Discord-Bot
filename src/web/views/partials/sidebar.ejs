@@ -46,7 +46,6 @@
         <a href="/dashboard/<%= guild.id %>/goodbye"              class="sidebar-sublink<%= activePage === 'goodbye'          ? ' active' : '' %>"><i data-lucide="log-out"></i> Goodbye Notification</a>
         <a href="/dashboard/<%= guild.id %>/booster?tab=boost"    class="sidebar-sublink" id="sidebarSubBoost"><i data-lucide="zap"></i> Boost Notification</a>
         <a href="/dashboard/<%= guild.id %>/booster?tab=unboost"  class="sidebar-sublink" id="sidebarSubUnboost"><i data-lucide="zap-off"></i> Unboost Notification</a>
-        <a href="/dashboard/<%= guild.id %>/youtube"              class="sidebar-sublink<%= activePage === 'youtube' ? ' active' : '' %>"><i data-lucide="youtube"></i> YouTube Notifications</a>
         <span class="sidebar-group-label">Auto Role</span>
         <a href="/dashboard/<%= guild.id %>/autorole?tab=join"    class="sidebar-sublink" id="sidebarSubJoin"><i data-lucide="users"></i> Autorole Join</a>
         <a href="/dashboard/<%= guild.id %>/autorole?tab=booster" class="sidebar-sublink" id="sidebarSubBooster"><i data-lucide="zap"></i> Autorole Booster</a>
@@ -57,6 +56,9 @@
         <a href="/dashboard/<%= guild.id %>/message-builder"      class="sidebar-sublink<%= activePage === 'message-builder'  ? ' active' : '' %>"><i data-lucide="mail"></i> Message Builder</a>
         <a href="/dashboard/<%= guild.id %>/serverstats"          class="sidebar-sublink<%= activePage === 'serverstats'      ? ' active' : '' %>"><i data-lucide="bar-chart-2"></i> Server Stats</a>
         <a href="/dashboard/<%= guild.id %>/invites"              class="sidebar-sublink<%= activePage === 'invites'          ? ' active' : '' %>"><i data-lucide="link"></i> Invite Links</a>
+        <span class="sidebar-group-label">Social Media</span>
+        <a href="/dashboard/<%= guild.id %>/youtube"              class="sidebar-sublink<%= activePage === 'youtube'  ? ' active' : '' %>"><i data-lucide="youtube"></i> Youtube Notification</a>
+        <a href="/dashboard/<%= guild.id %>/tiktok"               class="sidebar-sublink<%= activePage === 'tiktok'   ? ' active' : '' %>"><i data-lucide="music-2"></i> TikTok Notification</a>
     </nav>
 </aside>
 <script>
