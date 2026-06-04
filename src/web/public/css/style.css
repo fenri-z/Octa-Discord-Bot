@@ -21,13 +21,13 @@
     --shadow-md: 0 4px 20px rgba(0,0,0,.35);
 }
 
-html { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; height: 100%; }
 
 body {
     font-family: 'Inter', sans-serif;
     background: var(--bg);
     color: var(--text);
-    min-height: 100vh;
+    min-height: 100%;
     display: grid;
     grid-template-rows: var(--navbar-h) 1fr auto; /* navbar | konten | footer */
     -webkit-text-size-adjust: 100%;
@@ -78,10 +78,6 @@ code {
     font-size: .95rem; font-weight: 700;
     letter-spacing: .04em; text-transform: uppercase;
     color: var(--text);
-    background: linear-gradient(135deg, var(--text) 0%, #8b8fbd 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
     white-space: nowrap;
 }
 
@@ -195,7 +191,7 @@ code {
 .feature-card p  { font-size: .85rem; color: var(--text-muted); line-height: 1.5; }
 
 /* ── Page container (generic) ────────────────────────────────────────────── */
-.page-container { max-width: 1000px; margin: 0 auto; padding: 1.5rem 1.25rem; flex: 1; width: 100%; }
+.page-container { max-width: 1000px; margin: 0 auto; padding: 1.5rem 1.25rem; width: 100%; align-self: stretch; }
 .page-header    { margin-bottom: 1.75rem; }
 .page-header h1 { font-size: clamp(1.4rem, 5vw, 1.8rem); font-weight: 700; }
 .page-header p  { color: var(--text-muted); margin-top: .3rem; font-size: .9rem; }
@@ -242,8 +238,8 @@ code {
 }
 .hamburger-btn:hover { background: var(--bg3); }
 
-/* Tampilkan hamburger di ≤900px selalu */
-@media (max-width: 900px) {
+/* Tampilkan hamburger di ≤1024px selalu */
+@media (max-width: 1024px) {
     .hamburger-btn { display: flex; }
 }
 
@@ -251,7 +247,7 @@ code {
 .sidebar-overlay {
     display: none;
     position: fixed;
-    inset: 0;
+    top: var(--navbar-h); left: 0; right: 0; bottom: 0;
     background: rgba(0,0,0,.65);
     z-index: 299;
     opacity: 0;
@@ -272,7 +268,7 @@ code {
 .dash-layout {
     display: flex;
     width: 100%;
-    /* grid-area row-2 sudah menentukan tinggi via 1fr — tidak perlu min-height lagi */
+    min-height: calc(100vh - var(--navbar-h)); /* sidebar selalu penuh 1 viewport, footer tidak ditimpa */
 }
 
 /* ── Sidebar ─────────────────────────────────────────────────────────────── */
@@ -287,6 +283,7 @@ code {
     overflow-y: auto;
     scrollbar-width: none;
     box-shadow: 1px 0 0 rgba(255,255,255,.03) inset, 2px 0 12px rgba(0,0,0,.15);
+    z-index: 10; /* selalu di atas footer */
 }
 .sidebar::-webkit-scrollbar { display: none; }
 
@@ -419,20 +416,49 @@ code {
 /* Back button */
 .sidebar-back { margin-top: auto; text-align: center; }
 
-/* sidebar-bot-brand tersembunyi di desktop (hanya tampil di mobile via @media) */
-.sidebar-bot-brand { display: none; }
 
-/* Avatar bot di header sidebar mobile — ukuran & bentuk lingkaran dipaksa di base CSS
-   agar tidak tertimpa oleh rule global `img { max-width: 100%; }` */
-.sidebar-bot-avatar-img {
-    width: 36px !important;
-    height: 36px !important;
-    min-width: 36px;
-    border-radius: 50% !important;
+/* User profile di bawah sidebar */
+.sidebar-user {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    padding: .7rem .75rem;
+    border-top: 1px solid var(--border);
+    flex-shrink: 0;
+    margin: auto -.75rem -.75rem;
+    background: var(--bg2);
+}
+.sidebar-user-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
     object-fit: cover;
     flex-shrink: 0;
-    border: 2px solid rgba(255,255,255,.12);
 }
+.sidebar-user-name {
+    font-size: .82rem;
+    font-weight: 600;
+    color: var(--text);
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.sidebar-user-logout {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    transition: background .15s, color .15s;
+    flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
+}
+.sidebar-user-logout:hover { background: rgba(237,66,69,.15); color: var(--red); }
+.sidebar-user-logout svg { width: 14px; height: 14px; display: block; }
 
 /* ── Lucide icon global sizing ────────────────────────────────────────────── */
 .nav-dropdown-item svg { width: 15px; height: 15px; flex-shrink: 0; opacity: .75; }
@@ -464,6 +490,35 @@ code {
     background: var(--bg);
 }
 
+/* Footer di dalam dash-main: kompensasi padding agar span full width */
+.dash-main > .site-footer {
+    margin-left: -2rem;
+    margin-right: -2rem;
+    margin-bottom: -1.5rem;
+}
+
+/* Footer sederhana untuk halaman dashboard internal */
+.dash-simple-footer {
+    margin-top: 3rem;
+    margin-left: -2rem;
+    margin-right: -2rem;
+    margin-bottom: -1.5rem;
+    padding: 1rem 2rem;
+    text-align: center;
+    font-size: .78rem;
+    color: var(--text-muted);
+    background: var(--bg2);
+    border-top: 1px solid rgba(56, 58, 74, 0.7);
+    letter-spacing: .02em;
+}
+.dash-simple-footer a {
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 600;
+    transition: color .15s;
+}
+.dash-simple-footer a:hover { color: #7289da; text-decoration: underline; }
+
 /* ── Footer copyright ── */
 .dash-footer {
     padding: 1rem 1.5rem;
@@ -487,6 +542,7 @@ code {
     width: 100%;
     max-width: 860px;
     margin: 0 auto;
+    padding-bottom: 3rem;
 }
 
 /* Wide wrapper untuk halaman dengan 2 kolom (editor + preview) */
@@ -494,6 +550,7 @@ code {
     width: 100%;
     max-width: 1200px;
     margin: 0 auto;
+    padding-bottom: 3rem;
 }
 
 /* ── Stats grid ──────────────────────────────────────────────────────────── */
@@ -840,25 +897,52 @@ code {
 
 .empty-state { text-align: center; padding: 3rem 1rem; color: var(--text-muted); }
 
+/* ── Desktop: sidebar fixed di bawah navbar ─────────────────────────────── */
+@media (min-width: 1025px) {
+    body.has-sidebar .sidebar {
+        position: fixed;
+        top: var(--navbar-h);
+        left: 0;
+        height: calc(100vh - var(--navbar-h));
+        z-index: 150;
+        width: 232px;
+        padding-top: .5rem;
+    }
+
+    /* dash-layout kompensasi untuk fixed sidebar */
+    body.has-sidebar > .dash-layout {
+        margin-left: 232px;
+        width: calc(100% - 232px);
+        min-height: calc(100vh - var(--navbar-h));
+    }
+}
+
 /* ═══════════════════════════════════════════════════════════════════════════
    RESPONSIVE BREAKPOINTS
    ═══════════════════════════════════════════════════════════════════════════ */
 
-/* ── Tablet & Mobile (≤ 900px): sidebar jadi drawer ─────────────────────── */
-@media (max-width: 900px) {
-    /* Sembunyikan bot brand di navbar — pindah ke dalam sidebar */
-    .navbar-brand { display: none; }
+/* ── Tablet & Mobile (≤ 1024px): sidebar jadi drawer ─────────────────────── */
+@media (max-width: 1024px) {
+    /* Halaman tanpa sidebar: sembunyikan hamburger saja */
+    body:not(.has-sidebar) .hamburger-btn { display: none !important; }
 
-    /* Sidebar jadi drawer full-height (MEE6-style) */
+    /* Halaman dengan sidebar: brand di tengah navbar */
+    body.has-sidebar .navbar-brand {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        max-width: calc(100% - 130px); /* jaga jarak dari hamburger & user avatar */
+    }
+
+    /* Sidebar jadi drawer, mulai di bawah navbar */
     .sidebar {
         position: fixed;
-        top: 0; left: 0;
-        height: var(--sidebar-h, 100dvh);
+        top: var(--navbar-h); left: 0;
+        height: calc(var(--sidebar-h, 100dvh) - var(--navbar-h));
         width: 270px;
         z-index: 300;
         transform: translateX(-100%);
         transition: transform .28s cubic-bezier(.4,0,.2,1);
-        padding-top: 0;
         box-shadow: 4px 0 32px rgba(0,0,0,.6);
         overflow: hidden;
         display: flex;
@@ -867,42 +951,10 @@ code {
     }
     .sidebar.open { transform: translateX(0); }
 
-    /* Bot brand header — gaya MEE6: [←] [avatar] [nama] */
-    .sidebar-bot-brand {
-        display: flex;
-        align-items: center;
-        gap: .6rem;
-        padding: .9rem 1rem;
-        border-bottom: 1px solid var(--border);
-        flex-shrink: 0;
-        background: var(--bg2);
-    }
-    .sidebar-bot-close {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 30px; height: 30px;
-        background: none; border: none;
-        color: var(--text-muted);
-        cursor: pointer;
-        border-radius: 6px;
-        transition: background .15s, color .15s;
-        -webkit-tap-highlight-color: transparent;
-        flex-shrink: 0;
-        padding: 0;
-        margin-left: auto;
-    }
-    .sidebar-bot-close:hover { background: var(--bg3); color: var(--text); }
-    .sidebar-bot-close svg { width: 17px; height: 17px; display: block; }
-    .sidebar-bot-name-text {
-        font-size: .95rem;
-        font-weight: 700;
-        letter-spacing: .01em;
-        color: var(--text);
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        flex: 1; min-width: 0;
+    /* User profile di mobile drawer juga perlu reset margin */
+    .sidebar-user {
+        margin: auto 0 -.75rem;
+        padding: .7rem 1rem;
     }
 
     /* Guild selector tidak ikut scroll */
@@ -929,6 +981,14 @@ code {
     .dash-main { padding: 1.5rem 1.25rem 1.25rem; }
     .dash-content,
     .dash-content-wide { max-width: 100%; }
+
+    /* Kompensasi padding dash-main di tablet */
+    .dash-main > .site-footer,
+    .dash-simple-footer {
+        margin-left: -1.25rem;
+        margin-right: -1.25rem;
+        margin-bottom: -1.25rem;
+    }
 }
 
 /* ── Mobile (≤ 680px) ────────────────────────────────────────────────────── */
@@ -936,6 +996,8 @@ code {
 
     /* Konten dashboard penuh tanpa sidebar */
     .dash-main   { padding: 1rem; }
+    .dash-main > .site-footer,
+    .dash-simple-footer { margin-left: -1rem; margin-right: -1rem; margin-bottom: -1rem; }
 
     /* Stats jadi 2 kolom */
     .stats-grid { grid-template-columns: 1fr 1fr; }
@@ -988,8 +1050,8 @@ code {
     .shortcut-card { padding: 1.1rem; min-height: 80px; }
 }
 
-/* ── Tablet (≤ 900px) touch improvements ─────────────────────────────────── */
-@media (max-width: 900px) and (pointer: coarse) {
+/* ── Tablet (≤ 1024px) touch improvements ─────────────────────────────────── */
+@media (max-width: 1024px) and (pointer: coarse) {
     /* Perangkat layar sentuh: perbesar semua touch target */
     .btn { min-height: 44px; }
     .sidebar-link { min-height: 44px; }

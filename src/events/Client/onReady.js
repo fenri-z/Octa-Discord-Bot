@@ -125,6 +125,26 @@ module.exports = new Event({
         success('Bot siap digunakan!');
 
         client.user.setPresence({ status: 'online', activities: [{ name: '/help', type: 4 }] });
+
+        // ── Giveaway Manager ──────────────────────────────────────────────
+        try {
+            const GiveawayManager        = require('../../utils/GiveawayManager');
+            const giveawayManager        = new GiveawayManager(client);
+            client.giveawayManager       = giveawayManager;
+            await giveawayManager.start();
+        } catch (err) {
+            warn(`[Giveaway] Gagal memulai GiveawayManager: ${err.message}`);
+        }
+
+        // ── Twitch EventSub Notifier ───────────────────────────────────────
+        try {
+            const TwitchNotifier        = require('../../utils/TwitchNotifier');
+            const twitchNotifier        = new TwitchNotifier(client);
+            client.twitchNotifier       = twitchNotifier;
+            await twitchNotifier.start();
+        } catch (err) {
+            warn(`[Twitch] Gagal memulai TwitchNotifier: ${err.message}`);
+        }
     }
 }).toJSON();
 

@@ -1,0 +1,194 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+<style>
+.legal-wrap {
+    max-width: 860px; margin: 0 auto;
+    padding: 3.5rem 1.5rem 5rem;
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 2.5rem;
+    align-items: start;
+}
+.legal-toc {
+    position: sticky; top: calc(var(--navbar-h, 56px) + 1.5rem);
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1.1rem;
+}
+.legal-toc-title {
+    font-size: .7rem; font-weight: 800; text-transform: uppercase;
+    letter-spacing: .09em; color: var(--text-muted); margin-bottom: .75rem;
+}
+.legal-toc a {
+    display: block; font-size: .8rem; color: var(--text-muted);
+    text-decoration: none; padding: .3rem .4rem; border-radius: 5px;
+    transition: background .15s, color .15s; line-height: 1.4;
+}
+.legal-toc a:hover { background: rgba(255,255,255,.05); color: var(--text); }
+.legal-toc a.active { background: rgba(240,160,50,.1); color: #F0A032; }
+.legal-content { min-width: 0; }
+.legal-header   { margin-bottom: 2rem; padding-bottom: 1.25rem; border-bottom: 1px solid var(--border); }
+.legal-header h1 { font-size: 1.75rem; font-weight: 800; margin-bottom: .4rem; }
+.legal-meta { font-size: .8rem; color: var(--text-muted); }
+.legal-meta span { color: #F0A032; }
+.legal-section { margin-bottom: 2.5rem; }
+.legal-section h2 {
+    font-size: 1.05rem; font-weight: 700;
+    color: var(--text); margin-bottom: .85rem;
+    padding-bottom: .5rem; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: .6rem;
+}
+.legal-section h2 .sec-num {
+    width: 24px; height: 24px; border-radius: 6px; flex-shrink: 0;
+    background: rgba(240,160,50,.15); color: #F0A032;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .72rem; font-weight: 800;
+}
+.legal-section p  { font-size: .875rem; color: var(--text-muted); line-height: 1.8; margin-bottom: .75rem; }
+.legal-section ul { padding-left: 1.25rem; margin-bottom: .75rem; }
+.legal-section ul li { font-size: .875rem; color: var(--text-muted); line-height: 1.8; margin-bottom: .2rem; }
+.legal-section a  { color: var(--accent); text-decoration: none; }
+.legal-section a:hover { text-decoration: underline; }
+.legal-notice {
+    background: rgba(240,160,50,.07); border: 1px solid rgba(240,160,50,.2);
+    border-radius: 8px; padding: .85rem 1rem;
+    font-size: .82rem; color: var(--text-muted); line-height: 1.65;
+    margin-bottom: 2rem;
+}
+@media (max-width: 700px) {
+    .legal-wrap { grid-template-columns: 1fr; padding: 2rem 1rem 4rem; gap: 1.5rem; }
+    .legal-toc   { position: static; }
+}
+</style>
+
+<div class="legal-wrap">
+    <aside class="legal-toc">
+        <div class="legal-toc-title">Daftar Isi</div>
+        <a href="#s1">1. Penerimaan Syarat</a>
+        <a href="#s2">2. Penggunaan Bot</a>
+        <a href="#s3">3. Kewajiban Pengguna</a>
+        <a href="#s4">4. Larangan</a>
+        <a href="#s5">5. Penangguhan Layanan</a>
+        <a href="#s6">6. Batasan Tanggung Jawab</a>
+        <a href="#s7">7. Kekayaan Intelektual</a>
+        <a href="#s8">8. Perubahan Syarat</a>
+        <a href="#s9">9. Kontak</a>
+    </aside>
+
+    <main class="legal-content">
+        <div class="legal-header">
+            <h1>Terms of Service</h1>
+            <div class="legal-meta">
+                Terakhir diperbarui: <span>1 Juni 2026</span> &nbsp;·&nbsp;
+                Berlaku untuk: <span><%- locals.botNavName || 'Bot' %></span>
+            </div>
+        </div>
+
+        <div class="legal-notice">
+            ⚠️ Harap baca syarat layanan ini dengan seksama sebelum menggunakan bot. Dengan menambahkan bot ke server Discord kamu, kamu dianggap telah membaca dan menyetujui seluruh ketentuan berikut.
+        </div>
+
+        <div class="legal-section" id="s1">
+            <h2><span class="sec-num">1</span> Penerimaan Syarat</h2>
+            <p>Dengan mengundang, menggunakan, atau mengakses <%- locals.botNavName || 'bot' %> ("Layanan"), kamu menyetujui untuk terikat oleh Syarat Layanan ini. Jika kamu tidak menyetujui syarat ini, kamu tidak diizinkan menggunakan Layanan.</p>
+            <p>Syarat ini berlaku untuk semua pengguna, termasuk administrator server, moderator, dan member biasa yang berinteraksi dengan bot.</p>
+        </div>
+
+        <div class="legal-section" id="s2">
+            <h2><span class="sec-num">2</span> Penggunaan Bot</h2>
+            <p><%- locals.botNavName || 'Bot' %> menyediakan layanan berikut secara gratis:</p>
+            <ul>
+                <li>Notifikasi otomatis YouTube, TikTok, dan Twitch</li>
+                <li>Sistem welcome & goodbye, autorole, boost notification</li>
+                <li>Sistem tiket, giveaway, server stats</li>
+                <li>Dashboard web untuk konfigurasi server</li>
+            </ul>
+            <p>Kami berhak mengubah, membatasi, atau menghentikan fitur tertentu kapan saja tanpa pemberitahuan sebelumnya.</p>
+        </div>
+
+        <div class="legal-section" id="s3">
+            <h2><span class="sec-num">3</span> Kewajiban Pengguna</h2>
+            <p>Sebagai pengguna Layanan, kamu bertanggung jawab untuk:</p>
+            <ul>
+                <li>Memastikan penggunaan bot mematuhi <a href="https://discord.com/terms" target="_blank">Syarat Layanan Discord</a></li>
+                <li>Tidak menggunakan bot untuk aktivitas ilegal atau berbahaya</li>
+                <li>Menjaga keamanan akun Discord yang digunakan untuk mengakses dashboard</li>
+                <li>Memastikan izin bot yang diberikan sesuai dengan kebutuhan aktual</li>
+            </ul>
+        </div>
+
+        <div class="legal-section" id="s4">
+            <h2><span class="sec-num">4</span> Larangan</h2>
+            <p>Pengguna dilarang menggunakan Layanan untuk:</p>
+            <ul>
+                <li>Mengirim spam, flood, atau konten yang melanggar hukum</li>
+                <li>Melakukan reverse engineering, decompile, atau eksploitasi terhadap bot</li>
+                <li>Menyalahgunakan fitur giveaway untuk keuntungan yang tidak wajar</li>
+                <li>Mencoba mengakses data server lain yang bukan milikmu</li>
+                <li>Menggunakan bot untuk ujaran kebencian, harassment, atau konten NSFW</li>
+            </ul>
+        </div>
+
+        <div class="legal-section" id="s5">
+            <h2><span class="sec-num">5</span> Penangguhan Layanan</h2>
+            <p>Kami berhak menangguhkan atau memblokir akses Layanan kepada server atau pengguna yang:</p>
+            <ul>
+                <li>Melanggar syarat layanan ini</li>
+                <li>Melanggar Syarat Layanan Discord</li>
+                <li>Menyalahgunakan Layanan secara berulang</li>
+            </ul>
+            <p>Penangguhan dapat dilakukan tanpa pemberitahuan sebelumnya pada kasus pelanggaran serius.</p>
+        </div>
+
+        <div class="legal-section" id="s6">
+            <h2><span class="sec-num">6</span> Batasan Tanggung Jawab</h2>
+            <p>Layanan disediakan "sebagaimana adanya" tanpa jaminan apapun. Kami tidak bertanggung jawab atas:</p>
+            <ul>
+                <li>Kehilangan data akibat gangguan teknis atau pembaruan bot</li>
+                <li>Kerusakan tidak langsung akibat penggunaan atau ketidakmampuan menggunakan Layanan</li>
+                <li>Konten yang dibuat atau dikirim oleh pengguna melalui fitur bot</li>
+                <li>Downtime atau gangguan layanan pihak ketiga (Discord, YouTube, Twitch, dll.)</li>
+            </ul>
+        </div>
+
+        <div class="legal-section" id="s7">
+            <h2><span class="sec-num">7</span> Kekayaan Intelektual</h2>
+            <p>Seluruh kode, desain, dan konten <%- locals.botNavName || 'bot' %> adalah milik pengembang. Kamu tidak diizinkan untuk:</p>
+            <ul>
+                <li>Mendistribusikan ulang atau menjual kode bot tanpa izin tertulis</li>
+                <li>Mengklaim bot atau dashboard sebagai karya sendiri</li>
+            </ul>
+            <p>Penggunaan pribadi dan non-komersial diizinkan selama mematuhi ketentuan ini.</p>
+        </div>
+
+        <div class="legal-section" id="s8">
+            <h2><span class="sec-num">8</span> Perubahan Syarat</h2>
+            <p>Kami berhak memperbarui Syarat Layanan ini kapan saja. Perubahan signifikan akan diumumkan melalui support server. Melanjutkan penggunaan Layanan setelah perubahan berarti kamu menerima syarat yang baru.</p>
+        </div>
+
+        <div class="legal-section" id="s9">
+            <h2><span class="sec-num">9</span> Kontak</h2>
+            <p>Pertanyaan terkait syarat layanan ini dapat disampaikan melalui:</p>
+            <ul>
+                <li><strong>Support Server Discord</strong> — <a href="#">Bergabung di sini</a></li>
+                <li><strong>GitHub Issues</strong> — <a href="#">Buka issue baru</a></li>
+            </ul>
+        </div>
+    </main>
+</div>
+
+<script>
+const sections = document.querySelectorAll('.legal-section');
+const tocLinks  = document.querySelectorAll('.legal-toc a');
+const observer  = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+        if (e.isIntersecting) {
+            tocLinks.forEach(a => a.classList.remove('active'));
+            const active = document.querySelector(`.legal-toc a[href="#${e.target.id}"]`);
+            if (active) active.classList.add('active');
+        }
+    });
+}, { rootMargin: '-20% 0px -70% 0px' });
+sections.forEach(s => observer.observe(s));
+</script>
+
+<%- include('../partials/footer') %>

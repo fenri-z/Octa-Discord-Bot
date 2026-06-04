@@ -174,6 +174,23 @@ function getDbBool(db, key, defaultVal = false) {
     return true;
 }
 
+// GET /dashboard/refresh — re-fetch daftar guild dari Discord API
+router.get('/refresh', requireLogin, async (req, res) => {
+    const token = req.user?._accessToken;
+    if (!token) return res.redirect('/dashboard');
+    try {
+        const resp = await fetch('https://discord.com/api/v10/users/@me/guilds', {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        if (resp.ok) {
+            const guilds = await resp.json();
+            req.user.guilds = guilds;
+            await new Promise((resolve) => req.session.save(resolve));
+        }
+    } catch (_) { /* abaikan error, tetap redirect */ }
+    res.redirect('/dashboard');
+});
+
 // GET /dashboard
 router.get('/', requireLogin, (req, res) => {
     const userGuilds   = req.user?.guilds || [];
@@ -183,16 +200,19 @@ router.get('/', requireLogin, (req, res) => {
         (parseInt(g.permissions) & MANAGE_GUILD) !== 0 || g.owner
     );
 
-    const guildsWithStatus = manageableGuilds.map(g => ({
-        ...g,
-        botPresent: !!req.discordClient?.guilds.cache.get(g.id),
-        iconURL: g.icon
-            ? `https://cdn.discordapp.com/icons/${g.id}/${g.icon}.png`
-            : null
-    }));
+    const guildsWithStatus = manageableGuilds.map(g => {
+        const botGuild = req.discordClient?.guilds.cache.get(g.id);
+        return {
+            ...g,
+            botPresent:  !!botGuild,
+            iconURL:     g.icon  ? `https://cdn.discordapp.com/icons/${g.id}/${g.icon}.png?size=256`   : null,
+            bannerURL:   g.banner ? `https://cdn.discordapp.com/banners/${g.id}/${g.banner}.png?size=480` : null,
+            memberCount: botGuild?.memberCount ?? null,
+        };
+    });
 
     res.render('dashboard/servers', {
-        title: 'Pilih Server',
+        title: 'Dashboard',
         guilds: guildsWithStatus,
         hasSidebar: false
     });
@@ -308,7 +328,7 @@ router.get('/:guildId/welcome', requireLogin, requireManageGuild, async (req, re
         };
 
         res.render('dashboard/welcome', {
-            title: `Welcome — ${guild.name}`,
+            title: 'Welcome Notification',
             guild,
             channels,
             roles,
@@ -409,7 +429,7 @@ router.get('/:guildId/goodbye', requireLogin, requireManageGuild, async (req, re
         };
 
         res.render('dashboard/goodbye', {
-            title: `Goodbye — ${guild.name}`,
+            title: 'Goodbye Notification',
             guild,
             channels,
             roles,
@@ -531,8 +551,9 @@ router.get('/:guildId/booster', requireLogin, requireManageGuild, async (req, re
                 ? botMember.displayHexColor : '#ffffff',
         };
 
+        const boosterTab   = req.query.tab === 'unboost' ? 'Unboost Notification' : 'Boost Notification';
         res.render('dashboard/booster', {
-            title: `Booster — ${guild.name}`,
+            title: boosterTab,
             guild,
             channels,
             missingPerms: getMissingPerms(guild),
@@ -648,8 +669,9 @@ router.get('/:guildId/autorole', requireLogin, requireManageGuild, async (req, r
         .map(c => ({ id: c.id, name: c.name }))
         .sort((a, b) => a.name.localeCompare(b.name));
 
+    const autoroleTabTitles = { join: 'Autorole Join', booster: 'Autorole Booster', button: 'Autorole Button', reaction: 'Autorole Reaction' };
     res.render('dashboard/autorole', {
-        title: `Auto Role — ${guild.name}`,
+        title: autoroleTabTitles[req.query.tab] || 'Auto Role',
         guild,
         roles,
         channels,
@@ -729,7 +751,7 @@ router.get('/:guildId/message-builder', requireLogin, requireManageGuild, async 
         };
 
         res.render('dashboard/message-builder', {
-            title: `Message Builder — ${guild.name}`,
+            title: 'Message Builder',
             guild,
             channels,
             roles,
@@ -769,7 +791,7 @@ router.get('/:guildId/invites', requireLogin, requireManageGuild, async (req, re
         const uniqueInviters = new Set(invites.map(inv => inv.inviterId).filter(Boolean)).size;
 
         res.render('dashboard/invites', {
-            title: `Invite Links — ${guild.name}`,
+            title: 'Invite Links',
             guild,
             invites,
             totalUses,
@@ -810,7 +832,7 @@ router.get('/:guildId/serverstats', requireLogin, requireManageGuild, async (req
         const catCh   = cfg.categoryId ? guild.channels.cache.get(cfg.categoryId) : null;
 
         res.render('dashboard/serverstats', {
-            title: `Server Stats — ${guild.name}`,
+            title: 'Server Stats',
             guild,
             serverstatsData: cfg,
             missingPerms: getMissingPerms(guild),
@@ -901,7 +923,7 @@ router.get('/:guildId/ticket', requireLogin, requireManageGuild, async (req, res
         .sort((a, b) => a.name.localeCompare(b.name));
 
     res.render('dashboard/ticket', {
-        title: `Ticket — ${guild.name}`,
+        title: 'Ticket',
         guild, roles, channels, categories, ticketData, openTickets,
         missingPerms: getMissingPerms(guild),
         activePage: 'ticket', hasSidebar: true
@@ -960,7 +982,7 @@ router.get('/:guildId/tiktok', requireLogin, requireManageGuild, async (req, res
         };
 
         res.render('dashboard/tiktok', {
-            title: `TikTok Notifications — ${guild.name}`,
+            title: 'TikTok Notification',
             guild,
             channels,
             ttAccounts,
@@ -979,7 +1001,102 @@ router.get('/:guildId/tiktok', requireLogin, requireManageGuild, async (req, res
         res.status(500).render('error', {
             hasSidebar: false,
             title: 'Server Error',
-            message: 'Gagal memuat halaman TikTok Notifications.',
+            message: 'Gagal memuat halaman TikTok Notification.',
+        });
+    }
+});
+
+// ── GET /dashboard/:guildId/giveaway ─────────────────────────────────────────
+router.get('/:guildId/giveaway', requireLogin, requireManageGuild, async (req, res) => {
+    try {
+        const guildId = req.params.guildId;
+        const guild   = req.botGuild;
+
+        await _ensureChannels(guild);
+        await _ensureRoles(guild);
+
+        const channels = [...guild.channels.cache.values()]
+            .filter(c => c.type === 0 || c.type === 5 || c.type === 10 || c.type === 11 || c.type === 12)
+            .map(c => ({ id: c.id, name: c.name }))
+            .sort((a, b) => a.name.localeCompare(b.name));
+
+        const botRolePosition = guild.members.me?.roles.highest.position || 0;
+        const roles = [...guild.roles.cache.values()]
+            .filter(r => r.id !== guild.id && r.position < botRolePosition)
+            .map(r => ({ id: r.id, name: r.name, color: r.hexColor === '#000000' ? '#99aab5' : r.hexColor }))
+            .sort((a, b) => a.name.localeCompare(b.name));
+
+        const manager   = req.discordClient?.giveawayManager;
+        const giveaways = manager ? manager.getAll(guildId) : [];
+
+        res.render('dashboard/giveaway', {
+            title: 'Giveaway',
+            guild, channels, roles, giveaways,
+            missingPerms: getMissingPerms(guild),
+            activePage: 'giveaway',
+            hasSidebar: true,
+        });
+    } catch (err) {
+        console.error('[dashboard/giveaway] Error:', err);
+        res.status(500).render('error', {
+            hasSidebar: false,
+            title: 'Server Error',
+            message: 'Gagal memuat halaman Giveaway.',
+        });
+    }
+});
+
+// ── GET /dashboard/:guildId/twitch ───────────────────────────────────────────
+router.get('/:guildId/twitch', requireLogin, requireManageGuild, async (req, res) => {
+    try {
+        const db      = req.discordClient?.database;
+        const guildId = req.params.guildId;
+        const guild   = req.botGuild;
+
+        await _ensureChannels(guild);
+
+        let twAccounts = [];
+        try { twAccounts = JSON.parse(db?.get(`twitch-accounts-${guildId}`) || '[]'); }
+        catch { twAccounts = []; }
+
+        const channels = [...guild.channels.cache.values()]
+            .filter(c => c.type === 0 || c.type === 5 || c.type === 10 || c.type === 11 || c.type === 12)
+            .map(c => ({ id: c.id, name: c.name }))
+            .sort((a, b) => a.name.localeCompare(b.name));
+
+        const notifier     = req.discordClient?.twitchNotifier;
+        const isConfigured = true; // polling GQL — tidak butuh credentials
+
+        const botClientUser = req.discordClient?.user;
+        let botMember = null;
+        if (botClientUser) botMember = await _getMember(guild, botClientUser.id);
+        const botUser = {
+            username:  botMember?.displayName || botClientUser?.username || 'Bot',
+            avatarUrl: botClientUser?.avatar
+                ? `https://cdn.discordapp.com/avatars/${botClientUser.id}/${botClientUser.avatar}.png?size=256`
+                : 'https://cdn.discordapp.com/embed/avatars/0.png',
+            roleColor: (botMember?.displayHexColor && botMember.displayHexColor !== '#000000')
+                ? botMember.displayHexColor : '#ffffff',
+        };
+
+        res.render('dashboard/twitch', {
+            title: 'Twitch Notification',
+            guild,
+            channels,
+            twAccounts,
+            isConfigured,
+            maxAccounts: 10,
+            missingPerms: getMissingPerms(guild),
+            botUser,
+            activePage: 'twitch',
+            hasSidebar: true,
+        });
+    } catch (err) {
+        console.error('[dashboard/twitch] Error:', err);
+        res.status(500).render('error', {
+            hasSidebar: false,
+            title: 'Server Error',
+            message: 'Gagal memuat halaman Twitch Notification.',
         });
     }
 });
@@ -1014,7 +1131,7 @@ router.get('/:guildId/youtube', requireLogin, requireManageGuild, async (req, re
         }
 
         res.render('dashboard/youtube', {
-            title: `YouTube Notifications — ${guild.name}`,
+            title: 'YouTube Notification',
             guild,
             channels,
             ytChannels,
@@ -1031,7 +1148,7 @@ router.get('/:guildId/youtube', requireLogin, requireManageGuild, async (req, re
         res.status(500).render('error', {
             hasSidebar: false,
             title: 'Server Error',
-            message: 'Gagal memuat halaman YouTube Notifications.'
+            message: 'Gagal memuat halaman YouTube Notification.'
         });
     }
 });

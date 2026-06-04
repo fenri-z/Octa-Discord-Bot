@@ -67,7 +67,7 @@ passport.use(new DiscordStrategy({
     callbackURL:  process.env.CALLBACK_URL || 'http://localhost:3000/auth/callback',
     scope:        ['identify', 'guilds']
 }, (accessToken, refreshToken, profile, done) => {
-    return done(null, profile);
+    return done(null, { ...profile, _accessToken: accessToken });
 }));
 
 passport.serializeUser((user, done)   => done(null, user));
@@ -106,7 +106,82 @@ app.use('/webhook',   webhookRoutes);
 app.get('/', (req, res) => {
     if (req.isAuthenticated()) return res.redirect('/dashboard');
     const botName = discordClient?.user?.username || 'OCTA BOT';
-    res.render('index', { title: botName, botName, hasSidebar: false });
+    res.render('index', { title: 'Home', botName, hasSidebar: false });
+});
+
+app.get('/privacy-policy', (req, res) => {
+    res.render('pages/privacy-policy', { title: 'Privacy Policy', hasSidebar: false });
+});
+
+app.get('/terms-of-service', (req, res) => {
+    res.render('pages/terms-of-service', { title: 'Terms of Service', hasSidebar: false });
+});
+
+app.get('/commands', (req, res) => {
+    res.render('pages/commands', { title: 'Commands', hasSidebar: false });
+});
+
+app.get('/report-bug', (req, res) => {
+    const u = req.user || null;
+    res.render('pages/report-bug', {
+        title: 'Report Bug', hasSidebar: false,
+        reportUser: u ? { username: u.username, id: u.id } : null,
+    });
+});
+
+app.post('/report-bug', async (req, res) => {
+    const webhookUrl = process.env.REPORT_WEBHOOK_URL;
+    if (!webhookUrl) {
+        return res.json({ success: false, message: 'Webhook belum dikonfigurasi.' });
+    }
+
+    const { firstName, lastName, discordUsername, discordId, message, hasImage } = req.body;
+
+    if (!firstName || !lastName || !discordUsername || !discordId || !message) {
+        return res.json({ success: false, message: 'Semua field wajib diisi.' });
+    }
+
+    const embed = {
+        title: '🐛 Bug Report Baru',
+        color: 0xED4245,
+        fields: [
+            { name: '👤 Nama',             value: `${firstName} ${lastName}`,    inline: true  },
+            { name: '🏷️ Discord',          value: `${discordUsername}`,           inline: true  },
+            { name: '🆔 Discord ID',        value: `\`${discordId}\``,            inline: true  },
+            { name: '📝 Pesan',             value: message.slice(0, 1024),        inline: false },
+        ],
+        footer: { text: hasImage === 'true' ? '📎 User melampirkan gambar (tidak dapat ditampilkan)' : '' },
+        timestamp: new Date().toISOString(),
+    };
+
+    try {
+        const botUser   = discordClient?.user;
+        const payload   = {
+            username:   botUser?.username  || 'Bug Report',
+            avatar_url: botUser?.avatar
+                ? `https://cdn.discordapp.com/avatars/${botUser.id}/${botUser.avatar}.png`
+                : undefined,
+            embeds: [embed],
+        };
+
+        const r = await fetch(webhookUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+            signal: AbortSignal.timeout(8_000),
+        });
+
+        if (!r.ok) {
+            const err = await r.text();
+            console.error('[Report Bug] Webhook error:', r.status, err);
+            return res.json({ success: false, message: 'Gagal mengirim laporan. Coba lagi nanti.' });
+        }
+
+        res.json({ success: true, message: 'Laporan berhasil dikirim! Terima kasih.' });
+    } catch (err) {
+        console.error('[Report Bug] Error:', err.message);
+        res.json({ success: false, message: 'Gagal terhubung ke server. Coba lagi nanti.' });
+    }
 });
 
 app.use((req, res) => {

@@ -122,7 +122,7 @@ function closeSidebar() {
     if (btn) { btn.innerHTML = '<i data-lucide="menu"></i>'; if (window.lucide) lucide.createIcons(); }
     _unlockBodyScroll();
 }
-window.addEventListener('resize', () => { if (window.innerWidth > 900) closeSidebar(); });
+window.addEventListener('resize', () => { if (window.innerWidth > 1024) closeSidebar(); });
 
 /* ── Server selector dropdown ── */
 function toggleServerSelector() {

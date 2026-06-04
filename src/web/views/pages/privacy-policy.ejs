@@ -1,0 +1,196 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+<style>
+.legal-wrap {
+    max-width: 860px; margin: 0 auto;
+    padding: 3.5rem 1.5rem 5rem;
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 2.5rem;
+    align-items: start;
+}
+/* TOC sticky */
+.legal-toc {
+    position: sticky; top: calc(var(--navbar-h, 56px) + 1.5rem);
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1.1rem;
+}
+.legal-toc-title {
+    font-size: .7rem; font-weight: 800; text-transform: uppercase;
+    letter-spacing: .09em; color: var(--text-muted); margin-bottom: .75rem;
+}
+.legal-toc a {
+    display: block; font-size: .8rem; color: var(--text-muted);
+    text-decoration: none; padding: .3rem .4rem; border-radius: 5px;
+    transition: background .15s, color .15s; line-height: 1.4;
+}
+.legal-toc a:hover { background: rgba(255,255,255,.05); color: var(--text); }
+.legal-toc a.active { background: rgba(88,101,242,.12); color: #8b95f7; }
+
+/* Content */
+.legal-content { min-width: 0; }
+.legal-header   { margin-bottom: 2rem; padding-bottom: 1.25rem; border-bottom: 1px solid var(--border); }
+.legal-header h1 { font-size: 1.75rem; font-weight: 800; margin-bottom: .4rem; }
+.legal-meta { font-size: .8rem; color: var(--text-muted); }
+.legal-meta span { color: var(--accent); }
+
+.legal-section { margin-bottom: 2.5rem; }
+.legal-section h2 {
+    font-size: 1.05rem; font-weight: 700;
+    color: var(--text); margin-bottom: .85rem;
+    padding-bottom: .5rem; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: .6rem;
+}
+.legal-section h2 .sec-num {
+    width: 24px; height: 24px; border-radius: 6px; flex-shrink: 0;
+    background: rgba(88,101,242,.15); color: #8b95f7;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .72rem; font-weight: 800;
+}
+.legal-section p { font-size: .875rem; color: var(--text-muted); line-height: 1.8; margin-bottom: .75rem; }
+.legal-section ul { padding-left: 1.25rem; margin-bottom: .75rem; }
+.legal-section ul li { font-size: .875rem; color: var(--text-muted); line-height: 1.8; margin-bottom: .2rem; }
+.legal-section a { color: var(--accent); text-decoration: none; }
+.legal-section a:hover { text-decoration: underline; }
+
+.legal-notice {
+    background: rgba(88,101,242,.07); border: 1px solid rgba(88,101,242,.2);
+    border-radius: 8px; padding: .85rem 1rem;
+    font-size: .82rem; color: var(--text-muted); line-height: 1.65;
+    margin-bottom: 2rem;
+}
+
+@media (max-width: 700px) {
+    .legal-wrap { grid-template-columns: 1fr; padding: 2rem 1rem 4rem; gap: 1.5rem; }
+    .legal-toc   { position: static; }
+}
+</style>
+
+<div class="legal-wrap">
+    <!-- TOC -->
+    <aside class="legal-toc">
+        <div class="legal-toc-title">Daftar Isi</div>
+        <a href="#s1">1. Informasi yang Dikumpulkan</a>
+        <a href="#s2">2. Cara Penggunaan Data</a>
+        <a href="#s3">3. Penyimpanan Data</a>
+        <a href="#s4">4. Berbagi Data</a>
+        <a href="#s5">5. Hak Pengguna</a>
+        <a href="#s6">6. Keamanan</a>
+        <a href="#s7">7. Perubahan Kebijakan</a>
+        <a href="#s8">8. Kontak</a>
+    </aside>
+
+    <!-- Content -->
+    <main class="legal-content">
+        <div class="legal-header">
+            <h1>Privacy Policy</h1>
+            <div class="legal-meta">
+                Terakhir diperbarui: <span>1 Juni 2026</span> &nbsp;·&nbsp;
+                Berlaku untuk: <span><%- locals.botNavName || 'Bot' %></span>
+            </div>
+        </div>
+
+        <div class="legal-notice">
+            Dengan menggunakan bot ini atau layanan terkait, kamu menyetujui kebijakan privasi ini. Jika kamu tidak setuju, harap berhenti menggunakan layanan kami.
+        </div>
+
+        <div class="legal-section" id="s1">
+            <h2><span class="sec-num">1</span> Informasi yang Dikumpulkan</h2>
+            <p>Kami mengumpulkan data minimal yang diperlukan untuk operasional bot. Berikut jenis data yang dikumpulkan:</p>
+            <ul>
+                <li><strong>ID Server (Guild ID)</strong> — untuk menyimpan konfigurasi per server</li>
+                <li><strong>ID Pengguna (User ID)</strong> — untuk fitur invite tracking, giveaway, dan log</li>
+                <li><strong>ID Channel</strong> — untuk menentukan channel tujuan notifikasi</li>
+                <li><strong>ID Role</strong> — untuk konfigurasi autorole dan syarat giveaway</li>
+                <li><strong>Pesan kustom</strong> — teks notifikasi yang dikonfigurasi oleh admin server</li>
+            </ul>
+            <p>Kami <strong>tidak</strong> mengumpulkan konten pesan pribadi, password, email, atau informasi sensitif lainnya.</p>
+        </div>
+
+        <div class="legal-section" id="s2">
+            <h2><span class="sec-num">2</span> Cara Penggunaan Data</h2>
+            <p>Data yang dikumpulkan digunakan semata-mata untuk:</p>
+            <ul>
+                <li>Menjalankan fitur bot (welcome, goodbye, notifikasi YouTube/TikTok/Twitch, giveaway, dll.)</li>
+                <li>Menyimpan konfigurasi server yang diatur melalui dashboard</li>
+                <li>Melacak statistik invite link dalam server</li>
+                <li>Menentukan pemenang giveaway secara acak</li>
+            </ul>
+            <p>Data tidak digunakan untuk iklan, analitik komersial, atau kepentingan di luar operasional bot.</p>
+        </div>
+
+        <div class="legal-section" id="s3">
+            <h2><span class="sec-num">3</span> Penyimpanan Data</h2>
+            <p>Semua data disimpan secara lokal di database SQLite pada server yang menjalankan bot. Data tidak diunggah ke layanan cloud pihak ketiga.</p>
+            <ul>
+                <li>Data konfigurasi server disimpan selama bot berada di server tersebut</li>
+                <li>Data dihapus otomatis saat bot dikeluarkan dari server</li>
+                <li>Admin dapat menghapus data kapan saja melalui dashboard</li>
+            </ul>
+        </div>
+
+        <div class="legal-section" id="s4">
+            <h2><span class="sec-num">4</span> Berbagi Data</h2>
+            <p>Kami <strong>tidak menjual, menyewakan, atau membagikan</strong> data pengguna kepada pihak ketiga, kecuali:</p>
+            <ul>
+                <li>Diwajibkan oleh hukum yang berlaku</li>
+                <li>API pihak ketiga yang digunakan (YouTube API, Twitch API, TikTok/RSSHub) — hanya mengirim ID publik untuk mengambil data feed</li>
+            </ul>
+        </div>
+
+        <div class="legal-section" id="s5">
+            <h2><span class="sec-num">5</span> Hak Pengguna</h2>
+            <p>Sebagai pengguna, kamu memiliki hak untuk:</p>
+            <ul>
+                <li><strong>Menghapus data</strong> — keluarkan bot dari server untuk menghapus semua data terkait server tersebut</li>
+                <li><strong>Melihat data</strong> — semua konfigurasi tersedia di dashboard</li>
+                <li><strong>Meminta penghapusan manual</strong> — hubungi kami melalui support server</li>
+            </ul>
+        </div>
+
+        <div class="legal-section" id="s6">
+            <h2><span class="sec-num">6</span> Keamanan</h2>
+            <p>Kami menerapkan langkah-langkah keamanan standar untuk melindungi data:</p>
+            <ul>
+                <li>Autentikasi OAuth2 Discord untuk akses dashboard</li>
+                <li>Verifikasi izin Manage Guild sebelum mengizinkan perubahan konfigurasi</li>
+                <li>Webhook diverifikasi menggunakan HMAC signature</li>
+                <li>Sesi dashboard dienkripsi dan memiliki masa berlaku terbatas</li>
+            </ul>
+        </div>
+
+        <div class="legal-section" id="s7">
+            <h2><span class="sec-num">7</span> Perubahan Kebijakan</h2>
+            <p>Kebijakan privasi ini dapat diperbarui sewaktu-waktu. Perubahan signifikan akan diumumkan melalui support server Discord. Tanggal pembaruan terakhir selalu tercantum di bagian atas halaman ini.</p>
+        </div>
+
+        <div class="legal-section" id="s8">
+            <h2><span class="sec-num">8</span> Kontak</h2>
+            <p>Pertanyaan atau permintaan terkait privasi dapat disampaikan melalui:</p>
+            <ul>
+                <li><strong>Support Server Discord</strong> — <a href="#">Bergabung di sini</a></li>
+                <li><strong>GitHub Issues</strong> — <a href="#">Buka issue baru</a></li>
+            </ul>
+        </div>
+    </main>
+</div>
+
+<script>
+// Highlight TOC item berdasarkan scroll
+const sections = document.querySelectorAll('.legal-section');
+const tocLinks  = document.querySelectorAll('.legal-toc a');
+
+const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+        if (e.isIntersecting) {
+            tocLinks.forEach(a => a.classList.remove('active'));
+            const active = document.querySelector(`.legal-toc a[href="#${e.target.id}"]`);
+            if (active) active.classList.add('active');
+        }
+    });
+}, { rootMargin: '-20% 0px -70% 0px' });
+
+sections.forEach(s => observer.observe(s));
+</script>
+
+<%- include('../partials/footer') %>

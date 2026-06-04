@@ -1,8 +1,4 @@
-    <footer class="dash-footer">
-        Made with <span style="color:#ED4245;">♥</span> by
-        <a href="https://fenri-hoshimori.my.id/" target="_blank" rel="noopener noreferrer">Fenri Hoshimori</a>
-        &nbsp;·&nbsp; ✦
-    </footer>
+<% if (!locals.hasSidebar) { %><%- include('./site-footer') %><% } %>
     <script src="/js/dashboard.js"></script>
     <script>
     document.addEventListener('DOMContentLoaded', () => {

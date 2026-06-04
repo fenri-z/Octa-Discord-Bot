@@ -1,0 +1,156 @@
+<style>
+/* ── Site Footer ─────────────────────────────────────────────────────────── */
+.site-footer {
+    background: #0d0e14;
+    border-top: 1px solid rgba(255,255,255,.06);
+    padding: 3.5rem 3rem 0;
+    margin-top: auto;
+}
+.site-footer-inner {
+    max-width: 1200px; margin: 0 auto;
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+    gap: 3rem;
+    padding-bottom: 3rem;
+}
+.site-footer-brand-head {
+    display: flex; align-items: center; gap: .85rem;
+    margin-bottom: .85rem;
+}
+.site-footer-avatar {
+    width: 52px; height: 52px; border-radius: 50%;
+    object-fit: cover; flex-shrink: 0;
+    border: 2px solid rgba(88,101,242,.35);
+    box-shadow: 0 0 0 4px rgba(88,101,242,.08);
+}
+.site-footer-name {
+    display: flex; align-items: center; gap: .45rem;
+    font-weight: 800; font-size: 1.05rem;
+    color: var(--text); margin-bottom: .15rem;
+}
+.site-footer-badge {
+    font-size: .6rem; font-weight: 700; padding: .15rem .45rem;
+    border-radius: 4px; background: rgba(88,101,242,.25);
+    color: #8b95f7; letter-spacing: .06em; text-transform: uppercase;
+}
+.site-footer-desc {
+    font-size: .8rem; color: var(--text-muted);
+    line-height: 1.7; max-width: 280px;
+}
+.site-footer-col-title {
+    font-size: .68rem; font-weight: 800;
+    letter-spacing: .1em; text-transform: uppercase;
+    margin-bottom: 1.1rem;
+}
+.site-footer-col-title.legal   { color: #5865F2; }
+.site-footer-col-title.support { color: #57F287; }
+.site-footer-col-title.company { color: #F0A032; }
+.site-footer-col-title.help    { color: #ED4245; }
+.site-footer-links { display: flex; flex-direction: column; gap: .6rem; }
+.site-footer-links a {
+    font-size: .83rem; color: var(--text-muted);
+    text-decoration: none; transition: color .15s;
+}
+.site-footer-links a:hover { color: var(--text); }
+.site-footer-bottom {
+    max-width: 1200px; margin: 0 auto;
+    padding: 1.1rem 0;
+    border-top: 1px solid rgba(255,255,255,.06);
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 1rem; flex-wrap: wrap;
+}
+.site-footer-copy {
+    font-size: .78rem; color: var(--text-muted);
+}
+.site-footer-copy a { color: var(--accent); text-decoration: none; }
+.site-footer-copy a:hover { text-decoration: underline; }
+
+/* Responsive */
+@media (max-width: 960px) {
+    .site-footer { padding: 3rem 2rem 0; }
+    .site-footer-inner {
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem 2.5rem;
+    }
+    .site-footer-brand { grid-column: 1 / -1; }
+    .site-footer-desc  { max-width: 100%; }
+    .site-footer-bottom { max-width: 100%; }
+}
+@media (max-width: 540px) {
+    .site-footer { padding: 2.5rem 1.25rem 0; }
+    .site-footer-inner { grid-template-columns: 1fr; gap: 1.5rem; }
+    .site-footer-brand { grid-column: 1 / -1; }
+    .site-footer-bottom { flex-direction: column; align-items: center; text-align: center; gap: .5rem; }
+    .site-footer-copy  { font-size: .74rem; }
+}
+</style>
+
+<footer class="site-footer">
+    <div class="site-footer-inner">
+
+        <!-- Brand -->
+        <div class="site-footer-brand">
+            <div class="site-footer-brand-head">
+                <img class="site-footer-avatar"
+                     src="<%- locals.botNavAvatar || 'https://cdn.discordapp.com/embed/avatars/0.png' %>"
+                     alt="<%- locals.botNavName || 'Bot' %>"
+                     onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+                <div>
+                    <div class="site-footer-name">
+                        <%- locals.botNavName || 'Bot' %>
+                        <span class="site-footer-badge">APP</span>
+                    </div>
+                </div>
+            </div>
+            <p class="site-footer-desc">
+                <%- locals.botNavName || 'Bot' %> adalah asisten Discord Server yang dirancang untuk menjaga komunitas kamu tetap seru, terorganisir, dan nyaman.
+            </p>
+        </div>
+
+        <!-- Legal -->
+        <div>
+            <div class="site-footer-col-title legal">Legal</div>
+            <div class="site-footer-links">
+                <a href="/privacy-policy">Privacy Policy</a>
+                <a href="/terms-of-service">Terms of Service</a>
+            </div>
+        </div>
+
+        <!-- Support Developer -->
+        <div>
+            <div class="site-footer-col-title support">Support Developer</div>
+            <div class="site-footer-links">
+                <a href="https://ko-fi.com/fen_ri/" target="_blank" rel="noopener">Ko-fi</a>
+                <a href="https://tako.id/fenri" target="_blank" rel="noopener">Tako</a>
+            </div>
+        </div>
+
+        <!-- Company -->
+        <div>
+            <div class="site-footer-col-title company">Company</div>
+            <div class="site-footer-links">
+                <a href="/commands">Commands</a>
+                <a href="https://fenri-hoshimori.my.id/" target="_blank" rel="noopener">Developer</a>
+                <a href="https://discord.gg/DMPvHf46gu" target="_blank" rel="noopener">Discord Server</a>
+            </div>
+        </div>
+
+        <!-- Help & Support -->
+        <div>
+            <div class="site-footer-col-title help">Help &amp; Support</div>
+            <div class="site-footer-links">
+                <a href="/report-bug">Report Bug</a>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Bottom bar -->
+    <div class="site-footer-bottom">
+        <div class="site-footer-copy">
+            &copy; 2021 &ndash; <%= new Date().getFullYear() %>
+            <a href="https://fenri-hoshimori.my.id/" target="_blank" rel="noopener"><%- locals.botNavName || 'Bot' %></a>
+            &middot; All rights reserved.
+        </div>
+    </div>
+</footer>

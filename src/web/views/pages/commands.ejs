@@ -1,0 +1,283 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+<style>
+.cmd-page { max-width: 960px; margin: 0 auto; padding: 3rem 1.5rem 5rem; }
+
+/* Header */
+.cmd-header { text-align: center; margin-bottom: 2.5rem; }
+.cmd-header h1 { font-size: clamp(1.6rem,5vw,2.2rem); font-weight: 800; margin-bottom: .5rem; }
+.cmd-header p  { color: var(--text-muted); font-size: .9rem; }
+
+/* Search */
+.cmd-search-wrap {
+    position: relative; max-width: 460px; margin: 0 auto 2rem;
+}
+.cmd-search-icon {
+    position: absolute; left: .85rem; top: 50%; transform: translateY(-50%);
+    color: var(--text-muted); width: 16px; height: 16px;
+    pointer-events: none; display: block; flex-shrink: 0;
+}
+.cmd-search {
+    width: 100%; padding: .7rem .9rem .7rem 2.6rem;
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 10px; color: var(--text); font-size: .88rem;
+    outline: none; transition: border-color .15s;
+    box-sizing: border-box;
+}
+.cmd-search:focus { border-color: rgba(88,101,242,.5); }
+
+/* Category tabs */
+.cmd-tabs {
+    display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: 2rem;
+    justify-content: center;
+}
+.cmd-tab {
+    padding: .4rem 1rem; border-radius: 20px; font-size: .82rem; font-weight: 600;
+    cursor: pointer; border: 1px solid var(--border); background: var(--bg2);
+    color: var(--text-muted); transition: all .15s;
+}
+.cmd-tab:hover  { border-color: rgba(88,101,242,.4); color: var(--text); }
+.cmd-tab.active { background: rgba(88,101,242,.15); border-color: rgba(88,101,242,.4); color: #8b95f7; }
+
+/* Category section */
+.cmd-category { margin-bottom: 2.5rem; }
+.cmd-cat-label {
+    display: flex; align-items: center; gap: .65rem;
+    font-size: .72rem; font-weight: 800; text-transform: uppercase;
+    letter-spacing: .09em; color: var(--text-muted);
+    margin-bottom: 1rem; padding-bottom: .5rem;
+    border-bottom: 1px solid var(--border);
+}
+.cmd-cat-label .cat-dot {
+    width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+}
+.cmd-count { margin-left: auto; font-size: .68rem; background: rgba(255,255,255,.06); padding: .1rem .45rem; border-radius: 20px; }
+
+/* Command cards */
+.cmd-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: .75rem;
+}
+.cmd-card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1rem 1.1rem;
+    transition: border-color .15s, transform .15s;
+    cursor: default;
+}
+.cmd-card:hover { border-color: rgba(88,101,242,.35); transform: translateY(-1px); }
+.cmd-card-name {
+    font-size: .88rem; font-weight: 700; color: var(--text);
+    font-family: 'Courier New', monospace;
+    margin-bottom: .35rem; display: flex; align-items: center; gap: .4rem; flex-wrap: wrap;
+}
+.cmd-card-name code {
+    background: rgba(88,101,242,.12); color: #8b95f7;
+    padding: .1rem .45rem; border-radius: 5px; font-size: .82rem;
+}
+.cmd-card-desc { font-size: .8rem; color: var(--text-muted); line-height: 1.6; }
+.cmd-perm-badge {
+    display: inline-flex; align-items: center; gap: .3rem;
+    font-size: .65rem; font-weight: 700; padding: .1rem .4rem;
+    border-radius: 4px; margin-top: .5rem;
+}
+.cmd-perm-badge.admin { background: rgba(237,66,69,.12); color: #ed4245; }
+.cmd-perm-badge.mod   { background: rgba(240,160,50,.12); color: #F0A032; }
+
+/* No results */
+.cmd-empty { text-align: center; padding: 3rem 1rem; color: var(--text-muted); font-size: .9rem; }
+
+@media (max-width: 600px) {
+    .cmd-page { padding: 2rem 1rem 4rem; }
+    .cmd-grid { grid-template-columns: 1fr; }
+}
+</style>
+
+<div class="cmd-page">
+    <!-- Header -->
+    <div class="cmd-header">
+        <h1>Commands</h1>
+        <p>Daftar lengkap slash command yang tersedia. Semua command menggunakan prefix <code style="background:rgba(88,101,242,.12);color:#8b95f7;padding:.1rem .4rem;border-radius:4px;font-size:.85rem;">/</code></p>
+    </div>
+
+    <!-- Search -->
+    <div class="cmd-search-wrap">
+        <svg class="cmd-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input type="text" class="cmd-search" id="cmdSearch" placeholder="Cari command..." oninput="filterCommands()">
+    </div>
+
+    <!-- Category tabs -->
+    <div class="cmd-tabs">
+        <button class="cmd-tab active" onclick="setTab('all', this)">Semua</button>
+        <button class="cmd-tab" onclick="setTab('notification', this)">Notifikasi</button>
+        <button class="cmd-tab" onclick="setTab('autorole', this)">Auto Role</button>
+        <button class="cmd-tab" onclick="setTab('utility', this)">Utility</button>
+        <button class="cmd-tab" onclick="setTab('social', this)">Social Media</button>
+    </div>
+
+    <!-- Commands list -->
+    <div id="cmdList">
+
+        <!-- Notifikasi -->
+        <div class="cmd-category" data-cat="notification">
+            <div class="cmd-cat-label">
+                <div class="cat-dot" style="background:#57F287;"></div>
+                Notifikasi
+                <span class="cmd-count">4</span>
+            </div>
+            <div class="cmd-grid">
+                <div class="cmd-card" data-name="/welcome">
+                    <div class="cmd-card-name"><code>/welcome</code></div>
+                    <div class="cmd-card-desc">Konfigurasi welcome notification untuk member baru bergabung ke server.</div>
+                    <div><span class="cmd-perm-badge admin">Manage Guild</span></div>
+                </div>
+                <div class="cmd-card" data-name="/goodbye">
+                    <div class="cmd-card-name"><code>/goodbye</code></div>
+                    <div class="cmd-card-desc">Konfigurasi goodbye notification saat member meninggalkan server.</div>
+                    <div><span class="cmd-perm-badge admin">Manage Guild</span></div>
+                </div>
+                <div class="cmd-card" data-name="/booster">
+                    <div class="cmd-card-name"><code>/booster</code></div>
+                    <div class="cmd-card-desc">Konfigurasi notifikasi boost dan unboost server. Termasuk welcome card booster.</div>
+                    <div><span class="cmd-perm-badge admin">Manage Guild</span></div>
+                </div>
+                <div class="cmd-card" data-name="/ticket">
+                    <div class="cmd-card-name"><code>/ticket</code></div>
+                    <div class="cmd-card-desc">Kelola sistem tiket server — kirim panel, lihat tiket aktif, dan konfigurasi staff role.</div>
+                    <div><span class="cmd-perm-badge admin">Manage Guild</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Auto Role -->
+        <div class="cmd-category" data-cat="autorole">
+            <div class="cmd-cat-label">
+                <div class="cat-dot" style="background:#5865F2;"></div>
+                Auto Role
+                <span class="cmd-count">3</span>
+            </div>
+            <div class="cmd-grid">
+                <div class="cmd-card" data-name="/autorole">
+                    <div class="cmd-card-name"><code>/autorole</code></div>
+                    <div class="cmd-card-desc">Konfigurasi role otomatis saat member atau bot baru bergabung ke server.</div>
+                    <div><span class="cmd-perm-badge admin">Manage Roles</span></div>
+                </div>
+                <div class="cmd-card" data-name="/autorole-button">
+                    <div class="cmd-card-name"><code>/autorole-button</code></div>
+                    <div class="cmd-card-desc">Buat panel tombol interaktif agar member bisa mengambil atau melepas role sendiri.</div>
+                    <div><span class="cmd-perm-badge admin">Manage Roles</span></div>
+                </div>
+                <div class="cmd-card" data-name="/autorole-reaction">
+                    <div class="cmd-card-name"><code>/autorole-reaction</code></div>
+                    <div class="cmd-card-desc">Buat panel reaksi emoji agar member bisa mengambil atau melepas role dengan klik emoji.</div>
+                    <div><span class="cmd-perm-badge admin">Manage Roles</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Utility -->
+        <div class="cmd-category" data-cat="utility">
+            <div class="cmd-cat-label">
+                <div class="cat-dot" style="background:#F0A032;"></div>
+                Utility
+                <span class="cmd-count">7</span>
+            </div>
+            <div class="cmd-grid">
+                <div class="cmd-card" data-name="/ping">
+                    <div class="cmd-card-name"><code>/ping</code></div>
+                    <div class="cmd-card-desc">Cek latensi bot dan status koneksi ke Discord API.</div>
+                </div>
+                <div class="cmd-card" data-name="/help">
+                    <div class="cmd-card-name"><code>/help</code></div>
+                    <div class="cmd-card-desc">Tampilkan daftar command yang tersedia beserta deskripsi singkatnya.</div>
+                </div>
+                <div class="cmd-card" data-name="/serverstats">
+                    <div class="cmd-card-name"><code>/serverstats</code></div>
+                    <div class="cmd-card-desc">Setup channel voice statistik server otomatis — total member, user, dan bot.</div>
+                    <div><span class="cmd-perm-badge admin">Manage Channels</span></div>
+                </div>
+                <div class="cmd-card" data-name="/set-nickname">
+                    <div class="cmd-card-name"><code>/set-nickname</code></div>
+                    <div class="cmd-card-desc">Ganti atau reset nickname bot di server ini.</div>
+                    <div><span class="cmd-perm-badge mod">Manage Nicknames</span></div>
+                </div>
+                <div class="cmd-card" data-name="/pesan">
+                    <div class="cmd-card-name"><code>/pesan</code></div>
+                    <div class="cmd-card-desc">Buat dan kelola template pesan embed kustom, kirim ke channel manapun.</div>
+                    <div><span class="cmd-perm-badge admin">Manage Guild</span></div>
+                </div>
+                <div class="cmd-card" data-name="/invites">
+                    <div class="cmd-card-name"><code>/invites</code></div>
+                    <div class="cmd-card-desc">Tampilkan semua invite link server diurutkan dari penggunaan terbanyak.</div>
+                    <div><span class="cmd-perm-badge mod">Manage Guild</span></div>
+                </div>
+                <div class="cmd-card" data-name="/giveaway start end reroll list">
+                    <div class="cmd-card-name"><code>/giveaway</code></div>
+                    <div class="cmd-card-desc">Buat dan kelola giveaway server — mulai, akhiri, reroll pemenang, dan lihat daftar giveaway aktif.</div>
+                    <div><span class="cmd-perm-badge admin">Manage Guild</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Social Media -->
+        <div class="cmd-category" data-cat="social">
+            <div class="cmd-cat-label">
+                <div class="cat-dot" style="background:#FE2C55;"></div>
+                Social Media
+                <span class="cmd-count">0</span>
+            </div>
+            <div class="cmd-grid">
+                <div class="cmd-card" style="border-style:dashed;opacity:.6;" data-name="dashboard">
+                    <div class="cmd-card-name">🌐 Dashboard</div>
+                    <div class="cmd-card-desc">Notifikasi YouTube, TikTok, dan Twitch dikonfigurasi melalui dashboard web — tidak memerlukan slash command.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- No results -->
+        <div class="cmd-empty" id="cmdEmpty" style="display:none;">
+            <i data-lucide="search-x" style="width:40px;height:40px;opacity:.3;display:block;margin:0 auto .75rem;"></i>
+            Tidak ada command yang cocok dengan pencarian.
+        </div>
+    </div>
+</div>
+
+<script>
+let activeTab = 'all';
+
+function setTab(tab, el) {
+    activeTab = tab;
+    document.querySelectorAll('.cmd-tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    filterCommands();
+}
+
+function filterCommands() {
+    const q = document.getElementById('cmdSearch').value.toLowerCase().trim();
+    let anyVisible = false;
+
+    document.querySelectorAll('.cmd-category').forEach(cat => {
+        const catKey  = cat.dataset.cat;
+        const cards   = cat.querySelectorAll('.cmd-card');
+        let catHasMatch = false;
+
+        cards.forEach(card => {
+            const name = (card.dataset.name || '').toLowerCase();
+            const desc = card.querySelector('.cmd-card-desc')?.textContent.toLowerCase() || '';
+            const match = (name.includes(q) || desc.includes(q));
+            const tabOk = activeTab === 'all' || catKey === activeTab;
+            card.style.display = (match && tabOk) ? '' : 'none';
+            if (match && tabOk) catHasMatch = true;
+        });
+
+        cat.style.display = catHasMatch ? '' : 'none';
+        if (catHasMatch) anyVisible = true;
+    });
+
+    document.getElementById('cmdEmpty').style.display = anyVisible ? 'none' : 'block';
+}
+</script>
+
+<%- include('../partials/footer') %>

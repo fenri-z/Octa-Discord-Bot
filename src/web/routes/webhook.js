@@ -69,4 +69,62 @@ router.post('/youtube',
     }
 );
 
+// ── POST: Twitch EventSub callback ────────────────────────────────────────────
+// express.raw() dipasang agar kita bisa verifikasi HMAC dari raw body
+router.post('/twitch',
+    express.raw({ type: 'application/json', limit: '1mb' }),
+    async (req, res) => {
+        const messageId   = req.headers['twitch-eventsub-message-id']        || '';
+        const timestamp   = req.headers['twitch-eventsub-message-timestamp'] || '';
+        const signature   = req.headers['twitch-eventsub-message-signature'] || '';
+        const messageType = req.headers['twitch-eventsub-message-type']      || '';
+
+        const body    = req.body;
+        const rawBody = Buffer.isBuffer(body) ? body.toString('utf8') : '';
+
+        const notifier = req.discordClient?.twitchNotifier;
+
+        // Verifikasi signature sebelum proses apapun
+        if (notifier && !notifier.verifySignature(rawBody, messageId, timestamp, signature)) {
+            return res.status(403).send('Forbidden');
+        }
+
+        let payload;
+        try { payload = JSON.parse(rawBody); }
+        catch { return res.status(400).send('Bad Request'); }
+
+        // 1. Challenge verification — Twitch butuh jawaban segera
+        if (messageType === 'webhook_callback_verification') {
+            return res.status(200).type('text/plain').send(payload.challenge);
+        }
+
+        // Balas 200 secepatnya (max 3 detik menurut Twitch)
+        res.status(200).send('OK');
+
+        if (!notifier) return;
+
+        try {
+            // 2. Notification event
+            if (messageType === 'notification') {
+                const type  = payload.subscription?.type;
+                const event = payload.event;
+                if (!event) return;
+
+                if (type === 'stream.online')  await notifier.handleOnline(event);
+                if (type === 'stream.offline') await notifier.handleOffline(event);
+            }
+
+            // 3. Revocation — Twitch mencabut subscription (expired cookie, dll.)
+            if (messageType === 'revocation') {
+                const sub    = payload.subscription;
+                const userId = sub?.condition?.broadcaster_user_id;
+                const reason = sub?.status;
+                console.warn(`[Twitch/Webhook] Subscription di-revoke (${reason}) untuk userId=${userId}`);
+            }
+        } catch (err) {
+            console.error('[Twitch/Webhook] Error proses payload:', err.message);
+        }
+    }
+);
+
 module.exports = router;

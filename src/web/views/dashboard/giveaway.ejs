@@ -1,0 +1,460 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+<style>
+/* ── Giveaway card ───────────────────────────────────────────────────────── */
+.gw-card {
+    background: var(--card-bg, #1e1f22);
+    border: 1px solid var(--border, rgba(255,255,255,.06));
+    border-radius: 10px; padding: 1rem 1.1rem;
+    display: flex; align-items: flex-start; gap: 1rem;
+    margin-bottom: .75rem;
+}
+.gw-card-icon {
+    width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem;
+}
+.gw-card-icon.active  { background: rgba(240,160,50,.15); }
+.gw-card-icon.ended   { background: rgba(88,101,242,.15); }
+.gw-card-icon.cancelled { background: rgba(237,66,69,.1); }
+.gw-card-body { flex: 1; min-width: 0; }
+.gw-prize  { font-weight: 700; font-size: .98rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gw-meta   { font-size: .78rem; color: var(--text-muted); margin-top: .2rem; display: flex; flex-wrap: wrap; gap: .4rem .8rem; }
+.gw-badge  {
+    font-size: .68rem; font-weight: 700; padding: .15rem .5rem;
+    border-radius: 20px; letter-spacing: .04em; white-space: nowrap;
+}
+.gw-badge.active    { background: rgba(240,160,50,.18); color: #F0A032; }
+.gw-badge.ended     { background: rgba(88,101,242,.18); color: #8b9cf8; }
+.gw-badge.cancelled { background: rgba(237,66,69,.15);  color: #ed4245; }
+.gw-actions { display: flex; gap: .4rem; flex-shrink: 0; flex-wrap: wrap; align-items: flex-start; }
+
+/* ── Form grid ───────────────────────────────────────────────────────────── */
+.gw-form-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: .85rem 1rem;
+}
+@media (max-width: 600px) { .gw-form-grid { grid-template-columns: 1fr; } }
+
+/* ── Duration picker ─────────────────────────────────────────────────────── */
+.gw-duration-row { display: flex; gap: .5rem; }
+.gw-duration-row input[type=number] { width: 80px; flex-shrink: 0; }
+
+/* ── Stats ───────────────────────────────────────────────────────────────── */
+.gw-stats { grid-template-columns: repeat(3, 1fr) !important; margin-bottom: 1.5rem; }
+@media (max-width: 600px) { .gw-stats { grid-template-columns: 1fr 1fr !important; } }
+
+/* ── Section label ───────────────────────────────────────────────────────── */
+.gw-section-label {
+    font-size: .72rem; font-weight: 700; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: .08em;
+    margin: 1.5rem 0 .6rem;
+}
+
+/* ── Cara penggunaan ─────────────────────────────────────────────────────── */
+.gw-guide-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: .85rem; margin-top: .75rem; }
+.gw-guide-step {
+    background: var(--card-2, rgba(255,255,255,.04));
+    border: 1px solid var(--border, rgba(255,255,255,.06));
+    border-radius: 8px; padding: .85rem 1rem;
+}
+.gw-guide-num {
+    width: 26px; height: 26px; border-radius: 50%;
+    background: rgba(240,160,50,.2); color: #F0A032;
+    font-weight: 700; font-size: .82rem;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: .5rem;
+}
+.gw-guide-title { font-weight: 600; font-size: .85rem; margin-bottom: .25rem; }
+.gw-guide-desc  { font-size: .78rem; color: var(--text-muted); line-height: 1.5; }
+
+/* ── Responsive: Tablet (≤ 860px) ───────────────────────────────────────── */
+@media (max-width: 860px) {
+    .gw-guide-grid { grid-template-columns: 1fr 1fr; }
+}
+
+/* ── Responsive: Tablet kecil (≤ 680px) ─────────────────────────────────── */
+@media (max-width: 680px) {
+    .dash-main        { padding: 1.25rem 1rem 1.5rem !important; }
+    .gw-guide-grid    { grid-template-columns: 1fr; }
+    .gw-stats         { grid-template-columns: 1fr 1fr !important; }
+    .gw-form-grid     { grid-template-columns: 1fr !important; }
+
+    /* Card: sembunyikan icon, actions pindah ke bawah body */
+    .gw-card          { flex-wrap: wrap; gap: .65rem; padding: .85rem; }
+    .gw-card-icon     { display: none; }
+    .gw-card-body     { width: 100%; min-width: 0; }
+    .gw-actions       { width: 100%; justify-content: flex-start; }
+    .gw-actions .btn  { flex: 1; justify-content: center; font-size: .78rem; padding: .3rem .5rem; }
+
+    /* Form action row stack */
+    .gw-form-action-row { flex-direction: column !important; align-items: stretch !important; }
+    .gw-form-action-row .btn { width: 100%; justify-content: center; }
+    .gw-form-action-row #gwCreateMsg { text-align: center; }
+
+    /* Duration row lebih kompak */
+    .gw-duration-row input[type=number] { width: 70px; }
+}
+
+/* ── Responsive: Mobile (≤ 480px) ───────────────────────────────────────── */
+@media (max-width: 480px) {
+    .dash-main        { padding: 1rem .75rem 1.5rem !important; }
+    .gw-stats .stat-card  { padding: .6rem .5rem; gap: .4rem; }
+    .gw-stats .stat-icon  { width: 30px !important; height: 30px !important; border-radius: 7px !important; flex-shrink: 0; }
+    .gw-stats .stat-icon svg { width: 14px !important; height: 14px !important; }
+    .gw-stats .stat-value { font-size: 1.1rem; }
+    .gw-stats .stat-label { font-size: .63rem; }
+    .gw-prize         { font-size: .9rem; }
+    .gw-meta          { font-size: .74rem; gap: .3rem .6rem; }
+    .gw-section-label { font-size: .68rem; margin: 1.1rem 0 .5rem; }
+    .gw-guide-step    { padding: .7rem .85rem; }
+    .gw-guide-title   { font-size: .82rem; }
+    .settings-card    { padding: .9rem !important; }
+}
+</style>
+
+<div class="dash-layout">
+    <%- include('../partials/sidebar', { activePage: 'giveaway' }) %>
+    <main class="dash-main">
+    <div class="dash-content-wide">
+        <%- include('../partials/perm-notice') %>
+
+        <!-- Header -->
+        <div class="page-header">
+            <h1>Giveaway</h1>
+            <p>Buat dan kelola giveaway langsung dari dashboard. Bot akan mengirim embed ke channel Discord dan otomatis memilih pemenang.</p>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid gw-stats">
+            <div class="stat-card">
+                <div class="stat-icon" style="color:#F0A032;background:rgba(240,160,50,.15);"><i data-lucide="gift"></i></div>
+                <div class="stat-info">
+                    <div class="stat-value"><%= giveaways.filter(g => !g.ended && !g.cancelled).length %></div>
+                    <div class="stat-label">Aktif</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="color:#5865F2;background:rgba(88,101,242,.15);"><i data-lucide="trophy"></i></div>
+                <div class="stat-info">
+                    <div class="stat-value"><%= giveaways.filter(g => g.ended && !g.cancelled).length %></div>
+                    <div class="stat-label">Selesai</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="color:#80848e;background:rgba(128,132,142,.12);"><i data-lucide="list"></i></div>
+                <div class="stat-info">
+                    <div class="stat-value"><%= giveaways.length %></div>
+                    <div class="stat-label">Total</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cara Penggunaan -->
+        <div class="settings-card" style="margin-bottom:1.5rem;">
+            <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.25rem;">
+                <i data-lucide="book-open" style="color:#F0A032;width:18px;height:18px;flex-shrink:0;"></i>
+                <h2 style="margin:0;font-size:1rem;font-weight:600;">Cara Penggunaan</h2>
+            </div>
+            <div class="gw-guide-grid">
+                <div class="gw-guide-step">
+                    <div class="gw-guide-num">1</div>
+                    <div class="gw-guide-title">Isi Form Giveaway</div>
+                    <div class="gw-guide-desc">Tentukan hadiah, channel tujuan, durasi, dan jumlah pemenang di form di bawah.</div>
+                </div>
+                <div class="gw-guide-step">
+                    <div class="gw-guide-num">2</div>
+                    <div class="gw-guide-title">Bot Kirim Embed</div>
+                    <div class="gw-guide-desc">Bot otomatis mengirim embed giveaway ke channel yang dipilih dan menambahkan reaksi 🎉.</div>
+                </div>
+                <div class="gw-guide-step">
+                    <div class="gw-guide-num">3</div>
+                    <div class="gw-guide-title">Member Ikut & Pemenang Dipilih</div>
+                    <div class="gw-guide-desc">Member klik 🎉 untuk ikut. Saat waktu habis, bot otomatis pilih pemenang secara acak dan umumkan hasilnya.</div>
+                </div>
+            </div>
+            <div style="margin-top:.75rem;padding:.6rem .85rem;background:rgba(240,160,50,.07);border-radius:7px;border:1px solid rgba(240,160,50,.2);font-size:.8rem;color:var(--text-muted);">
+                💡 Kamu bisa mengakhiri giveaway lebih awal, reroll pemenang, atau membatalkan dari daftar di bawah.
+                Giveaway yang sudah berakhir tersimpan otomatis (maks. 30 riwayat).
+                Bisa juga dibuat via slash command <strong style="color:var(--text);">/giveaway start</strong> langsung di Discord.
+            </div>
+        </div>
+
+        <!-- Form Buat Giveaway -->
+        <div class="settings-card" style="margin-bottom:1.5rem;">
+            <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:1.1rem;">
+                <i data-lucide="plus-circle" style="color:#F0A032;width:18px;height:18px;flex-shrink:0;"></i>
+                <h2 style="margin:0;font-size:1rem;font-weight:600;">Buat Giveaway Baru</h2>
+            </div>
+            <div class="gw-form-grid">
+                <!-- Hadiah -->
+                <div class="form-group" style="grid-column:1/-1;margin-bottom:0;">
+                    <label class="label">🎁 Hadiah <span style="color:#ed4245;">*</span></label>
+                    <input type="text" id="gwPrize" class="input" placeholder="Contoh: Discord Nitro 1 Bulan" maxlength="200">
+                </div>
+                <!-- Channel -->
+                <div class="form-group" style="margin-bottom:0;">
+                    <label class="label">📢 Channel <span style="color:#ed4245;">*</span></label>
+                    <select id="gwChannel" class="select">
+                        <option value="">— Pilih channel —</option>
+                        <% (channels||[]).forEach(ch => { %>
+                        <option value="<%= ch.id %>">#<%= ch.name %></option>
+                        <% }) %>
+                    </select>
+                </div>
+                <!-- Jumlah pemenang -->
+                <div class="form-group" style="margin-bottom:0;">
+                    <label class="label">🏆 Jumlah Pemenang <span style="color:#ed4245;">*</span></label>
+                    <input type="number" id="gwWinnerCount" class="input" value="1" min="1" max="20" placeholder="1">
+                </div>
+                <!-- Durasi -->
+                <div class="form-group" style="margin-bottom:0;">
+                    <label class="label">⏰ Durasi <span style="color:#ed4245;">*</span></label>
+                    <div class="gw-duration-row">
+                        <input type="number" id="gwDurValue" class="input" value="1" min="1" max="999" placeholder="1">
+                        <select id="gwDurUnit" class="select" style="flex:1;">
+                            <option value="60000">Menit</option>
+                            <option value="3600000" selected>Jam</option>
+                            <option value="86400000">Hari</option>
+                        </select>
+                    </div>
+                </div>
+                <!-- Role syarat (opsional) -->
+                <div class="form-group" style="margin-bottom:0;">
+                    <label class="label">🔒 Wajib Role <span style="font-weight:400;color:var(--text-muted);">(opsional)</span></label>
+                    <select id="gwRole" class="select">
+                        <option value="">— Semua member —</option>
+                        <% (roles||[]).forEach(r => { %>
+                        <option value="<%= r.id %>"><%= r.name %></option>
+                        <% }) %>
+                    </select>
+                </div>
+            </div>
+            <div class="gw-form-action-row" style="margin-top:1.1rem;display:flex;justify-content:flex-end;gap:.5rem;align-items:center;">
+                <div id="gwCreateMsg" class="form-message"></div>
+                <button class="btn btn-primary" onclick="createGiveaway(this)" style="background:#F0A032;border-color:#F0A032;white-space:nowrap;">
+                    <i data-lucide="gift" style="width:14px;height:14px;"></i> Mulai Giveaway
+                </button>
+            </div>
+        </div>
+
+        <!-- Daftar Giveaway -->
+        <% const activeGws  = giveaways.filter(g => !g.ended && !g.cancelled); %>
+        <% const endedGws   = giveaways.filter(g => g.ended && !g.cancelled); %>
+        <% const cancelGws  = giveaways.filter(g => g.cancelled); %>
+
+        <% if (activeGws.length > 0) { %>
+        <div class="gw-section-label">🎉 Sedang Berlangsung</div>
+        <% activeGws.forEach(function(gw) { %>
+        <div class="gw-card" id="gwRow-<%= gw.id %>">
+            <div class="gw-card-icon active">🎉</div>
+            <div class="gw-card-body">
+                <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;">
+                    <div class="gw-prize"><%= gw.prize %></div>
+                    <span class="gw-badge active">Aktif</span>
+                </div>
+                <div class="gw-meta">
+                    <span>🏆 <%= gw.winnerCount %> pemenang</span>
+                    <span>⏰ Berakhir <strong><span data-endat="<%= gw.endsAt %>"></span></strong></span>
+                    <% const ch = channels.find(c => c.id === gw.channelId); %>
+                    <% if (ch) { %><span>📢 #<%= ch.name %></span><% } %>
+                    <% if (gw.requiredRoleId) { %><span>🔒 Role wajib</span><% } %>
+                </div>
+                <div id="gwMsg-<%= gw.id %>" class="form-message" style="margin-top:.3rem;"></div>
+            </div>
+            <div class="gw-actions">
+                <a href="https://discord.com/channels/<%= gw.guildId %>/<%= gw.channelId %>/<%= gw.messageId %>"
+                   target="_blank" class="btn btn-sm" title="Lihat di Discord">
+                    <i data-lucide="external-link" style="width:12px;height:12px;"></i>
+                </a>
+                <button class="btn btn-sm btn-primary" onclick="endGiveaway('<%= gw.id %>')" title="Akhiri sekarang">
+                    <i data-lucide="flag" style="width:12px;height:12px;"></i> Akhiri
+                </button>
+                <button class="btn btn-sm btn-danger" onclick="cancelGiveaway('<%= gw.id %>')" title="Batalkan">
+                    <i data-lucide="x" style="width:12px;height:12px;"></i>
+                </button>
+            </div>
+        </div>
+        <% }); %>
+        <% } %>
+
+        <% if (endedGws.length > 0) { %>
+        <div class="gw-section-label">🏆 Riwayat Selesai</div>
+        <% endedGws.forEach(function(gw) { %>
+        <div class="gw-card" id="gwRow-<%= gw.id %>">
+            <div class="gw-card-icon ended">🏆</div>
+            <div class="gw-card-body">
+                <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;">
+                    <div class="gw-prize"><%= gw.prize %></div>
+                    <span class="gw-badge ended">Selesai</span>
+                </div>
+                <div class="gw-meta">
+                    <% if (gw.winners && gw.winners.length > 0) { %>
+                    <span>🏆 Pemenang:
+                        <% gw.winners.forEach(function(id, i) { %>
+                        <strong><a href="https://discord.com/users/<%= id %>" target="_blank" style="color:inherit;text-decoration:none;" title="<%= id %>">@<%= (gw.winnerNames && gw.winnerNames[i]) ? gw.winnerNames[i] : id %></a></strong><% if (i < gw.winners.length - 1) { %>, <% } %>
+                        <% }); %>
+                    </span>
+                    <% } else { %>
+                    <span style="color:#ed4245;">Tidak ada peserta</span>
+                    <% } %>
+                    <span>⏰ Berakhir: <%= new Date(gw.endsAt).toLocaleString('id-ID') %></span>
+                </div>
+                <div id="gwMsg-<%= gw.id %>" class="form-message" style="margin-top:.3rem;"></div>
+            </div>
+            <div class="gw-actions">
+                <a href="https://discord.com/channels/<%= gw.guildId %>/<%= gw.channelId %>/<%= gw.messageId %>"
+                   target="_blank" class="btn btn-sm" title="Lihat di Discord">
+                    <i data-lucide="external-link" style="width:12px;height:12px;"></i>
+                </a>
+                <button class="btn btn-sm btn-secondary" onclick="rerollGiveaway('<%= gw.id %>')" title="Reroll pemenang">
+                    <i data-lucide="refresh-cw" style="width:12px;height:12px;"></i> Reroll
+                </button>
+            </div>
+        </div>
+        <% }); %>
+        <% } %>
+
+        <% if (cancelGws.length > 0) { %>
+        <div class="gw-section-label" style="color:var(--text-muted);">🚫 Dibatalkan</div>
+        <% cancelGws.forEach(function(gw) { %>
+        <div class="gw-card" id="gwRow-<%= gw.id %>" style="opacity:.6;">
+            <div class="gw-card-icon cancelled">🚫</div>
+            <div class="gw-card-body">
+                <div style="display:flex;align-items:center;gap:.5rem;">
+                    <div class="gw-prize"><%= gw.prize %></div>
+                    <span class="gw-badge cancelled">Dibatalkan</span>
+                </div>
+                <div class="gw-meta">
+                    <span>⏰ <%= new Date(gw.endsAt).toLocaleString('id-ID') %></span>
+                </div>
+            </div>
+        </div>
+        <% }); %>
+        <% } %>
+
+        <% if (giveaways.length === 0) { %>
+        <div class="settings-card" style="text-align:center;padding:3rem 1.5rem;">
+            <i data-lucide="gift" style="width:48px;height:48px;color:#F0A032;opacity:.4;display:block;margin:0 auto .75rem;"></i>
+            <p style="color:var(--text-muted);margin:0;">Belum ada giveaway. Buat giveaway pertama di form di atas!</p>
+        </div>
+        <% } %>
+
+    </div>
+    <%- include('../partials/dash-footer') %>
+    </main>
+</div>
+
+<%- include('../partials/bottom-nav') %>
+
+<script>
+const GUILD_ID = '<%= guild.id %>';
+
+// ── Countdown timer ───────────────────────────────────────────────────────────
+function updateCountdowns() {
+    document.querySelectorAll('[data-endat]').forEach(el => {
+        const endsAt    = parseInt(el.dataset.endat);
+        const remaining = endsAt - Date.now();
+        if (remaining <= 0) { el.textContent = 'Sebentar lagi...'; return; }
+
+        const d = Math.floor(remaining / 86400000);
+        const h = Math.floor((remaining % 86400000) / 3600000);
+        const m = Math.floor((remaining % 3600000) / 60000);
+        const s = Math.floor((remaining % 60000) / 1000);
+
+        if (d > 0)      el.textContent = `${d}h ${h}j lagi`;
+        else if (h > 0) el.textContent = `${h}j ${m}m lagi`;
+        else if (m > 0) el.textContent = `${m}m ${s}d lagi`;
+        else            el.textContent = `${s}d lagi`;
+    });
+}
+updateCountdowns();
+setInterval(updateCountdowns, 1000);
+
+// ── Create ────────────────────────────────────────────────────────────────────
+async function createGiveaway(btn) {
+    const prize       = document.getElementById('gwPrize').value.trim();
+    const channelId   = document.getElementById('gwChannel').value;
+    const winnerCount = parseInt(document.getElementById('gwWinnerCount').value);
+    const durValue    = parseInt(document.getElementById('gwDurValue').value);
+    const durUnit     = parseInt(document.getElementById('gwDurUnit').value);
+    const roleId      = document.getElementById('gwRole').value;
+    const msgEl       = document.getElementById('gwCreateMsg');
+
+    if (!prize)                       return showMsg(msgEl, 'Hadiah tidak boleh kosong.', 'error');
+    if (!channelId)                   return showMsg(msgEl, 'Pilih channel terlebih dahulu.', 'error');
+    if (!winnerCount || winnerCount < 1) return showMsg(msgEl, 'Jumlah pemenang minimal 1.', 'error');
+    if (!durValue || durValue < 1)    return showMsg(msgEl, 'Durasi tidak valid.', 'error');
+
+    const durationMs = durValue * durUnit;
+
+    const orig     = btn.innerHTML;
+    btn.disabled   = true;
+    btn.innerHTML  = '<span style="width:13px;height:13px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .65s linear infinite;display:inline-block;vertical-align:middle;"></span> Membuat...';
+
+    try {
+        const r    = await fetch(`/api/guild/${GUILD_ID}/giveaway`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ channelId, prize, durationMs, winnerCount, requiredRoleId: roleId || null }),
+        });
+        const data = await r.json();
+        if (data.success) {
+            showMsg(msgEl, data.message, 'success');
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            showMsg(msgEl, data.message, 'error');
+        }
+    } catch (err) {
+        showMsg(msgEl, 'Gagal terhubung ke server.', 'error');
+    } finally {
+        btn.disabled  = false;
+        btn.innerHTML = orig;
+        if (window.lucide) lucide.createIcons();
+    }
+}
+
+// ── End ───────────────────────────────────────────────────────────────────────
+async function endGiveaway(id) {
+    if (!confirm('Akhiri giveaway sekarang dan pilih pemenang?')) return;
+    const msgEl = document.getElementById(`gwMsg-${id}`);
+    showMsg(msgEl, 'Mengakhiri giveaway...', 'info');
+    const r    = await fetch(`/api/guild/${GUILD_ID}/giveaway/${id}/end`, { method: 'POST' });
+    const data = await r.json();
+    showMsg(msgEl, data.message, data.success ? 'success' : 'error');
+    if (data.success) setTimeout(() => location.reload(), 1500);
+}
+
+// ── Reroll ────────────────────────────────────────────────────────────────────
+async function rerollGiveaway(id) {
+    if (!confirm('Pilih pemenang baru untuk giveaway ini?')) return;
+    const msgEl = document.getElementById(`gwMsg-${id}`);
+    showMsg(msgEl, 'Memilih pemenang baru...', 'info');
+    const r    = await fetch(`/api/guild/${GUILD_ID}/giveaway/${id}/reroll`, { method: 'POST' });
+    const data = await r.json();
+    showMsg(msgEl, data.message, data.success ? 'success' : 'error');
+}
+
+// ── Cancel ────────────────────────────────────────────────────────────────────
+async function cancelGiveaway(id) {
+    if (!confirm('Batalkan giveaway ini? Tidak ada pemenang yang akan dipilih.')) return;
+    const msgEl = document.getElementById(`gwMsg-${id}`);
+    const r     = await fetch(`/api/guild/${GUILD_ID}/giveaway/${id}`, { method: 'DELETE' });
+    const data  = await r.json();
+    showMsg(msgEl, data.message, data.success ? 'success' : 'error');
+    if (data.success) setTimeout(() => location.reload(), 1200);
+}
+
+// ── Helper ────────────────────────────────────────────────────────────────────
+function showMsg(el, text, type) {
+    if (!el) return;
+    el.textContent = text;
+    el.className   = `form-message msg-${type}`;
+    if (type !== 'info') setTimeout(() => { el.textContent = ''; el.className = 'form-message'; }, 4000);
+}
+
+// Inline spin keyframe
+const style = document.createElement('style');
+style.textContent = '@keyframes spin { to { transform: rotate(360deg); } }';
+document.head.appendChild(style);
+</script>
+
+<%- include('../partials/footer') %>

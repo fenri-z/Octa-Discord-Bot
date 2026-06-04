@@ -135,15 +135,128 @@
     max-width: 380px; margin-left: auto; margin-right: auto; line-height: 1.6;
 }
 
+/* ── Landing Footer ──────────────────────────────────────────────────────── */
+.lp-footer {
+    background: #0d0e14;
+    border-top: 1px solid rgba(255,255,255,.06);
+    padding: 4.5rem 3rem 0;
+}
+.lp-footer-inner {
+    max-width: 1200px; margin: 0 auto;
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+    gap: 3rem;
+    padding-bottom: 3.5rem;
+}
+
+/* Brand: avatar kiri, nama+deskripsi kanan */
+.lp-footer-brand-head {
+    display: flex; align-items: center; gap: .85rem;
+    margin-bottom: .85rem;
+}
+.lp-footer-brand-avatar {
+    width: 56px; height: 56px; border-radius: 50%;
+    object-fit: cover; flex-shrink: 0;
+    border: 2px solid rgba(88,101,242,.35);
+    box-shadow: 0 0 0 4px rgba(88,101,242,.08);
+}
+.lp-footer-brand-info { min-width: 0; }
+.lp-footer-brand-name {
+    display: flex; align-items: center; gap: .45rem;
+    font-weight: 800; font-size: 1.1rem;
+    color: var(--text); margin-bottom: .2rem;
+}
+.lp-footer-brand-badge {
+    font-size: .6rem; font-weight: 700; padding: .15rem .45rem;
+    border-radius: 4px; background: rgba(88,101,242,.25);
+    color: #8b95f7; letter-spacing: .06em; text-transform: uppercase;
+}
+.lp-footer-brand-sub {
+    font-size: .72rem; color: var(--text-muted);
+}
+.lp-footer-brand-desc {
+    font-size: .8rem; color: var(--text-muted);
+    line-height: 1.7; max-width: 280px;
+}
+
+.lp-footer-col-title {
+    font-size: .68rem; font-weight: 800;
+    letter-spacing: .1em; text-transform: uppercase;
+    margin-bottom: 1.1rem;
+}
+.lp-footer-col-title.legal   { color: #5865F2; }
+.lp-footer-col-title.support { color: #57F287; }
+.lp-footer-col-title.company { color: #F0A032; }
+.lp-footer-col-title.help    { color: #ED4245; }
+.lp-footer-links { display: flex; flex-direction: column; gap: .6rem; }
+.lp-footer-links a {
+    font-size: .83rem; color: var(--text-muted);
+    text-decoration: none; transition: color .15s;
+}
+.lp-footer-links a:hover { color: var(--text); }
+
+.lp-footer-bottom {
+    max-width: 1200px; margin: 0 auto;
+    padding: 1.25rem 0;
+    border-top: 1px solid rgba(255,255,255,.06);
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 1rem; flex-wrap: wrap;
+}
+.lp-footer-copy {
+    font-size: .78rem; color: var(--text-muted);
+}
+.lp-footer-copy a { color: var(--accent); text-decoration: none; }
+.lp-footer-copy a:hover { text-decoration: underline; }
+.lp-footer-socials { display: flex; gap: .5rem; }
+.lp-footer-socials a {
+    width: 32px; height: 32px; border-radius: 8px;
+    background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.08);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-muted); transition: background .15s, color .15s;
+    text-decoration: none;
+}
+.lp-footer-socials a:hover { background: rgba(88,101,242,.2); color: var(--text); }
+.lp-footer-socials a svg { width: 15px; height: 15px; }
+
 /* Responsive */
+@media (max-width: 900px) {
+    .lp-feat-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* Footer: Tablet (≤ 960px) — brand full width, link cols 2×2 */
+@media (max-width: 960px) {
+    .lp-footer { padding: 3.5rem 2rem 0; }
+    .lp-footer-inner {
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem 3rem;
+    }
+    .lp-footer-brand     { grid-column: 1 / -1; }
+    .lp-footer-brand-desc { max-width: 100%; }
+    .lp-footer-bottom    { max-width: 100%; }
+}
+
+/* Footer: Mobile (≤ 540px) */
+@media (max-width: 540px) {
+    .lp-footer { padding: 2.5rem 1.25rem 0; }
+    .lp-footer-inner { grid-template-columns: 1fr; gap: 1.5rem; }
+    .lp-footer-brand-avatar { width: 46px; height: 46px; }
+    .lp-footer-brand-name   { font-size: 1rem; }
+    .lp-footer-brand-desc   { max-width: 100%; }
+    .lp-footer-bottom { flex-direction: column; align-items: center; gap: .5rem; text-align: center; }
+    .lp-footer-copy   { font-size: .74rem; }
+}
+
+/* Landing: Mobile (≤ 640px) */
 @media (max-width: 640px) {
-    .lp-hero   { padding: 3.5rem 1rem 2.5rem; }
+    .lp-hero      { padding: 3.5rem 1rem 2.5rem; }
     .lp-feat-grid { grid-template-columns: 1fr; }
     .lp-features  { padding: 2rem 1rem 3.5rem; }
     .lp-bottom    { padding: 2.5rem 1rem 3rem; }
 }
-@media (min-width: 641px) and (max-width: 900px) {
-    .lp-feat-grid { grid-template-columns: repeat(2, 1fr); }
+
+/* Footer: Small mobile (≤ 380px) */
+@media (max-width: 380px) {
+    .lp-footer-inner { grid-template-columns: 1fr; gap: 1.25rem; }
 }
 </style>
 

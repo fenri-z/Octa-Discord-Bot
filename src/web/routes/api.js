@@ -2257,4 +2257,232 @@ router.delete('/guild/:guildId/tiktok/accounts/:username', requireLogin, require
     res.json({ success: true, message: `Akun "${username}" berhasil dihapus.` });
 });
 
+// ════════════════════════════════════════════════════════════════════════════════
+// TWITCH EVENTSUB
+// ════════════════════════════════════════════════════════════════════════════════
+
+const MAX_TWITCH_ACCOUNTS = 10;
+
+function getTwAccounts(db, guildId) {
+    try { return JSON.parse(db.get(`twitch-accounts-${guildId}`) || '[]'); }
+    catch { return []; }
+}
+function setTwAccounts(db, guildId, accounts) {
+    db.set(`twitch-accounts-${guildId}`, JSON.stringify(accounts));
+}
+
+// POST /api/guild/:guildId/twitch/lookup
+router.post('/guild/:guildId/twitch/lookup', requireLogin, requireManageGuild, async (req, res) => {
+    const { input } = req.body;
+    if (!input?.trim()) return res.json({ success: false, message: 'Input tidak boleh kosong.' });
+
+    const notifier = req.discordClient?.twitchNotifier;
+    if (!notifier) return res.json({ success: false, message: 'TwitchNotifier tidak tersedia.' });
+    if (!notifier.isConfigured) return res.json({ success: false, message: 'Twitch belum dikonfigurasi. Set TWITCH_CLIENT_ID, TWITCH_CLIENT_SECRET, dan BASE_URL di .env.' });
+
+    try {
+        const user = await notifier.lookupUser(input);
+        res.json({ success: true, user });
+    } catch (err) {
+        res.json({ success: false, message: err.message });
+    }
+});
+
+// POST /api/guild/:guildId/twitch/accounts — tambah akun
+router.post('/guild/:guildId/twitch/accounts', requireLogin, requireManageGuild, async (req, res) => {
+    const db      = req.discordClient?.database;
+    const guildId = req.params.guildId;
+    if (!db) return res.status(500).json({ success: false, message: 'Database tidak tersedia.' });
+
+    const { userId, login, displayName, thumbnail } = req.body;
+    if (!userId || !login) return res.json({ success: false, message: 'Data akun tidak valid.' });
+
+    const accounts = getTwAccounts(db, guildId);
+    if (accounts.length >= MAX_TWITCH_ACCOUNTS)
+        return res.json({ success: false, message: `Batas maksimal ${MAX_TWITCH_ACCOUNTS} akun Twitch per server.` });
+    if (accounts.find(a => a.userId === userId))
+        return res.json({ success: false, message: `Akun "${login}" sudah ditambahkan.` });
+
+    accounts.push({
+        userId, login, displayName, thumbnail: thumbnail || null,
+        enabled: false, channelId: '', message: '',
+    });
+    setTwAccounts(db, guildId, accounts);
+
+    // Subscribe EventSub
+    const notifier = req.discordClient?.twitchNotifier;
+    if (notifier?.isConfigured) {
+        notifier.subscribeUser(userId).catch(err => console.warn('[Twitch] subscribe error:', err.message));
+    }
+
+    res.json({ success: true, message: `Akun "${displayName || login}" berhasil ditambahkan.` });
+});
+
+// PUT /api/guild/:guildId/twitch/accounts/:userId — update settings
+router.put('/guild/:guildId/twitch/accounts/:userId', requireLogin, requireManageGuild, (req, res) => {
+    const db      = req.discordClient?.database;
+    const guildId = req.params.guildId;
+    const userId  = req.params.userId;
+    if (!db) return res.status(500).json({ success: false, message: 'Database tidak tersedia.' });
+
+    const { enabled, channelId, message } = req.body;
+    const accounts = getTwAccounts(db, guildId);
+    const idx = accounts.findIndex(a => a.userId === userId);
+    if (idx === -1) return res.json({ success: false, message: 'Akun tidak ditemukan.' });
+
+    if (enabled && !channelId)
+        return res.json({ success: false, message: 'Notifikasi diaktifkan tapi channel Discord belum dipilih.' });
+
+    accounts[idx] = {
+        ...accounts[idx],
+        enabled:   !!enabled,
+        channelId: channelId || '',
+        message:   (message || '').trim(),
+    };
+    setTwAccounts(db, guildId, accounts);
+    res.json({ success: true, message: 'Pengaturan berhasil disimpan.' });
+});
+
+// POST /api/guild/:guildId/twitch/accounts/:userId/test — test notifikasi
+router.post('/guild/:guildId/twitch/accounts/:userId/test', requireLogin, requireManageGuild, async (req, res) => {
+    const db      = req.discordClient?.database;
+    const guildId = req.params.guildId;
+    const userId  = req.params.userId;
+    if (!db) return res.status(500).json({ success: false, message: 'Database tidak tersedia.' });
+
+    const accounts = getTwAccounts(db, guildId);
+    const account  = accounts.find(a => a.userId === userId);
+    if (!account)         return res.json({ success: false, message: 'Akun tidak ditemukan.' });
+    if (!account.enabled) return res.json({ success: false, message: 'Notifikasi belum diaktifkan.' });
+    if (!account.channelId) return res.json({ success: false, message: 'Channel Discord belum dipilih.' });
+
+    const notifier = req.discordClient?.twitchNotifier;
+    if (!notifier) return res.json({ success: false, message: 'TwitchNotifier tidak tersedia.' });
+
+    try {
+        await notifier.sendTestNotification(req.botGuild, account);
+        res.json({ success: true, message: 'Test notifikasi berhasil dikirim!' });
+    } catch (err) {
+        res.json({ success: false, message: `Gagal: ${err.message}` });
+    }
+});
+
+// DELETE /api/guild/:guildId/twitch/accounts/:userId — hapus akun
+router.delete('/guild/:guildId/twitch/accounts/:userId', requireLogin, requireManageGuild, async (req, res) => {
+    const db      = req.discordClient?.database;
+    const guildId = req.params.guildId;
+    const userId  = req.params.userId;
+    if (!db) return res.status(500).json({ success: false, message: 'Database tidak tersedia.' });
+
+    const accounts = getTwAccounts(db, guildId);
+    const account  = accounts.find(a => a.userId === userId);
+    if (!account) return res.json({ success: false, message: 'Akun tidak ditemukan.' });
+
+    setTwAccounts(db, guildId, accounts.filter(a => a.userId !== userId));
+    db.delete(`twitch-live-${guildId}-${userId}`);
+
+    // Periksa apakah userId ini masih dipantau di guild lain sebelum unsubscribe
+    const stillNeeded = [...req.discordClient.guilds.cache.values()].some(g => {
+        if (g.id === guildId) return false;
+        const accs = getTwAccounts(db, g.id);
+        return accs.some(a => a.userId === userId);
+    });
+
+    if (!stillNeeded) {
+        const notifier = req.discordClient?.twitchNotifier;
+        if (notifier?.isConfigured) {
+            notifier.unsubscribeUser(userId).catch(err => console.warn('[Twitch] unsubscribe error:', err.message));
+        }
+    }
+
+    res.json({ success: true, message: `Akun "${account.displayName || account.login}" berhasil dihapus.` });
+});
+
+// ════════════════════════════════════════════════════════════════════════════════
+// GIVEAWAY
+// ════════════════════════════════════════════════════════════════════════════════
+
+// POST /api/guild/:guildId/giveaway — buat giveaway baru
+router.post('/guild/:guildId/giveaway', requireLogin, requireManageGuild, async (req, res) => {
+    const guildId = req.params.guildId;
+    const manager = req.discordClient?.giveawayManager;
+    if (!manager) return res.status(500).json({ success: false, message: 'GiveawayManager tidak tersedia.' });
+
+    const { channelId, prize, durationMs, winnerCount, requiredRoleId } = req.body;
+
+    if (!channelId)          return res.json({ success: false, message: 'Pilih channel terlebih dahulu.' });
+    if (!prize?.trim())      return res.json({ success: false, message: 'Hadiah tidak boleh kosong.' });
+    if (!durationMs || durationMs < 10_000)
+        return res.json({ success: false, message: 'Durasi minimal 10 detik.' });
+    if (!winnerCount || winnerCount < 1 || winnerCount > 20)
+        return res.json({ success: false, message: 'Jumlah pemenang harus antara 1–20.' });
+
+    try {
+        const gw = await manager.createGiveaway({
+            guildId,
+            channelId,
+            prize:          prize.trim(),
+            durationMs:     Number(durationMs),
+            winnerCount:    Number(winnerCount),
+            hostId:         req.user?.id || null,
+            requiredRoleId: requiredRoleId || null,
+        });
+        res.json({ success: true, message: `Giveaway "${gw.prize}" berhasil dibuat!`, id: gw.id });
+    } catch (err) {
+        res.json({ success: false, message: err.message });
+    }
+});
+
+// POST /api/guild/:guildId/giveaway/:id/end — end giveaway sekarang
+router.post('/guild/:guildId/giveaway/:id/end', requireLogin, requireManageGuild, async (req, res) => {
+    const manager = req.discordClient?.giveawayManager;
+    if (!manager) return res.status(500).json({ success: false, message: 'GiveawayManager tidak tersedia.' });
+
+    const gw = manager._get(req.params.id);
+    if (!gw || gw.guildId !== req.params.guildId)
+        return res.json({ success: false, message: 'Giveaway tidak ditemukan.' });
+    if (gw.ended) return res.json({ success: false, message: 'Giveaway sudah selesai.' });
+
+    try {
+        await manager.endGiveaway(req.params.id);
+        res.json({ success: true, message: 'Giveaway berhasil diakhiri.' });
+    } catch (err) {
+        res.json({ success: false, message: err.message });
+    }
+});
+
+// POST /api/guild/:guildId/giveaway/:id/reroll — reroll pemenang
+router.post('/guild/:guildId/giveaway/:id/reroll', requireLogin, requireManageGuild, async (req, res) => {
+    const manager = req.discordClient?.giveawayManager;
+    if (!manager) return res.status(500).json({ success: false, message: 'GiveawayManager tidak tersedia.' });
+
+    const gw = manager._get(req.params.id);
+    if (!gw || gw.guildId !== req.params.guildId)
+        return res.json({ success: false, message: 'Giveaway tidak ditemukan.' });
+
+    try {
+        const winners = await manager.rerollGiveaway(req.params.id);
+        res.json({ success: true, message: `Reroll selesai! ${winners.length} pemenang baru dipilih.` });
+    } catch (err) {
+        res.json({ success: false, message: err.message });
+    }
+});
+
+// DELETE /api/guild/:guildId/giveaway/:id — cancel giveaway
+router.delete('/guild/:guildId/giveaway/:id', requireLogin, requireManageGuild, async (req, res) => {
+    const manager = req.discordClient?.giveawayManager;
+    if (!manager) return res.status(500).json({ success: false, message: 'GiveawayManager tidak tersedia.' });
+
+    const gw = manager._get(req.params.id);
+    if (!gw || gw.guildId !== req.params.guildId)
+        return res.json({ success: false, message: 'Giveaway tidak ditemukan.' });
+
+    try {
+        await manager.cancelGiveaway(req.params.id);
+        res.json({ success: true, message: 'Giveaway berhasil dibatalkan.' });
+    } catch (err) {
+        res.json({ success: false, message: err.message });
+    }
+});
+
 module.exports = router;

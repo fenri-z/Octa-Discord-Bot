@@ -1,0 +1,638 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+<style>
+/* ── Layout 2 kolom (sama pola TikTok/YouTube) ───────────────────────────── */
+.tw-panel-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+    align-items: start;
+}
+@media (max-width: 860px) { .tw-panel-layout { grid-template-columns: 1fr; } }
+
+/* ── Preview sticky ──────────────────────────────────────────────────────── */
+.tw-preview-col { position: sticky; top: calc(var(--navbar-h, 56px) + 1rem); }
+.preview-label  {
+    font-size: .72rem; font-weight: 700; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: .08em; margin-bottom: .5rem;
+}
+
+/* ── Discord mock ────────────────────────────────────────────────────────── */
+.dc-window {
+    background: #313338; border-radius: 8px; overflow: hidden;
+    font-family: 'gg sans','Noto Sans','Helvetica Neue',Arial,sans-serif;
+    font-size: 14px; color: #dbdee1; box-shadow: 0 4px 20px rgba(0,0,0,.5);
+}
+.dc-channel-bar {
+    background: #2b2d31; padding: .45rem .85rem;
+    border-bottom: 1px solid #1e1f22;
+    display: flex; align-items: center; gap: .35rem;
+    font-size: .82rem; font-weight: 600; color: #dbdee1;
+}
+.dc-channel-hash { color: #80848e; font-size: 1rem; }
+.dc-messages     { padding: .85rem; }
+.dc-message      { display: flex; gap: .65rem; }
+.dc-avatar       { width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0; object-fit: cover; }
+.dc-msg-body     { flex: 1; min-width: 0; }
+.dc-username     { font-weight: 600; font-size: .85rem; }
+.dc-timestamp    { font-size: .66rem; color: #80848e; margin-left: .45rem; }
+.dc-embed {
+    display: flex; background: #2b2d31; border-radius: 4px;
+    margin-top: .3rem; overflow: hidden; max-width: 420px;
+}
+.dc-embed-inner  { padding: .55rem .7rem; flex: 1; min-width: 0; }
+.dc-embed-author { display:flex; align-items:center; gap:.4rem; margin-bottom:.3rem; }
+.dc-embed-author img { width:18px;height:18px;border-radius:50%; }
+.dc-embed-author span { font-size:.78rem;font-weight:600;color:#dbdee1; }
+.dc-embed-title  { font-size: .88rem; font-weight: 700; color: #9146FF; word-break: break-word; margin-bottom: .25rem; }
+.dc-embed-desc   { font-size: .8rem; color: #dbdee1; line-height: 1.4; }
+.dc-embed-field  { margin-top: .4rem; }
+.dc-field-name   { font-size: .72rem; font-weight: 700; color: #dbdee1; }
+.dc-field-value  { font-size: .78rem; color: #9146FF; }
+.dc-embed-thumb  { width:64px;height:64px;border-radius:4px;object-fit:cover;flex-shrink:0;margin:.55rem .55rem .55rem 0;align-self:flex-start; }
+.tw-thumb-mock {
+    border-radius: 4px; overflow: hidden;
+    background: #1a1a1a; aspect-ratio: 16/9; max-width: 100%;
+}
+
+/* ── Account card ────────────────────────────────────────────────────────── */
+.tw-channel-card {
+    background: var(--card-bg, #1e1f22);
+    border: 1px solid var(--border, rgba(255,255,255,.06));
+    border-radius: 10px; padding: 1.1rem; margin-bottom: 1.25rem;
+}
+.tw-card-header {
+    display: flex; align-items: center; gap: .85rem; margin-bottom: 1rem;
+}
+.tw-card-avatar {
+    width: 44px; height: 44px; border-radius: 50%;
+    object-fit: cover; flex-shrink: 0; background: #111;
+}
+.tw-card-avatar-placeholder {
+    width: 44px; height: 44px; border-radius: 50%;
+    background: #9146FF; display: flex; align-items: center;
+    justify-content: center; flex-shrink: 0;
+}
+.tw-card-name { font-weight: 600; font-size: .98rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ── Search loading states ───────────────────────────────────────────────── */
+@keyframes tw-spin    { to { transform: rotate(360deg); } }
+@keyframes tw-shimmer { 0% { background-position:-200% 0; } 100% { background-position:200% 0; } }
+@keyframes tw-dot     { 0%,80%,100% { transform:scale(0);opacity:.3; } 40% { transform:scale(1);opacity:1; } }
+
+.tw-spinner {
+    width: 13px; height: 13px;
+    border: 2px solid rgba(255,255,255,.22);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: tw-spin .65s linear infinite;
+    display: inline-block; vertical-align: middle; flex-shrink: 0;
+}
+.tw-skeleton {
+    background: linear-gradient(90deg,
+        rgba(255,255,255,.04) 25%,
+        rgba(255,255,255,.11) 50%,
+        rgba(255,255,255,.04) 75%);
+    background-size: 200% 100%;
+    animation: tw-shimmer 1.4s ease-in-out infinite;
+    border-radius: 5px;
+}
+.tw-dot-row { display:inline-flex; gap:3px; align-items:center; }
+.tw-dot-row span {
+    width:5px; height:5px; border-radius:50%; background:#9146FF;
+    animation: tw-dot 1.2s ease-in-out infinite;
+}
+.tw-dot-row span:nth-child(2) { animation-delay:.2s; }
+.tw-dot-row span:nth-child(3) { animation-delay:.4s; }
+
+/* ── Stats grid ──────────────────────────────────────────────────────────── */
+.tw-stats-grid { grid-template-columns: repeat(3,1fr) !important; }
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+@media (max-width: 860px) {
+    .tw-panel-layout  { grid-template-columns: 1fr; }
+    .tw-preview-col   { position: static; }
+}
+@media (max-width: 680px) {
+    .tw-stats-grid    { grid-template-columns: 1fr 1fr !important; }
+    .tw-search-row    { flex-direction: column !important; }
+    .tw-search-row .btn { width: 100%; justify-content: center; }
+    .tw-action-row    { flex-direction: column !important; }
+    .tw-action-row .btn { width: 100%; justify-content: center; }
+}
+@media (max-width: 480px) {
+    .tw-stats-grid .stat-card { padding: .6rem .5rem; gap: .4rem; }
+    .tw-stats-grid .stat-icon { width: 30px !important; height: 30px !important; border-radius: 7px !important; flex-shrink: 0; }
+    .tw-stats-grid .stat-icon svg { width: 14px !important; height: 14px !important; }
+}
+</style>
+
+<div class="dash-layout">
+    <%- include('../partials/sidebar', { activePage: 'twitch' }) %>
+    <main class="dash-main">
+    <div class="dash-content-wide">
+        <%- include('../partials/perm-notice') %>
+
+        <!-- Header -->
+        <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
+            <div>
+                <h1>Twitch Notification</h1>
+                <p>Pantau streamer Twitch dan kirim notifikasi otomatis ke Discord saat mereka mulai Live.</p>
+            </div>
+        </div>
+
+        <!-- Warning: belum dikonfigurasi -->
+        <% if (!isConfigured) { %>
+        <div class="perm-card perm-warn" style="margin-bottom:1.5rem;">
+            <i data-lucide="alert-triangle"></i>
+            <div>
+                <strong>Twitch belum dikonfigurasi.</strong> Tambahkan variabel berikut ke file <code>.env</code> lalu restart bot:
+                <div style="margin-top:.5rem;font-size:.82rem;background:rgba(0,0,0,.3);padding:.5rem .75rem;border-radius:6px;font-family:monospace;line-height:1.8;">
+                    TWITCH_CLIENT_ID=xxx<br>
+                    TWITCH_CLIENT_SECRET=xxx<br>
+                    TWITCH_WEBHOOK_SECRET=rahasia_random<br>
+                    BASE_URL=https://domainmu.com
+                </div>
+                <div style="margin-top:.5rem;font-size:.79rem;color:var(--text-muted);">
+                    Daftar aplikasi di <strong>dev.twitch.tv/console</strong> untuk mendapatkan Client ID dan Secret.
+                </div>
+            </div>
+        </div>
+        <% } %>
+
+        <!-- Stats -->
+        <div class="stats-grid tw-stats-grid" style="margin-bottom:1.5rem;">
+            <div class="stat-card">
+                <div class="stat-icon" style="color:#9146FF;background:rgba(145,70,255,.15);">
+                    <i data-lucide="tv-2"></i>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-value" id="statAccounts"><%= twAccounts.length %></div>
+                    <div class="stat-label">Streamer Dipantau</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="color:#57F287;background:rgba(87,242,135,.15);">
+                    <i data-lucide="radio"></i>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-value"><%= twAccounts.filter(a => a.enabled).length %></div>
+                    <div class="stat-label">Notifikasi Aktif</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="color:#80848e;background:rgba(128,132,142,.12);">
+                    <i data-lucide="list"></i>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-value"><%= maxAccounts - twAccounts.length %></div>
+                    <div class="stat-label">Slot Tersisa</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tambah Streamer -->
+        <% if (twAccounts.length < maxAccounts) { %>
+        <div class="settings-card" style="margin-bottom:1.5rem;">
+            <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:1rem;">
+                <i data-lucide="plus-circle" style="color:#9146FF;width:18px;height:18px;flex-shrink:0;"></i>
+                <h2 style="margin:0;font-size:1rem;font-weight:600;">Tambah Streamer Twitch</h2>
+            </div>
+            <p style="font-size:.85rem;color:var(--text-muted);margin:0 0 1rem 0;">
+                Masukkan username atau URL Twitch. Sisa slot: <strong><%= maxAccounts - twAccounts.length %></strong> dari <%= maxAccounts %>.
+            </p>
+            <div class="form-group" style="margin-bottom:0;">
+                <label class="label">Username / URL Twitch</label>
+                <div class="tw-search-row" style="display:flex;gap:.6rem;">
+                    <input type="text" id="twLookupInput" class="input"
+                           placeholder="username  atau  https://twitch.tv/username"
+                           style="flex:1;min-width:0;" maxlength="200"
+                           onkeydown="if(event.key==='Enter') lookupTwitch()">
+                    <button class="btn btn-primary" onclick="lookupTwitch()" id="twLookupBtn"
+                            style="white-space:nowrap;flex-shrink:0;<% if (!isConfigured) { %>opacity:.5;cursor:not-allowed;<% } %>"
+                            <%= !isConfigured ? 'disabled' : '' %>>
+                        <i data-lucide="search" style="width:14px;height:14px;"></i> Cari
+                    </button>
+                </div>
+            </div>
+
+            <!-- Status bar loading -->
+            <div id="twSearchStatus" style="display:none;margin-top:.75rem;padding:.65rem 1rem;background:rgba(145,70,255,.07);border:1px solid rgba(145,70,255,.2);border-radius:8px;align-items:center;gap:.75rem;">
+                <div class="tw-spinner" style="border-color:rgba(145,70,255,.25);border-top-color:#9146FF;width:16px;height:16px;border-width:2.5px;"></div>
+                <div style="flex:1;min-width:0;">
+                    <div style="display:flex;align-items:center;gap:.5rem;">
+                        <span id="twStatusText" style="font-size:.83rem;color:#9146FF;font-weight:600;"></span>
+                        <span class="tw-dot-row"><span></span><span></span><span></span></span>
+                    </div>
+                    <div style="font-size:.74rem;color:var(--text-muted);margin-top:.15rem;">Mohon tunggu sebentar</div>
+                </div>
+            </div>
+
+            <!-- Skeleton placeholder -->
+            <div id="twSearchSkeleton" style="display:none;margin-top:1rem;padding:.85rem;background:var(--card-2,rgba(255,255,255,.04));border-radius:10px;border:1px solid var(--border,rgba(255,255,255,.06));">
+                <div style="display:flex;align-items:center;gap:.75rem;">
+                    <div class="tw-skeleton" style="width:42px;height:42px;border-radius:50%;flex-shrink:0;"></div>
+                    <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:.45rem;">
+                        <div class="tw-skeleton" style="height:13px;width:52%;"></div>
+                        <div class="tw-skeleton" style="height:10px;width:35%;"></div>
+                    </div>
+                    <div class="tw-skeleton" style="width:70px;height:30px;border-radius:6px;flex-shrink:0;"></div>
+                </div>
+            </div>
+
+            <!-- Error / pesan -->
+            <div id="twLookupMsg" class="form-message" style="margin-top:.5rem;"></div>
+
+            <!-- Hasil pencarian -->
+            <div id="twLookupResult" style="display:none;margin-top:1rem;padding:.85rem;background:var(--card-2,rgba(255,255,255,.04));border-radius:10px;border:1px solid var(--border,rgba(255,255,255,.06));">
+                <div style="display:flex;align-items:center;gap:.75rem;">
+                    <img id="twLookupThumb" src="" alt=""
+                         style="width:42px;height:42px;border-radius:50%;object-fit:cover;flex-shrink:0;background:#111;"
+                         onerror="this.style.display='none'">
+                    <div style="flex:1;min-width:0;">
+                        <div id="twLookupName" style="font-weight:600;font-size:.95rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></div>
+                        <div id="twLookupLogin" style="font-size:.78rem;color:var(--text-muted);"></div>
+                    </div>
+                    <button class="btn btn-success" onclick="addStreamer()" style="flex-shrink:0;">
+                        <i data-lucide="plus" style="width:14px;height:14px;"></i> Tambah
+                    </button>
+                </div>
+            </div>
+        </div>
+        <% } else { %>
+        <div class="perm-card perm-warn" style="margin-bottom:1.5rem;">
+            <i data-lucide="info"></i>
+            <span>Sudah mencapai batas maksimal <strong><%= maxAccounts %> streamer Twitch</strong> per server.</span>
+        </div>
+        <% } %>
+
+        <!-- Daftar Streamer -->
+        <div id="twAccountList">
+        <% if (twAccounts.length === 0) { %>
+            <div class="settings-card" style="text-align:center;padding:3rem 1.5rem;">
+                <i data-lucide="tv-2" style="width:48px;height:48px;color:#9146FF;opacity:.4;display:block;margin:0 auto .75rem;"></i>
+                <p style="color:var(--text-muted);margin:0;">Belum ada streamer Twitch yang dipantau.</p>
+            </div>
+        <% } else { %>
+        <% twAccounts.forEach(function(acc) { %>
+        <div class="settings-card tw-channel-card" id="twCard-<%= acc.userId %>">
+
+            <!-- Header -->
+            <div class="tw-card-header">
+                <% if (acc.thumbnail) { %>
+                <img src="<%= acc.thumbnail %>" alt="" class="tw-card-avatar"
+                     referrerpolicy="no-referrer"
+                     onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                <div class="tw-card-avatar-placeholder" style="display:none;">
+                    <i data-lucide="tv-2" style="width:22px;height:22px;color:#fff;"></i>
+                </div>
+                <% } else { %>
+                <div class="tw-card-avatar-placeholder">
+                    <i data-lucide="tv-2" style="width:22px;height:22px;color:#fff;"></i>
+                </div>
+                <% } %>
+                <div style="flex:1;min-width:0;">
+                    <div class="tw-card-name"><%= acc.displayName || acc.login %></div>
+                    <div style="font-size:.78rem;color:var(--text-muted);margin-top:.1rem;">twitch.tv/<%= acc.login %></div>
+                </div>
+                <a href="https://twitch.tv/<%= acc.login %>" target="_blank" class="btn btn-sm" style="flex-shrink:0;" title="Buka di Twitch">
+                    <i data-lucide="external-link" style="width:13px;height:13px;"></i>
+                </a>
+                <button class="btn btn-sm btn-danger"
+                        data-userid="<%= acc.userId %>"
+                        data-name="<%= (acc.displayName||acc.login).replace(/"/g,'&quot;') %>"
+                        onclick="removeStreamer(this.dataset.userid, this.dataset.name)"
+                        style="flex-shrink:0;" title="Hapus streamer">
+                    <i data-lucide="trash-2" style="width:13px;height:13px;"></i>
+                </button>
+            </div>
+
+            <!-- 2-kolom: form | preview -->
+            <div class="tw-panel-layout">
+
+                <!-- Kiri: form -->
+                <div>
+                    <div class="form-group">
+                        <label class="toggle-label">
+                            <input type="checkbox" class="toggle-input" id="twEnabled-<%= acc.userId %>"
+                                   <%= acc.enabled ? 'checked' : '' %>
+                                   onchange="updatePreview('<%= acc.userId %>')">
+                            <span class="toggle-slider"></span>
+                            <span>Aktifkan notifikasi Live</span>
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label class="label">Channel Discord</label>
+                        <select class="select" id="twChannel-<%= acc.userId %>" onchange="updatePreview('<%= acc.userId %>')">
+                            <option value="">— Pilih channel —</option>
+                            <% (locals.channels||[]).forEach(ch => { %>
+                            <option value="<%= ch.id %>" <%= acc.channelId===ch.id?'selected':'' %>>#<%= ch.name %></option>
+                            <% }) %>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom:0;">
+                        <div class="label-with-picker">
+                            <label class="label" style="margin-bottom:0;">Pesan kustom <span style="font-weight:400;color:var(--text-muted);">(opsional)</span></label>
+                            <div class="ph-picker-anchor">
+                                <button type="button" class="ph-toggle-btn" onclick="togglePicker('twPicker-<%= acc.userId %>',event)">{…} Placeholder</button>
+                                <div class="ph-dropdown" id="twPicker-<%= acc.userId %>" style="display:none;"></div>
+                            </div>
+                        </div>
+                        <textarea class="textarea" rows="3" id="twMessage-<%= acc.userId %>"
+                                  style="font-size:.82rem;"
+                                  placeholder="🔴 {account} lagi LIVE! Main {game} — {url}"
+                                  oninput="updatePreview('<%= acc.userId %>')"
+                        ><%= acc.message||'' %></textarea>
+                    </div>
+
+                    <!-- Tombol aksi -->
+                    <div class="tw-action-row" style="display:flex;justify-content:flex-end;gap:.5rem;padding-top:.85rem;">
+                        <button class="btn btn-secondary" onclick="testNotif('<%= acc.userId %>')">
+                            <i data-lucide="send" style="width:14px;height:14px;"></i> Test Notif
+                        </button>
+                        <button class="btn btn-primary" onclick="saveStreamer('<%= acc.userId %>')">
+                            <i data-lucide="save" style="width:14px;height:14px;"></i> Simpan
+                        </button>
+                    </div>
+                    <div id="msg-<%= acc.userId %>" class="form-message" style="margin-top:.4rem;"></div>
+                </div>
+
+                <!-- Kanan: preview Discord -->
+                <div class="tw-preview-col">
+                    <div class="preview-label">Preview</div>
+                    <div class="dc-window">
+                        <div class="dc-channel-bar">
+                            <span class="dc-channel-hash">#</span>
+                            <span id="prevCh-<%= acc.userId %>">pilih-channel</span>
+                        </div>
+                        <div class="dc-messages">
+                            <div class="dc-message">
+                                <img class="dc-avatar"
+                                     src="<%- botUser ? botUser.avatarUrl : 'https://cdn.discordapp.com/embed/avatars/0.png' %>"
+                                     alt="bot" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+                                <div class="dc-msg-body">
+                                    <span class="dc-username" style="color:<%- botUser ? botUser.roleColor : '#ffffff' %>">
+                                        <%= botUser ? botUser.username : 'Bot' %>
+                                    </span>
+                                    <span class="dc-timestamp">Hari ini pukul 12:00</span>
+
+                                    <!-- Embed preview (struktur sama dengan YouTube) -->
+                                    <div id="prev-<%= acc.userId %>" class="dc-embed" style="max-width:100%;">
+                                        <div style="width:4px;flex-shrink:0;background:#9146FF;"></div>
+                                        <div class="dc-embed-inner" style="flex:1;min-width:0;">
+
+                                            <!-- Baris judul + thumbnail profil (kanan) -->
+                                            <div style="display:flex;align-items:flex-start;gap:.5rem;">
+                                                <div style="flex:1;min-width:0;">
+                                                    <div class="dc-embed-author">
+                                                        <% if (acc.thumbnail) { %>
+                                                        <img src="<%= acc.thumbnail %>" referrerpolicy="no-referrer" onerror="this.style.display='none'">
+                                                        <% } %>
+                                                        <span><%= acc.displayName||acc.login %> sedang LIVE di Twitch!</span>
+                                                    </div>
+                                                    <div class="dc-embed-title" id="prevTitle-<%= acc.userId %>">
+                                                        [TEST] Contoh judul stream
+                                                    </div>
+                                                    <div class="dc-embed-desc" id="prevDesc-<%= acc.userId %>"></div>
+                                                    <div class="dc-embed-field">
+                                                        <div class="dc-field-name">🎮 Game</div>
+                                                        <div class="dc-field-value" style="color:#dbdee1;">Just Chatting</div>
+                                                    </div>
+                                                    <div class="dc-embed-field">
+                                                        <div class="dc-field-name">🔗 Tonton</div>
+                                                        <div class="dc-field-value" style="color:#9146FF;">Buka Twitch ▶</div>
+                                                    </div>
+                                                </div>
+                                                <% if (acc.thumbnail) { %>
+                                                <img src="<%= acc.thumbnail %>" referrerpolicy="no-referrer"
+                                                     style="width:60px;height:60px;border-radius:4px;object-fit:cover;flex-shrink:0;margin-top:.1rem;"
+                                                     onerror="this.style.display='none'">
+                                                <% } %>
+                                            </div>
+
+                                            <!-- Thumbnail stream besar (di dalam inner, sama seperti YouTube) -->
+                                            <div class="tw-thumb-mock" style="margin-top:.6rem;">
+                                                <img id="prevImg-<%= acc.userId %>"
+                                                     src="https://static-cdn.jtvnw.net/ttv-static/404_preview-440x248.jpg"
+                                                     style="width:100%;border-radius:4px;display:block;"
+                                                     referrerpolicy="no-referrer"
+                                                     onerror="this.src='';this.style.display='none'">
+                                            </div>
+
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div><!-- /tw-panel-layout -->
+        </div><!-- /tw-channel-card -->
+        <% }); %>
+        <% } %>
+        </div><!-- /twAccountList -->
+
+    </div><!-- /dash-content-wide -->
+    <%- include('../partials/dash-footer') %>
+    </main>
+</div>
+
+<%- include('../partials/bottom-nav') %>
+
+<script>
+const GUILD_ID = '<%= guild.id %>';
+const CHANNELS = <%- JSON.stringify(Object.fromEntries((locals.channels||[]).map(ch=>[ch.id,ch.name]))) %>;
+
+// ── Lookup ────────────────────────────────────────────────────────────────────
+let _lookupData = null;
+
+async function lookupTwitch() {
+    const input      = document.getElementById('twLookupInput').value.trim();
+    const btn        = document.getElementById('twLookupBtn');
+    const resEl      = document.getElementById('twLookupResult');
+    const statusEl   = document.getElementById('twSearchStatus');
+    const skeletonEl = document.getElementById('twSearchSkeleton');
+    const msgEl      = document.getElementById('twLookupMsg');
+    if (!input) return;
+
+    resEl.style.display      = 'none';
+    statusEl.style.display   = 'none';
+    skeletonEl.style.display = 'none';
+    if (msgEl) { msgEl.textContent = ''; msgEl.className = 'form-message'; }
+    _lookupData = null;
+
+    btn.disabled  = true;
+    btn.innerHTML = '<span class="tw-spinner"></span> Mencari...';
+
+    const tips       = ['Mencari streamer...', 'Memverifikasi akun', 'Mengambil info profil', 'Hampir selesai'];
+    let tipIdx       = 0;
+    const statusTextEl = document.getElementById('twStatusText');
+    if (statusTextEl) statusTextEl.textContent = tips[0];
+    statusEl.style.display   = 'flex';
+    skeletonEl.style.display = 'block';
+
+    const tipTimer = setInterval(() => {
+        tipIdx = (tipIdx + 1) % tips.length;
+        if (statusTextEl) statusTextEl.textContent = tips[tipIdx];
+    }, 3000);
+
+    try {
+        const r    = await fetch(`/api/guild/${GUILD_ID}/twitch/lookup`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ input }),
+        });
+        const data = await r.json();
+        if (!data.success) {
+            if (msgEl) showMsg(msgEl, data.message, 'error', true);
+            return;
+        }
+        _lookupData = data.user;
+        const thumb = document.getElementById('twLookupThumb');
+        thumb.src          = _lookupData.thumbnail || '';
+        thumb.style.display = _lookupData.thumbnail ? 'block' : 'none';
+        document.getElementById('twLookupName').textContent  = _lookupData.displayName;
+        document.getElementById('twLookupLogin').textContent = 'twitch.tv/' + _lookupData.login;
+        resEl.style.display = 'block';
+    } catch (err) {
+        if (msgEl) showMsg(msgEl, 'Gagal terhubung ke server: ' + err.message, 'error', true);
+    } finally {
+        clearInterval(tipTimer);
+        statusEl.style.display   = 'none';
+        skeletonEl.style.display = 'none';
+        btn.disabled  = false;
+        btn.innerHTML = '<i data-lucide="search" style="width:14px;height:14px;"></i> Cari';
+        if (window.lucide) lucide.createIcons();
+    }
+}
+
+async function addStreamer() {
+    if (!_lookupData) return;
+    const r    = await fetch(`/api/guild/${GUILD_ID}/twitch/accounts`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(_lookupData),
+    });
+    const data = await r.json();
+    if (data.success) location.reload();
+    else alert(data.message);
+}
+
+// ── Simpan ────────────────────────────────────────────────────────────────────
+async function saveStreamer(userId) {
+    const msgEl    = document.getElementById(`msg-${userId}`);
+    const enabled  = document.getElementById(`twEnabled-${userId}`)?.checked  || false;
+    const channelId = document.getElementById(`twChannel-${userId}`)?.value   || '';
+    const message  = document.getElementById(`twMessage-${userId}`)?.value?.trim() || '';
+
+    if (enabled && !channelId) {
+        showMsg(msgEl, 'Notifikasi diaktifkan tapi channel Discord belum dipilih.', 'error');
+        document.getElementById(`twChannel-${userId}`)?.focus();
+        return;
+    }
+
+    const r    = await fetch(`/api/guild/${GUILD_ID}/twitch/accounts/${encodeURIComponent(userId)}`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enabled, channelId, message }),
+    });
+    const data = await r.json();
+    showMsg(msgEl, data.message, data.success ? 'success' : 'error');
+}
+
+// ── Test notif ────────────────────────────────────────────────────────────────
+async function testNotif(userId) {
+    const msgEl = document.getElementById(`msg-${userId}`);
+    showMsg(msgEl, 'Mengirim test notifikasi...', 'info');
+    const r    = await fetch(`/api/guild/${GUILD_ID}/twitch/accounts/${encodeURIComponent(userId)}/test`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+    });
+    const data = await r.json();
+    showMsg(msgEl, data.message, data.success ? 'success' : 'error');
+}
+
+// ── Hapus streamer ────────────────────────────────────────────────────────────
+async function removeStreamer(userId, name) {
+    if (!confirm(`Hapus streamer "${name}"?`)) return;
+    const r    = await fetch(`/api/guild/${GUILD_ID}/twitch/accounts/${encodeURIComponent(userId)}`, { method: 'DELETE' });
+    const data = await r.json();
+    if (data.success) location.reload();
+    else alert(data.message);
+}
+
+// ── Update preview ────────────────────────────────────────────────────────────
+function updatePreview(userId) {
+    const chanId = document.getElementById(`twChannel-${userId}`)?.value || '';
+    document.getElementById(`prevCh-${userId}`).textContent = chanId && CHANNELS[chanId] ? CHANNELS[chanId] : 'pilih-channel';
+
+    const accName  = document.getElementById(`twCard-${userId}`)?.querySelector('.tw-card-name')?.textContent?.trim() || userId;
+    const msgRaw   = (document.getElementById(`twMessage-${userId}`)?.value || '').trim();
+    const descEl   = document.getElementById(`prevDesc-${userId}`);
+    if (descEl && msgRaw) {
+        const ph = s => s
+            .replace(/{account}/g,  accName)
+            .replace(/{login}/g,    userId)
+            .replace(/{url}/g,      `https://twitch.tv/${userId}`)
+            .replace(/{game}/g,     'Just Chatting')
+            .replace(/{title}/g,    'Contoh judul stream')
+            .replace(/{viewers}/g,  '1234');
+        descEl.innerHTML = ph(msgRaw).replace(/\n/g, '<br>');
+    } else if (descEl) {
+        descEl.innerHTML = '';
+    }
+}
+
+// ── Helper ────────────────────────────────────────────────────────────────────
+function showMsg(el, text, type, persist) {
+    if (!el) return;
+    el.textContent = text;
+    el.className   = `form-message msg-${type}`;
+    if (!persist) setTimeout(() => { el.textContent = ''; el.className = 'form-message'; }, 4000);
+}
+
+// ── Placeholder picker ────────────────────────────────────────────────────────
+const PH_TWITCH = [
+    ['{account}',  'Nama tampilan streamer'],
+    ['{login}',    'Username Twitch'],
+    ['{url}',      'Link stream'],
+    ['{game}',     'Nama game yang dimainkan'],
+    ['{title}',    'Judul stream'],
+    ['{viewers}',  'Jumlah penonton'],
+];
+
+function buildPickers() {
+    document.querySelectorAll('[id^="twPicker-"]').forEach(el => {
+        const userId = el.id.replace('twPicker-', '');
+        el.innerHTML = PH_TWITCH.map(([ph, desc]) =>
+            `<button type="button" class="ph-item" onclick="insertPh('twMessage-${userId}','${ph}')"><code>${ph}</code><span>${desc}</span></button>`
+        ).join('');
+    });
+}
+
+function togglePicker(id, event) {
+    if (event) event.stopPropagation();
+    const el        = document.getElementById(id);
+    const wasHidden = el.style.display === 'none';
+    document.querySelectorAll('.ph-dropdown').forEach(d => d.style.display = 'none');
+    if (wasHidden) el.style.display = 'grid';
+}
+document.addEventListener('click', () =>
+    document.querySelectorAll('.ph-dropdown').forEach(d => d.style.display = 'none')
+);
+
+function insertPh(targetId, ph) {
+    const el = document.getElementById(targetId);
+    if (!el) return;
+    const s = el.selectionStart ?? el.value.length;
+    el.value = el.value.substring(0, s) + ph + el.value.substring(s);
+    el.selectionStart = el.selectionEnd = s + ph.length;
+    el.focus();
+    el.dispatchEvent(new Event('input'));
+    document.querySelectorAll('.ph-dropdown').forEach(d => d.style.display = 'none');
+}
+
+// Init
+buildPickers();
+document.getElementById('twLookupInput')?.addEventListener('keydown', e => { if (e.key === 'Enter') lookupTwitch(); });
+</script>
+
+<%- include('../partials/footer') %>

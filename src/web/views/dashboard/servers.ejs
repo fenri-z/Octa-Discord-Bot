@@ -3,43 +3,243 @@
 
 <div class="page-container">
     <div class="page-header">
-        <h1>Pilih Server</h1>
-        <p>Pilih server yang ingin kamu kelola.</p>
+        <h1>Dashboard</h1>
+        <p>Pilih server yang ingin kamu kelola. (<%= guilds.length %> server)</p>
     </div>
 
-    <div class="servers-grid">
+    <!-- Search + Refresh -->
+    <div class="srv-toolbar">
+        <div class="srv-search-wrap">
+            <i data-lucide="search" class="srv-search-icon"></i>
+            <input type="text" id="srvSearch" class="srv-search-input" placeholder="Cari server...">
+        </div>
+        <a href="/dashboard/refresh" class="btn btn-outline srv-refresh-btn" id="refreshBtn">
+            <i data-lucide="refresh-cw"></i>
+            Segarkan
+        </a>
+    </div>
+
+    <!-- Server Grid -->
+    <div class="srv-grid" id="serversGrid">
         <% guilds.forEach(guild => { %>
-        <div class="server-card">
-            <div class="server-icon">
+        <div class="srv-card" data-name="<%= guild.name.toLowerCase() %>">
+
+            <!-- Banner -->
+            <div class="srv-card-banner" <%- guild.bannerURL ? `style="background-image:url('${guild.bannerURL}')"` : '' %>>
+                <div class="srv-card-overlay"></div>
+            </div>
+
+            <!-- Icon: sibling banner, rata kiri, overlap ke body -->
+            <div class="srv-card-icon-wrap">
                 <% if (guild.iconURL) { %>
-                    <img src="<%= guild.iconURL %>" alt="<%= guild.name %>">
+                    <img src="<%= guild.iconURL %>" alt="<%= guild.name %>" class="srv-card-icon">
                 <% } else { %>
-                    <div class="server-icon-placeholder">
-                        <%= guild.name.charAt(0).toUpperCase() %>
-                    </div>
+                    <div class="srv-card-icon srv-card-icon-ph"><%= guild.name.charAt(0).toUpperCase() %></div>
                 <% } %>
             </div>
-            <div class="server-info">
-                <h3 class="server-name"><%= guild.name %></h3>
-                <span class="server-badge <%= guild.botPresent ? 'badge-green' : 'badge-gray' %>">
-                    <%= guild.botPresent ? '✓ Bot aktif' : '+ Undang bot' %>
-                </span>
+
+            <!-- Body: nama + meta kiri, tombol kanan -->
+            <div class="srv-card-body">
+                <div class="srv-card-text">
+                    <div class="srv-card-name"><%= guild.name %></div>
+                    <div class="srv-card-meta">
+                        <% if (guild.botPresent && guild.memberCount !== null) { %>
+                            <span class="srv-dot green"></span>
+                            <span><%= guild.memberCount.toLocaleString('id-ID') %> Anggota</span>
+                        <% } else if (guild.botPresent) { %>
+                            <span class="srv-dot green"></span>
+                            <span>Bot aktif</span>
+                        <% } else { %>
+                            <span class="srv-dot gray"></span>
+                            <span>Bot belum ada</span>
+                        <% } %>
+                    </div>
+                </div>
+                <% if (guild.botPresent) { %>
+                    <a href="/dashboard/<%= guild.id %>" class="srv-card-action srv-btn-manage">Kelola</a>
+                <% } else { %>
+                    <a href="https://discord.com/oauth2/authorize?client_id=<%= process.env.CLIENT_ID %>&permissions=8&scope=bot+applications.commands&guild_id=<%= guild.id %>"
+                       target="_blank" class="srv-card-action srv-btn-invite">Undang</a>
+                <% } %>
             </div>
-            <% if (guild.botPresent) { %>
-                <a href="/dashboard/<%= guild.id %>" class="btn btn-primary btn-sm">Kelola</a>
-            <% } else { %>
-                <a href="https://discord.com/oauth2/authorize?client_id=<%= process.env.CLIENT_ID %>&permissions=8&scope=bot+applications.commands&guild_id=<%= guild.id %>"
-                   target="_blank" class="btn btn-outline btn-sm">Undang</a>
-            <% } %>
         </div>
         <% }) %>
 
         <% if (guilds.length === 0) { %>
-        <div class="empty-state">
+        <div class="empty-state" id="emptyInitial" style="grid-column:1/-1">
             <p>Kamu tidak punya server dengan izin Manage Guild.</p>
         </div>
         <% } %>
+        <div class="empty-state" id="emptySearch" style="display:none;grid-column:1/-1">
+            <p>Tidak ada server yang cocok dengan pencarianmu.</p>
+        </div>
     </div>
 </div>
+
+<style>
+/* ── Toolbar ─────────────────────────────────────────── */
+.srv-toolbar {
+    display: flex; gap: .75rem;
+    margin-bottom: 1.5rem; align-items: center;
+}
+.srv-search-wrap { position: relative; flex: 1; }
+.srv-search-icon {
+    position: absolute; left: .85rem; top: 50%;
+    transform: translateY(-50%);
+    width: 15px; height: 15px;
+    color: var(--text-muted); pointer-events: none;
+}
+.srv-search-input {
+    width: 100%; height: 40px;
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0 .9rem 0 2.4rem;
+    color: var(--text); font-family: inherit; font-size: .9rem;
+    transition: border-color .15s;
+}
+.srv-search-input:focus { outline: none; border-color: var(--accent); }
+.srv-refresh-btn {
+    display: flex; align-items: center; gap: .45rem;
+    white-space: nowrap; flex-shrink: 0;
+    height: 40px; padding: 0 1.1rem;
+}
+.srv-refresh-btn svg { width: 14px; height: 14px; }
+.srv-refresh-btn.spinning svg { animation: srv-spin .7s linear infinite; }
+@keyframes srv-spin { to { transform: rotate(360deg); } }
+
+/* ── Grid ────────────────────────────────────────────── */
+.srv-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+/* ── Card ────────────────────────────────────────────── */
+.srv-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden; /* card mengclip semuanya ke border-radius */
+    transition: border-color .2s, box-shadow .2s, transform .15s;
+}
+.srv-card:hover {
+    border-color: rgba(88,101,242,.5);
+    box-shadow: 0 6px 24px rgba(0,0,0,.35);
+    transform: translateY(-2px);
+}
+
+/* ── Banner (background only, NO icon di dalam) ──────── */
+.srv-card-banner {
+    position: relative;
+    height: 90px;
+    background: linear-gradient(135deg, #1a1b2e 0%, #2a2b38 100%);
+    background-size: cover;
+    background-position: center;
+}
+.srv-card-overlay {
+    position: absolute; inset: 0;
+    background: rgba(0,0,0,.38);
+}
+
+/* ── Icon wrap: sibling banner, rata kiri ────────────── */
+.srv-card-icon-wrap {
+    padding-left: 1rem;
+    margin-top: -28px;   /* tarik naik separuh icon (56px / 2) */
+    position: relative;
+    z-index: 2;
+    line-height: 0;      /* hilangkan gap inline */
+}
+.srv-card-icon {
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--bg2);
+    box-shadow: 0 2px 10px rgba(0,0,0,.45);
+    display: block;
+}
+.srv-card-icon-ph {
+    background: var(--accent); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.25rem; font-weight: 700;
+}
+
+/* ── Body: nama+meta (kiri) + tombol (kanan) ─────────── */
+.srv-card-body {
+    display: flex;
+    align-items: center;
+    gap: .65rem;
+    padding: .45rem 1rem .9rem;
+}
+.srv-card-text {
+    flex: 1; min-width: 0;
+}
+.srv-card-name {
+    font-weight: 600; font-size: .9rem;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    color: var(--text); margin-bottom: .2rem;
+}
+.srv-card-meta {
+    display: flex; align-items: center; gap: .3rem;
+    font-size: .74rem; color: var(--text-muted);
+}
+.srv-dot {
+    width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+}
+.srv-dot.green { background: var(--green); }
+.srv-dot.gray  { background: var(--text-muted); }
+
+/* Tombol di samping teks */
+.srv-card-action {
+    flex-shrink: 0;
+    padding: .38rem .85rem;
+    border-radius: 7px;
+    font-size: .8rem; font-weight: 600;
+    text-decoration: none; white-space: nowrap;
+    transition: background .15s, border-color .15s, transform .1s;
+    -webkit-tap-highlight-color: transparent;
+}
+.srv-card-action:active { transform: scale(.95); }
+.srv-btn-manage { background: var(--accent); color: #fff; }
+.srv-btn-manage:hover { background: var(--accent-h); }
+.srv-btn-invite { background: transparent; color: var(--text-muted); border: 1px solid var(--border); }
+.srv-btn-invite:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ── Responsive ──────────────────────────────────────── */
+@media (max-width: 680px) {
+    .srv-grid { grid-template-columns: repeat(2, 1fr); gap: .75rem; }
+    .srv-card-banner { height: 70px; }
+    .srv-card-icon { width: 46px; height: 46px; font-size: 1rem; }
+    .srv-card-icon-wrap { margin-top: -23px; padding-left: .75rem; }
+    .srv-card-body { padding: .35rem .75rem .75rem; gap: .5rem; }
+    .srv-card-name { font-size: .82rem; }
+    .srv-card-action { padding: .3rem .6rem; font-size: .74rem; }
+}
+@media (max-width: 420px) {
+    .srv-grid { grid-template-columns: 1fr; }
+    .srv-card-icon { width: 52px; height: 52px; }
+    .srv-card-icon-wrap { margin-top: -26px; }
+}
+</style>
+
+<script>
+document.getElementById('srvSearch').addEventListener('input', function () {
+    const q = this.value.toLowerCase().trim();
+    const cards = document.querySelectorAll('#serversGrid .srv-card');
+    let visible = 0;
+    cards.forEach(c => {
+        const match = c.dataset.name.includes(q);
+        c.style.display = match ? '' : 'none';
+        if (match) visible++;
+    });
+    const emptySearch  = document.getElementById('emptySearch');
+    const emptyInitial = document.getElementById('emptyInitial');
+    if (emptySearch)  emptySearch.style.display  = (visible === 0 && cards.length > 0) ? '' : 'none';
+    if (emptyInitial) emptyInitial.style.display = 'none';
+});
+
+document.getElementById('refreshBtn').addEventListener('click', function () {
+    this.classList.add('spinning');
+});
+</script>
 
 <%- include('../partials/footer') %>

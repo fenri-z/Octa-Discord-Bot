@@ -11,16 +11,19 @@ try {
     // Package tidak terinstall — hanya video polling yang aktif
 }
 
-const POLL_INTERVAL_MS      = 5 * 60 * 1000;  // Video: 5 menit via RSSHub
-const LIVE_POLL_INTERVAL_MS = 3 * 60 * 1000;  // Live: 3 menit via WebSocket
+const POLL_INTERVAL_MS         = 5 * 60 * 1000;   // Video: 5 menit via RSSHub
+const LIVE_POLL_INTERVAL_MS    = 3 * 60 * 1000;   // Live: 3 menit via WebSocket
+const HEALTH_INTERVAL_MS       = 30 * 60 * 1000;  // Health check: 30 menit
+const HEALTH_FAIL_THRESHOLD    = 3;               // Alert setelah 3x gagal berturut-turut
 
 const RSSHUB_BASE = (process.env.RSSHUB_BASE_URL || 'https://rsshub.app').replace(/\/$/, '');
 
 class TikTokNotifier {
     constructor(client) {
-        this.client     = client;
-        this._pollTimer = null;
-        this._liveTimer = null;
+        this.client        = client;
+        this._pollTimer    = null;
+        this._liveTimer    = null;
+        this._healthTimer  = null;
     }
 
     // ─── Lifecycle ─────────────────────────────────────────────────────────────
@@ -39,12 +42,20 @@ class TikTokNotifier {
             warn('[TikTok] tiktok-live-connector tidak ditemukan — live detection dinonaktifkan.');
             warn('[TikTok] Jalankan: npm install tiktok-live-connector');
         }
+
+        // Health monitor — cek RSSHub setiap 30 menit
+        setTimeout(() => {
+            this._checkHealth();
+            this._healthTimer = setInterval(() => this._checkHealth(), HEALTH_INTERVAL_MS);
+        }, 5 * 60 * 1000); // Mulai 5 menit setelah bot ready
+        info('[TikTok] Cookie health monitor aktif (cek setiap 30 menit).');
     }
 
     stop() {
-        if (this._pollTimer) clearInterval(this._pollTimer);
-        if (this._liveTimer) clearInterval(this._liveTimer);
-        this._pollTimer = this._liveTimer = null;
+        if (this._pollTimer)   clearInterval(this._pollTimer);
+        if (this._liveTimer)   clearInterval(this._liveTimer);
+        if (this._healthTimer) clearInterval(this._healthTimer);
+        this._pollTimer = this._liveTimer = this._healthTimer = null;
     }
 
     get liveSupported() { return !!WebcastPushConnection; }
@@ -73,8 +84,8 @@ class TikTokNotifier {
         }
 
         if (!res.ok) {
-            if (res.status === 404) throw new Error(`Akun TikTok "${username}" tidak ditemukan di RSSHub.`);
-            throw new Error(`RSSHub merespons HTTP ${res.status}. Coba lagi nanti.`);
+            const diagnosis = await this._diagnoseTikTokAccount(username);
+            throw new Error(diagnosis);
         }
 
         const xml = await res.text();
@@ -93,6 +104,52 @@ class TikTokNotifier {
         if (urlMatch) return '@' + urlMatch[1];
         if (s.startsWith('@')) return s;
         return '@' + s;
+    }
+
+    async _diagnoseTikTokAccount(username) {
+        const cleanUser = username.replace(/^@/, '');
+        try {
+            const res = await fetch(`https://www.tiktok.com/@${cleanUser}`, {
+                signal:  AbortSignal.timeout(10_000),
+                headers: {
+                    'User-Agent':      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                    'Accept-Language': 'en-US,en;q=0.9',
+                    'Accept':          'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                },
+            });
+
+            if (res.status === 404) {
+                return `Akun TikTok "${username}" tidak ditemukan. Pastikan username sudah benar.`;
+            }
+
+            if (!res.ok) {
+                return `Akun "${username}" tidak dapat diakses (HTTP ${res.status}). Coba lagi nanti.`;
+            }
+
+            const html = await res.text();
+
+            // Cek akun private
+            if (html.includes('"privateAccount":true') || html.includes('"isPrivateAccount":true')) {
+                return `Akun "${username}" adalah akun private 🔒. RSSHub tidak dapat mengambil feed dari akun private.`;
+            }
+
+            // Cek akun tidak ada / dinonaktifkan
+            if (html.includes('user-not-found') || html.includes('Couldn\'t find this account')) {
+                return `Akun TikTok "${username}" tidak ditemukan atau telah dinonaktifkan.`;
+            }
+
+            // Cek tidak ada video
+            if (html.includes('"videoCount":0') || html.includes('"itemCount":0')) {
+                return `Akun "${username}" tidak memiliki video publik. Tambahkan minimal 1 video publik agar bisa dipantau.`;
+            }
+
+            // Akun ada tapi RSSHub masih gagal → kemungkinan rate limit atau TikTok block
+            return `RSSHub gagal mengambil feed "${username}". Kemungkinan: akun private, tidak ada video, atau TikTok sedang membatasi akses. Coba lagi dalam beberapa menit.`;
+
+        } catch {
+            // Jika TikTok juga tidak bisa diakses dari VPS
+            return `RSSHub tidak dapat mengambil feed "${username}" (HTTP 503). Kemungkinan akun private, tidak ada video publik, atau TikTok memblokir akses. Pastikan akun bersifat publik dan memiliki video.`;
+        }
     }
 
     // ─── Video Polling ─────────────────────────────────────────────────────────
@@ -258,7 +315,10 @@ class TikTokNotifier {
                 { name: '🔗 Tonton di', value: `[Buka TikTok ▶](${entry.url})`, inline: false },
             );
 
+        // Thumbnail profil akun (kecil, pojok kanan)
         if (account.thumbnail) embed.setThumbnail(account.thumbnail);
+        // Thumbnail video dari RSS feed (gambar besar di bawah embed)
+        if (entry.thumbnail)   embed.setImage(entry.thumbnail);
 
         info(`[TikTok] Video notif: "${entry.title}" | ${account.username} → ${guild.name}`);
         await discordCh.send({ embeds: [embed] }).catch(err =>
@@ -307,6 +367,106 @@ class TikTokNotifier {
         return this._sendVideoNotification(guild, account, entry);
     }
 
+    // ─── Cookie Health Monitor ─────────────────────────────────────────────────
+
+    async _checkHealth() {
+        const db = this.client.database;
+        if (!db) return;
+
+        // Ambil satu akun tracked dari guild mana saja untuk dijadikan test
+        let testUsername = null;
+        for (const guild of this.client.guilds.cache.values()) {
+            const raw = db.get(`tiktok-accounts-${guild.id}`);
+            if (!raw) continue;
+            try {
+                const accounts = JSON.parse(raw);
+                if (accounts.length > 0) { testUsername = accounts[0].username; break; }
+            } catch { /* noop */ }
+        }
+        if (!testUsername) return; // Belum ada akun dipantau — skip
+
+        const feedUrl = `${RSSHUB_BASE}/tiktok/user/${encodeURIComponent(testUsername)}`;
+        let healthy = false;
+        try {
+            const res = await fetch(feedUrl, {
+                signal: AbortSignal.timeout(15_000),
+                headers: { 'Cache-Control': 'no-cache' },
+            });
+            healthy = res.ok;
+        } catch { healthy = false; }
+
+        const failKey    = 'tiktok-health-failures';
+        const alertedKey = 'tiktok-health-alerted';
+
+        if (healthy) {
+            const wasAlerted = db.get(alertedKey) === 'true';
+            db.set(failKey, '0');
+            if (wasAlerted) {
+                db.set(alertedKey, 'false');
+                info('[TikTok/Health] RSSHub kembali normal — kirim notif recovery ke owner.');
+                await this._sendHealthDM(true).catch(() => {});
+            }
+        } else {
+            const failures = parseInt(db.get(failKey) || '0') + 1;
+            db.set(failKey, String(failures));
+            warn(`[TikTok/Health] Health check gagal (${failures}/${HEALTH_FAIL_THRESHOLD})`);
+
+            if (failures >= HEALTH_FAIL_THRESHOLD && db.get(alertedKey) !== 'true') {
+                db.set(alertedKey, 'true');
+                info('[TikTok/Health] Threshold tercapai — kirim alert ke owner.');
+                await this._sendHealthDM(false).catch(() => {});
+            }
+        }
+    }
+
+    async _sendHealthDM(isRecovery) {
+        const config = require('../config');
+        const ownerId = config.users?.ownerId;
+        if (!ownerId) return;
+
+        let owner;
+        try { owner = await this.client.users.fetch(ownerId); }
+        catch { warn('[TikTok/Health] Gagal fetch owner user dari Discord.'); return; }
+
+        const embed = new EmbedBuilder()
+            .setColor(isRecovery ? 0x57F287 : 0xED4245)
+            .setTitle(isRecovery
+                ? '✅ TikTok RSSHub — Kembali Normal'
+                : '⚠️ TikTok RSSHub — Cookie Mungkin Expired')
+            .setTimestamp();
+
+        if (isRecovery) {
+            embed.setDescription('RSSHub berhasil mengambil feed TikTok kembali. Semua notifikasi berjalan normal.');
+        } else {
+            embed.setDescription(
+                `RSSHub gagal merespons **${HEALTH_FAIL_THRESHOLD}x berturut-turut**.\n` +
+                'Kemungkinan besar cookie TikTok sudah expired.'
+            );
+            embed.addFields({
+                name: '📋 Cara Memperbarui Cookie',
+                value:
+                    '1. Login ke `tiktok.com` di browser\n' +
+                    '2. DevTools → **Application** → **Cookies** → `tiktok.com`\n' +
+                    '3. Copy nilai `sessionid` dan cookie lainnya\n' +
+                    '4. Update `TIKTOK_COOKIE` di `~/rsshub/.env`\n' +
+                    '5. Jalankan: `pm2 restart rsshub`',
+                inline: false,
+            });
+            embed.addFields({
+                name: '🔍 Verifikasi',
+                value: '```bash\ncurl http://localhost:1200/tiktok/user/@username\n```\nJika return XML feed → sudah normal.',
+                inline: false,
+            });
+        }
+
+        try {
+            await owner.send({ embeds: [embed] });
+            info(`[TikTok/Health] DM terkirim ke owner: ${isRecovery ? 'recovery' : 'alert'}`);
+        } catch (err) {
+            warn(`[TikTok/Health] Gagal kirim DM ke owner: ${err.message}`);
+        }
+    }
+
     // ─── RSS Parsing ───────────────────────────────────────────────────────────
 
     _parseChannelTitle(xml) {
@@ -342,13 +502,41 @@ class TikTokNotifier {
             const videoId = this._extractVideoId(url);
             if (!videoId) continue;
 
+            // Ekstrak thumbnail dari berbagai format RSS
+            const thumbnail = this._extractEntryThumbnail(block);
+
             entries.push({
                 id:    videoId,
                 url,
-                title: titleM ? this._decodeXml(titleM[1]) : '(tanpa judul)',
+                title:     titleM ? this._decodeXml(titleM[1]) : '(tanpa judul)',
+                thumbnail,
             });
         }
         return entries;
+    }
+
+    _extractEntryThumbnail(block) {
+        // 1. <media:content url="..." medium="image/video">
+        let m = block.match(/<media:content[^>]+url=["']([^"']+)["']/i);
+        if (m) return this._decodeXml(m[1]);
+
+        // 2. <media:thumbnail url="...">
+        m = block.match(/<media:thumbnail[^>]+url=["']([^"']+)["']/i);
+        if (m) return this._decodeXml(m[1]);
+
+        // 3. <enclosure url="..." type="image/...">
+        m = block.match(/<enclosure[^>]+type=["']image\/[^"']*["'][^>]+url=["']([^"']+)["']/i)
+          || block.match(/<enclosure[^>]+url=["']([^"']+)["'][^>]+type=["']image\/[^"']*["']/i);
+        if (m) return this._decodeXml(m[1]);
+
+        // 4. <img src="..."> di dalam <description> (CDATA)
+        const descM = block.match(/<description>([\s\S]*?)<\/description>/i);
+        if (descM) {
+            const imgM = this._decodeXml(descM[1]).match(/<img[^>]+src=["']([^"']+)["']/i);
+            if (imgM) return imgM[1];
+        }
+
+        return null;
     }
 
     _extractVideoId(url) {
