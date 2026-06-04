@@ -30,12 +30,33 @@ class TwitchNotifier {
 
     start() {
         info('[Twitch] TwitchNotifier (polling GQL) dimulai.');
-        // Langsung poll sekali saat start, lalu interval
+        // Muat live sessions dari DB agar restart tidak kirim notif ulang
+        this._loadLiveSessions();
         this._poll().catch(err => warn(`[Twitch] Poll awal error: ${err.message}`));
         this._pollTimer = setInterval(
             () => this._poll().catch(err => warn(`[Twitch] Poll error: ${err.message}`)),
             POLL_INTERVAL_MS
         );
+    }
+
+    // Muat semua session live yang tersimpan di DB ke in-memory Map
+    _loadLiveSessions() {
+        const db = this.client?.database;
+        if (!db) return;
+        let loaded = 0;
+        for (const guild of this.client.guilds.cache.values()) {
+            const accounts = this.getAccounts(guild.id);
+            for (const acc of accounts) {
+                if (!acc.userId) continue;
+                const key   = `twitch-live-${guild.id}-${acc.userId}`;
+                const saved = db.get(key);
+                if (saved) {
+                    this._liveSessions.set(`${guild.id}:${acc.userId}`, saved);
+                    loaded++;
+                }
+            }
+        }
+        if (loaded > 0) info(`[Twitch] Memuat ${loaded} live session dari DB.`);
     }
 
     stop() {
@@ -166,18 +187,21 @@ class TwitchNotifier {
 
                 for (const { guild, account } of entries) {
                     const sessionKey = `${guild.id}:${result.userId}`;
+                    const dbKey      = `twitch-live-${guild.id}-${result.userId}`;
                     const wasLive    = this._liveSessions.has(sessionKey);
                     const isLive     = !!result.stream;
 
                     if (isLive && !wasLive) {
-                        // Baru mulai live
+                        // Baru mulai live — simpan ke Map DAN DB agar survive restart
                         this._liveSessions.set(sessionKey, result.stream.id);
+                        db.set(dbKey, result.stream.id);
                         await this._sendNotification(guild, account, result.stream);
                         info(`[Twitch] ${login} LIVE di guild ${guild.id}`);
 
                     } else if (!isLive && wasLive) {
-                        // Baru offline
+                        // Baru offline — hapus dari Map DAN DB
                         this._liveSessions.delete(sessionKey);
+                        db.delete(dbKey);
                         info(`[Twitch] ${login} offline di guild ${guild.id}`);
                     }
                 }

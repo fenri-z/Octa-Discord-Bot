@@ -387,6 +387,7 @@ class YouTubeNotifier {
         const channel   = entry.channel || ytCh.name;
         const videoUrl  = `https://www.youtube.com/watch?v=${entry.id}`;
         const thumbnail = entry.thumbnail || `https://i.ytimg.com/vi/${entry.id}/hqdefault.jpg`;
+        const db        = this.client.database;
 
         let type = 'video';
         const isShort = await this._isShort(entry.id);
@@ -395,6 +396,11 @@ class YouTubeNotifier {
         } else if (ytCh.liveEnabled) {
             const isLive = await this._isLive(entry.id);
             if (isLive) type = 'live';
+        }
+
+        // BUG FIX: tandai live agar _checkLive tidak kirim notifikasi duplikat
+        if (type === 'live' && db) {
+            db.set(`youtube-liveNotified-${guild.id}-${entry.id}`, String(Date.now()));
         }
 
         info(`[YouTube/RSS] ${type.toUpperCase()} | ${title} → guild ${guild.name}`);
@@ -409,28 +415,60 @@ class YouTubeNotifier {
         try {
             const res = await fetch(`https://www.youtube.com/shorts/${videoId}`, {
                 signal: AbortSignal.timeout(8_000), redirect: 'follow',
-                headers: { 'User-Agent': 'Mozilla/5.0' },
+                headers: { 'User-Agent': BROWSER_HEADERS['User-Agent'] },
             });
+            // YouTube redirect ke /watch?v= jika bukan Short
             return res.url.includes('/shorts/');
         } catch { return false; }
     }
 
     async _isLive(videoId) {
+        // Primary: InnerTube API — lebih andal, tidak kena bot-detection YouTube
+        try {
+            const res = await fetch('https://www.youtube.com/youtubei/v1/player', {
+                method: 'POST',
+                headers: {
+                    'Content-Type':             'application/json',
+                    'User-Agent':               BROWSER_HEADERS['User-Agent'],
+                    'X-Youtube-Client-Name':    '1',
+                    'X-Youtube-Client-Version': '2.20231121.09.00',
+                    'Origin':                   'https://www.youtube.com',
+                },
+                body: JSON.stringify({
+                    videoId,
+                    context: {
+                        client: {
+                            clientName:    'WEB',
+                            clientVersion: '2.20231121.09.00',
+                            hl: 'en', gl: 'US',
+                        },
+                    },
+                }),
+                signal: AbortSignal.timeout(10_000),
+            });
+
+            if (res.ok) {
+                const data    = await res.json();
+                const details = data?.videoDetails;
+                // isLive:true = sedang live sekarang (bukan upcoming, bukan VOD)
+                if (details?.isLive === true) return true;
+                // Jika isLive tidak ada tapi ada dashManifestUrl = stream aktif
+                if (details?.isLiveContent === true
+                    && details?.isUpcoming !== true
+                    && data?.streamingData?.dashManifestUrl) return true;
+            }
+        } catch { /* jatuh ke fallback */ }
+
+        // Fallback: scrape halaman watch
         try {
             const res = await fetch(`https://www.youtube.com/watch?v=${videoId}`, {
                 signal: AbortSignal.timeout(10_000), headers: BROWSER_HEADERS,
             });
             if (!res.ok) return false;
             const html = await res.text();
-            // "isLive":true → stream sedang live sekarang
-            // "isLiveNow":true → konfirmasi live dari liveBroadcastDetails
-            // Hindari "isLiveContent" (juga true untuk stream yg sudah berakhir)
-            // Hindari bare "liveBroadcastDetails" (juga true untuk upcoming)
             if (html.includes('"isLive":true'))    return true;
             if (html.includes('"isLiveNow":true')) return true;
-            // Fallback: liveBroadcastDetails ada DAN isLiveNow tidak false
-            if (html.includes('"liveBroadcastDetails"')
-                && !html.includes('"isLiveNow":false')) return true;
+            // Kondisi ketiga dihapus — terlalu permisif, bisa false-positive untuk "upcoming"
             return false;
         } catch { return false; }
     }

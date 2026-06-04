@@ -157,20 +157,74 @@ class TikTokNotifier {
     async _poll() {
         const db = this.client.database;
         if (!db) return;
+
+        // Deduplikasi per username — jika 3 guild pantau akun yang sama,
+        // hanya 1 request RSS dibuat, hasilnya di-share ke semua guild
+        const usernameMap = new Map(); // username → [{ guild, account }]
         for (const guild of this.client.guilds.cache.values()) {
-            this._pollGuild(guild, db).catch(err =>
-                warn(`[TikTok] Poll error guild ${guild.id}: ${err.message}`)
+            const raw = db.get(`tiktok-accounts-${guild.id}`);
+            if (!raw) continue;
+            let accounts;
+            try { accounts = JSON.parse(raw); } catch { continue; }
+            for (const acc of accounts) {
+                if (!acc.videoEnabled || !acc.videoChannelId) continue;
+                if (!usernameMap.has(acc.username)) usernameMap.set(acc.username, []);
+                usernameMap.get(acc.username).push({ guild, account: acc });
+            }
+        }
+
+        for (const [username, guildEntries] of usernameMap) {
+            try {
+                const feedUrl = `${RSSHUB_BASE}/tiktok/user/${encodeURIComponent(username)}`;
+                const res = await fetch(feedUrl, {
+                    signal:  AbortSignal.timeout(12_000),
+                    headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' },
+                });
+                if (!res.ok) {
+                    warn(`[TikTok] Feed HTTP ${res.status} untuk ${username}`);
+                    continue;
+                }
+                const entries = this._parseRssEntries(await res.text());
+                if (entries.length === 0) continue;
+
+                // Proses untuk setiap guild yang pantau username ini
+                for (const { guild, account } of guildEntries) {
+                    await this._processEntries(guild, db, account, entries).catch(err =>
+                        warn(`[TikTok] Check error ${username} guild ${guild.id}: ${err.message}`)
+                    );
+                }
+            } catch (err) {
+                warn(`[TikTok] Poll error ${username}: ${err.message}`);
+            }
+        }
+    }
+
+    async _processEntries(guild, db, account, entries) {
+        const lastKey   = `tiktok-lastVideo-${guild.id}-${account.username}`;
+        const lastId    = db.get(lastKey);
+        const latestId  = entries[0].id;
+
+        if (!lastId) { db.set(lastKey, latestId); return; }
+        if (lastId === latestId) return;
+
+        const lastIdx    = entries.findIndex(e => e.id === lastId);
+        const newEntries = lastIdx === -1 ? entries.slice(0, 3) : entries.slice(0, lastIdx);
+
+        db.set(lastKey, latestId);
+        for (const entry of [...newEntries].reverse()) {
+            await this._sendVideoNotification(guild, account, entry).catch(err =>
+                warn(`[TikTok] Kirim notif video error: ${err.message}`)
             );
         }
     }
 
+    // _pollGuild sudah tidak dipakai oleh _poll, tapi dipertahankan untuk pollGuild(guildId) API
     async _pollGuild(guild, db) {
         const raw = db.get(`tiktok-accounts-${guild.id}`);
         if (!raw) return;
         let accounts;
         try { accounts = JSON.parse(raw); } catch { return; }
         if (!Array.isArray(accounts) || accounts.length === 0) return;
-
         for (const account of accounts) {
             await this._checkAccount(guild, db, account).catch(err =>
                 warn(`[TikTok] Check error ${account.username}: ${err.message}`)
