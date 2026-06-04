@@ -215,21 +215,28 @@ class YouTubeNotifier {
             const isShort = await this._isShort(videoId);
             if (isShort) {
                 type = 'short';
-            } else if (ytCh.liveEnabled) {
+            } else {
                 const isLive = await this._isLive(videoId);
                 if (isLive) type = 'live';
             }
 
+            // Untuk short, gunakan URL format /shorts/ agar terbuka di Shorts player
+            const finalUrl = type === 'short'
+                ? `https://www.youtube.com/shorts/${videoId}`
+                : videoUrl;
+
             info(`[WebSub] ${type.toUpperCase()} | ${title} → guild ${guild.name}`);
 
-            // Jika live, tandai agar live poll tidak double-send notifikasi yang sama
+            // Jika live, cek dulu apakah sudah pernah dikirim (cegah double dari live poll)
             if (type === 'live') {
-                db.set(`youtube-liveNotified-${guild.id}-${videoId}`, String(Date.now()));
+                const notifKey = `youtube-liveNotified-${guild.id}-${videoId}`;
+                if (db.get(notifKey)) continue;
+                db.set(notifKey, String(Date.now()));
             }
 
             await this._sendNotification(guild, ytCh, type, {
-                videoId, url: videoUrl, title,
-                channel:   ytCh.name || channelName,
+                videoId, url: finalUrl, title,
+                channel:   channelName || ytCh.name,
                 thumbnail,
             }).catch(err => warn(`[WebSub] Kirim notif gagal: ${err.message}`));
         }
@@ -393,19 +400,28 @@ class YouTubeNotifier {
         const isShort = await this._isShort(entry.id);
         if (isShort) {
             type = 'short';
-        } else if (ytCh.liveEnabled) {
+        } else {
+            // Selalu cek live terlepas dari liveEnabled,
+            // agar live stream tidak terkirim sebagai "Video Baru"
             const isLive = await this._isLive(entry.id);
             if (isLive) type = 'live';
         }
 
-        // BUG FIX: tandai live agar _checkLive tidak kirim notifikasi duplikat
+        // Untuk short, gunakan URL format /shorts/
+        const finalUrl = type === 'short'
+            ? `https://www.youtube.com/shorts/${entry.id}`
+            : videoUrl;
+
+        // Cegah double notifikasi live dari _checkLive + RSS poll
         if (type === 'live' && db) {
-            db.set(`youtube-liveNotified-${guild.id}-${entry.id}`, String(Date.now()));
+            const notifKey = `youtube-liveNotified-${guild.id}-${entry.id}`;
+            if (db.get(notifKey)) return;
+            db.set(notifKey, String(Date.now()));
         }
 
         info(`[YouTube/RSS] ${type.toUpperCase()} | ${title} → guild ${guild.name}`);
         await this._sendNotification(guild, ytCh, type, {
-            videoId: entry.id, url: videoUrl, title, channel, thumbnail,
+            videoId: entry.id, url: finalUrl, title, channel, thumbnail,
         });
     }
 
@@ -585,12 +601,10 @@ class YouTubeNotifier {
         const customMsg = fill(ytCh[cfg.msg]).trim();
         const description = customMsg || defaultDescs[type];
 
-        const channelUrl = `https://www.youtube.com/channel/${ytCh.id}`;
-
         const embed = new EmbedBuilder()
             .setColor(colors[type])
             .setTitle(titles[type])
-            .setURL(channelUrl)
+            .setURL(data.url)
             .setDescription(description);
 
         if (ytCh.thumbnail) embed.setThumbnail(ytCh.thumbnail);

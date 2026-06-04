@@ -195,7 +195,13 @@ class TwitchNotifier {
                         // Baru mulai live — simpan ke Map DAN DB agar survive restart
                         this._liveSessions.set(sessionKey, result.stream.id);
                         db.set(dbKey, result.stream.id);
-                        await this._sendNotification(guild, account, result.stream);
+                        // Gabungkan data fresh dari GQL (displayName, thumbnail) dengan account config
+                        const freshAccount = {
+                            ...account,
+                            displayName: result.displayName || account.displayName || account.login,
+                            thumbnail:   result.thumbnail   || account.thumbnail,
+                        };
+                        await this._sendNotification(guild, freshAccount, result.stream);
                         info(`[Twitch] ${login} LIVE di guild ${guild.id}`);
 
                     } else if (!isLive && wasLive) {
