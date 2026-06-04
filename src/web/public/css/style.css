@@ -499,7 +499,7 @@ code {
 
 /* Footer sederhana untuk halaman dashboard internal */
 .dash-simple-footer {
-    margin-top: 3rem;
+    margin-top: auto;
     margin-left: -2rem;
     margin-right: -2rem;
     margin-bottom: -1.5rem;

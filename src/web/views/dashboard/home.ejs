@@ -68,12 +68,7 @@
         </div>
 
         <!-- ── Permission Status ──────────────────────────────────── -->
-        <% if (missingPerms.length === 0) { %>
-        <div class="ov-perm-ok">
-            <i data-lucide="check-circle-2"></i>
-            <span>Semua permission yang diperlukan sudah dimiliki bot.</span>
-        </div>
-        <% } else { %>
+        <% if (missingPerms.length > 0) { %>
         <div class="ov-perm-warn">
             <div class="ov-perm-header">
                 <i data-lucide="alert-triangle"></i>
@@ -211,11 +206,11 @@
             </div>
         </div>
 
-        <!-- ── Others ───────────────────────────────────────── -->
+        <!-- ── Utility ──────────────────────────────────────── -->
         <div class="ov-feat-section">
             <div class="ov-section-header">
                 <div class="ov-section-dot" style="background:#FEE75C;"></div>
-                <span>Others</span>
+                <span>Utility</span>
                 <div class="ov-section-line"></div>
             </div>
             <div class="ov-feat-grid">
@@ -226,6 +221,16 @@
                     <div class="ov-feat-body">
                         <div class="ov-feat-title">Ticket</div>
                         <div class="ov-feat-desc">Sistem tiket privat untuk member meminta bantuan staff.</div>
+                    </div>
+                    <i data-lucide="arrow-right" class="ov-feat-arrow"></i>
+                </a>
+                <a href="/dashboard/<%= guild.id %>/giveaway" class="ov-feat-card">
+                    <div class="ov-feat-icon" style="background:rgba(87,242,135,.1);color:#57F287;">
+                        <i data-lucide="gift"></i>
+                    </div>
+                    <div class="ov-feat-body">
+                        <div class="ov-feat-title">Giveaway</div>
+                        <div class="ov-feat-desc">Buat dan kelola giveaway otomatis dengan pemenang acak.</div>
                     </div>
                     <i data-lucide="arrow-right" class="ov-feat-arrow"></i>
                 </a>
@@ -256,6 +261,47 @@
                     <div class="ov-feat-body">
                         <div class="ov-feat-title">Invite Links</div>
                         <div class="ov-feat-desc">Lihat semua invite link server beserta statistik penggunaannya.</div>
+                    </div>
+                    <i data-lucide="arrow-right" class="ov-feat-arrow"></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- ── Social Media ─────────────────────────────────────── -->
+        <div class="ov-feat-section">
+            <div class="ov-section-header">
+                <div class="ov-section-dot" style="background:#FF73FA;"></div>
+                <span>Social Media</span>
+                <div class="ov-section-line"></div>
+            </div>
+            <div class="ov-feat-grid">
+                <a href="/dashboard/<%= guild.id %>/youtube" class="ov-feat-card">
+                    <div class="ov-feat-icon" style="background:rgba(237,66,69,.12);color:#ED4245;">
+                        <i data-lucide="youtube"></i>
+                    </div>
+                    <div class="ov-feat-body">
+                        <div class="ov-feat-title">YouTube Notification</div>
+                        <div class="ov-feat-desc">Notifikasi otomatis saat channel YouTube mengunggah video baru.</div>
+                    </div>
+                    <i data-lucide="arrow-right" class="ov-feat-arrow"></i>
+                </a>
+                <a href="/dashboard/<%= guild.id %>/tiktok" class="ov-feat-card">
+                    <div class="ov-feat-icon" style="background:rgba(254,231,92,.1);color:#FEE75C;">
+                        <i data-lucide="music-2"></i>
+                    </div>
+                    <div class="ov-feat-body">
+                        <div class="ov-feat-title">TikTok Notification</div>
+                        <div class="ov-feat-desc">Notifikasi otomatis saat akun TikTok mengunggah video baru.</div>
+                    </div>
+                    <i data-lucide="arrow-right" class="ov-feat-arrow"></i>
+                </a>
+                <a href="/dashboard/<%= guild.id %>/twitch" class="ov-feat-card">
+                    <div class="ov-feat-icon" style="background:rgba(145,70,255,.15);color:#9146FF;">
+                        <i data-lucide="tv-2"></i>
+                    </div>
+                    <div class="ov-feat-body">
+                        <div class="ov-feat-title">Twitch Notification</div>
+                        <div class="ov-feat-desc">Notifikasi otomatis saat streamer Twitch mulai live streaming.</div>
                     </div>
                     <i data-lucide="arrow-right" class="ov-feat-arrow"></i>
                 </a>
