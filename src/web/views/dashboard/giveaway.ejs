@@ -39,6 +39,18 @@
 .gw-duration-row { display: flex; gap: .5rem; }
 .gw-duration-row input[type=number] { width: 80px; flex-shrink: 0; }
 
+/* ── Action buttons: semua seragam tingginya ─────────────────────────────── */
+.gw-actions .btn.btn-sm {
+    height: 30px;
+    padding: 0 .65rem;
+    display: inline-flex; align-items: center; justify-content: center;
+    gap: .3rem;
+}
+.gw-actions .btn-icon {
+    width: 30px;
+    padding: 0;
+}
+
 /* ── Stats ───────────────────────────────────────────────────────────────── */
 .gw-stats { grid-template-columns: repeat(3, 1fr) !important; margin-bottom: 1.5rem; }
 @media (max-width: 600px) { .gw-stats { grid-template-columns: 1fr 1fr !important; } }
@@ -263,13 +275,13 @@
             </div>
             <div class="gw-actions">
                 <a href="https://discord.com/channels/<%= gw.guildId %>/<%= gw.channelId %>/<%= gw.messageId %>"
-                   target="_blank" class="btn btn-sm" title="Lihat di Discord">
+                   target="_blank" class="btn btn-sm btn-icon" title="Lihat di Discord">
                     <i data-lucide="external-link" style="width:12px;height:12px;"></i>
                 </a>
                 <button class="btn btn-sm btn-primary" onclick="endGiveaway('<%= gw.id %>')" title="Akhiri sekarang">
                     <i data-lucide="flag" style="width:12px;height:12px;"></i> Akhiri
                 </button>
-                <button class="btn btn-sm btn-danger" onclick="cancelGiveaway('<%= gw.id %>')" title="Batalkan">
+                <button class="btn btn-sm btn-danger btn-icon" onclick="cancelGiveaway('<%= gw.id %>')" title="Batalkan">
                     <i data-lucide="x" style="width:12px;height:12px;"></i>
                 </button>
             </div>
@@ -303,11 +315,14 @@
             </div>
             <div class="gw-actions">
                 <a href="https://discord.com/channels/<%= gw.guildId %>/<%= gw.channelId %>/<%= gw.messageId %>"
-                   target="_blank" class="btn btn-sm" title="Lihat di Discord">
+                   target="_blank" class="btn btn-sm btn-icon" title="Lihat di Discord">
                     <i data-lucide="external-link" style="width:12px;height:12px;"></i>
                 </a>
                 <button class="btn btn-sm btn-secondary" onclick="rerollGiveaway('<%= gw.id %>')" title="Reroll pemenang">
                     <i data-lucide="refresh-cw" style="width:12px;height:12px;"></i> Reroll
+                </button>
+                <button class="btn btn-sm btn-danger btn-icon" onclick="deleteGiveaway('<%= gw.id %>')" title="Hapus dari riwayat">
+                    <i data-lucide="trash-2" style="width:12px;height:12px;"></i>
                 </button>
             </div>
         </div>
@@ -327,6 +342,12 @@
                 <div class="gw-meta">
                     <span>⏰ <%= new Date(gw.endsAt).toLocaleString('id-ID') %></span>
                 </div>
+                <div id="gwMsg-<%= gw.id %>" class="form-message" style="margin-top:.3rem;"></div>
+            </div>
+            <div class="gw-actions">
+                <button class="btn btn-sm btn-danger btn-icon" onclick="deleteGiveaway('<%= gw.id %>')" title="Hapus dari riwayat">
+                    <i data-lucide="trash-2" style="width:12px;height:12px;"></i>
+                </button>
             </div>
         </div>
         <% }); %>
@@ -431,6 +452,21 @@ async function rerollGiveaway(id) {
     const r    = await fetch(`/api/guild/${GUILD_ID}/giveaway/${id}/reroll`, { method: 'POST' });
     const data = await r.json();
     showMsg(msgEl, data.message, data.success ? 'success' : 'error');
+}
+
+// ── Delete from history ───────────────────────────────────────────────────────
+async function deleteGiveaway(id) {
+    if (!confirm('Hapus giveaway ini dari riwayat? Data tidak bisa dikembalikan.')) return;
+    const msgEl = document.getElementById(`gwMsg-${id}`);
+    showMsg(msgEl, 'Menghapus...', 'info');
+    const r    = await fetch(`/api/guild/${GUILD_ID}/giveaway/${id}/remove`, { method: 'POST' });
+    const data = await r.json();
+    if (data.success) {
+        const row = document.getElementById(`gwRow-${id}`);
+        if (row) row.remove();
+    } else {
+        showMsg(msgEl, data.message, 'error');
+    }
 }
 
 // ── Cancel ────────────────────────────────────────────────────────────────────

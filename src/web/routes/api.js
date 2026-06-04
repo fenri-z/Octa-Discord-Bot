@@ -2468,6 +2468,23 @@ router.post('/guild/:guildId/giveaway/:id/reroll', requireLogin, requireManageGu
     }
 });
 
+// POST /api/guild/:guildId/giveaway/:id/remove — hapus permanen dari riwayat
+router.post('/guild/:guildId/giveaway/:id/remove', requireLogin, requireManageGuild, async (req, res) => {
+    const manager = req.discordClient?.giveawayManager;
+    if (!manager) return res.status(500).json({ success: false, message: 'GiveawayManager tidak tersedia.' });
+
+    const gw = manager._get(req.params.id);
+    if (!gw || gw.guildId !== req.params.guildId)
+        return res.json({ success: false, message: 'Giveaway tidak ditemukan.' });
+
+    try {
+        manager.deleteGiveaway(req.params.id);
+        res.json({ success: true, message: 'Giveaway berhasil dihapus dari riwayat.' });
+    } catch (err) {
+        res.json({ success: false, message: err.message });
+    }
+});
+
 // DELETE /api/guild/:guildId/giveaway/:id — cancel giveaway
 router.delete('/guild/:guildId/giveaway/:id', requireLogin, requireManageGuild, async (req, res) => {
     const manager = req.discordClient?.giveawayManager;

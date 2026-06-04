@@ -151,6 +151,29 @@ class GiveawayManager {
         info(`[Giveaway] Dibatalkan: "${gw.prize}"`);
     }
 
+    // ─── Delete ────────────────────────────────────────────────────────────────
+
+    deleteGiveaway(id) {
+        const gw = this._get(id);
+        if (!gw) throw new Error('Giveaway tidak ditemukan.');
+        if (!gw.ended && !gw.cancelled) throw new Error('Hanya giveaway yang sudah selesai atau dibatalkan yang bisa dihapus.');
+
+        const db = this.client.database;
+        db?.delete(`giveaway-${id}`);
+
+        // Hapus dari ended list
+        const endedRaw = db?.get(`giveaway-ended-${gw.guildId}`);
+        let endedList = [];
+        try { endedList = endedRaw ? JSON.parse(endedRaw) : []; } catch {}
+        endedList = endedList.filter(x => x !== id);
+        db?.set(`giveaway-ended-${gw.guildId}`, JSON.stringify(endedList));
+
+        // Hapus dari active list (seharusnya sudah tidak ada, tapi jaga-jaga)
+        this._removeActive(gw.guildId, id);
+
+        info(`[Giveaway] Dihapus: "${gw.prize}" (id: ${id})`);
+    }
+
     // ─── Pick Winners ──────────────────────────────────────────────────────────
 
     async _pickWinners(gw) {

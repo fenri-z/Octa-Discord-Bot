@@ -121,7 +121,7 @@ module.exports = new ApplicationCommand({
      * @param {import('discord.js').AutocompleteInteraction} interaction
      * @param {DiscordBot} client
      */
-    autocomplete: async (interaction, client) => {
+    autocomplete: async (client, interaction) => {
         const sub     = interaction.options.getSubcommand();
         const focused = interaction.options.getFocused().toLowerCase();
         const manager = client.giveawayManager;
@@ -154,7 +154,7 @@ module.exports = new ApplicationCommand({
      * @param {ChatInputCommandInteraction} interaction
      * @param {DiscordBot} client
      */
-    run: async (interaction, client) => {
+    run: async (client, interaction) => {
         const sub     = interaction.options.getSubcommand();
         const manager = client.giveawayManager;
 

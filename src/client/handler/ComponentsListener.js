@@ -163,7 +163,13 @@ class ComponentsListener {
                     // ── Routing berdasarkan commandName (component terdaftar) ──
                     const component = client.collection.components.autocomplete.get(interaction.commandName);
                     if (!component) {
-                        await interaction.respond([]).catch(() => null);
+                        // Fallback: cek apakah command punya inline autocomplete handler
+                        const cmd = client.collection.application_commands.get(interaction.commandName);
+                        if (cmd?.autocomplete) {
+                            try { await cmd.autocomplete(client, interaction); } catch (err) { error(err); }
+                        } else {
+                            await interaction.respond([]).catch(() => null);
+                        }
                         return;
                     }
 
