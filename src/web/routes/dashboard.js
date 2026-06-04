@@ -204,9 +204,10 @@ router.get('/', requireLogin, (req, res) => {
         const botGuild = req.discordClient?.guilds.cache.get(g.id);
         return {
             ...g,
+            name:        botGuild?.name ?? g.name,
             botPresent:  !!botGuild,
-            iconURL:     g.icon  ? `https://cdn.discordapp.com/icons/${g.id}/${g.icon}.png?size=256`   : null,
-            bannerURL:   g.banner ? `https://cdn.discordapp.com/banners/${g.id}/${g.banner}.png?size=480` : null,
+            iconURL:     botGuild?.iconURL({ size: 256 }) ?? (g.icon ? `https://cdn.discordapp.com/icons/${g.id}/${g.icon}.png?size=256` : null),
+            bannerURL:   botGuild?.bannerURL({ size: 480 }) ?? (g.banner ? `https://cdn.discordapp.com/banners/${g.id}/${g.banner}.png?size=480` : null),
             memberCount: botGuild?.memberCount ?? null,
         };
     });
