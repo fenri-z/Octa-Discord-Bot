@@ -407,7 +407,10 @@ class TikTokNotifier {
                 { name: '🔗 Tonton Live', value: `[Join sekarang ▶](${liveUrl})`, inline: false },
             );
 
-        if (account.thumbnail) embed.setThumbnail(account.thumbnail);
+        if (account.thumbnail) {
+            embed.setThumbnail(account.thumbnail);
+            embed.setImage(account.thumbnail);
+        }
 
         info(`[TikTok/Live] Live notif: ${account.username} → ${guild.name}`);
         await discordCh.send({ embeds: [embed] }).catch(err =>

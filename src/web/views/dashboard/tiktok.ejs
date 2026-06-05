@@ -343,6 +343,7 @@
             <div class="tt-card-header">
                 <% if (acc.thumbnail) { %>
                 <img src="<%= acc.thumbnail %>" alt="" class="tt-card-avatar"
+                     data-tt-thumb="<%= acc.username %>"
                      referrerpolicy="no-referrer"
                      onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
                 <div class="tt-card-avatar-placeholder" style="display:none;">
@@ -362,6 +363,9 @@
                 <a href="https://www.tiktok.com/<%= acc.username %>" target="_blank" class="btn btn-sm" style="flex-shrink:0;" title="Buka di TikTok">
                     <i data-lucide="external-link" style="width:13px;height:13px;"></i>
                 </a>
+                <button class="btn btn-sm" onclick="refreshThumbnail('<%= acc.username %>', this)" style="flex-shrink:0;" title="Refresh thumbnail profil">
+                    <i data-lucide="image" style="width:13px;height:13px;"></i>
+                </button>
                 <button class="btn btn-sm" onclick="resetLastVideo('<%= acc.username %>')" style="flex-shrink:0;" title="Reset posisi video terakhir">
                     <i data-lucide="rotate-ccw" style="width:13px;height:13px;"></i>
                 </button>
@@ -542,21 +546,30 @@
                                     <!-- Live preview -->
                                     <div id="prev-live-<%= key %>" class="dc-embed" style="display:none;">
                                         <div style="width:4px;flex-shrink:0;background:#FE2C55;"></div>
-                                        <div class="dc-embed-inner">
-                                            <div class="dc-embed-title" style="color:#FE2C55;">🔴 <%= acc.name||acc.username %> is Live Now!</div>
-                                            <div class="dc-embed-desc" id="prevLiveDesc-<%= key %>">
-                                                Hey, <strong><%= acc.name||acc.username %></strong> lagi <strong>LIVE</strong> di TikTok sekarang!<br>Yuk, join dan saksikan streamnya~ 🎉
+                                        <div class="dc-embed-inner" style="flex:1;min-width:0;">
+                                            <div style="display:flex;align-items:flex-start;gap:.5rem;">
+                                                <div style="flex:1;min-width:0;">
+                                                    <div class="dc-embed-title" style="color:#FE2C55;">🔴 <%= acc.name||acc.username %> is Live Now!</div>
+                                                    <div class="dc-embed-desc" id="prevLiveDesc-<%= key %>">
+                                                        Hey, <strong><%= acc.name||acc.username %></strong> lagi <strong>LIVE</strong> di TikTok sekarang!<br>Yuk, join dan saksikan streamnya~ 🎉
+                                                    </div>
+                                                    <div class="dc-embed-field">
+                                                        <div class="dc-field-name">🔗 Tonton Live</div>
+                                                        <div class="dc-field-value">Join sekarang ▶</div>
+                                                    </div>
+                                                </div>
+                                                <% if (acc.thumbnail) { %>
+                                                <img src="<%= acc.thumbnail %>" referrerpolicy="no-referrer"
+                                                     style="width:48px;height:48px;border-radius:4px;object-fit:cover;flex-shrink:0;margin-top:.1rem;"
+                                                     onerror="this.style.display='none'">
+                                                <% } %>
                                             </div>
-                                            <div class="dc-embed-field">
-                                                <div class="dc-field-name">🔗 Tonton Live</div>
-                                                <div class="dc-field-value">Join sekarang ▶</div>
-                                            </div>
+                                            <% if (acc.thumbnail) { %>
+                                            <img src="<%= acc.thumbnail %>" referrerpolicy="no-referrer"
+                                                 style="width:100%;max-height:200px;border-radius:4px;object-fit:cover;margin-top:.6rem;display:block;"
+                                                 onerror="this.style.display='none'">
+                                            <% } %>
                                         </div>
-                                        <% if (acc.thumbnail) { %>
-                                        <img src="<%= acc.thumbnail %>" referrerpolicy="no-referrer"
-                                             style="width:48px;height:48px;border-radius:4px;object-fit:cover;flex-shrink:0;margin:.55rem .55rem .55rem 0;align-self:flex-start;"
-                                             onerror="this.style.display='none'">
-                                        <% } %>
                                     </div>
 
                                 </div>
@@ -768,6 +781,38 @@ async function testNotif(username, key) {
     });
     const data = await r.json();
     showMsg(msgEl, data.message, data.success ? 'success' : 'error');
+}
+
+// ── Refresh thumbnail ─────────────────────────────────────────────────────────
+async function refreshThumbnail(username, btn) {
+    const orig = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span style="width:11px;height:11px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:tt-spin .65s linear infinite;display:inline-block;vertical-align:middle;"></span>';
+
+    const key   = username.replace('@','').replace(/\./g,'_');
+    const msgEl = document.getElementById(`msg-${key}`);
+    try {
+        const r    = await fetch(`/api/guild/${GUILD_ID}/tiktok/accounts/${encodeURIComponent(username)}/refresh-thumbnail`, { method: 'POST' });
+        const data = await r.json();
+        if (data.success) {
+            showMsg(msgEl, 'Thumbnail diperbarui.', 'success');
+            // Update semua gambar profil akun ini di halaman
+            if (data.thumbnail) {
+                document.querySelectorAll(`img[data-tt-thumb="${username}"]`).forEach(img => {
+                    img.src = data.thumbnail;
+                    img.style.display = '';
+                });
+            }
+        } else {
+            showMsg(msgEl, data.message, 'error');
+        }
+    } catch {
+        showMsg(msgEl, 'Gagal terhubung ke server.', 'error');
+    } finally {
+        btn.disabled  = false;
+        btn.innerHTML = orig;
+        if (window.lucide) lucide.createIcons();
+    }
 }
 
 // ── Reset last video ──────────────────────────────────────────────────────────

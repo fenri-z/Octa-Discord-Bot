@@ -2241,6 +2241,30 @@ router.post('/guild/:guildId/tiktok/accounts/:username/reset', requireLogin, req
     res.json({ success: true, message: `Reset berhasil untuk ${username}.` });
 });
 
+// POST /api/guild/:guildId/tiktok/accounts/:username/refresh-thumbnail — perbarui thumbnail
+router.post('/guild/:guildId/tiktok/accounts/:username/refresh-thumbnail', requireLogin, requireManageGuild, async (req, res) => {
+    const db       = req.discordClient?.database;
+    const guildId  = req.params.guildId;
+    const username = decodeURIComponent(req.params.username);
+    if (!db) return res.status(500).json({ success: false, message: 'Database tidak tersedia.' });
+
+    const accounts = getTtAccounts(db, guildId);
+    const idx      = accounts.findIndex(a => a.username === username);
+    if (idx === -1) return res.json({ success: false, message: 'Akun tidak ditemukan.' });
+
+    const notifier = req.discordClient?.tiktokNotifier;
+    if (!notifier) return res.status(500).json({ success: false, message: 'TikTokNotifier tidak tersedia.' });
+
+    try {
+        const info = await notifier.lookupAccount(username);
+        accounts[idx] = { ...accounts[idx], thumbnail: info.thumbnail || accounts[idx].thumbnail };
+        setTtAccounts(db, guildId, accounts);
+        res.json({ success: true, message: 'Thumbnail berhasil diperbarui.', thumbnail: accounts[idx].thumbnail });
+    } catch (err) {
+        res.json({ success: false, message: `Gagal refresh thumbnail: ${err.message}` });
+    }
+});
+
 // DELETE /api/guild/:guildId/tiktok/accounts/:username — hapus akun
 router.delete('/guild/:guildId/tiktok/accounts/:username', requireLogin, requireManageGuild, (req, res) => {
     const db       = req.discordClient?.database;
