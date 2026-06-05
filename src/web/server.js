@@ -129,59 +129,85 @@ app.get('/report-bug', (req, res) => {
     });
 });
 
-app.post('/report-bug', async (req, res) => {
-    const webhookUrl = process.env.REPORT_WEBHOOK_URL;
-    if (!webhookUrl) {
-        return res.json({ success: false, message: 'Webhook belum dikonfigurasi.' });
-    }
+const multer = require('multer');
+const _bugUpload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 8 * 1024 * 1024 }, // maks 8 MB
+    fileFilter: (req, file, cb) => {
+        cb(null, /^image\/(jpeg|png|gif|webp)$/.test(file.mimetype));
+    },
+}).single('image');
 
-    const { firstName, lastName, discordUsername, discordId, message, hasImage } = req.body;
-
-    if (!firstName || !lastName || !discordUsername || !discordId || !message) {
-        return res.json({ success: false, message: 'Semua field wajib diisi.' });
-    }
-
-    const embed = {
-        title: '🐛 Bug Report Baru',
-        color: 0xED4245,
-        fields: [
-            { name: '👤 Nama',             value: `${firstName} ${lastName}`,    inline: true  },
-            { name: '🏷️ Discord',          value: `${discordUsername}`,           inline: true  },
-            { name: '🆔 Discord ID',        value: `\`${discordId}\``,            inline: true  },
-            { name: '📝 Pesan',             value: message.slice(0, 1024),        inline: false },
-        ],
-        footer: { text: hasImage === 'true' ? '📎 User melampirkan gambar (tidak dapat ditampilkan)' : '' },
-        timestamp: new Date().toISOString(),
-    };
-
-    try {
-        const botUser   = discordClient?.user;
-        const payload   = {
-            username:   botUser?.username  || 'Bug Report',
-            avatar_url: botUser?.avatar
-                ? `https://cdn.discordapp.com/avatars/${botUser.id}/${botUser.avatar}.png`
-                : undefined,
-            embeds: [embed],
-        };
-
-        const r = await fetch(webhookUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload),
-            signal: AbortSignal.timeout(8_000),
-        });
-
-        if (!r.ok) {
-            const err = await r.text();
-            console.error('[Report Bug] Webhook error:', r.status, err);
-            return res.json({ success: false, message: 'Gagal mengirim laporan. Coba lagi nanti.' });
+app.post('/report-bug', (req, res) => {
+    _bugUpload(req, res, async (uploadErr) => {
+        const webhookUrl = process.env.REPORT_WEBHOOK_URL;
+        if (!webhookUrl) {
+            return res.json({ success: false, message: 'Webhook belum dikonfigurasi.' });
         }
 
-        res.json({ success: true, message: 'Laporan berhasil dikirim! Terima kasih.' });
-    } catch (err) {
-        console.error('[Report Bug] Error:', err.message);
-        res.json({ success: false, message: 'Gagal terhubung ke server. Coba lagi nanti.' });
-    }
+        const { firstName, lastName, discordUsername, discordId, message } = req.body;
+
+        if (!firstName || !lastName || !discordUsername || !discordId || !message) {
+            return res.json({ success: false, message: 'Semua field wajib diisi.' });
+        }
+
+        const imageFile = uploadErr ? null : req.file;
+
+        const embed = {
+            title: '🐛 Bug Report Baru',
+            color: 0xED4245,
+            fields: [
+                { name: '👤 Nama',      value: `${firstName} ${lastName}`, inline: true  },
+                { name: '🏷️ Discord',   value: `${discordUsername}`,        inline: true  },
+                { name: '🆔 Discord ID', value: `\`${discordId}\``,          inline: true  },
+                { name: '📝 Pesan',      value: message.slice(0, 1024),      inline: false },
+            ],
+            timestamp: new Date().toISOString(),
+        };
+
+        // Jika ada gambar, tambahkan sebagai image embed
+        if (imageFile) {
+            embed.image = { url: `attachment://${imageFile.originalname}` };
+        }
+
+        try {
+            const botUser = discordClient?.user;
+            const payload = {
+                username:   botUser?.username || 'Bug Report',
+                avatar_url: botUser?.avatar
+                    ? `https://cdn.discordapp.com/avatars/${botUser.id}/${botUser.avatar}.png`
+                    : undefined,
+                embeds: [embed],
+            };
+
+            let r;
+            if (imageFile) {
+                // Kirim sebagai multipart/form-data agar gambar ikut terlampir
+                const form = new FormData();
+                form.append('payload_json', JSON.stringify(payload));
+                form.append('files[0]', new Blob([imageFile.buffer], { type: imageFile.mimetype }), imageFile.originalname);
+                r = await fetch(webhookUrl, { method: 'POST', body: form, signal: AbortSignal.timeout(15_000) });
+            } else {
+                r = await fetch(webhookUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                    signal: AbortSignal.timeout(8_000),
+                });
+            }
+
+            if (!r.ok) {
+                const err = await r.text();
+                console.error('[Report Bug] Webhook error:', r.status, err);
+                return res.json({ success: false, message: 'Gagal mengirim laporan. Coba lagi nanti.' });
+            }
+
+            res.json({ success: true, message: 'Laporan berhasil dikirim! Terima kasih.' });
+        } catch (err) {
+            console.error('[Report Bug] Error:', err.message);
+            res.json({ success: false, message: 'Gagal terhubung ke server. Coba lagi nanti.' });
+        }
+    });
 });
 
 app.use((req, res) => {
