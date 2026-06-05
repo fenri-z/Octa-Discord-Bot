@@ -497,9 +497,15 @@ code {
     margin-bottom: -1.5rem;
 }
 
+/* Spacer antara konten dan footer — flex-grow mengisi ruang kosong,
+   flex-shrink:0 + min-height menjamin jarak minimum saat konten penuh */
+.dash-footer-spacer {
+    flex: 1 0 2rem;
+}
+
 /* Footer sederhana untuk halaman dashboard internal */
 .dash-simple-footer {
-    margin-top: auto;
+    margin-top: 0;
     margin-left: -2rem;
     margin-right: -2rem;
     margin-bottom: -1.5rem;
@@ -923,6 +929,11 @@ code {
 
 /* ── Tablet & Mobile (≤ 1024px): sidebar jadi drawer ─────────────────────── */
 @media (max-width: 1024px) {
+    /* Gunakan 100dvh (dynamic viewport) agar grid 1fr dihitung dari area yang
+       benar-benar terlihat, bukan 100vh yang mencakup chrome browser. */
+    body { height: 100dvh; }
+    .dash-layout { min-height: calc(100dvh - var(--navbar-h)); }
+
     /* Halaman tanpa sidebar: sembunyikan hamburger saja */
     body:not(.has-sidebar) .hamburger-btn { display: none !important; }
 
