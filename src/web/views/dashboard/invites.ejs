@@ -4,7 +4,7 @@
 <div class="dash-layout">
     <%- include('../partials/sidebar', { activePage: 'invites' }) %>
 
-    <main class="dash-main">
+    <main class="dash-main" style="max-width:100%;">
     <div class="dash-content-wide">
         <%- include('../partials/perm-notice') %>
         <div class="page-header">
@@ -72,7 +72,7 @@
                     <button class="period-btn"         data-period="30d"   onclick="setPeriod(this,'30d')"   >30 Hari</button>
                     <button class="period-btn"         data-period="7d"    onclick="setPeriod(this,'7d')"    >7 Hari</button>
                     <button class="period-btn"         data-period="today" onclick="setPeriod(this,'today')" >Hari Ini</button>
-                    <span style="font-size:.75rem;color:var(--text-muted);">berdasarkan tgl. pembuatan</span>
+                    <span class="inv-filter-hint" style="font-size:.75rem;color:var(--text-muted);">berdasarkan tgl. pembuatan</span>
                 </div>
                 <input type="text" id="searchInput" class="input inv-search" placeholder="Cari kode / pengundang / channel…"
                        style="width:220px;font-size:.85rem;padding:.38rem .75rem;flex-shrink:0;"
@@ -211,6 +211,8 @@
     /* Filter bar: stack vertikal */
     .inv-filter-row { flex-direction: column !important; align-items: stretch !important; }
     .inv-search     { width: 100% !important; flex-shrink: unset !important; }
+    /* Sembunyikan label "berdasarkan tgl. pembuatan" di mobile */
+    .inv-filter-hint { display: none; }
 
     /* Table header padding lebih kecil */
     .th-cell { padding: .5rem .65rem; font-size: .65rem; }
@@ -239,10 +241,30 @@
     #paginationBar { padding: .5rem .75rem; }
 }
 
-/* ── Mobile (≤ 600px): padding tabel lebih compact, semua kolom tetap ada ── */
+/* ── Mobile (≤ 600px): sembunyikan kolom tidak penting ──────────────────── */
 @media (max-width: 600px) {
-    .th-cell { padding: .45rem .65rem; font-size: .63rem; }
-    .inv-td  { padding: .5rem .65rem;  font-size: .8rem; }
+    .th-cell { padding: .45rem .55rem; font-size: .63rem; }
+    .inv-td  { padding: .5rem .55rem;  font-size: .8rem; }
+
+    /* Sembunyikan kolom Dibuat, Kadaluarsa, Sementara */
+    .inv-col-channel,
+    .inv-col-created,
+    .inv-col-expiry,
+    .inv-col-temp { display: none; }
+
+    /* Sembunyikan inviter ID panjang, tampilkan hanya username */
+    .inv-inviter-id { display: none; }
+}
+
+/* ── Mobile kecil (≤ 390px): sembunyikan juga kolom Channel ─────────────── */
+@media (max-width: 390px) {
+    .dash-main      { padding: 1rem .75rem 1.5rem !important; }
+    .stats-grid     { grid-template-columns: 1fr 1fr !important; }
+    .stats-grid .stat-card  { padding: .6rem .5rem; gap: .4rem; }
+    .stats-grid .stat-icon  { width: 30px !important; height: 30px !important; border-radius: 7px !important; }
+    .stats-grid .stat-value { font-size: 1.1rem; }
+    .stats-grid .stat-label { font-size: .63rem; }
+    .inv-col-channel { display: none; }
 }
 </style>
 
@@ -284,7 +306,7 @@ function buildRow(inv, rank) {
         ? `<span style="background:rgba(254,231,92,.15);color:#FEE75C;border-radius:4px;padding:.2rem .5rem;font-size:.75rem;font-weight:600;">Ya</span>`
         : `<span style="color:var(--text-muted);font-size:.8rem;">—</span>`;
     const inviterIdHtml = inv.inviterId
-        ? `<span style="font-size:.75rem;color:var(--text-muted);font-family:monospace;">${inv.inviterId}</span>`
+        ? `<span class="inv-inviter-id" style="font-size:.75rem;color:var(--text-muted);font-family:monospace;">${inv.inviterId}</span>`
         : '';
     return `
     <tr class="inv-tr">
