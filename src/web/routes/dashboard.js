@@ -1195,4 +1195,173 @@ router.get('/:guildId/youtube', requireLogin, requireManageGuild, async (req, re
     }
 });
 
+// ── GET /dashboard/:guildId/automod ───────────────────────────────────────────
+router.get('/:guildId/automod', requireLogin, requireManageGuild, async (req, res) => {
+    try {
+        const db      = req.discordClient?.database;
+        const guildId = req.params.guildId;
+        const guild   = req.botGuild;
+
+        await _ensureChannels(guild);
+        await _ensureRoles(guild);
+
+        function getJSON(key, def) {
+            const raw = db?.get(key);
+            if (!raw) return def;
+            try { return JSON.parse(raw); } catch { return def; }
+        }
+
+        const spamCfg        = getJSON(`automod-spam-${guildId}`,        { enabled: false, limit: 5, interval: 5 });
+        const mentionCfg     = getJSON(`automod-massmention-${guildId}`, { enabled: false, limit: 5 });
+        const raidCfg        = getJSON(`automod-antiraid-${guildId}`,    { enabled: false, joinLimit: 10, interval: 10 });
+        const bannedWords    = getJSON(`automod-words-${guildId}`,       []);
+        const wlChannelIds   = getJSON(`automod-wl-channels-${guildId}`, []);
+        const wlRoleIds      = getJSON(`automod-wl-roles-${guildId}`,    []);
+
+        const textChannels = [...guild.channels.cache.values()]
+            .filter(c => c.type === 0)
+            .sort((a, b) => a.name.localeCompare(b.name))
+            .map(c => ({ id: c.id, name: c.name }));
+
+        const roles = [...guild.roles.cache.values()]
+            .filter(r => !r.managed && r.id !== guild.id)
+            .sort((a, b) => b.position - a.position)
+            .map(r => ({ id: r.id, name: r.name, color: r.hexColor !== '#000000' ? r.hexColor : null }));
+
+        const automodData = {
+            action:       db?.get(`automod-action-${guildId}`)           ?? 'delete',
+            muteDuration: db?.get(`automod-mute-duration-${guildId}`)    ?? '600000',
+            auditLogId:   db?.get(`automod-auditlog-${guildId}`)         ?? '',
+            antilink:    getDbBool(db, `automod-antilink-${guildId}`,    false),
+            antiinvite:  getDbBool(db, `automod-antiinvite-${guildId}`,  false),
+            attachments: getDbBool(db, `automod-attachments-${guildId}`, false),
+            spam:        spamCfg,
+            massmention: mentionCfg,
+            antiraid:    raidCfg,
+            words:       bannedWords,
+            wlChannels:  wlChannelIds,
+            wlRoles:     wlRoleIds,
+        };
+
+        const activeCount = [
+            automodData.antilink,
+            automodData.antiinvite,
+            automodData.attachments,
+            automodData.spam.enabled,
+            automodData.massmention.enabled,
+            automodData.antiraid.enabled,
+            automodData.words.length > 0,
+        ].filter(Boolean).length;
+
+        res.render('dashboard/automod', {
+            title: 'Automod',
+            guild,
+            automodData,
+            textChannels,
+            roles,        // masih dipakai untuk whitelist role
+            activeCount,
+            missingPerms: getMissingPerms(guild),
+            activePage: 'automod',
+            hasSidebar: true,
+        });
+    } catch (err) {
+        console.error('[dashboard/automod] Error:', err);
+        res.status(500).render('error', {
+            hasSidebar: false,
+            title: 'Server Error',
+            message: 'Gagal memuat halaman Automod.'
+        });
+    }
+});
+
+// ── GET /:guildId/warnings ────────────────────────────────────────────────────
+router.get('/:guildId/warnings', requireLogin, requireManageGuild, async (req, res) => {
+    try {
+        const guild   = req.botGuild;
+        const guildId = guild.id;
+        const db      = req.discordClient?.database;
+
+        function getWarnJSON(key, def) {
+            const raw = db?.get(key);
+            if (!raw) return def;
+            try { return JSON.parse(raw); } catch { return def; }
+        }
+
+        const config   = getWarnJSON(`warn-config-${guildId}`, { thresholds: [] });
+        const warnLog  = getWarnJSON(`warn-log-${guildId}`, []);
+
+        // Normalisasi: pastikan selalu ada tepat 2 slot threshold di UI
+        const t1 = config.thresholds[0] ?? { count: 3, action: 'none', duration: 600000 };
+        const t2 = config.thresholds[1] ?? { count: 5, action: 'none', duration: 600000 };
+
+        const activeThresholds = config.thresholds.filter(t => t.action && t.action !== 'none').length;
+
+        res.render('dashboard/warnings', {
+            title:   'Warning System',
+            guild,
+            warnLog,
+            t1,
+            t2,
+            activeThresholds,
+            activePage:  'warnings',
+            hasSidebar:  true,
+            missingPerms: getMissingPerms(guild),
+        });
+    } catch (err) {
+        console.error('[dashboard/warnings] Error:', err);
+        res.status(500).render('error', {
+            hasSidebar: false,
+            title:   'Server Error',
+            message: 'Gagal memuat halaman Warning System.',
+        });
+    }
+});
+
+// ── GET /dashboard/:guildId/modlog ────────────────────────────────────────────
+router.get('/:guildId/modlog', requireLogin, requireManageGuild, async (req, res) => {
+    try {
+        const db      = req.discordClient?.database;
+        const guildId = req.params.guildId;
+        const guild   = req.botGuild;
+
+        await _ensureChannels(guild);
+
+        const DEFAULT_EVENTS = { ban: true, unban: true, kick: true, timeout: true, warn: true };
+        function getModlogJSON(key, def) {
+            const raw = db?.get(key);
+            if (!raw) return def;
+            try { return JSON.parse(raw); } catch { return def; }
+        }
+
+        const logChannelId = db?.get(`modlog-channel-${guildId}`) ?? '';
+        const events       = { ...DEFAULT_EVENTS, ...getModlogJSON(`modlog-events-${guildId}`, {}) };
+
+        const textChannels = [...guild.channels.cache.values()]
+            .filter(c => c.type === 0)
+            .sort((a, b) => a.name.localeCompare(b.name))
+            .map(c => ({ id: c.id, name: c.name }));
+
+        const enabledCount = Object.values(events).filter(Boolean).length;
+
+        res.render('dashboard/modlog', {
+            title: 'Mod Log',
+            guild,
+            logChannelId,
+            events,
+            enabledCount,
+            textChannels,
+            missingPerms: getMissingPerms(guild),
+            activePage: 'modlog',
+            hasSidebar: true,
+        });
+    } catch (err) {
+        console.error('[dashboard/modlog] Error:', err);
+        res.status(500).render('error', {
+            hasSidebar: false,
+            title: 'Server Error',
+            message: 'Gagal memuat halaman Mod Log.',
+        });
+    }
+});
+
 module.exports = router;

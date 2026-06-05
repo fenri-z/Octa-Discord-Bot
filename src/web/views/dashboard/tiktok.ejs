@@ -105,8 +105,12 @@
 /* ── Responsive: Tablet (≤ 860px) ───────────────────────────────────────── */
 @media (max-width: 860px) {
     .tt-panel-layout  { grid-template-columns: 1fr; }
-    /* Preview tampil di bawah form, tidak sticky */
     .tt-preview-col   { position: static; }
+    /* Stats: 2 kolom di tablet */
+    .tt-stats-grid    { grid-template-columns: 1fr 1fr !important; }
+    .tt-stats-grid .stat-card { min-width: 0; }
+    .tt-stats-grid .stat-info { min-width: 0; overflow: hidden; }
+    .tt-stats-grid .stat-label { white-space: normal; line-height: 1.3; }
 }
 
 /* ── Responsive: Tablet kecil (≤ 680px) ─────────────────────────────────── */

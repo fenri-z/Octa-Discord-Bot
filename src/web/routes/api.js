@@ -2692,4 +2692,374 @@ router.delete('/guild/:guildId/kick/accounts/:slug', requireLogin, requireManage
     res.json({ success: true, message: `Channel "${slug}" berhasil dihapus.` });
 });
 
+// ════════════════════════════════════════════════════════════════════════════
+// AUTOMOD
+// Key database sama persis dengan slashcommand-automod.js
+// ════════════════════════════════════════════════════════════════════════════
+
+function getAutomodJSON(db, key, def) {
+    const raw = db?.get(key);
+    if (!raw) return def;
+    try { return JSON.parse(raw); } catch { return def; }
+}
+
+// ── POST /api/guild/:guildId/automod/general ──────────────────────────────────
+router.post('/guild/:guildId/automod/general', requireLogin, requireManageGuild, (req, res) => {
+    const db      = req.discordClient?.database;
+    const guildId = req.params.guildId;
+    if (!db) return res.status(500).json({ success: false, message: 'Database tidak tersedia.' });
+
+    const { action, muteDuration, auditLogId } = req.body;
+
+    const validActions = ['delete', 'warn', 'mute', 'kick', 'ban'];
+    if (action && !validActions.includes(action)) {
+        return res.status(400).json({ success: false, message: 'Tindakan tidak valid.' });
+    }
+
+    const validDurations = [60000, 300000, 600000, 1800000, 3600000, 86400000];
+    if (muteDuration !== undefined && !validDurations.includes(Number(muteDuration))) {
+        return res.status(400).json({ success: false, message: 'Durasi timeout tidak valid.' });
+    }
+
+    if (auditLogId) {
+        if (!req.botGuild.channels.cache.get(auditLogId)) {
+            return res.status(400).json({ success: false, message: 'Channel log tidak ditemukan.' });
+        }
+        const missing = missingChannelPerms(req.botGuild, auditLogId, [
+            PermissionsBitField.Flags.ViewChannel,
+            PermissionsBitField.Flags.SendMessages,
+            PermissionsBitField.Flags.EmbedLinks,
+        ]);
+        if (missing.length) {
+            return res.status(400).json({ success: false, message: `Bot butuh permission di channel log:\n${missing.map(p => `• ${p}`).join('\n')}` });
+        }
+    }
+
+    if (action)        db.set(`automod-action-${guildId}`,        action);
+    if (muteDuration)  db.set(`automod-mute-duration-${guildId}`, String(muteDuration));
+    if (auditLogId)    db.set(`automod-auditlog-${guildId}`,      auditLogId);
+    else               db.delete(`automod-auditlog-${guildId}`);
+
+    res.json({ success: true, message: 'Konfigurasi umum berhasil disimpan.' });
+});
+
+// ── POST /api/guild/:guildId/automod/antilink ─────────────────────────────────
+router.post('/guild/:guildId/automod/antilink', requireLogin, requireManageGuild, (req, res) => {
+    const db      = req.discordClient?.database;
+    const guildId = req.params.guildId;
+    if (!db) return res.status(500).json({ success: false, message: 'Database tidak tersedia.' });
+    setDbBool(db, `automod-antilink-${guildId}`, !!req.body.enabled);
+    res.json({ success: true, message: `Anti-Link ${req.body.enabled ? 'diaktifkan' : 'dinonaktifkan'}.` });
+});
+
+// ── POST /api/guild/:guildId/automod/antiinvite ───────────────────────────────
+router.post('/guild/:guildId/automod/antiinvite', requireLogin, requireManageGuild, (req, res) => {
+    const db      = req.discordClient?.database;
+    const guildId = req.params.guildId;
+    if (!db) return res.status(500).json({ success: false, message: 'Database tidak tersedia.' });
+    setDbBool(db, `automod-antiinvite-${guildId}`, !!req.body.enabled);
+    res.json({ success: true, message: `Anti-Invite ${req.body.enabled ? 'diaktifkan' : 'dinonaktifkan'}.` });
+});
+
+// ── POST /api/guild/:guildId/automod/attachments ──────────────────────────────
+router.post('/guild/:guildId/automod/attachments', requireLogin, requireManageGuild, (req, res) => {
+    const db      = req.discordClient?.database;
+    const guildId = req.params.guildId;
+    if (!db) return res.status(500).json({ success: false, message: 'Database tidak tersedia.' });
+    setDbBool(db, `automod-attachments-${guildId}`, !!req.body.enabled);
+    res.json({ success: true, message: `Anti-Attachment ${req.body.enabled ? 'diaktifkan' : 'dinonaktifkan'}.` });
+});
+
+// ── POST /api/guild/:guildId/automod/spam ─────────────────────────────────────
+router.post('/guild/:guildId/automod/spam', requireLogin, requireManageGuild, (req, res) => {
+    const db      = req.discordClient?.database;
+    const guildId = req.params.guildId;
+    if (!db) return res.status(500).json({ success: false, message: 'Database tidak tersedia.' });
+
+    const enabled  = !!req.body.enabled;
+    const limit    = Math.min(20, Math.max(2, parseInt(req.body.limit)    || 5));
+    const interval = Math.min(30, Math.max(1, parseInt(req.body.interval) || 5));
+
+    const existing = getAutomodJSON(db, `automod-spam-${guildId}`, { enabled: false, limit: 5, interval: 5 });
+    db.set(`automod-spam-${guildId}`, JSON.stringify({
+        enabled,
+        limit:    enabled ? limit    : existing.limit,
+        interval: enabled ? interval : existing.interval,
+    }));
+    res.json({ success: true, message: `Anti-Spam ${enabled ? `diaktifkan (maks. ${limit} pesan/${interval} detik)` : 'dinonaktifkan'}.` });
+});
+
+// ── POST /api/guild/:guildId/automod/massmention ──────────────────────────────
+router.post('/guild/:guildId/automod/massmention', requireLogin, requireManageGuild, (req, res) => {
+    const db      = req.discordClient?.database;
+    const guildId = req.params.guildId;
+    if (!db) return res.status(500).json({ success: false, message: 'Database tidak tersedia.' });
+
+    const enabled = !!req.body.enabled;
+    const limit   = Math.min(20, Math.max(2, parseInt(req.body.limit) || 5));
+
+    const existing = getAutomodJSON(db, `automod-massmention-${guildId}`, { enabled: false, limit: 5 });
+    db.set(`automod-massmention-${guildId}`, JSON.stringify({
+        enabled,
+        limit: enabled ? limit : existing.limit,
+    }));
+    res.json({ success: true, message: `Anti Mass-Mention ${enabled ? `diaktifkan (maks. ${limit} mention/pesan)` : 'dinonaktifkan'}.` });
+});
+
+// ── POST /api/guild/:guildId/automod/antiraid ─────────────────────────────────
+router.post('/guild/:guildId/automod/antiraid', requireLogin, requireManageGuild, (req, res) => {
+    const db      = req.discordClient?.database;
+    const guildId = req.params.guildId;
+    if (!db) return res.status(500).json({ success: false, message: 'Database tidak tersedia.' });
+
+    const enabled   = !!req.body.enabled;
+    const joinLimit = Math.min(50, Math.max(2,  parseInt(req.body.joinLimit) || 10));
+    const interval  = Math.min(60, Math.max(5,  parseInt(req.body.interval)  || 10));
+
+    const existing = getAutomodJSON(db, `automod-antiraid-${guildId}`, { enabled: false, joinLimit: 10, interval: 10 });
+    db.set(`automod-antiraid-${guildId}`, JSON.stringify({
+        enabled,
+        joinLimit: enabled ? joinLimit : existing.joinLimit,
+        interval:  enabled ? interval  : existing.interval,
+    }));
+    res.json({ success: true, message: `Anti-Raid ${enabled ? `diaktifkan (maks. ${joinLimit} join/${interval} detik)` : 'dinonaktifkan'}.` });
+});
+
+// ── POST /api/guild/:guildId/automod/words ────────────────────────────────────
+router.post('/guild/:guildId/automod/words', requireLogin, requireManageGuild, (req, res) => {
+    const db      = req.discordClient?.database;
+    const guildId = req.params.guildId;
+    if (!db) return res.status(500).json({ success: false, message: 'Database tidak tersedia.' });
+
+    const word  = (req.body.word || '').toLowerCase().trim();
+    if (!word)  return res.status(400).json({ success: false, message: 'Kata tidak boleh kosong.' });
+    if (word.length > 50) return res.status(400).json({ success: false, message: 'Kata terlalu panjang (maks. 50 karakter).' });
+
+    const words = getAutomodJSON(db, `automod-words-${guildId}`, []);
+    if (words.includes(word)) return res.json({ success: false, message: `Kata "${word}" sudah ada di daftar.` });
+    if (words.length >= 100) return res.status(400).json({ success: false, message: 'Daftar sudah penuh (maks. 100 kata).' });
+
+    words.push(word);
+    db.set(`automod-words-${guildId}`, JSON.stringify(words));
+    res.json({ success: true, message: `Kata "${word}" ditambahkan.`, word, total: words.length });
+});
+
+// ── DELETE /api/guild/:guildId/automod/words/:word ────────────────────────────
+router.delete('/guild/:guildId/automod/words/:word', requireLogin, requireManageGuild, (req, res) => {
+    const db      = req.discordClient?.database;
+    const guildId = req.params.guildId;
+    if (!db) return res.status(500).json({ success: false, message: 'Database tidak tersedia.' });
+
+    const word  = decodeURIComponent(req.params.word).toLowerCase().trim();
+    const words = getAutomodJSON(db, `automod-words-${guildId}`, []);
+    const idx   = words.indexOf(word);
+    if (idx === -1) return res.status(404).json({ success: false, message: `Kata "${word}" tidak ditemukan.` });
+
+    words.splice(idx, 1);
+    db.set(`automod-words-${guildId}`, JSON.stringify(words));
+    res.json({ success: true, message: `Kata "${word}" dihapus.`, total: words.length });
+});
+
+// ── POST /api/guild/:guildId/automod/whitelist ────────────────────────────────
+router.post('/guild/:guildId/automod/whitelist', requireLogin, requireManageGuild, (req, res) => {
+    const db      = req.discordClient?.database;
+    const guildId = req.params.guildId;
+    if (!db) return res.status(500).json({ success: false, message: 'Database tidak tersedia.' });
+
+    const { type, id } = req.body;
+    if (!type || !id) return res.status(400).json({ success: false, message: 'type dan id diperlukan.' });
+
+    if (type === 'channel') {
+        if (!req.botGuild.channels.cache.get(id)) {
+            return res.status(400).json({ success: false, message: 'Channel tidak ditemukan.' });
+        }
+        const list = getAutomodJSON(db, `automod-wl-channels-${guildId}`, []);
+        if (list.includes(id)) return res.json({ success: false, message: 'Channel sudah ada di whitelist.' });
+        list.push(id);
+        db.set(`automod-wl-channels-${guildId}`, JSON.stringify(list));
+        const ch = req.botGuild.channels.cache.get(id);
+        return res.json({ success: true, message: `#${ch.name} ditambahkan ke whitelist.`, id, name: ch.name });
+    }
+
+    if (type === 'role') {
+        if (!req.botGuild.roles.cache.get(id)) {
+            return res.status(400).json({ success: false, message: 'Role tidak ditemukan.' });
+        }
+        const list = getAutomodJSON(db, `automod-wl-roles-${guildId}`, []);
+        if (list.includes(id)) return res.json({ success: false, message: 'Role sudah ada di whitelist.' });
+        list.push(id);
+        db.set(`automod-wl-roles-${guildId}`, JSON.stringify(list));
+        const role = req.botGuild.roles.cache.get(id);
+        return res.json({ success: true, message: `@${role.name} ditambahkan ke whitelist.`, id, name: role.name, color: role.hexColor !== '#000000' ? role.hexColor : null });
+    }
+
+    res.status(400).json({ success: false, message: 'type tidak valid. Gunakan "channel" atau "role".' });
+});
+
+// ── DELETE /api/guild/:guildId/automod/whitelist/:type/:id ────────────────────
+router.delete('/guild/:guildId/automod/whitelist/:type/:id', requireLogin, requireManageGuild, (req, res) => {
+    const db      = req.discordClient?.database;
+    const guildId = req.params.guildId;
+    if (!db) return res.status(500).json({ success: false, message: 'Database tidak tersedia.' });
+
+    const { type, id } = req.params;
+
+    if (type === 'channel') {
+        const list = getAutomodJSON(db, `automod-wl-channels-${guildId}`, []);
+        const idx  = list.indexOf(id);
+        if (idx === -1) return res.status(404).json({ success: false, message: 'Channel tidak ada di whitelist.' });
+        list.splice(idx, 1);
+        db.set(`automod-wl-channels-${guildId}`, JSON.stringify(list));
+        return res.json({ success: true, message: 'Channel dihapus dari whitelist.' });
+    }
+
+    if (type === 'role') {
+        const list = getAutomodJSON(db, `automod-wl-roles-${guildId}`, []);
+        const idx  = list.indexOf(id);
+        if (idx === -1) return res.status(404).json({ success: false, message: 'Role tidak ada di whitelist.' });
+        list.splice(idx, 1);
+        db.set(`automod-wl-roles-${guildId}`, JSON.stringify(list));
+        return res.json({ success: true, message: 'Role dihapus dari whitelist.' });
+    }
+
+    res.status(400).json({ success: false, message: 'type tidak valid.' });
+});
+
+// ════════════════════════════════════════════════════════════════════════════
+// WARNING SYSTEM
+// ════════════════════════════════════════════════════════════════════════════
+
+function getWarnJSON(db, key, def) {
+    const raw = db.get(key);
+    if (!raw) return def;
+    try { return JSON.parse(raw); } catch { return def; }
+}
+
+// ── POST /api/guild/:guildId/warnings/config ──────────────────────────────────
+router.post('/guild/:guildId/warnings/config', requireLogin, requireManageGuild, (req, res) => {
+    const db      = req.discordClient?.database;
+    const guildId = req.params.guildId;
+    if (!db) return res.status(500).json({ success: false, message: 'Database tidak tersedia.' });
+
+    const { t1, t2 } = req.body;
+    const validActions   = ['none', 'mute', 'kick', 'ban'];
+    const validDurations = [60000, 300000, 600000, 1800000, 3600000, 86400000];
+    const thresholds     = [];
+
+    for (const [label, t] of [['Threshold 1', t1], ['Threshold 2', t2]]) {
+        if (!t || !t.action || t.action === 'none') continue;
+        const count = parseInt(t.count);
+        if (!count || count < 1 || count > 20)
+            return res.status(400).json({ success: false, message: `${label}: jumlah warn harus antara 1–20.` });
+        if (!validActions.includes(t.action))
+            return res.status(400).json({ success: false, message: `${label}: aksi tidak valid.` });
+        const entry = { count, action: t.action };
+        if (t.action === 'mute') {
+            const dur = parseInt(t.duration);
+            if (!validDurations.includes(dur))
+                return res.status(400).json({ success: false, message: `${label}: durasi timeout tidak valid.` });
+            entry.duration = dur;
+        }
+        thresholds.push(entry);
+    }
+
+    const counts = thresholds.map(t => t.count);
+    if (new Set(counts).size !== counts.length)
+        return res.status(400).json({ success: false, message: 'Jumlah warn di kedua threshold tidak boleh sama.' });
+
+    db.set(`warn-config-${guildId}`, JSON.stringify({ thresholds }));
+    res.json({ success: true, message: 'Konfigurasi threshold berhasil disimpan.' });
+});
+
+// ── GET /api/guild/:guildId/warnings/user/:userId ─────────────────────────────
+router.get('/guild/:guildId/warnings/user/:userId', requireLogin, requireManageGuild, (req, res) => {
+    const db      = req.discordClient?.database;
+    const guildId = req.params.guildId;
+    const userId  = req.params.userId;
+    if (!db) return res.status(500).json({ success: false, message: 'Database tidak tersedia.' });
+
+    const warns  = getWarnJSON(db, `warn-${guildId}-${userId}`, []);
+    const member = req.botGuild.members.cache.get(userId);
+    const tag    = member?.user.tag ?? warns[0]?.targetTag ?? `ID: ${userId}`;
+    const avatar = member?.user.displayAvatarURL({ size: 64 }) ?? null;
+
+    res.json({ success: true, warns, tag, avatar, total: warns.length });
+});
+
+// ── DELETE /api/guild/:guildId/warnings/user/:userId ──────────────────────────
+router.delete('/guild/:guildId/warnings/user/:userId', requireLogin, requireManageGuild, (req, res) => {
+    const db      = req.discordClient?.database;
+    const guildId = req.params.guildId;
+    const userId  = req.params.userId;
+    if (!db) return res.status(500).json({ success: false, message: 'Database tidak tersedia.' });
+
+    const warns = getWarnJSON(db, `warn-${guildId}-${userId}`, []);
+    if (warns.length === 0)
+        return res.status(404).json({ success: false, message: 'User ini tidak memiliki peringatan.' });
+
+    db.delete(`warn-${guildId}-${userId}`);
+    res.json({ success: true, message: `Semua ${warns.length} peringatan dihapus.`, total: 0 });
+});
+
+// ── DELETE /api/guild/:guildId/warnings/user/:userId/:warnId ─────────────────
+router.delete('/guild/:guildId/warnings/user/:userId/:warnId', requireLogin, requireManageGuild, (req, res) => {
+    const db      = req.discordClient?.database;
+    const guildId = req.params.guildId;
+    const userId  = req.params.userId;
+    const warnId  = req.params.warnId.toUpperCase();
+    if (!db) return res.status(500).json({ success: false, message: 'Database tidak tersedia.' });
+
+    const warns = getWarnJSON(db, `warn-${guildId}-${userId}`, []);
+    const idx   = warns.findIndex(w => w.id === warnId);
+    if (idx === -1)
+        return res.status(404).json({ success: false, message: `Peringatan \`${warnId}\` tidak ditemukan.` });
+
+    warns.splice(idx, 1);
+    if (warns.length === 0) {
+        db.delete(`warn-${guildId}-${userId}`);
+    } else {
+        db.set(`warn-${guildId}-${userId}`, JSON.stringify(warns));
+    }
+    res.json({ success: true, message: `Peringatan \`${warnId}\` dihapus.`, total: warns.length });
+});
+
+// ════════════════════════════════════════════════════════════════════════════
+// MOD LOG
+// ════════════════════════════════════════════════════════════════════════════
+
+// ── POST /api/guild/:guildId/modlog/config ────────────────────────────────────
+router.post('/guild/:guildId/modlog/config', requireLogin, requireManageGuild, (req, res) => {
+    const db      = req.discordClient?.database;
+    const guildId = req.params.guildId;
+    if (!db) return res.status(500).json({ success: false, message: 'Database tidak tersedia.' });
+
+    const { channelId, events } = req.body;
+
+    if (channelId) {
+        if (!req.botGuild.channels.cache.get(channelId))
+            return res.status(400).json({ success: false, message: 'Channel tidak ditemukan.' });
+
+        const missing = missingChannelPerms(req.botGuild, channelId, [
+            PermissionsBitField.Flags.ViewChannel,
+            PermissionsBitField.Flags.SendMessages,
+            PermissionsBitField.Flags.EmbedLinks,
+        ]);
+        if (missing.length)
+            return res.status(400).json({ success: false, message: `Bot tidak punya permission di channel:\n${missing.map(p => `• ${p}`).join('\n')}` });
+
+        db.set(`modlog-channel-${guildId}`, channelId);
+    } else {
+        db.delete(`modlog-channel-${guildId}`);
+    }
+
+    const VALID_EVENTS = ['ban', 'unban', 'kick', 'timeout', 'warn'];
+    const evtObj = {};
+    for (const k of VALID_EVENTS) {
+        evtObj[k] = events && events[k] !== undefined ? !!events[k] : true;
+    }
+    db.set(`modlog-events-${guildId}`, JSON.stringify(evtObj));
+
+    res.json({ success: true, message: 'Konfigurasi Mod Log berhasil disimpan.' });
+});
+
 module.exports = router;

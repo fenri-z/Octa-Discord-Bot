@@ -1,0 +1,213 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+
+<div class="dash-layout">
+    <%- include('../partials/sidebar', { activePage: 'modlog' }) %>
+
+    <main class="dash-main">
+    <div class="dash-content-wide">
+        <%- include('../partials/perm-notice') %>
+
+        <div class="page-header">
+            <h1>📋 Mod Log</h1>
+            <p>Catat aksi moderasi (ban, kick, timeout, dll.) ke channel log otomatis.</p>
+        </div>
+
+        <!-- ── Stats ─────────────────────────────────────────────────────────── -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon" style="color:#5865F2;"><i data-lucide="scroll-text"></i></div>
+                <div class="stat-info">
+                    <div class="stat-value"><%= logChannelId ? 'Aktif' : 'Nonaktif' %></div>
+                    <div class="stat-label">Status</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="color:#57F287;"><i data-lucide="check-circle"></i></div>
+                <div class="stat-info">
+                    <div class="stat-value"><%= enabledCount %> / 5</div>
+                    <div class="stat-label">Event Aktif</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="color:#FEE75C;"><i data-lucide="hash"></i></div>
+                <div class="stat-info">
+                    <div class="stat-value">
+                        <% if (logChannelId) { %>
+                            <% var logCh = guild.channels.cache.get(logChannelId); %>
+                            <%= logCh ? '#' + logCh.name : 'Channel dihapus' %>
+                        <% } else { %>
+                            —
+                        <% } %>
+                    </div>
+                    <div class="stat-label">Channel Log</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Konfigurasi ────────────────────────────────────────────────────── -->
+        <div class="settings-card">
+            <h2>Konfigurasi Channel</h2>
+            <p class="section-desc" style="margin-bottom:1.25rem;">
+                Pilih channel teks tempat semua log moderasi akan dikirim. Kosongkan untuk menonaktifkan mod log.
+            </p>
+
+            <div class="form-group">
+                <label class="label">Channel Log</label>
+                <div class="ml-channel-row">
+                    <select id="mlChannel" class="select ml-channel-select">
+                        <option value="">— Nonaktifkan Mod Log —</option>
+                        <% textChannels.forEach(function(ch) { %>
+                            <option value="<%= ch.id %>" <%= logChannelId === ch.id ? 'selected' : '' %>>#<%= ch.name %></option>
+                        <% }); %>
+                    </select>
+                    <button class="btn btn-primary ml-channel-btn" onclick="saveConfig()">
+                        <i data-lucide="save"></i> Simpan
+                    </button>
+                </div>
+            </div>
+            <div id="mlMsg" class="form-message"></div>
+        </div>
+
+        <!-- ── Event Toggles ──────────────────────────────────────────────────── -->
+        <div class="settings-card">
+            <h2>Event yang Dicatat</h2>
+            <p class="section-desc" style="margin-bottom:1.25rem;">
+                Pilih jenis aksi moderasi mana saja yang ingin dicatat. Perubahan langsung tersimpan saat toggle diubah.
+            </p>
+
+            <div class="form-group">
+                <label class="toggle-label">
+                    <input type="checkbox" id="evtBan" class="toggle-input" <%= events.ban ? 'checked' : '' %>>
+                    <span class="toggle-slider"></span>
+                    <span><strong>Ban Member</strong> — Log saat member di-ban dari server</span>
+                </label>
+            </div>
+            <div class="form-group">
+                <label class="toggle-label">
+                    <input type="checkbox" id="evtUnban" class="toggle-input" <%= events.unban ? 'checked' : '' %>>
+                    <span class="toggle-slider"></span>
+                    <span><strong>Unban Member</strong> — Log saat ban member dicabut</span>
+                </label>
+            </div>
+            <div class="form-group">
+                <label class="toggle-label">
+                    <input type="checkbox" id="evtKick" class="toggle-input" <%= events.kick ? 'checked' : '' %>>
+                    <span class="toggle-slider"></span>
+                    <span><strong>Kick Member</strong> — Log saat member di-kick dari server</span>
+                </label>
+            </div>
+            <div class="form-group">
+                <label class="toggle-label">
+                    <input type="checkbox" id="evtTimeout" class="toggle-input" <%= events.timeout ? 'checked' : '' %>>
+                    <span class="toggle-slider"></span>
+                    <span><strong>Timeout Member</strong> — Log saat member di-timeout atau timeout dicabut</span>
+                </label>
+            </div>
+            <div class="form-group">
+                <label class="toggle-label">
+                    <input type="checkbox" id="evtWarn" class="toggle-input" <%= events.warn ? 'checked' : '' %>>
+                    <span class="toggle-slider"></span>
+                    <span><strong>Warning</strong> — Log saat moderator menambahkan peringatan via /warn add</span>
+                </label>
+            </div>
+            <div id="evtMsg" class="form-message"></div>
+        </div>
+
+        <!-- ── Info Box ───────────────────────────────────────────────────────── -->
+        <div class="ml-info-box">
+            <i data-lucide="info" style="flex-shrink:0;color:#5865F2;margin-top:2px;width:18px;height:18px;"></i>
+            <div>
+                <strong>Cara kerja Mod Log:</strong> Bot mendengarkan Audit Log Discord. Setiap aksi
+                moderasi yang dilakukan siapapun di server akan otomatis dicatat ke channel yang dipilih.
+                Gunakan <code>/modlog test</code> untuk mengirim embed uji coba ke channel log.
+            </div>
+        </div>
+
+    </div><!-- /.dash-content-wide -->
+    </main>
+</div><!-- /.dash-layout -->
+
+<style>
+.ml-channel-row {
+    display: flex; gap: .75rem; align-items: center;
+}
+.ml-channel-select { flex: 1; min-width: 0; }
+.ml-channel-btn    { flex-shrink: 0; white-space: nowrap; }
+
+@media (max-width: 600px) {
+    .ml-channel-row { flex-direction: column; align-items: stretch; }
+    .ml-channel-btn { width: 100%; }
+}
+
+.ml-info-box {
+    display: flex; gap: .75rem; align-items: flex-start;
+    background: rgba(88,101,242,.08); border: 1px solid rgba(88,101,242,.2);
+    border-radius: 10px; padding: 1rem; margin-top: .5rem;
+    font-size: .875rem; color: var(--text-muted); line-height: 1.55;
+}
+.ml-info-box code {
+    background: rgba(255,255,255,.08); border-radius: 4px; padding: 1px 5px; font-size: .85em;
+}
+</style>
+
+<script>
+const GUILD_ID = '<%= guild.id %>';
+
+function showMsg(el, text, type) {
+    if (!el) return;
+    el.textContent = text;
+    el.className   = `form-message msg-${type}`;
+    if (type === 'success') setTimeout(() => { el.textContent = ''; el.className = 'form-message'; }, 3500);
+}
+
+async function apiFetch(path, method, body) {
+    const res = await fetch(`/api/guild/${GUILD_ID}${path}`, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body:    body ? JSON.stringify(body) : undefined,
+    });
+    return res.json();
+}
+
+// ── Simpan channel ─────────────────────────────────────────────────────────────
+async function saveConfig() {
+    const msg  = document.getElementById('mlMsg');
+    const data = await apiFetch('/modlog/config', 'POST', {
+        channelId: document.getElementById('mlChannel').value || null,
+        events: {
+            ban:     document.getElementById('evtBan').checked,
+            unban:   document.getElementById('evtUnban').checked,
+            kick:    document.getElementById('evtKick').checked,
+            timeout: document.getElementById('evtTimeout').checked,
+            warn:    document.getElementById('evtWarn').checked,
+        },
+    });
+    showMsg(msg, data.message, data.success ? 'success' : 'error');
+}
+
+// ── Toggle handlers (simpan langsung saat diubah) ──────────────────────────────
+function getEvents() {
+    return {
+        ban:     document.getElementById('evtBan').checked,
+        unban:   document.getElementById('evtUnban').checked,
+        kick:    document.getElementById('evtKick').checked,
+        timeout: document.getElementById('evtTimeout').checked,
+        warn:    document.getElementById('evtWarn').checked,
+    };
+}
+
+['evtBan','evtUnban','evtKick','evtTimeout','evtWarn'].forEach(id => {
+    document.getElementById(id)?.addEventListener('change', async function () {
+        const msg  = document.getElementById('evtMsg');
+        const data = await apiFetch('/modlog/config', 'POST', {
+            channelId: document.getElementById('mlChannel').value || null,
+            events: getEvents(),
+        });
+        showMsg(msg, data.message, data.success ? 'success' : 'error');
+        if (!data.success) this.checked = !this.checked;
+    });
+});
+</script>
+
+<%- include('../partials/footer') %>

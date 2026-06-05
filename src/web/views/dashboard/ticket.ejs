@@ -161,14 +161,8 @@
                 </div>
             </div>
 
-            <div style="display:flex;gap:.75rem;margin-top:1rem;flex-wrap:wrap;">
-                <button class="btn btn-outline" onclick="savePanelEmbed()">💾 Simpan Embed</button>
-                <button class="btn btn-primary" onclick="sendPanel()">📨 Kirim Panel</button>
-            </div>
-            <div id="panelMsg" class="form-message" style="margin-top:.5rem;"></div>
-
             <!-- Pilih channel kirim -->
-            <div class="form-group" style="margin-top:.85rem;" id="panelSendChannelGroup">
+            <div class="form-group" style="margin-top:1rem;" id="panelSendChannelGroup">
                 <label class="label">Channel tujuan panel</label>
                 <select id="panelSendChannel" class="select">
                     <option value="">— Pilih channel —</option>
@@ -183,6 +177,12 @@
                 </div>
                 <% } %>
             </div>
+
+            <div style="display:flex;gap:.75rem;margin-top:1rem;flex-wrap:wrap;">
+                <button class="btn btn-outline" onclick="savePanelEmbed()">💾 Simpan Embed</button>
+                <button class="btn btn-primary" onclick="sendPanel()">📨 Kirim Panel</button>
+            </div>
+            <div id="panelMsg" class="form-message" style="margin-top:.5rem;"></div>
         </div>
 
         <!-- Daftar Tiket Aktif -->

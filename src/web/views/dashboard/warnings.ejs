@@ -1,0 +1,546 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+
+<div class="dash-layout">
+    <%- include('../partials/sidebar', { activePage: 'warnings' }) %>
+
+    <main class="dash-main">
+    <div class="dash-content-wide">
+        <%- include('../partials/perm-notice') %>
+
+        <div class="page-header">
+            <h1>⚠️ Warning System</h1>
+            <p>Kelola peringatan member secara manual. Gunakan <code>/warn add</code> di Discord atau lihat riwayat dari sini. Threshold otomatis akan menghukum member saat mencapai jumlah warn tertentu.</p>
+        </div>
+
+        <!-- ── Stats ─────────────────────────────────────────────────────────── -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon" style="color:#FEE75C;"><i data-lucide="triangle-alert"></i></div>
+                <div class="stat-info">
+                    <div class="stat-value"><%= warnLog.length %></div>
+                    <div class="stat-label">Total Warn (50 terbaru)</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="color:#5865F2;"><i data-lucide="shield-alert"></i></div>
+                <div class="stat-info">
+                    <div class="stat-value"><%= activeThresholds %></div>
+                    <div class="stat-label">Threshold Aktif</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="color:#ED4245;"><i data-lucide="users"></i></div>
+                <div class="stat-info">
+                    <div class="stat-value" id="statUniqueUsers">—</div>
+                    <div class="stat-label">User Unik (log)</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Konfigurasi Threshold ─────────────────────────────────────────── -->
+        <div class="settings-card">
+            <h2>Konfigurasi Threshold Otomatis</h2>
+            <p class="section-desc" style="margin-bottom:1.5rem;">
+                Bot akan otomatis menghukum member saat warn mereka mencapai angka tertentu.
+                Gunakan <strong>/warn add</strong> untuk memberi peringatan secara manual.
+            </p>
+
+            <div class="wn-threshold-grid">
+
+                <!-- Threshold 1 -->
+                <div class="wn-threshold-card">
+                    <div class="wn-threshold-label">Threshold 1</div>
+                    <div class="wn-cfg-row">
+                        <div class="form-group wn-count-group">
+                            <label class="label">Warn ke-</label>
+                            <input type="number" id="t1Count" class="input wn-count-input"
+                                   min="1" max="20" value="<%= t1.count %>" placeholder="3">
+                        </div>
+                        <div class="form-group wn-action-group">
+                            <label class="label">Tindakan</label>
+                            <select id="t1Action" class="select" onchange="onActionChange('t1')">
+                                <option value="none" <%= (!t1.action || t1.action==='none') ? 'selected':'' %>>— Tidak ada —</option>
+                                <option value="mute" <%= t1.action==='mute' ? 'selected':'' %>>🔇 Timeout</option>
+                                <option value="kick" <%= t1.action==='kick' ? 'selected':'' %>>👢 Kick</option>
+                                <option value="ban"  <%= t1.action==='ban'  ? 'selected':'' %>>🔨 Ban</option>
+                            </select>
+                        </div>
+                        <div class="form-group wn-action-group" id="t1DurGroup"
+                             style="display:<%= t1.action==='mute' ? 'block' : 'none' %>;">
+                            <label class="label">Durasi Timeout</label>
+                            <select id="t1Duration" class="select">
+                                <option value="60000"    <%= t1.duration===60000    ? 'selected':'' %>>⏱️ 1 menit</option>
+                                <option value="300000"   <%= t1.duration===300000   ? 'selected':'' %>>⏱️ 5 menit</option>
+                                <option value="600000"   <%= (t1.duration===600000  || !t1.duration) ? 'selected':'' %>>⏱️ 10 menit</option>
+                                <option value="1800000"  <%= t1.duration===1800000  ? 'selected':'' %>>⏱️ 30 menit</option>
+                                <option value="3600000"  <%= t1.duration===3600000  ? 'selected':'' %>>⏱️ 1 jam</option>
+                                <option value="86400000" <%= t1.duration===86400000 ? 'selected':'' %>>⏱️ 1 hari</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Threshold 2 -->
+                <div class="wn-threshold-card">
+                    <div class="wn-threshold-label">Threshold 2</div>
+                    <div class="wn-cfg-row">
+                        <div class="form-group wn-count-group">
+                            <label class="label">Warn ke-</label>
+                            <input type="number" id="t2Count" class="input wn-count-input"
+                                   min="1" max="20" value="<%= t2.count %>" placeholder="5">
+                        </div>
+                        <div class="form-group wn-action-group">
+                            <label class="label">Tindakan</label>
+                            <select id="t2Action" class="select" onchange="onActionChange('t2')">
+                                <option value="none" <%= (!t2.action || t2.action==='none') ? 'selected':'' %>>— Tidak ada —</option>
+                                <option value="mute" <%= t2.action==='mute' ? 'selected':'' %>>🔇 Timeout</option>
+                                <option value="kick" <%= t2.action==='kick' ? 'selected':'' %>>👢 Kick</option>
+                                <option value="ban"  <%= t2.action==='ban'  ? 'selected':'' %>>🔨 Ban</option>
+                            </select>
+                        </div>
+                        <div class="form-group wn-action-group" id="t2DurGroup"
+                             style="display:<%= t2.action==='mute' ? 'block' : 'none' %>;">
+                            <label class="label">Durasi Timeout</label>
+                            <select id="t2Duration" class="select">
+                                <option value="60000"    <%= t2.duration===60000    ? 'selected':'' %>>⏱️ 1 menit</option>
+                                <option value="300000"   <%= t2.duration===300000   ? 'selected':'' %>>⏱️ 5 menit</option>
+                                <option value="600000"   <%= (t2.duration===600000  || !t2.duration) ? 'selected':'' %>>⏱️ 10 menit</option>
+                                <option value="1800000"  <%= t2.duration===1800000  ? 'selected':'' %>>⏱️ 30 menit</option>
+                                <option value="3600000"  <%= t2.duration===3600000  ? 'selected':'' %>>⏱️ 1 jam</option>
+                                <option value="86400000" <%= t2.duration===86400000 ? 'selected':'' %>>⏱️ 1 hari</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="form-row" style="margin-top:1rem;">
+                <button class="btn btn-primary" onclick="saveThresholds()">
+                    <i data-lucide="save"></i> Simpan Threshold
+                </button>
+            </div>
+            <div id="thresholdMsg" class="form-message"></div>
+        </div>
+
+        <!-- ── Cari Peringatan ───────────────────────────────────────────────── -->
+        <div class="settings-card">
+            <h2>Cari Peringatan Member</h2>
+            <p class="section-desc" style="margin-bottom:1.25rem;">
+                Masukkan User ID Discord untuk melihat semua peringatan member tersebut.
+                Aktifkan <em>Developer Mode</em> di Discord → klik kanan user → <em>Copy User ID</em>.
+            </p>
+
+            <div class="wn-search-row">
+                <input type="text" id="searchUserId" class="input wn-search-input"
+                       placeholder="User ID (contoh: 123456789012345678)"
+                       maxlength="25" onkeydown="if(event.key==='Enter') searchWarns()">
+                <button class="btn btn-primary" onclick="searchWarns()">
+                    <i data-lucide="search"></i> Cari
+                </button>
+            </div>
+            <div id="searchMsg" class="form-message" style="margin-top:.5rem;"></div>
+
+            <!-- Hasil pencarian -->
+            <div id="searchResult" style="display:none;margin-top:1.25rem;">
+                <div class="wn-user-header">
+                    <img id="srAvatar" src="" alt="" class="wn-avatar" onerror="this.style.display='none'">
+                    <div>
+                        <div id="srTag"   class="wn-user-tag">—</div>
+                        <div id="srTotal" class="wn-user-total">0 peringatan</div>
+                    </div>
+                    <button class="btn btn-danger wn-clear-btn" id="srClearBtn" onclick="clearUserWarns()">
+                        <i data-lucide="trash-2"></i> Hapus Semua
+                    </button>
+                </div>
+
+                <div id="srWarnList" class="wn-warn-list"></div>
+            </div>
+        </div>
+
+        <!-- ── Riwayat Terbaru ───────────────────────────────────────────────── -->
+        <div class="settings-card">
+            <h2>Riwayat Peringatan Terbaru
+                <span style="font-size:.8rem;font-weight:400;color:var(--text-muted);margin-left:.4rem;">(50 terbaru)</span>
+            </h2>
+            <p class="section-desc" style="margin-bottom:1.25rem;">Log peringatan yang diberikan moderator menggunakan <code>/warn add</code>.</p>
+
+            <% if (warnLog.length === 0) { %>
+                <p style="color:var(--text-muted);font-size:.875rem;">Belum ada peringatan yang tercatat.</p>
+            <% } else { %>
+            <div class="wn-log-table-wrap">
+                <table class="wn-log-table">
+                    <thead>
+                        <tr>
+                            <th>Member</th>
+                            <th>Alasan</th>
+                            <th>Moderator</th>
+                            <th>Waktu</th>
+                            <th>ID</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% warnLog.forEach(function(w) {
+                            var date = new Date(w.timestamp).toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric' });
+                        %>
+                        <tr>
+                            <td>
+                                <span class="wn-log-tag" title="<%= w.targetId %>">
+                                    <%= w.targetTag || w.targetId %>
+                                </span>
+                            </td>
+                            <td class="wn-log-reason"><%= w.reason %></td>
+                            <td class="wn-log-mod"><%= w.moderatorTag %></td>
+                            <td class="wn-log-date"><%= date %></td>
+                            <td><code style="font-size:.75rem;"><%= w.id %></code></td>
+                        </tr>
+                        <% }); %>
+                    </tbody>
+                </table>
+            </div>
+            <% } %>
+        </div>
+
+    </div>
+    <%- include('../partials/dash-footer') %>
+    </main>
+</div>
+
+<style>
+/* ── Threshold grid & card ───────────────────────────────────────────────── */
+.wn-threshold-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem;
+}
+.wn-threshold-card {
+    background: var(--bg-3, rgba(255,255,255,.03));
+    border: 1px solid var(--border, rgba(255,255,255,.08));
+    border-radius: 10px;
+    padding: 1rem 1.1rem;
+}
+.wn-threshold-label {
+    font-size: .75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    color: var(--text-muted);
+    margin-bottom: .75rem;
+}
+
+/* ── Threshold form row ─────────────────────────────────────────────────── */
+.wn-cfg-row {
+    display: flex;
+    gap: .75rem;
+    flex-wrap: wrap;
+    align-items: flex-end;
+}
+.wn-count-group  { flex: 0 0 80px; }
+.wn-action-group { flex: 1; }          /* tidak pakai min-width */
+.wn-count-input  { width: 100%; text-align: center; }
+
+/* ── Search row ─────────────────────────────────────────────────────────── */
+.wn-search-row {
+    display: flex;
+    gap: .75rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+.wn-search-input {
+    flex: 1;
+    min-width: 0;           /* tidak ada min-width agar bisa menyusut */
+    max-width: 380px;
+}
+
+/* ── Search result ───────────────────────────────────────────────────────── */
+.wn-user-header {
+    display: flex;
+    align-items: center;
+    gap: .85rem;
+    padding: .85rem 1rem;
+    background: var(--bg-3, rgba(255,255,255,.03));
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: .9rem;
+    flex-wrap: wrap;
+}
+.wn-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+.wn-user-tag   { font-weight: 600; font-size: .95rem; }
+.wn-user-total { font-size: .8rem; color: var(--text-muted); margin-top: .1rem; }
+.wn-clear-btn  { margin-left: auto; }
+
+.wn-warn-list { display: flex; flex-direction: column; gap: .5rem; }
+
+.wn-warn-item {
+    display: flex;
+    align-items: flex-start;
+    gap: .75rem;
+    padding: .65rem .85rem;
+    background: var(--bg-3, rgba(255,255,255,.03));
+    border: 1px solid var(--border);
+    border-left: 3px solid #FEE75C;
+    border-radius: 8px;
+}
+.wn-warn-id     { font-size: .72rem; font-family: monospace; color: var(--text-muted); flex-shrink: 0; }
+.wn-warn-body   { flex: 1; min-width: 0; }
+.wn-warn-reason { font-size: .875rem; word-break: break-word; }
+.wn-warn-meta   { font-size: .75rem; color: var(--text-muted); margin-top: .2rem; }
+.wn-warn-del {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 2px 4px;
+    border-radius: 4px;
+    font-size: .8rem;
+    line-height: 1;
+    transition: color .15s, background .15s;
+    flex-shrink: 0;
+    align-self: flex-start;
+}
+.wn-warn-del:hover { color: #ED4245; background: rgba(237,66,69,.1); }
+
+/* ── Log table ───────────────────────────────────────────────────────────── */
+.wn-log-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+}
+.wn-log-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .85rem;
+    /* TIDAK ada min-width — biarkan tabel menyesuaikan */
+}
+.wn-log-table thead th {
+    padding: .6rem .85rem;
+    text-align: left;
+    font-size: .72rem;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: var(--text-muted);
+    background: var(--bg-3, rgba(255,255,255,.03));
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+}
+.wn-log-table tbody tr:hover { background: var(--bg-3, rgba(255,255,255,.02)); }
+.wn-log-table tbody td {
+    padding: .6rem .85rem;
+    border-bottom: 1px solid var(--border, rgba(255,255,255,.06));
+    vertical-align: middle;
+}
+.wn-log-table tbody tr:last-child td { border-bottom: none; }
+.wn-log-tag    { font-weight: 500; }
+.wn-log-reason { color: var(--text-secondary); max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wn-log-mod    { color: var(--text-muted); font-size: .8rem; }
+.wn-log-date   { color: var(--text-muted); font-size: .8rem; white-space: nowrap; }
+
+/* ── btn-danger ─────────────────────────────────────────────────────────── */
+.btn-danger {
+    background: rgba(237,66,69,.15);
+    color: #ED4245;
+    border: 1px solid rgba(237,66,69,.3);
+}
+.btn-danger:hover { background: rgba(237,66,69,.25); }
+
+/* ── Tablet (≤ 900px) ───────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+    .stats-grid            { grid-template-columns: repeat(2, 1fr) !important; }
+    .wn-threshold-grid     { grid-template-columns: 1fr; }
+    .wn-cfg-row            { flex-direction: column !important; gap: .6rem !important; }
+    .wn-count-group,
+    .wn-action-group       { flex: none !important; width: 100% !important; }
+    .wn-count-group .input,
+    .wn-action-group .select { width: 100% !important; max-width: 100% !important; }
+    .wn-count-input        { text-align: left; }
+}
+
+/* ── Mobile (≤ 600px) ───────────────────────────────────────────────────── */
+@media (max-width: 600px) {
+    .stats-grid { grid-template-columns: repeat(2, 1fr) !important; gap: .6rem !important; }
+
+    .settings-card    { padding: 1rem !important; }
+    .settings-card h2 { font-size: 1rem !important; }
+
+    .page-header p      { word-break: break-word; }
+    .page-header p code { white-space: normal; }
+
+    .wn-threshold-card { padding: .85rem .9rem; }
+
+    /* Search: stack vertikal, full-width */
+    .wn-search-row         { flex-direction: column !important; align-items: stretch !important; }
+    .wn-search-input       { max-width: 100% !important; width: 100% !important; }
+    .wn-search-row .btn    { width: 100% !important; justify-content: center !important; }
+
+    /* Warn item: stack */
+    .wn-warn-item { flex-direction: column; gap: .4rem; }
+    .wn-warn-del  { align-self: flex-end; margin-top: -.5rem; }
+
+    /* User header: clear button full-width */
+    .wn-clear-btn   { margin-left: 0 !important; width: 100% !important; justify-content: center !important; }
+    .wn-user-header { gap: .65rem; }
+
+    /* Tabel: sembunyikan kolom Moderator & ID, tampilkan 3 kolom penting saja */
+    .wn-log-table th:nth-child(3),
+    .wn-log-table td:nth-child(3),
+    .wn-log-table th:nth-child(5),
+    .wn-log-table td:nth-child(5) { display: none; }
+    .wn-log-table th:nth-child(1),
+    .wn-log-table td:nth-child(1) { max-width: 100px; }
+    .wn-log-reason                { max-width: 130px; }
+    .wn-log-table thead th,
+    .wn-log-table tbody td        { padding: .5rem .6rem; font-size: .8rem; }
+}
+</style>
+
+<script>
+const GUILD_ID     = '<%= guild.id %>';
+let   _searchUserId = null;
+
+function showMsg(el, text, type) {
+    if (!el) return;
+    el.textContent = text;
+    el.className   = `form-message msg-${type}`;
+    if (type === 'success') setTimeout(() => { el.textContent = ''; el.className = 'form-message'; }, 3500);
+}
+
+async function apiFetch(path, method, body) {
+    const res = await fetch(`/api/guild/${GUILD_ID}${path}`, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: body ? JSON.stringify(body) : undefined,
+    });
+    return res.json();
+}
+
+// ── Hitung user unik dari log ─────────────────────────────────────────────
+(function () {
+    const log = <%- JSON.stringify(warnLog) %>;
+    const ids = new Set(log.map(w => w.targetId));
+    const el  = document.getElementById('statUniqueUsers');
+    if (el) el.textContent = ids.size;
+})();
+
+// ── Threshold: tampilkan/sembunyikan pilihan durasi ───────────────────────
+function onActionChange(prefix) {
+    const action = document.getElementById(prefix + 'Action').value;
+    const grp    = document.getElementById(prefix + 'DurGroup');
+    if (grp) grp.style.display = action === 'mute' ? 'block' : 'none';
+}
+
+async function saveThresholds() {
+    const msg = document.getElementById('thresholdMsg');
+    const data = await apiFetch('/warnings/config', 'POST', {
+        t1: {
+            count:    document.getElementById('t1Count').value,
+            action:   document.getElementById('t1Action').value,
+            duration: document.getElementById('t1Duration')?.value,
+        },
+        t2: {
+            count:    document.getElementById('t2Count').value,
+            action:   document.getElementById('t2Action').value,
+            duration: document.getElementById('t2Duration')?.value,
+        },
+    });
+    showMsg(msg, data.message, data.success ? 'success' : 'error');
+}
+
+// ── Search ────────────────────────────────────────────────────────────────
+function escHtml(s) {
+    return String(s)
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function formatDate(ts) {
+    return new Date(ts).toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric' });
+}
+
+function renderWarnItem(w, userId) {
+    const div = document.createElement('div');
+    div.className    = 'wn-warn-item';
+    div.dataset.id   = w.id;
+    div.innerHTML = `
+        <span class="wn-warn-id">${escHtml(w.id)}</span>
+        <div class="wn-warn-body">
+            <div class="wn-warn-reason">${escHtml(w.reason)}</div>
+            <div class="wn-warn-meta">oleh ${escHtml(w.moderatorTag)} • ${formatDate(w.timestamp)}</div>
+        </div>
+        <button class="wn-warn-del" title="Hapus warn ini" onclick="deleteSingleWarn('${escHtml(userId)}','${escHtml(w.id)}',this)">
+            <i data-lucide="x"></i>
+        </button>`;
+    return div;
+}
+
+async function searchWarns() {
+    const input  = document.getElementById('searchUserId');
+    const msg    = document.getElementById('searchMsg');
+    const userId = input.value.trim().replace(/\D/g, '');
+
+    if (!userId || userId.length < 17)
+        return showMsg(msg, 'Masukkan User ID yang valid (17–19 digit).', 'error');
+
+    showMsg(msg, 'Mencari...', 'info');
+    const data = await fetch(`/api/guild/${GUILD_ID}/warnings/user/${userId}`).then(r => r.json());
+
+    if (!data.success) return showMsg(msg, data.message, 'error');
+
+    _searchUserId = userId;
+    showMsg(msg, '', 'info');
+
+    document.getElementById('srTag').textContent   = data.tag;
+    document.getElementById('srTotal').textContent = `${data.total} peringatan`;
+    const avatarEl = document.getElementById('srAvatar');
+    if (data.avatar) { avatarEl.src = data.avatar; avatarEl.style.display = ''; }
+    else              { avatarEl.style.display = 'none'; }
+
+    const listEl = document.getElementById('srWarnList');
+    listEl.innerHTML = '';
+    if (data.warns.length === 0) {
+        listEl.innerHTML = '<p style="color:var(--text-muted);font-size:.875rem;">Tidak ada peringatan. ✅</p>';
+    } else {
+        data.warns.slice().reverse().forEach(w => listEl.appendChild(renderWarnItem(w, userId)));
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    document.getElementById('searchResult').style.display = 'block';
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+async function clearUserWarns() {
+    if (!_searchUserId) return;
+    if (!confirm('Hapus semua peringatan user ini?')) return;
+
+    const msg  = document.getElementById('searchMsg');
+    const data = await apiFetch(`/warnings/user/${_searchUserId}`, 'DELETE');
+    showMsg(msg, data.message, data.success ? 'success' : 'error');
+    if (!data.success) return;
+
+    document.getElementById('srTotal').textContent     = '0 peringatan';
+    document.getElementById('srWarnList').innerHTML    = '<p style="color:var(--text-muted);font-size:.875rem;">Tidak ada peringatan. ✅</p>';
+}
+
+async function deleteSingleWarn(userId, warnId, btn) {
+    const data = await apiFetch(`/warnings/user/${userId}/${warnId}`, 'DELETE');
+    if (!data.success) return alert(data.message);
+
+    const item = btn.closest('.wn-warn-item');
+    if (item) item.remove();
+
+    document.getElementById('srTotal').textContent = `${data.total} peringatan`;
+    if (data.total === 0) {
+        document.getElementById('srWarnList').innerHTML = '<p style="color:var(--text-muted);font-size:.875rem;">Tidak ada peringatan. ✅</p>';
+    }
+}
+</script>
+
+<%- include('../partials/footer') %>

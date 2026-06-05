@@ -41,6 +41,10 @@
         <a href="/dashboard/<%= guild.id %>/autorole?tab=booster" class="sidebar-sublink" id="sidebarSubBooster"><i data-lucide="zap"></i> Autorole Booster</a>
         <a href="/dashboard/<%= guild.id %>/autorole?tab=button"   class="sidebar-sublink" id="sidebarSubButton"><i data-lucide="mouse-pointer-2"></i> Autorole Button</a>
         <a href="/dashboard/<%= guild.id %>/autorole?tab=reaction" class="sidebar-sublink" id="sidebarSubReaction"><i data-lucide="smile"></i> Autorole Reaction</a>
+        <span class="sidebar-group-label">Moderation</span>
+        <a href="/dashboard/<%= guild.id %>/automod"   class="sidebar-sublink<%= activePage === 'automod'   ? ' active' : '' %>"><i data-lucide="shield-check"></i> Automod</a>
+        <a href="/dashboard/<%= guild.id %>/warnings"  class="sidebar-sublink<%= activePage === 'warnings'  ? ' active' : '' %>"><i data-lucide="triangle-alert"></i> Warning System</a>
+        <a href="/dashboard/<%= guild.id %>/modlog"    class="sidebar-sublink<%= activePage === 'modlog'    ? ' active' : '' %>"><i data-lucide="scroll-text"></i> Mod Log</a>
         <span class="sidebar-group-label">Utility</span>
         <a href="/dashboard/<%= guild.id %>/ticket"   class="sidebar-sublink<%= activePage === 'ticket'   ? ' active' : '' %>"><i data-lucide="ticket"></i> Ticket</a>
         <a href="/dashboard/<%= guild.id %>/giveaway" class="sidebar-sublink<%= activePage === 'giveaway' ? ' active' : '' %>"><i data-lucide="gift"></i> Giveaway</a>

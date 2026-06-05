@@ -112,6 +112,11 @@
 @media (max-width: 860px) {
     .kk-panel-layout { grid-template-columns: 1fr; }
     .kk-preview-col  { position: static; }
+    /* Stats: 2 kolom di tablet */
+    .kk-stats-grid   { grid-template-columns: 1fr 1fr !important; }
+    .kk-stats-grid .stat-card { min-width: 0; }
+    .kk-stats-grid .stat-info { min-width: 0; overflow: hidden; }
+    .kk-stats-grid .stat-label { white-space: normal; line-height: 1.3; }
 }
 @media (max-width: 680px) {
     .dash-main        { padding: 1.25rem 1rem 1.5rem !important; }
