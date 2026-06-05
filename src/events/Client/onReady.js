@@ -145,6 +145,16 @@ module.exports = new Event({
         } catch (err) {
             warn(`[Twitch] Gagal memulai TwitchNotifier: ${err.message}`);
         }
+
+        // ── Kick Notifier ──────────────────────────────────────────────────
+        try {
+            const KickNotifier    = require('../../utils/KickNotifier');
+            const kickNotifier    = new KickNotifier(client);
+            client.kickNotifier   = kickNotifier;
+            kickNotifier.start();
+        } catch (err) {
+            warn(`[Kick] Gagal memulai KickNotifier: ${err.message}`);
+        }
     }
 }).toJSON();
 

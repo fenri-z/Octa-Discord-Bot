@@ -1,0 +1,653 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+<style>
+/* ── Layout 2 kolom ──────────────────────────────────────────────────────── */
+.kk-panel-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+    align-items: start;
+}
+@media (max-width: 860px) { .kk-panel-layout { grid-template-columns: 1fr; } }
+
+/* ── Preview sticky ──────────────────────────────────────────────────────── */
+.kk-preview-col { position: sticky; top: calc(var(--navbar-h, 56px) + 1rem); }
+.preview-label  {
+    font-size: .72rem; font-weight: 700; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: .08em; margin-bottom: .5rem;
+}
+
+/* ── Discord mock ────────────────────────────────────────────────────────── */
+.dc-window {
+    background: #313338; border-radius: 8px; overflow: hidden;
+    font-family: 'gg sans','Noto Sans','Helvetica Neue',Arial,sans-serif;
+    font-size: 14px; color: #dbdee1; box-shadow: 0 4px 20px rgba(0,0,0,.5);
+}
+.dc-channel-bar {
+    background: #2b2d31; padding: .45rem .85rem;
+    border-bottom: 1px solid #1e1f22;
+    display: flex; align-items: center; gap: .35rem;
+    font-size: .82rem; font-weight: 600; color: #dbdee1;
+}
+.dc-channel-hash { color: #80848e; font-size: 1rem; }
+.dc-messages     { padding: .85rem; }
+.dc-message      { display: flex; gap: .65rem; }
+.dc-avatar       { width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0; object-fit: cover; }
+.dc-msg-body     { flex: 1; min-width: 0; }
+.dc-username     { font-weight: 600; font-size: .85rem; }
+.dc-timestamp    { font-size: .66rem; color: #80848e; margin-left: .45rem; }
+.dc-embed {
+    display: flex; background: #2b2d31; border-radius: 4px;
+    margin-top: .3rem; overflow: hidden; max-width: 420px;
+}
+.dc-embed-inner  { padding: .55rem .7rem; flex: 1; min-width: 0; }
+.dc-embed-author { display:flex; align-items:center; gap:.4rem; margin-bottom:.3rem; }
+.dc-embed-author img { width:18px;height:18px;border-radius:50%; }
+.dc-embed-author span { font-size:.78rem;font-weight:600;color:#dbdee1; }
+.dc-embed-title  { font-size: .88rem; font-weight: 700; color: #53FC18; word-break: break-word; margin-bottom: .25rem; }
+.dc-embed-desc   { font-size: .8rem; color: #dbdee1; line-height: 1.4; }
+.dc-embed-field  { margin-top: .4rem; }
+.dc-field-name   { font-size: .72rem; font-weight: 700; color: #dbdee1; }
+.dc-field-value  { font-size: .78rem; color: #53FC18; }
+.kk-thumb-mock {
+    border-radius: 4px; overflow: hidden;
+    background: #1a1a1a; aspect-ratio: 16/9; max-width: 100%;
+}
+
+/* ── Account card ────────────────────────────────────────────────────────── */
+.kk-channel-card {
+    background: var(--card-bg, #1e1f22);
+    border: 1px solid var(--border, rgba(255,255,255,.06));
+    border-radius: 10px; padding: 1.1rem; margin-bottom: 1.25rem;
+}
+.kk-card-header {
+    display: flex; align-items: center; gap: .85rem; margin-bottom: 1rem;
+}
+.kk-card-avatar {
+    width: 44px; height: 44px; border-radius: 50%;
+    object-fit: cover; flex-shrink: 0; background: #111;
+    border: 2px solid #53FC18;
+}
+.kk-card-avatar-placeholder {
+    width: 44px; height: 44px; border-radius: 50%;
+    background: rgba(83,252,24,.2); display: flex; align-items: center;
+    justify-content: center; flex-shrink: 0;
+}
+.kk-card-name { font-weight: 600; font-size: .98rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ── Search loading ──────────────────────────────────────────────────────── */
+@keyframes kk-spin    { to { transform: rotate(360deg); } }
+@keyframes kk-shimmer { 0% { background-position:-200% 0; } 100% { background-position:200% 0; } }
+@keyframes kk-dot     { 0%,80%,100% { transform:scale(0);opacity:.3; } 40% { transform:scale(1);opacity:1; } }
+
+.kk-spinner {
+    width: 13px; height: 13px;
+    border: 2px solid rgba(83,252,24,.22);
+    border-top-color: #53FC18;
+    border-radius: 50%;
+    animation: kk-spin .65s linear infinite;
+    display: inline-block; vertical-align: middle; flex-shrink: 0;
+}
+.kk-skeleton {
+    background: linear-gradient(90deg,
+        rgba(255,255,255,.04) 25%,
+        rgba(255,255,255,.11) 50%,
+        rgba(255,255,255,.04) 75%);
+    background-size: 200% 100%;
+    animation: kk-shimmer 1.4s ease-in-out infinite;
+    border-radius: 5px;
+}
+.kk-dot-row { display:inline-flex; gap:3px; align-items:center; }
+.kk-dot-row span {
+    width:5px; height:5px; border-radius:50%; background:#53FC18;
+    animation: kk-dot 1.2s ease-in-out infinite;
+}
+.kk-dot-row span:nth-child(2) { animation-delay:.2s; }
+.kk-dot-row span:nth-child(3) { animation-delay:.4s; }
+
+/* ── Stats ───────────────────────────────────────────────────────────────── */
+.kk-stats-grid { grid-template-columns: repeat(3,1fr) !important; }
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+@media (max-width: 860px) {
+    .kk-panel-layout { grid-template-columns: 1fr; }
+    .kk-preview-col  { position: static; }
+}
+@media (max-width: 680px) {
+    .kk-stats-grid  { grid-template-columns: 1fr 1fr !important; }
+    .kk-search-row  { flex-direction: column !important; }
+    .kk-search-row .btn { width: 100%; justify-content: center; }
+    .kk-action-row  { flex-direction: column !important; }
+    .kk-action-row .btn { width: 100%; justify-content: center; }
+}
+@media (max-width: 480px) {
+    .kk-stats-grid .stat-card { padding: .6rem .5rem; gap: .4rem; }
+    .kk-stats-grid .stat-icon { width: 30px !important; height: 30px !important; border-radius: 7px !important; flex-shrink: 0; }
+    .kk-stats-grid .stat-icon svg { width: 14px !important; height: 14px !important; }
+}
+</style>
+
+<div class="dash-layout">
+    <%- include('../partials/sidebar', { activePage: 'kick' }) %>
+    <main class="dash-main">
+    <div class="dash-content-wide">
+        <%- include('../partials/perm-notice') %>
+
+        <!-- Header -->
+        <div class="page-header">
+            <h1>Kick Notification</h1>
+            <p>Pantau streamer Kick.com dan kirim notifikasi otomatis ke Discord saat mereka mulai Live.</p>
+        </div>
+
+        <!-- Warning: belum dikonfigurasi -->
+        <% if (!isConfigured) { %>
+        <div class="perm-card perm-warn" style="margin-bottom:1.5rem;">
+            <i data-lucide="alert-triangle"></i>
+            <div>
+                <strong>Kick API belum dikonfigurasi.</strong> Tambahkan variabel berikut ke file <code>.env</code> lalu restart bot:
+                <div style="margin-top:.5rem;font-size:.82rem;background:rgba(0,0,0,.3);padding:.5rem .75rem;border-radius:6px;font-family:monospace;line-height:1.8;">
+                    KICK_CLIENT_ID=your_client_id<br>
+                    KICK_CLIENT_SECRET=your_client_secret
+                </div>
+                <div style="margin-top:.5rem;font-size:.79rem;color:var(--text-muted);">
+                    Daftar aplikasi di <strong>kick.com/settings/developer</strong> untuk mendapatkan Client ID dan Secret.
+                </div>
+            </div>
+        </div>
+        <% } %>
+
+        <!-- Stats -->
+        <div class="stats-grid kk-stats-grid" style="margin-bottom:1.5rem;">
+            <div class="stat-card">
+                <div class="stat-icon" style="color:#53FC18;background:rgba(83,252,24,.15);">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M2.664 0v24h5.227v-8.01l2.557-2.503 5.186 10.513H21l-7.527-14.6L20.188 3.54h-5.753L8.083 9.872 7.89 9.68V0z"/></svg>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-value"><%= kickAccounts.length %></div>
+                    <div class="stat-label">Streamer Dipantau</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="color:#57F287;background:rgba(87,242,135,.15);">
+                    <i data-lucide="radio"></i>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-value"><%= kickAccounts.filter(a => a.enabled).length %></div>
+                    <div class="stat-label">Notifikasi Aktif</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="color:#80848e;background:rgba(128,132,142,.12);">
+                    <i data-lucide="list"></i>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-value"><%= maxAccounts - kickAccounts.length %></div>
+                    <div class="stat-label">Slot Tersisa</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tambah Streamer -->
+        <% if (kickAccounts.length < maxAccounts) { %>
+        <div class="settings-card" style="margin-bottom:1.5rem;">
+            <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:1rem;">
+                <i data-lucide="plus-circle" style="color:#53FC18;width:18px;height:18px;flex-shrink:0;"></i>
+                <h2 style="margin:0;font-size:1rem;font-weight:600;">Tambah Streamer Kick</h2>
+            </div>
+            <p style="font-size:.85rem;color:var(--text-muted);margin:0 0 1rem 0;">
+                Masukkan username atau URL Kick. Sisa slot: <strong><%= maxAccounts - kickAccounts.length %></strong> dari <%= maxAccounts %>.
+            </p>
+            <div class="form-group" style="margin-bottom:0;">
+                <label class="label">Username / URL Kick</label>
+                <div class="kk-search-row" style="display:flex;gap:.6rem;">
+                    <input type="text" id="kkLookupInput" class="input"
+                           placeholder="username  atau  https://kick.com/username"
+                           style="flex:1;min-width:0;" maxlength="200"
+                           onkeydown="if(event.key==='Enter') lookupKick()">
+                    <button class="btn btn-primary" onclick="lookupKick()" id="kkLookupBtn"
+                            style="white-space:nowrap;flex-shrink:0;background:#53FC18;border-color:#53FC18;color:#000;<% if (!isConfigured) { %>opacity:.5;cursor:not-allowed;<% } %>"
+                            <%= !isConfigured ? 'disabled' : '' %>>
+                        <i data-lucide="search" style="width:14px;height:14px;"></i> Cari
+                    </button>
+                </div>
+            </div>
+
+            <!-- Loading -->
+            <div id="kkSearchStatus" style="display:none;margin-top:.75rem;padding:.65rem 1rem;background:rgba(83,252,24,.07);border:1px solid rgba(83,252,24,.2);border-radius:8px;align-items:center;gap:.75rem;">
+                <div class="kk-spinner"></div>
+                <div style="flex:1;min-width:0;">
+                    <div style="display:flex;align-items:center;gap:.5rem;">
+                        <span id="kkStatusText" style="font-size:.83rem;color:#53FC18;font-weight:600;"></span>
+                        <span class="kk-dot-row"><span></span><span></span><span></span></span>
+                    </div>
+                    <div style="font-size:.74rem;color:var(--text-muted);margin-top:.15rem;">Mohon tunggu sebentar</div>
+                </div>
+            </div>
+
+            <!-- Skeleton -->
+            <div id="kkSearchSkeleton" style="display:none;margin-top:1rem;padding:.85rem;background:var(--card-2,rgba(255,255,255,.04));border-radius:10px;border:1px solid var(--border);">
+                <div style="display:flex;align-items:center;gap:.75rem;">
+                    <div class="kk-skeleton" style="width:42px;height:42px;border-radius:50%;flex-shrink:0;"></div>
+                    <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:.45rem;">
+                        <div class="kk-skeleton" style="height:13px;width:52%;"></div>
+                        <div class="kk-skeleton" style="height:10px;width:35%;"></div>
+                    </div>
+                    <div class="kk-skeleton" style="width:70px;height:30px;border-radius:6px;flex-shrink:0;"></div>
+                </div>
+            </div>
+
+            <div id="kkLookupMsg" class="form-message" style="margin-top:.5rem;"></div>
+
+            <!-- Hasil -->
+            <div id="kkLookupResult" style="display:none;margin-top:1rem;padding:.85rem;background:var(--card-2,rgba(255,255,255,.04));border-radius:10px;border:1px solid var(--border);">
+                <div style="display:flex;align-items:center;gap:.75rem;">
+                    <img id="kkLookupThumb" src="" alt=""
+                         style="width:42px;height:42px;border-radius:50%;object-fit:cover;flex-shrink:0;background:#111;border:2px solid #53FC18;"
+                         onerror="this.style.display='none'">
+                    <div style="flex:1;min-width:0;">
+                        <div id="kkLookupName" style="font-weight:600;font-size:.95rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></div>
+                        <div id="kkLookupLogin" style="font-size:.78rem;color:var(--text-muted);"></div>
+                    </div>
+                    <button class="btn btn-success" onclick="addKickStreamer()" style="flex-shrink:0;background:#53FC18;border-color:#53FC18;color:#000;">
+                        <i data-lucide="plus" style="width:14px;height:14px;"></i> Tambah
+                    </button>
+                </div>
+            </div>
+        </div>
+        <% } else { %>
+        <div class="perm-card perm-warn" style="margin-bottom:1.5rem;">
+            <i data-lucide="info"></i>
+            <span>Sudah mencapai batas maksimal <strong><%= maxAccounts %> streamer Kick</strong> per server.</span>
+        </div>
+        <% } %>
+
+        <!-- Daftar Streamer -->
+        <div id="kkAccountList">
+        <% if (kickAccounts.length === 0) { %>
+            <div class="settings-card" style="text-align:center;padding:3rem 1.5rem;">
+                <svg viewBox="0 0 24 24" fill="currentColor" style="width:48px;height:48px;color:#53FC18;opacity:.4;display:block;margin:0 auto .75rem;"><path d="M2.664 0v24h5.227v-8.01l2.557-2.503 5.186 10.513H21l-7.527-14.6L20.188 3.54h-5.753L8.083 9.872 7.89 9.68V0z"/></svg>
+                <p style="color:var(--text-muted);margin:0;">Belum ada streamer Kick yang dipantau.</p>
+            </div>
+        <% } else { %>
+        <% kickAccounts.forEach(function(acc) {
+            const cardKey = acc.slug.replace(/[^a-zA-Z0-9]/g,'_');
+        %>
+        <div class="settings-card kk-channel-card" id="kkCard-<%= cardKey %>">
+
+            <!-- Header -->
+            <div class="kk-card-header">
+                <% if (acc.thumbnail) { %>
+                <img src="<%= acc.thumbnail %>" alt="" class="kk-card-avatar"
+                     data-kick-thumb="<%= acc.slug %>"
+                     referrerpolicy="no-referrer"
+                     onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                <div class="kk-card-avatar-placeholder" style="display:none;">
+                    <svg viewBox="0 0 24 24" fill="currentColor" style="width:22px;height:22px;color:#53FC18;"><path d="M2.664 0v24h5.227v-8.01l2.557-2.503 5.186 10.513H21l-7.527-14.6L20.188 3.54h-5.753L8.083 9.872 7.89 9.68V0z"/></svg>
+                </div>
+                <% } else { %>
+                <div class="kk-card-avatar-placeholder">
+                    <svg viewBox="0 0 24 24" fill="currentColor" style="width:22px;height:22px;color:#53FC18;"><path d="M2.664 0v24h5.227v-8.01l2.557-2.503 5.186 10.513H21l-7.527-14.6L20.188 3.54h-5.753L8.083 9.872 7.89 9.68V0z"/></svg>
+                </div>
+                <% } %>
+                <div style="flex:1;min-width:0;">
+                    <div class="kk-card-name" data-kick-name><%= acc.displayName || acc.slug %></div>
+                    <div style="font-size:.78rem;color:var(--text-muted);margin-top:.1rem;">kick.com/<%= acc.slug %></div>
+                </div>
+                <a href="https://kick.com/<%= acc.slug %>" target="_blank" class="btn btn-sm" title="Buka di Kick">
+                    <i data-lucide="external-link" style="width:13px;height:13px;"></i>
+                </a>
+                <button class="btn btn-sm" onclick="refreshKickThumbnail('<%= acc.slug %>','<%= cardKey %>')" title="Refresh thumbnail">
+                    <i data-lucide="image" style="width:13px;height:13px;"></i>
+                </button>
+                <button class="btn btn-sm btn-danger"
+                        data-slug="<%= acc.slug %>"
+                        data-name="<%= (acc.displayName||acc.slug).replace(/"/g,'&quot;') %>"
+                        onclick="removeKickStreamer(this.dataset.slug, this.dataset.name)"
+                        title="Hapus streamer">
+                    <i data-lucide="trash-2" style="width:13px;height:13px;"></i>
+                </button>
+            </div>
+
+            <!-- 2-kolom: form | preview -->
+            <div class="kk-panel-layout">
+
+                <!-- Kiri: form -->
+                <div>
+                    <div class="form-group">
+                        <label class="toggle-label">
+                            <input type="checkbox" class="toggle-input" id="kkEnabled-<%= cardKey %>"
+                                   <%= acc.enabled ? 'checked' : '' %>
+                                   onchange="updateKickPreview('<%= cardKey %>')">
+                            <span class="toggle-slider"></span>
+                            <span>Aktifkan notifikasi Live</span>
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label class="label">Channel Discord</label>
+                        <select class="select" id="kkChannel-<%= cardKey %>" onchange="updateKickPreview('<%= cardKey %>')">
+                            <option value="">— Pilih channel —</option>
+                            <% (locals.channels||[]).forEach(ch => { %>
+                            <option value="<%= ch.id %>" <%= acc.channelId===ch.id?'selected':'' %>>#<%= ch.name %></option>
+                            <% }) %>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom:0;">
+                        <div class="label-with-picker">
+                            <label class="label" style="margin-bottom:0;">Pesan kustom <span style="font-weight:400;color:var(--text-muted);">(opsional)</span></label>
+                            <div class="ph-picker-anchor">
+                                <button type="button" class="ph-toggle-btn" onclick="toggleKkPicker('kkPicker-<%= cardKey %>',event)">{…} Placeholder</button>
+                                <div class="ph-dropdown" id="kkPicker-<%= cardKey %>" style="display:none;"></div>
+                            </div>
+                        </div>
+                        <textarea class="textarea" rows="3" id="kkMessage-<%= cardKey %>"
+                                  style="font-size:.82rem;"
+                                  placeholder="🟢 {account} lagi LIVE di Kick! {url}"
+                                  oninput="updateKickPreview('<%= cardKey %>')"
+                        ><%= acc.message||'' %></textarea>
+                    </div>
+
+                    <!-- Aksi -->
+                    <div class="kk-action-row" style="display:flex;justify-content:flex-end;gap:.5rem;padding-top:.85rem;">
+                        <button class="btn btn-secondary" onclick="testKickNotif('<%= acc.slug %>','<%= cardKey %>')">
+                            <i data-lucide="send" style="width:14px;height:14px;"></i> Test Notif
+                        </button>
+                        <button class="btn btn-primary" onclick="saveKickStreamer('<%= acc.slug %>','<%= cardKey %>')"
+                                style="background:#53FC18;border-color:#53FC18;color:#000;">
+                            <i data-lucide="save" style="width:14px;height:14px;"></i> Simpan
+                        </button>
+                    </div>
+                    <div id="kkMsg-<%= cardKey %>" class="form-message" style="margin-top:.4rem;"></div>
+                </div>
+
+                <!-- Kanan: preview Discord -->
+                <div class="kk-preview-col">
+                    <div class="preview-label">Preview</div>
+                    <div class="dc-window">
+                        <div class="dc-channel-bar">
+                            <span class="dc-channel-hash">#</span>
+                            <span id="kkPrevCh-<%= cardKey %>">pilih-channel</span>
+                        </div>
+                        <div class="dc-messages">
+                            <div class="dc-message">
+                                <img class="dc-avatar"
+                                     src="<%= locals.botNavAvatar || 'https://cdn.discordapp.com/embed/avatars/0.png' %>"
+                                     alt="bot" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+                                <div class="dc-msg-body">
+                                    <span class="dc-username"><%= locals.botNavName || 'Bot' %></span>
+                                    <span class="dc-timestamp">Hari ini pukul 12:00</span>
+
+                                    <div id="kkPrev-<%= cardKey %>" class="dc-embed" style="max-width:100%;">
+                                        <div style="width:4px;flex-shrink:0;background:#53FC18;"></div>
+                                        <div class="dc-embed-inner" style="flex:1;min-width:0;">
+
+                                            <div style="display:flex;align-items:flex-start;gap:.5rem;">
+                                                <div style="flex:1;min-width:0;">
+                                                    <div class="dc-embed-author">
+                                                        <% if (acc.thumbnail) { %>
+                                                        <img src="<%= acc.thumbnail %>" referrerpolicy="no-referrer" onerror="this.style.display='none'">
+                                                        <% } %>
+                                                        <span><%= acc.displayName||acc.slug %> sedang LIVE di Kick!</span>
+                                                    </div>
+                                                    <div class="dc-embed-title" id="kkPrevTitle-<%= cardKey %>">
+                                                        [TEST] Contoh judul stream
+                                                    </div>
+                                                    <div class="dc-embed-desc" id="kkPrevDesc-<%= cardKey %>"></div>
+                                                    <div class="dc-embed-field">
+                                                        <div class="dc-field-name">🎮 Kategori</div>
+                                                        <div class="dc-field-value" style="color:#dbdee1;">Just Chatting</div>
+                                                    </div>
+                                                    <div class="dc-embed-field">
+                                                        <div class="dc-field-name">🔗 Tonton</div>
+                                                        <div class="dc-field-value" style="color:#53FC18;">Buka Kick ▶</div>
+                                                    </div>
+                                                </div>
+                                                <% if (acc.thumbnail) { %>
+                                                <img src="<%= acc.thumbnail %>" referrerpolicy="no-referrer"
+                                                     style="width:60px;height:60px;border-radius:4px;object-fit:cover;flex-shrink:0;margin-top:.1rem;"
+                                                     onerror="this.style.display='none'">
+                                                <% } %>
+                                            </div>
+
+                                            <!-- Thumbnail stream besar -->
+                                            <div class="kk-thumb-mock" style="margin-top:.6rem;">
+                                                <div style="width:100%;aspect-ratio:16/9;background:linear-gradient(135deg,rgba(83,252,24,.08) 0%,rgba(83,252,24,.03) 100%);display:flex;align-items:center;justify-content:center;">
+                                                    <svg viewBox="0 0 24 24" fill="currentColor" style="width:32px;height:32px;color:#53FC18;opacity:.25;"><path d="M2.664 0v24h5.227v-8.01l2.557-2.503 5.186 10.513H21l-7.527-14.6L20.188 3.54h-5.753L8.083 9.872 7.89 9.68V0z"/></svg>
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div><!-- /kk-panel-layout -->
+        </div><!-- /kk-channel-card -->
+        <% }); %>
+        <% } %>
+        </div><!-- /kkAccountList -->
+
+    </div><!-- /dash-content-wide -->
+    <%- include('../partials/dash-footer') %>
+    </main>
+</div>
+
+<%- include('../partials/bottom-nav') %>
+
+<script>
+const GUILD_ID  = '<%= guild.id %>';
+const KK_CHANNELS = <%- JSON.stringify(Object.fromEntries((locals.channels||[]).map(ch=>[ch.id,ch.name]))) %>;
+let _kkLookupData = null;
+
+// ── Lookup ────────────────────────────────────────────────────────────────────
+async function lookupKick() {
+    const input      = document.getElementById('kkLookupInput').value.trim();
+    const btn        = document.getElementById('kkLookupBtn');
+    const resEl      = document.getElementById('kkLookupResult');
+    const statusEl   = document.getElementById('kkSearchStatus');
+    const skeletonEl = document.getElementById('kkSearchSkeleton');
+    const msgEl      = document.getElementById('kkLookupMsg');
+    if (!input) return;
+
+    resEl.style.display = 'none'; statusEl.style.display = 'none'; skeletonEl.style.display = 'none';
+    if (msgEl) { msgEl.textContent = ''; msgEl.className = 'form-message'; }
+    _kkLookupData = null;
+
+    btn.disabled  = true;
+    btn.innerHTML = '<span class="kk-spinner"></span> Mencari...';
+
+    const tips = ['Mencari streamer...','Memverifikasi akun','Mengambil info profil','Hampir selesai'];
+    let tipIdx = 0;
+    const statusTextEl = document.getElementById('kkStatusText');
+    if (statusTextEl) statusTextEl.textContent = tips[0];
+    statusEl.style.display = 'flex'; skeletonEl.style.display = 'block';
+    const tipTimer = setInterval(() => { tipIdx = (tipIdx+1)%tips.length; if (statusTextEl) statusTextEl.textContent = tips[tipIdx]; }, 3000);
+
+    try {
+        const r    = await fetch(`/api/guild/${GUILD_ID}/kick/lookup`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ input }),
+        });
+        const data = await r.json();
+        if (!data.success) { if (msgEl) showMsg(msgEl, data.message, 'error', true); return; }
+
+        _kkLookupData = data.channel;
+        const thumb = document.getElementById('kkLookupThumb');
+        thumb.src = _kkLookupData.thumbnail || ''; thumb.style.display = _kkLookupData.thumbnail ? 'block' : 'none';
+        document.getElementById('kkLookupName').textContent  = _kkLookupData.displayName;
+        document.getElementById('kkLookupLogin').textContent = 'kick.com/' + _kkLookupData.slug;
+        resEl.style.display = 'block';
+    } catch (err) {
+        if (msgEl) showMsg(msgEl, 'Gagal terhubung ke server: ' + err.message, 'error', true);
+    } finally {
+        clearInterval(tipTimer);
+        statusEl.style.display = 'none'; skeletonEl.style.display = 'none';
+        btn.disabled  = false;
+        btn.innerHTML = '<i data-lucide="search" style="width:14px;height:14px;"></i> Cari';
+        if (window.lucide) lucide.createIcons();
+    }
+}
+
+// ── Add ───────────────────────────────────────────────────────────────────────
+async function addKickStreamer() {
+    if (!_kkLookupData) return;
+    const r    = await fetch(`/api/guild/${GUILD_ID}/kick/accounts`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(_kkLookupData),
+    });
+    const data = await r.json();
+    if (data.success) location.reload();
+    else alert(data.message);
+}
+
+// ── Save ──────────────────────────────────────────────────────────────────────
+async function saveKickStreamer(slug, key) {
+    const msgEl     = document.getElementById(`kkMsg-${key}`);
+    const btn       = document.querySelector(`#kkCard-${key} .kk-action-row .btn-primary`);
+    const enabled   = document.getElementById(`kkEnabled-${key}`)?.checked  || false;
+    const channelId = document.getElementById(`kkChannel-${key}`)?.value    || '';
+    const message   = document.getElementById(`kkMessage-${key}`)?.value?.trim() || '';
+
+    if (enabled && !channelId) {
+        showMsg(msgEl, 'Notifikasi diaktifkan tapi channel Discord belum dipilih.', 'error');
+        document.getElementById(`kkChannel-${key}`)?.focus();
+        return;
+    }
+
+    const orig = btn?.innerHTML;
+    if (btn) { btn.disabled = true; btn.innerHTML = '<span class="kk-spinner"></span> Menyimpan...'; }
+
+    try {
+        const r    = await fetch(`/api/guild/${GUILD_ID}/kick/accounts/${encodeURIComponent(slug)}`, {
+            method: 'PUT', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ enabled, channelId, message }),
+        });
+        const data = await r.json();
+        showMsg(msgEl, data.message, data.success ? 'success' : 'error');
+    } catch {
+        showMsg(msgEl, 'Gagal terhubung ke server.', 'error');
+    } finally {
+        if (btn) { btn.disabled = false; btn.innerHTML = orig; if (window.lucide) lucide.createIcons(); }
+    }
+}
+
+// ── Test ──────────────────────────────────────────────────────────────────────
+async function testKickNotif(slug, key) {
+    const msgEl = document.getElementById(`kkMsg-${key}`);
+    showMsg(msgEl, 'Mengirim test notifikasi...', 'info');
+    try {
+        const r    = await fetch(`/api/guild/${GUILD_ID}/kick/accounts/${encodeURIComponent(slug)}/test`, { method: 'POST' });
+        const data = await r.json();
+        showMsg(msgEl, data.message, data.success ? 'success' : 'error');
+    } catch {
+        showMsg(msgEl, 'Gagal terhubung ke server.', 'error');
+    }
+}
+
+// ── Refresh Thumbnail ─────────────────────────────────────────────────────────
+async function refreshKickThumbnail(slug, key) {
+    const msgEl = document.getElementById(`kkMsg-${key}`);
+    showMsg(msgEl, 'Memperbarui thumbnail...', 'info');
+    const r    = await fetch(`/api/guild/${GUILD_ID}/kick/accounts/${encodeURIComponent(slug)}/refresh-thumbnail`, { method: 'POST' });
+    const data = await r.json();
+    if (data.success) {
+        showMsg(msgEl, data.message, 'success');
+        if (data.thumbnail) {
+            document.querySelectorAll(`img[data-kick-thumb="${slug}"]`).forEach(img => { img.src = data.thumbnail; img.style.display = ''; });
+        }
+        if (data.displayName) {
+            const card = document.getElementById(`kkCard-${key}`);
+            const nameEl = card?.querySelector('[data-kick-name]');
+            if (nameEl) nameEl.textContent = data.displayName;
+        }
+    } else {
+        showMsg(msgEl, data.message, 'error');
+    }
+}
+
+// ── Remove ────────────────────────────────────────────────────────────────────
+async function removeKickStreamer(slug, name) {
+    if (!confirm(`Hapus streamer "${name}"?`)) return;
+    const r    = await fetch(`/api/guild/${GUILD_ID}/kick/accounts/${encodeURIComponent(slug)}`, { method: 'DELETE' });
+    const data = await r.json();
+    if (data.success) location.reload();
+    else alert(data.message);
+}
+
+// ── Update preview ────────────────────────────────────────────────────────────
+function updateKickPreview(key) {
+    const chanId = document.getElementById(`kkChannel-${key}`)?.value || '';
+    const chEl   = document.getElementById(`kkPrevCh-${key}`);
+    if (chEl) chEl.textContent = chanId && KK_CHANNELS[chanId] ? KK_CHANNELS[chanId] : 'pilih-channel';
+
+    const card    = document.getElementById(`kkCard-${key}`);
+    const accName = card?.querySelector('.kk-card-name')?.textContent?.trim() || key;
+    const msgRaw  = (document.getElementById(`kkMessage-${key}`)?.value || '').trim();
+    const descEl  = document.getElementById(`kkPrevDesc-${key}`);
+    if (descEl && msgRaw) {
+        const ph = s => s
+            .replace(/{account}/g,   accName)
+            .replace(/{slug}/g,      key)
+            .replace(/{url}/g,       `https://kick.com/${key}`)
+            .replace(/{category}/g,  'Just Chatting')
+            .replace(/{title}/g,     'Contoh judul stream')
+            .replace(/{viewers}/g,   '1234');
+        descEl.innerHTML = ph(msgRaw).replace(/\n/g, '<br>');
+    } else if (descEl) {
+        descEl.innerHTML = '';
+    }
+}
+
+// ── Helper ────────────────────────────────────────────────────────────────────
+function showMsg(el, text, type, persist) {
+    if (!el) return;
+    el.textContent = text;
+    el.className   = `form-message msg-${type}`;
+    if (!persist) setTimeout(() => { el.textContent = ''; el.className = 'form-message'; }, 4000);
+}
+
+// ── Placeholder picker ────────────────────────────────────────────────────────
+const PH_KICK = [
+    ['{account}',   'Nama tampilan streamer'],
+    ['{slug}',      'Username Kick'],
+    ['{url}',       'Link stream'],
+    ['{category}',  'Kategori stream'],
+    ['{title}',     'Judul stream'],
+    ['{viewers}',   'Jumlah penonton'],
+];
+
+function buildKkPickers() {
+    document.querySelectorAll('[id^="kkPicker-"]').forEach(el => {
+        const key = el.id.replace('kkPicker-', '');
+        el.innerHTML = PH_KICK.map(([ph, desc]) =>
+            `<button type="button" class="ph-item" onclick="insertKkPh('kkMessage-${key}','${ph}')"><code>${ph}</code><span>${desc}</span></button>`
+        ).join('');
+    });
+}
+
+function toggleKkPicker(id, event) {
+    if (event) event.stopPropagation();
+    const el = document.getElementById(id); const wasHidden = el.style.display === 'none';
+    document.querySelectorAll('.ph-dropdown').forEach(d => d.style.display = 'none');
+    if (wasHidden) el.style.display = 'grid';
+}
+document.addEventListener('click', () => document.querySelectorAll('.ph-dropdown').forEach(d => d.style.display = 'none'));
+
+function insertKkPh(targetId, ph) {
+    const el = document.getElementById(targetId); if (!el) return;
+    const s = el.selectionStart ?? el.value.length;
+    el.value = el.value.substring(0, s) + ph + el.value.substring(s);
+    el.selectionStart = el.selectionEnd = s + ph.length;
+    el.focus(); el.dispatchEvent(new Event('input'));
+    document.querySelectorAll('.ph-dropdown').forEach(d => d.style.display = 'none');
+}
+
+// Init
+buildKkPickers();
+document.getElementById('kkLookupInput')?.addEventListener('keydown', e => { if (e.key === 'Enter') lookupKick(); });
+</script>
+
+<%- include('../partials/footer') %>

@@ -1102,6 +1102,47 @@ router.get('/:guildId/twitch', requireLogin, requireManageGuild, async (req, res
     }
 });
 
+// ── GET /dashboard/:guildId/kick ─────────────────────────────────────────────
+router.get('/:guildId/kick', requireLogin, requireManageGuild, async (req, res) => {
+    try {
+        const db      = req.discordClient?.database;
+        const guildId = req.params.guildId;
+        const guild   = req.botGuild;
+
+        await _ensureChannels(guild);
+
+        let kickAccounts = [];
+        try { kickAccounts = JSON.parse(db?.get(`kick-accounts-${guildId}`) || '[]'); }
+        catch { kickAccounts = []; }
+
+        const channels = [...guild.channels.cache.values()]
+            .filter(c => c.type === 0 || c.type === 5 || c.type === 10 || c.type === 11 || c.type === 12)
+            .map(c => ({ id: c.id, name: c.name }))
+            .sort((a, b) => a.name.localeCompare(b.name));
+
+        const isConfigured = !!(req.discordClient?.kickNotifier?.isConfigured);
+
+        res.render('dashboard/kick', {
+            title: 'Kick Notification',
+            guild,
+            channels,
+            kickAccounts,
+            maxAccounts: 10,
+            isConfigured,
+            missingPerms: getMissingPerms(guild),
+            activePage: 'kick',
+            hasSidebar: true,
+        });
+    } catch (err) {
+        console.error('[dashboard/kick] Error:', err);
+        res.status(500).render('error', {
+            hasSidebar: false,
+            title: 'Server Error',
+            message: 'Gagal memuat halaman Kick Notification.',
+        });
+    }
+});
+
 // ── GET /dashboard/:guildId/youtube ──────────────────────────────────────────
 router.get('/:guildId/youtube', requireLogin, requireManageGuild, async (req, res) => {
     try {

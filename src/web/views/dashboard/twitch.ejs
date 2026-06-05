@@ -164,7 +164,7 @@
         <div class="stats-grid tw-stats-grid" style="margin-bottom:1.5rem;">
             <div class="stat-card">
                 <div class="stat-icon" style="color:#9146FF;background:rgba(145,70,255,.15);">
-                    <i data-lucide="tv-2"></i>
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"/></svg>
                 </div>
                 <div class="stat-info">
                     <div class="stat-value" id="statAccounts"><%= twAccounts.length %></div>
@@ -270,7 +270,7 @@
         <div id="twAccountList">
         <% if (twAccounts.length === 0) { %>
             <div class="settings-card" style="text-align:center;padding:3rem 1.5rem;">
-                <i data-lucide="tv-2" style="width:48px;height:48px;color:#9146FF;opacity:.4;display:block;margin:0 auto .75rem;"></i>
+                <svg viewBox="0 0 24 24" fill="currentColor" style="width:48px;height:48px;color:#9146FF;opacity:.4;display:block;margin:0 auto .75rem;"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"/></svg>
                 <p style="color:var(--text-muted);margin:0;">Belum ada streamer Twitch yang dipantau.</p>
             </div>
         <% } else { %>
@@ -284,11 +284,11 @@
                      referrerpolicy="no-referrer"
                      onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
                 <div class="tw-card-avatar-placeholder" style="display:none;">
-                    <i data-lucide="tv-2" style="width:22px;height:22px;color:#fff;"></i>
+                    <svg viewBox="0 0 24 24" fill="currentColor" style="width:22px;height:22px;color:#fff;"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"/></svg>
                 </div>
                 <% } else { %>
                 <div class="tw-card-avatar-placeholder">
-                    <i data-lucide="tv-2" style="width:22px;height:22px;color:#fff;"></i>
+                    <svg viewBox="0 0 24 24" fill="currentColor" style="width:22px;height:22px;color:#fff;"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"/></svg>
                 </div>
                 <% } %>
                 <div style="flex:1;min-width:0;">

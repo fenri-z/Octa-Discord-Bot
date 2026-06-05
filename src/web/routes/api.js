@@ -2526,4 +2526,170 @@ router.delete('/guild/:guildId/giveaway/:id', requireLogin, requireManageGuild, 
     }
 });
 
+// ══════════════════════════════════════════════════════════════════════════════
+// KICK NOTIFICATIONS
+// ══════════════════════════════════════════════════════════════════════════════
+
+const MAX_KICK_ACCOUNTS = 10;
+
+function getKickAccounts(db, guildId) {
+    try { return JSON.parse(db.get(`kick-accounts-${guildId}`) || '[]'); } catch { return []; }
+}
+function setKickAccounts(db, guildId, accounts) {
+    db.set(`kick-accounts-${guildId}`, JSON.stringify(accounts));
+}
+
+// POST /api/guild/:guildId/kick/lookup — cari channel Kick
+router.post('/guild/:guildId/kick/lookup', requireLogin, requireManageGuild, async (req, res) => {
+    const { input } = req.body;
+    if (!input?.trim()) return res.json({ success: false, message: 'Input tidak boleh kosong.' });
+
+    const notifier = req.discordClient?.kickNotifier;
+    if (!notifier) return res.status(500).json({ success: false, message: 'KickNotifier tidak tersedia.' });
+
+    try {
+        const channel = await notifier.lookupChannel(input.trim());
+        res.json({ success: true, channel });
+    } catch (err) {
+        res.json({ success: false, message: err.message });
+    }
+});
+
+// POST /api/guild/:guildId/kick/accounts — tambah akun
+router.post('/guild/:guildId/kick/accounts', requireLogin, requireManageGuild, (req, res) => {
+    const db      = req.discordClient?.database;
+    const guildId = req.params.guildId;
+    if (!db) return res.status(500).json({ success: false, message: 'Database tidak tersedia.' });
+
+    const { slug, displayName, thumbnail, userId } = req.body;
+    if (!slug) return res.json({ success: false, message: 'Slug tidak boleh kosong.' });
+
+    const accounts = getKickAccounts(db, guildId);
+    if (accounts.length >= MAX_KICK_ACCOUNTS)
+        return res.json({ success: false, message: `Maksimal ${MAX_KICK_ACCOUNTS} akun Kick per server.` });
+    if (accounts.find(a => a.slug === slug))
+        return res.json({ success: false, message: 'Akun ini sudah ditambahkan.' });
+
+    accounts.push({
+        slug,
+        userId:      userId      || null,
+        displayName: displayName || slug,
+        thumbnail:   thumbnail   || null,
+        enabled:     false,
+        channelId:   '',
+        message:     '',
+        addedAt:     Date.now(),
+    });
+    setKickAccounts(db, guildId, accounts);
+    res.json({ success: true, message: `Channel "${slug}" berhasil ditambahkan.` });
+});
+
+// PUT /api/guild/:guildId/kick/accounts/:slug — update settings
+router.put('/guild/:guildId/kick/accounts/:slug', requireLogin, requireManageGuild, (req, res) => {
+    const db      = req.discordClient?.database;
+    const guildId = req.params.guildId;
+    const slug    = decodeURIComponent(req.params.slug);
+    if (!db) return res.status(500).json({ success: false, message: 'Database tidak tersedia.' });
+
+    const accounts = getKickAccounts(db, guildId);
+    const idx      = accounts.findIndex(a => a.slug === slug);
+    if (idx === -1) return res.json({ success: false, message: 'Akun tidak ditemukan.' });
+
+    const { enabled, channelId, message } = req.body;
+    const guild = req.botGuild;
+
+    if (enabled && !channelId)
+        return res.json({ success: false, message: 'Notifikasi diaktifkan tapi channel Discord belum dipilih.' });
+    if (enabled && channelId && !guild.channels.cache.get(channelId))
+        return res.json({ success: false, message: 'Channel Discord tidak ditemukan.' });
+
+    if (enabled && channelId) {
+        const missing = missingChannelPerms(guild, channelId, [
+            PermissionsBitField.Flags.ViewChannel,
+            PermissionsBitField.Flags.SendMessages,
+            PermissionsBitField.Flags.EmbedLinks,
+        ]);
+        if (missing.length)
+            return res.json({ success: false, message: `Bot tidak punya permission:\n${missing.map(p => `• ${p}`).join('\n')}` });
+    }
+
+    accounts[idx] = { ...accounts[idx], enabled: !!enabled, channelId: channelId || '', message: message || '' };
+    setKickAccounts(db, guildId, accounts);
+    res.json({ success: true, message: 'Pengaturan berhasil disimpan.' });
+});
+
+// POST /api/guild/:guildId/kick/accounts/:slug/test — kirim test notifikasi
+router.post('/guild/:guildId/kick/accounts/:slug/test', requireLogin, requireManageGuild, async (req, res) => {
+    const db      = req.discordClient?.database;
+    const guildId = req.params.guildId;
+    const slug    = decodeURIComponent(req.params.slug);
+    if (!db) return res.status(500).json({ success: false, message: 'Database tidak tersedia.' });
+
+    const notifier = req.discordClient?.kickNotifier;
+    if (!notifier) return res.status(500).json({ success: false, message: 'KickNotifier tidak tersedia.' });
+
+    const accounts = getKickAccounts(db, guildId);
+    const account  = accounts.find(a => a.slug === slug);
+    if (!account) return res.json({ success: false, message: 'Akun tidak ditemukan.' });
+    if (!account.channelId) return res.json({ success: false, message: 'Channel Discord belum dipilih.' });
+
+    const guild = req.botGuild;
+    try {
+        await notifier.sendTestNotification(guild, account);
+        res.json({ success: true, message: 'Test notifikasi berhasil dikirim!' });
+    } catch (err) {
+        res.json({ success: false, message: err.message });
+    }
+});
+
+// POST /api/guild/:guildId/kick/accounts/:slug/refresh-thumbnail — perbarui thumbnail
+router.post('/guild/:guildId/kick/accounts/:slug/refresh-thumbnail', requireLogin, requireManageGuild, async (req, res) => {
+    const db      = req.discordClient?.database;
+    const guildId = req.params.guildId;
+    const slug    = decodeURIComponent(req.params.slug);
+    if (!db) return res.status(500).json({ success: false, message: 'Database tidak tersedia.' });
+
+    const notifier = req.discordClient?.kickNotifier;
+    if (!notifier) return res.status(500).json({ success: false, message: 'KickNotifier tidak tersedia.' });
+
+    const accounts = getKickAccounts(db, guildId);
+    const idx      = accounts.findIndex(a => a.slug === slug);
+    if (idx === -1) return res.json({ success: false, message: 'Akun tidak ditemukan.' });
+
+    try {
+        const info = await notifier.lookupChannel(slug);
+        accounts[idx] = {
+            ...accounts[idx],
+            userId:      info.userId      || accounts[idx].userId,
+            displayName: info.displayName || accounts[idx].displayName,
+            thumbnail:   info.thumbnail   || accounts[idx].thumbnail,
+        };
+        setKickAccounts(db, guildId, accounts);
+        res.json({ success: true, message: 'Thumbnail & nama berhasil diperbarui.', thumbnail: accounts[idx].thumbnail, displayName: accounts[idx].displayName });
+    } catch (err) {
+        res.json({ success: false, message: `Gagal refresh: ${err.message}` });
+    }
+});
+
+// DELETE /api/guild/:guildId/kick/accounts/:slug — hapus akun
+router.delete('/guild/:guildId/kick/accounts/:slug', requireLogin, requireManageGuild, (req, res) => {
+    const db      = req.discordClient?.database;
+    const guildId = req.params.guildId;
+    const slug    = decodeURIComponent(req.params.slug);
+    if (!db) return res.status(500).json({ success: false, message: 'Database tidak tersedia.' });
+
+    const accounts = getKickAccounts(db, guildId);
+    const account  = accounts.find(a => a.slug === slug);
+    if (!account) return res.json({ success: false, message: 'Akun tidak ditemukan.' });
+
+    const notifier = req.discordClient?.kickNotifier;
+    if (notifier) {
+        db.delete(`kick-live-${guildId}-${slug}`);
+        notifier._liveSessions?.delete(`${guildId}:${slug}`);
+    }
+
+    setKickAccounts(db, guildId, accounts.filter(a => a.slug !== slug));
+    res.json({ success: true, message: `Channel "${slug}" berhasil dihapus.` });
+});
+
 module.exports = router;
