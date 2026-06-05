@@ -25,14 +25,14 @@
                 <div class="stat-icon" style="color:#57F287;"><i data-lucide="trending-up"></i></div>
                 <div class="stat-info">
                     <div class="stat-value" id="statUses"><%= totalUses %></div>
-                    <div class="stat-label">Total Digunakan</div>
+                    <div class="stat-label">Total Uses</div>
                 </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon" style="color:#5865F2;"><i data-lucide="user"></i></div>
                 <div class="stat-info">
                     <div class="stat-value" id="statInviters"><%= uniqueInviters %></div>
-                    <div class="stat-label">Pengundang Unik</div>
+                    <div class="stat-label">Unique Inviters</div>
                 </div>
             </div>
             <div class="stat-card">
@@ -41,7 +41,7 @@
                     <div class="stat-value" id="statTop" style="font-size:.95rem;">
                         <% if (invites.length > 0) { %><%= invites[0].inviterTag %><% } else { %>—<% } %>
                     </div>
-                    <div class="stat-label">Pengundang Teratas</div>
+                    <div class="stat-label">Top Invite</div>
                 </div>
             </div>
         </div>
@@ -54,7 +54,7 @@
         <% } %>
 
         <!-- ── Invite Table ─────────────────────────────────────────────── -->
-        <div class="settings-card" style="padding:0;">
+        <div class="settings-card inv-table-card" style="padding:0;">
 
             <!-- Baris 1: judul + refresh -->
             <div class="inv-header-row" style="display:flex;align-items:center;justify-content:space-between;padding:1rem 1.25rem;border-bottom:1px solid var(--border,rgba(255,255,255,.06));">
@@ -68,13 +68,13 @@
             <!-- Baris 2: filter periode + search -->
             <div class="inv-filter-row" style="display:flex;align-items:center;justify-content:space-between;gap:.75rem;padding:.65rem 1.25rem;border-bottom:1px solid var(--border,rgba(255,255,255,.06));flex-wrap:wrap;">
                 <div class="inv-period-btns" style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;">
-                    <button class="period-btn active" data-period="all"    onclick="setPeriod(this,'all')"   >Semua</button>
-                    <button class="period-btn"         data-period="30d"   onclick="setPeriod(this,'30d')"   >30 Hari</button>
-                    <button class="period-btn"         data-period="7d"    onclick="setPeriod(this,'7d')"    >7 Hari</button>
-                    <button class="period-btn"         data-period="today" onclick="setPeriod(this,'today')" >Hari Ini</button>
-                    <span class="inv-filter-hint" style="font-size:.75rem;color:var(--text-muted);">berdasarkan tgl. pembuatan</span>
+                    <button class="period-btn active" data-period="all"    onclick="setPeriod(this,'all')"   >All</button>
+                    <button class="period-btn"         data-period="30d"   onclick="setPeriod(this,'30d')"   >30 Days</button>
+                    <button class="period-btn"         data-period="7d"    onclick="setPeriod(this,'7d')"    >7 Days</button>
+                    <button class="period-btn"         data-period="today" onclick="setPeriod(this,'today')" >Today</button>
+                    <span class="inv-filter-hint" style="font-size:.75rem;color:var(--text-muted);">based on creation date</span>
                 </div>
-                <input type="text" id="searchInput" class="input inv-search" placeholder="Cari kode / pengundang / channel…"
+                <input type="text" id="searchInput" class="input inv-search" placeholder="Search code / inviter / channel…"
                        style="width:220px;font-size:.85rem;padding:.38rem .75rem;flex-shrink:0;"
                        oninput="currentPage=1;applyFilter()">
             </div>
@@ -90,13 +90,13 @@
                     <thead>
                         <tr>
                             <th class="th-cell inv-col-rank">#</th>
-                            <th class="th-cell inv-col-code">Kode Invite</th>
-                            <th class="th-cell inv-col-inviter">Pengundang</th>
+                            <th class="th-cell inv-col-code">Invite Code</th>
+                            <th class="th-cell inv-col-inviter">Inviter</th>
                             <th class="th-cell inv-col-channel">Channel</th>
-                            <th class="th-cell inv-col-uses" style="text-align:right;">Digunakan</th>
-                            <th class="th-cell inv-col-created">Dibuat</th>
-                            <th class="th-cell inv-col-expiry">Kadaluarsa</th>
-                            <th class="th-cell inv-col-temp" style="text-align:center;">Sementara</th>
+                            <th class="th-cell inv-col-uses">Uses</th>
+                            <th class="th-cell inv-col-created">Created</th>
+                            <th class="th-cell inv-col-expiry">Expiry</th>
+                            <th class="th-cell inv-col-temp" style="text-align:center;">Temporary</th>
                         </tr>
                     </thead>
                     <tbody id="inviteTableBody"></tbody>
@@ -193,7 +193,8 @@
 .inv-code-link:hover { text-decoration: underline; }
 
 /* ── Fix horizontal overflow ─────────────────────────────────────────────── */
-.dash-content-wide { min-width: 0; overflow-x: hidden; }
+.dash-content-wide { min-width: 0; }
+
 
 /* ── Responsive ──────────────────────────────────────────────────────────── */
 @media (max-width: 680px) {
@@ -217,6 +218,7 @@
     /* Table header padding lebih kecil */
     .th-cell { padding: .5rem .65rem; font-size: .65rem; }
     .inv-td  { padding: .6rem .65rem; }
+
 }
 
 @media (max-width: 480px) {
@@ -239,6 +241,8 @@
 
     /* Footer bar */
     #paginationBar { padding: .5rem .75rem; }
+
+    /* inv-table-card: vw trick sudah otomatis, tidak perlu override */
 }
 
 /* ── Mobile (≤ 600px): sembunyikan kolom tidak penting ──────────────────── */
@@ -247,7 +251,6 @@
     .inv-td  { padding: .5rem .55rem;  font-size: .8rem; }
 
     /* Sembunyikan kolom Dibuat, Kadaluarsa, Sementara */
-    .inv-col-channel,
     .inv-col-created,
     .inv-col-expiry,
     .inv-col-temp { display: none; }
@@ -323,7 +326,7 @@ function buildRow(inv, rank) {
             </div>
         </td>
         <td class="inv-td inv-col-channel" style="color:var(--text-muted);">#${inv.channelName}</td>
-        <td class="inv-td inv-col-uses" style="text-align:right;">
+        <td class="inv-td inv-col-uses">
             <span style="font-weight:700;">${inv.uses}</span>
             <span style="color:var(--text-muted);font-size:.8rem;">/${maxStr}</span>
         </td>
