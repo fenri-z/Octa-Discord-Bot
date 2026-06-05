@@ -99,4 +99,4 @@ module.exports = new Event({
             await logChannel.send({ embeds: [embed] }).catch(() => null);
         }
     },
-});
+}).toJSON();
