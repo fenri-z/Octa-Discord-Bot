@@ -1,296 +1,626 @@
 <%- include('partials/head') %>
-<%- include('partials/navbar') %>
 
 <style>
-/* ── Landing Page ─────────────────────────────────────────────────────────── */
-.lp-hero {
-    position: relative;
-    max-width: 960px; margin: 0 auto;
-    padding: 5.5rem 1.5rem 3rem;
-    text-align: center;
+/* ── Landing Page ───────────────────────────────────────────────────────── */
+/* Reset grid body — halaman ini tidak punya navbar */
+body {
+    display: block; /* hapus grid — semua section stack normal */
+    background-color: #0b0c15;
+    background-image:
+        radial-gradient(ellipse 70% 55% at 92% 8%,  rgba(88,101,242,.16) 0%, transparent 55%),
+        radial-gradient(ellipse 50% 45% at 8%  90%, rgba(87,242,135,.06) 0%, transparent 50%),
+        radial-gradient(ellipse 60% 40% at 50% 55%, rgba(88,101,242,.05) 0%, transparent 60%);
+    background-attachment: fixed;
 }
-.lp-hero::before {
-    content: '';
-    position: absolute; inset: 0; z-index: -1;
-    background: radial-gradient(ellipse 70% 55% at 50% -5%,
-        rgba(88,101,242,.22) 0%, transparent 70%);
-    pointer-events: none;
+
+/* ─── Hero ──────────────────────────────────────────────────────────────── */
+.lp-hero { position: relative; overflow: hidden; }
+.lp-hero-inner {
+    max-width: 1200px; margin: 0 auto;
+    padding: 7rem 3rem 5rem;
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    align-items: center;
+    gap: 4rem;
+    position: relative; z-index: 1;
 }
-.lp-badge {
-    display: inline-block;
-    background: rgba(88,101,242,.14);
-    color: #8b95f7;
-    border: 1px solid rgba(88,101,242,.3);
+
+/* Online badge */
+.lp-online-badge {
+    display: inline-flex; align-items: center; gap: .5rem;
+    background: rgba(87,242,135,.1);
+    border: 1px solid rgba(87,242,135,.25);
+    color: #57F287;
     border-radius: 999px;
-    font-size: .78rem; font-weight: 700;
-    letter-spacing: .08em; text-transform: uppercase;
-    padding: .3rem 1.1rem;
+    font-size: .72rem; font-weight: 700; letter-spacing: .08em;
+    text-transform: uppercase; padding: .3rem 1rem;
     margin-bottom: 1.5rem;
 }
+.lp-online-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: #57F287; box-shadow: 0 0 7px rgba(87,242,135,.9);
+    animation: dot-pulse 2s ease-in-out infinite;
+}
+@keyframes dot-pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%       { opacity: .5; transform: scale(.8); }
+}
+
+/* Main title */
 .lp-title {
-    font-size: clamp(2.8rem, 10vw, 5rem);
-    font-weight: 800; letter-spacing: -.035em; line-height: 1.06;
-    margin-bottom: 1.25rem;
-    background: linear-gradient(135deg, #ffffff 25%, #a0a8e8 100%);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    background-clip: text;
+    font-size: clamp(2.5rem, 6.5vw, 4rem);
+    font-weight: 800; letter-spacing: -.04em; line-height: 1.08;
+    margin-bottom: 1.25rem; color: #fff;
+    display: flex; align-items: baseline; flex-wrap: wrap; gap: .15em;
 }
+.lp-cursor {
+    display: inline-block;
+    width: 3px; height: .82em; border-radius: 2px;
+    background: #5865F2; margin-left: 2px; vertical-align: middle;
+    animation: cursor-blink 1s step-end infinite;
+}
+@keyframes cursor-blink { 50% { opacity: 0; } }
+
 .lp-subtitle {
-    font-size: clamp(.95rem, 3vw, 1.1rem);
-    color: var(--text-muted); line-height: 1.75;
-    max-width: 480px; margin: 0 auto 2.75rem;
-}
-.lp-cta-wrap {
-    display: flex; flex-direction: column; align-items: center; gap: .75rem;
-}
-.lp-cta-btn {
-    display: inline-flex; align-items: center; gap: .55rem;
-    padding: .9rem 2.4rem; font-size: 1rem; font-weight: 700;
-    border-radius: 12px; letter-spacing: .01em;
-    box-shadow: 0 4px 28px rgba(88,101,242,.45);
-    transition: box-shadow .2s, transform .15s;
-}
-.lp-cta-btn:hover {
-    box-shadow: 0 6px 36px rgba(88,101,242,.6);
-    transform: translateY(-2px);
-}
-.lp-cta-btn:active { transform: translateY(0); }
-
-/* Divider */
-.lp-divider {
-    max-width: 960px; margin: 0 auto;
-    padding: 1.5rem 1.5rem 0;
-    display: flex; align-items: center; gap: 1rem;
-}
-.lp-divider::before,
-.lp-divider::after {
-    content: ''; flex: 1;
-    height: 1px; background: var(--border);
-}
-.lp-divider-label {
-    font-size: .75rem; font-weight: 600; letter-spacing: .08em;
-    text-transform: uppercase; color: var(--text-muted);
-    white-space: nowrap;
+    font-size: 1rem; color: var(--text-muted);
+    line-height: 1.8; max-width: 440px; margin-bottom: 2.25rem;
 }
 
-/* Features section */
-.lp-features {
-    max-width: 960px; margin: 0 auto;
-    padding: 2.5rem 1.5rem 5rem;
+/* CTA row */
+.lp-cta-row { display: flex; gap: .7rem; flex-wrap: wrap; margin-bottom: 2rem; }
+.lp-btn {
+    display: inline-flex; align-items: center; gap: .5rem;
+    padding: .8rem 1.85rem; border-radius: 12px;
+    font-weight: 700; font-size: .9rem;
+    text-decoration: none;
+    transition: transform .15s, box-shadow .2s, background .2s;
+    white-space: nowrap; line-height: 1;
 }
-.lp-sect-title {
-    text-align: center; margin-bottom: 2.25rem;
+.lp-btn-primary {
+    background: #5865F2; color: #fff;
+    box-shadow: 0 4px 20px rgba(88,101,242,.45);
 }
+.lp-btn-primary:hover {
+    background: #4752c4; transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(88,101,242,.55);
+}
+.lp-btn-ghost {
+    background: rgba(255,255,255,.07);
+    border: 1px solid rgba(255,255,255,.13);
+    color: var(--text);
+}
+.lp-btn-ghost:hover { background: rgba(255,255,255,.12); transform: translateY(-2px); }
+.lp-btn svg { width: 18px; height: 18px; flex-shrink: 0; }
+
+/* Right: Bot avatar */
+.lp-hero-right { display: flex; justify-content: center; align-items: center; }
+.lp-avatar-wrap {
+    position: relative; width: 340px; height: 340px; flex-shrink: 0;
+}
+.lp-avatar-glow {
+    position: absolute; inset: -40px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(88,101,242,.25) 0%, transparent 65%);
+    animation: ava-pulse 3.5s ease-in-out infinite;
+}
+@keyframes ava-pulse {
+    0%, 100% { transform: scale(1); opacity: .8; }
+    50%       { transform: scale(1.06); opacity: 1; }
+}
+.lp-avatar-ring1 {
+    position: absolute; inset: -12px; border-radius: 50%;
+    border: 1.5px solid rgba(88,101,242,.45);
+    animation: ring-cw 15s linear infinite;
+}
+.lp-avatar-ring1::before {
+    content: ''; position: absolute;
+    top: 3px; left: 50%; transform: translateX(-50%);
+    width: 9px; height: 9px; border-radius: 50%;
+    background: #5865F2; box-shadow: 0 0 10px #5865F2;
+}
+.lp-avatar-ring2 {
+    position: absolute; inset: -26px; border-radius: 50%;
+    border: 1px solid rgba(88,101,242,.2);
+    animation: ring-cw 28s linear infinite reverse;
+}
+.lp-avatar-ring2::before {
+    content: ''; position: absolute;
+    bottom: 10px; right: 14px;
+    width: 6px; height: 6px; border-radius: 50%;
+    background: #57F287; box-shadow: 0 0 7px #57F287;
+}
+@keyframes ring-cw { to { transform: rotate(360deg); } }
+
+.lp-avatar-img {
+    width: 100%; height: 100%; border-radius: 50%; object-fit: cover;
+    border: 4px solid rgba(88,101,242,.7);
+    box-shadow: 0 0 0 1px rgba(255,255,255,.1), 0 0 30px rgba(88,101,242,.3);
+    position: relative; z-index: 2; display: block;
+}
+.lp-avatar-status {
+    position: absolute; bottom: 20px; right: 20px;
+    width: 26px; height: 26px; border-radius: 50%;
+    background: #57F287; border: 3px solid #0b0c15;
+    box-shadow: 0 0 12px rgba(87,242,135,.7);
+    z-index: 3;
+}
+
+/* ─── Why Section ───────────────────────────────────────────────────────── */
+.lp-why {
+    background: transparent;
+    padding: 5.5rem 3rem;
+}
+.lp-why-inner { max-width: 1100px; margin: 0 auto; }
+
+.lp-why-heading {
+    text-align: center;
+    font-size: clamp(1.9rem, 5.5vw, 2.8rem);
+    font-weight: 800; letter-spacing: -.03em; margin-bottom: 4.5rem; color: #fff;
+}
+.lp-why-heading .gw {
+    background: linear-gradient(90deg, #57F287 0%, #5865F2 48%, #FEE75C 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+
+.lp-why-row {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 4.5rem; align-items: center; margin-bottom: 5.5rem;
+}
+.lp-why-row:last-child { margin-bottom: 0; }
+.lp-why-row.rev .lp-why-visual { order: -1; }
+
+.lp-why-label {
+    font-size: .71rem; font-weight: 700; letter-spacing: .1em;
+    text-transform: uppercase; margin-bottom: .6rem;
+    display: flex; align-items: center; gap: .45rem;
+}
+.lp-why-label::before {
+    content: ''; display: inline-block;
+    width: 16px; height: 2px; border-radius: 1px;
+    background: currentColor; opacity: .7;
+}
+.lp-why-text h3 {
+    font-size: clamp(1.35rem, 3.5vw, 1.8rem);
+    font-weight: 800; letter-spacing: -.025em; margin-bottom: .8rem; color: #fff;
+}
+.lp-why-text p {
+    font-size: .9rem; color: var(--text-muted); line-height: 1.8; max-width: 390px;
+}
+
+/* Discord chat mock */
+.lp-mock {
+    background: #2b2d31; border-radius: 16px; overflow: hidden;
+    box-shadow: 0 24px 60px rgba(0,0,0,.5), 0 0 0 1px rgba(255,255,255,.04);
+}
+.lp-mock-bar {
+    background: #1e1f22; padding: .6rem 1rem;
+    display: flex; align-items: center; gap: .45rem;
+    font-size: .75rem; color: rgba(255,255,255,.4);
+    border-bottom: 1px solid rgba(0,0,0,.35);
+}
+.lp-mock-bar svg { width: 14px; height: 14px; opacity: .5; }
+.lp-mock-body { padding: 1.1rem; }
+.lp-mock-msg { display: flex; gap: .75rem; margin-bottom: .85rem; }
+.lp-mock-msg:last-child { margin-bottom: 0; }
+.lp-mock-ava {
+    width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+    overflow: hidden;
+}
+.lp-mock-ava img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.lp-mock-msg-body { min-width: 0; }
+.lp-mock-name {
+    font-size: .78rem; font-weight: 700; color: #fff;
+    display: flex; align-items: center; gap: .35rem; margin-bottom: .25rem;
+}
+.lp-mock-tag {
+    font-size: .58rem; font-weight: 700; padding: .08rem .3rem;
+    border-radius: 3px; background: #5865F2; color: #fff;
+    letter-spacing: .04em; text-transform: uppercase;
+}
+.lp-mock-embed {
+    border-left: 4px solid; background: rgba(0,0,0,.22);
+    border-radius: 0 8px 8px 0; padding: .85rem 1rem; margin-top: .2rem;
+}
+.lp-mock-embed-title { font-size: .82rem; font-weight: 700; color: #fff; margin-bottom: .3rem; }
+.lp-mock-embed-desc { font-size: .75rem; color: rgba(255,255,255,.62); line-height: 1.6; }
+.lp-mock-embed-fields {
+    display: flex; flex-wrap: wrap; gap: .4rem 1.25rem;
+    margin-top: .55rem;
+}
+.lp-mock-field { font-size: .73rem; }
+.lp-mock-field-name { font-weight: 700; color: rgba(255,255,255,.8); margin-bottom: .1rem; }
+.lp-mock-field-val { color: rgba(255,255,255,.5); }
+
+/* ─── Feature Grid ──────────────────────────────────────────────────────── */
+.lp-features { max-width: 1100px; margin: 0 auto; padding: 4.5rem 3rem 5rem; }
+.lp-sect-title { text-align: center; margin-bottom: 2.5rem; }
 .lp-sect-title h2 {
     font-size: clamp(1.4rem, 5vw, 1.9rem); font-weight: 800;
     letter-spacing: -.025em; margin-bottom: .5rem;
 }
 .lp-sect-title p {
-    color: var(--text-muted); font-size: .9rem;
-    max-width: 420px; margin: 0 auto; line-height: 1.6;
+    color: var(--text-muted); font-size: .88rem; max-width: 400px;
+    margin: 0 auto; line-height: 1.65;
 }
 .lp-feat-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1rem;
+    display: grid; grid-template-columns: repeat(5, 1fr); gap: .85rem;
 }
 .lp-feat-card {
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    padding: 1.5rem;
-    transition: border-color .2s, box-shadow .2s, transform .18s;
-    cursor: default;
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); padding: 1.25rem;
+    transition: border-color .2s, box-shadow .2s, transform .18s; cursor: default;
 }
 .lp-feat-card:hover {
     border-color: rgba(88,101,242,.4);
-    box-shadow: 0 6px 28px rgba(0,0,0,.3);
-    transform: translateY(-3px);
+    box-shadow: 0 6px 28px rgba(0,0,0,.3); transform: translateY(-3px);
 }
 .lp-feat-icon {
-    width: 48px; height: 48px; border-radius: 13px;
+    width: 42px; height: 42px; border-radius: 11px;
     display: flex; align-items: center; justify-content: center;
-    margin-bottom: 1.1rem;
+    margin-bottom: .9rem;
     background: var(--ic-bg, rgba(88,101,242,.15));
     color: var(--ic-color, #7289da);
 }
-.lp-feat-icon svg { width: 22px; height: 22px; }
-.lp-feat-card h3 { font-size: .9rem; font-weight: 700; margin-bottom: .4rem; color: var(--text); }
-.lp-feat-card p  { font-size: .8rem; color: var(--text-muted); line-height: 1.65; margin: 0; }
+.lp-feat-icon svg { width: 20px; height: 20px; }
+.lp-feat-card h3 { font-size: .82rem; font-weight: 700; margin-bottom: .3rem; color: var(--text); }
+.lp-feat-card p  { font-size: .74rem; color: var(--text-muted); line-height: 1.65; margin: 0; }
 
-/* Bottom CTA */
+/* ─── Bottom CTA ────────────────────────────────────────────────────────── */
 .lp-bottom {
-    background: var(--bg2);
-    border-top: 1px solid var(--border);
-    text-align: center;
-    padding: 3.5rem 1.5rem 4rem;
+    background: transparent;
+    border-top: none;
+    text-align: center; padding: 5rem 2rem 6rem;
+}
+
+/* ─── Footer override (site-footer.ejs punya bg hardcoded) ─────────────── */
+.site-footer {
+    background: transparent !important;
+    border-top: none !important;
 }
 .lp-bottom h2 {
-    font-size: clamp(1.2rem, 5vw, 1.65rem);
-    font-weight: 800; letter-spacing: -.02em;
-    margin-bottom: .65rem;
+    font-size: clamp(1.3rem, 5vw, 1.8rem); font-weight: 800;
+    letter-spacing: -.02em; margin-bottom: .65rem;
 }
 .lp-bottom p {
-    color: var(--text-muted); font-size: .9rem; margin-bottom: 1.75rem;
-    max-width: 380px; margin-left: auto; margin-right: auto; line-height: 1.6;
+    color: var(--text-muted); font-size: .9rem;
+    max-width: 360px; margin: 0 auto 2rem; line-height: 1.65;
 }
 
-/* ── Landing Footer ──────────────────────────────────────────────────────── */
-.lp-footer {
-    background: #0d0e14;
-    border-top: 1px solid rgba(255,255,255,.06);
-    padding: 4.5rem 3rem 0;
-}
-.lp-footer-inner {
-    max-width: 1200px; margin: 0 auto;
-    display: grid;
-    grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
-    gap: 3rem;
-    padding-bottom: 3.5rem;
-}
-
-/* Brand: avatar kiri, nama+deskripsi kanan */
-.lp-footer-brand-head {
-    display: flex; align-items: center; gap: .85rem;
-    margin-bottom: .85rem;
-}
-.lp-footer-brand-avatar {
-    width: 56px; height: 56px; border-radius: 50%;
-    object-fit: cover; flex-shrink: 0;
-    border: 2px solid rgba(88,101,242,.35);
-    box-shadow: 0 0 0 4px rgba(88,101,242,.08);
-}
-.lp-footer-brand-info { min-width: 0; }
-.lp-footer-brand-name {
+/* ─── Powered by + icon buttons ─────────────────────────────────────────── */
+.lp-powered {
     display: flex; align-items: center; gap: .45rem;
-    font-weight: 800; font-size: 1.1rem;
-    color: var(--text); margin-bottom: .2rem;
+    font-size: .78rem; color: var(--text-muted); margin-top: 1.5rem;
+    overflow: hidden;
 }
-.lp-footer-brand-badge {
-    font-size: .6rem; font-weight: 700; padding: .15rem .45rem;
-    border-radius: 4px; background: rgba(88,101,242,.25);
-    color: #8b95f7; letter-spacing: .06em; text-transform: uppercase;
+.lp-powered svg { width: 16px; height: 16px; flex-shrink: 0; opacity: .6; }
+.lp-powered a { color: #7289da; text-decoration: none; }
+.lp-powered a:hover { text-decoration: underline; }
+.lp-icon-btns {
+    display: none;
+    gap: .65rem; margin-top: 1.35rem; justify-content: center;
 }
-.lp-footer-brand-sub {
-    font-size: .72rem; color: var(--text-muted);
-}
-.lp-footer-brand-desc {
-    font-size: .8rem; color: var(--text-muted);
-    line-height: 1.7; max-width: 280px;
-}
-
-.lp-footer-col-title {
-    font-size: .68rem; font-weight: 800;
-    letter-spacing: .1em; text-transform: uppercase;
-    margin-bottom: 1.1rem;
-}
-.lp-footer-col-title.legal   { color: #5865F2; }
-.lp-footer-col-title.support { color: #57F287; }
-.lp-footer-col-title.company { color: #F0A032; }
-.lp-footer-col-title.help    { color: #ED4245; }
-.lp-footer-links { display: flex; flex-direction: column; gap: .6rem; }
-.lp-footer-links a {
-    font-size: .83rem; color: var(--text-muted);
-    text-decoration: none; transition: color .15s;
-}
-.lp-footer-links a:hover { color: var(--text); }
-
-.lp-footer-bottom {
-    max-width: 1200px; margin: 0 auto;
-    padding: 1.25rem 0;
-    border-top: 1px solid rgba(255,255,255,.06);
-    display: flex; align-items: center; justify-content: space-between;
-    gap: 1rem; flex-wrap: wrap;
-}
-.lp-footer-copy {
-    font-size: .78rem; color: var(--text-muted);
-}
-.lp-footer-copy a { color: var(--accent); text-decoration: none; }
-.lp-footer-copy a:hover { text-decoration: underline; }
-.lp-footer-socials { display: flex; gap: .5rem; }
-.lp-footer-socials a {
-    width: 32px; height: 32px; border-radius: 8px;
-    background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.08);
+.lp-icon-btn {
+    width: 52px; height: 52px; border-radius: 14px;
+    background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.1);
     display: flex; align-items: center; justify-content: center;
-    color: var(--text-muted); transition: background .15s, color .15s;
-    text-decoration: none;
+    color: var(--text); text-decoration: none;
+    transition: background .15s, transform .15s;
 }
-.lp-footer-socials a:hover { background: rgba(88,101,242,.2); color: var(--text); }
-.lp-footer-socials a svg { width: 15px; height: 15px; }
+.lp-icon-btn:hover { background: rgba(255,255,255,.13); transform: translateY(-2px); }
+.lp-icon-btn svg { width: 22px; height: 22px; }
 
-/* Responsive */
-@media (max-width: 900px) {
+/* ─── Responsive ────────────────────────────────────────────────────────── */
+/* ── Tablet (≤ 1024px) ───────────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+    .lp-hero-inner {
+        grid-template-columns: 1fr; text-align: center;
+        padding: 3.5rem 2rem 3.5rem; gap: 2rem;
+    }
+    .lp-hero-left  { order: 2; }
+    .lp-hero-right { order: 1; }
+    .lp-online-badge { margin-left: auto; margin-right: auto; display: inline-flex; }
+    .lp-title { justify-content: center; font-size: clamp(2rem, 8vw, 3rem); }
+    .lp-subtitle { margin-left: auto; margin-right: auto; font-size: .95rem; }
+    .lp-cta-row { justify-content: center; }
+    .lp-powered { justify-content: center; }
+    .lp-icon-btns { display: flex; }
+    .lp-avatar-wrap { width: 200px; height: 200px; }
+    .lp-avatar-status { width: 20px; height: 20px; bottom: 14px; right: 14px; }
+    .lp-why-row, .lp-why-row.rev { grid-template-columns: 1fr; gap: 2rem; }
+    .lp-why-row.rev .lp-why-visual { order: 0; }
+    .lp-why-text p { max-width: 100%; }
+    .lp-why-text h3 { font-size: 1.5rem; }
+    .lp-feat-grid { grid-template-columns: repeat(3, 1fr); }
+    .lp-features { padding: 3rem 2rem 4rem; }
+    .lp-bottom { padding: 3.5rem 2rem 4.5rem; }
+}
+/* ── Mobile besar (≤ 768px) ──────────────────────────────────────────────── */
+@media (max-width: 768px) {
+    .lp-hero-inner { padding: 3rem 1.5rem 3rem; }
+    .lp-avatar-wrap { width: 180px; height: 180px; }
+    .lp-title { font-size: clamp(1.8rem, 9vw, 2.4rem); }
+    .lp-subtitle { font-size: .88rem; }
+    .lp-why { padding: 3rem 1.5rem; }
+    .lp-why-heading { font-size: clamp(1.5rem, 7vw, 2rem); margin-bottom: 2.25rem; }
+    .lp-why-row { margin-bottom: 3rem; }
+    .lp-features { padding: 2.5rem 1.25rem 3.5rem; }
     .lp-feat-grid { grid-template-columns: repeat(2, 1fr); }
 }
-
-/* Footer: Tablet (≤ 960px) — brand full width, link cols 2×2 */
-@media (max-width: 960px) {
-    .lp-footer { padding: 3.5rem 2rem 0; }
-    .lp-footer-inner {
-        grid-template-columns: 1fr 1fr;
-        gap: 2rem 3rem;
-    }
-    .lp-footer-brand     { grid-column: 1 / -1; }
-    .lp-footer-brand-desc { max-width: 100%; }
-    .lp-footer-bottom    { max-width: 100%; }
-}
-
-/* Footer: Mobile (≤ 540px) */
-@media (max-width: 540px) {
-    .lp-footer { padding: 2.5rem 1.25rem 0; }
-    .lp-footer-inner { grid-template-columns: 1fr; gap: 1.5rem; }
-    .lp-footer-brand-avatar { width: 46px; height: 46px; }
-    .lp-footer-brand-name   { font-size: 1rem; }
-    .lp-footer-brand-desc   { max-width: 100%; }
-    .lp-footer-bottom { flex-direction: column; align-items: center; gap: .5rem; text-align: center; }
-    .lp-footer-copy   { font-size: .74rem; }
-}
-
-/* Landing: Mobile (≤ 640px) */
-@media (max-width: 640px) {
-    .lp-hero      { padding: 3.5rem 1rem 2.5rem; }
+/* ── Mobile kecil (≤ 480px) ──────────────────────────────────────────────── */
+@media (max-width: 480px) {
+    .lp-hero-inner { padding: 2.5rem 1.25rem 2.5rem; gap: 1.5rem; }
+    .lp-avatar-wrap { width: 155px; height: 155px; }
+    .lp-avatar-status { width: 18px; height: 18px; bottom: 10px; right: 10px; }
+    .lp-avatar-ring1 { inset: -8px; }
+    .lp-avatar-ring2 { inset: -18px; }
+    .lp-online-badge { font-size: .65rem; padding: .25rem .85rem; }
+    .lp-btn { padding: .75rem 1.5rem; font-size: .85rem; }
     .lp-feat-grid { grid-template-columns: 1fr; }
-    .lp-features  { padding: 2rem 1rem 3.5rem; }
-    .lp-bottom    { padding: 2.5rem 1rem 3rem; }
-}
-
-/* Footer: Small mobile (≤ 380px) */
-@media (max-width: 380px) {
-    .lp-footer-inner { grid-template-columns: 1fr; gap: 1.25rem; }
+    .lp-bottom { padding: 3rem 1.25rem 4rem; }
+    .lp-mock { border-radius: 12px; }
 }
 </style>
 
 <!-- ── Hero ──────────────────────────────────────────────────────────────── -->
 <div class="lp-hero">
-    <div class="lp-badge">Discord Bot Dashboard</div>
-    <h1 class="lp-title"><%- locals.botName || locals.botNavName || 'OCTA BOT' %></h1>
-    <p class="lp-subtitle">
-        Kelola server Discord kamu sepenuhnya dari browser —
-        atur notifikasi, role otomatis, statistik server, dan banyak lagi.
-    </p>
-    <div class="lp-cta-wrap">
-        <a href="/auth/login" class="btn btn-primary lp-cta-btn">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                <path d="M20.317 4.492c-1.53-.69-3.17-1.2-4.885-1.49a.075.075 0 0 0-.079.036c-.21.369-.444.85-.608 1.23a18.566 18.566 0 0 0-5.487 0 12.36 12.36 0 0 0-.617-1.23A.077.077 0 0 0 8.562 3c-1.714.29-3.354.8-4.885 1.491a.07.07 0 0 0-.032.027C.533 9.093-.32 13.555.099 17.961a.08.08 0 0 0 .031.055 20.03 20.03 0 0 0 5.993 2.98.078.078 0 0 0 .084-.026c.462-.62.874-1.275 1.226-1.963.021-.04.001-.088-.041-.104a13.201 13.201 0 0 1-1.872-.878.075.075 0 0 1-.008-.125c.126-.093.252-.19.372-.287a.075.075 0 0 1 .078-.01c3.927 1.764 8.18 1.764 12.061 0a.075.075 0 0 1 .079.009c.12.098.245.195.372.288a.075.075 0 0 1-.006.125c-.598.344-1.22.635-1.873.877a.075.075 0 0 0-.041.105c.36.687.772 1.341 1.225 1.962a.077.077 0 0 0 .084.028 19.963 19.963 0 0 0 6.002-2.981.076.076 0 0 0 .032-.054c.5-5.094-.838-9.52-3.549-13.442a.06.06 0 0 0-.031-.028z"/>
-            </svg>
-            Login dengan Discord
-        </a>
-        <% if (typeof error !== 'undefined' && error) { %>
-        <div class="alert alert-error">Login gagal. Silakan coba lagi.</div>
-        <% } %>
+    <div class="lp-hero-inner">
+
+        <!-- Left: Text -->
+        <div class="lp-hero-left">
+            <div class="lp-online-badge">
+                <span class="lp-online-dot"></span>
+                Multipurpose Discord Bot
+            </div>
+            <h1 class="lp-title">
+                <%- locals.botNavName || locals.botName || 'OCTA BOT' %><span class="lp-cursor"></span>
+            </h1>
+            <p class="lp-subtitle">
+                Bot Discord yang powerful, reliable, dan mudah digunakan —
+                dibangun untuk membantu komunitas berkembang lebih cepat.
+                Dari moderasi dan otomasi hingga utilitas server lanjutan.
+            </p>
+            <div class="lp-cta-row">
+                <a href="/auth/login" class="lp-btn lp-btn-primary">
+                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                        <path d="M20.317 4.492c-1.53-.69-3.17-1.2-4.885-1.49a.075.075 0 0 0-.079.036c-.21.369-.444.85-.608 1.23a18.566 18.566 0 0 0-5.487 0 12.36 12.36 0 0 0-.617-1.23A.077.077 0 0 0 8.562 3c-1.714.29-3.354.8-4.885 1.491a.07.07 0 0 0-.032.027C.533 9.093-.32 13.555.099 17.961a.08.08 0 0 0 .031.055 20.03 20.03 0 0 0 5.993 2.98.078.078 0 0 0 .084-.026c.462-.62.874-1.275 1.226-1.963.021-.04.001-.088-.041-.104a13.201 13.201 0 0 1-1.872-.878.075.075 0 0 1-.008-.125c.126-.093.252-.19.372-.287a.075.075 0 0 1 .078-.01c3.927 1.764 8.18 1.764 12.061 0a.075.075 0 0 1 .079.009c.12.098.245.195.372.288a.075.075 0 0 1-.006.125c-.598.344-1.22.635-1.873.877a.075.075 0 0 0-.041.105c.36.687.772 1.341 1.225 1.962a.077.077 0 0 0 .084.028 19.963 19.963 0 0 0 6.002-2.981.076.076 0 0 0 .032-.054c.5-5.094-.838-9.52-3.549-13.442a.06.06 0 0 0-.031-.028z"/>
+                    </svg>
+                    Login dengan Discord
+                </a>
+                <a href="/commands" class="lp-btn lp-btn-ghost">
+                    <i data-lucide="book-open"></i>
+                    Lihat Commands
+                </a>
+            </div>
+            <% if (typeof error !== 'undefined' && error) { %>
+            <div class="alert alert-error" style="max-width:380px;margin-top:.5rem;">Login gagal. Silakan coba lagi.</div>
+            <% } %>
+
+            <!-- Powered by -->
+            <div class="lp-powered">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M20.317 4.492c-1.53-.69-3.17-1.2-4.885-1.49a.075.075 0 0 0-.079.036c-.21.369-.444.85-.608 1.23a18.566 18.566 0 0 0-5.487 0 12.36 12.36 0 0 0-.617-1.23A.077.077 0 0 0 8.562 3c-1.714.29-3.354.8-4.885 1.491a.07.07 0 0 0-.032.027C.533 9.093-.32 13.555.099 17.961a.08.08 0 0 0 .031.055 20.03 20.03 0 0 0 5.993 2.98.078.078 0 0 0 .084-.026c.462-.62.874-1.275 1.226-1.963.021-.04.001-.088-.041-.104a13.201 13.201 0 0 1-1.872-.878.075.075 0 0 1-.008-.125c.126-.093.252-.19.372-.287a.075.075 0 0 1 .078-.01c3.927 1.764 8.18 1.764 12.061 0a.075.075 0 0 1 .079.009c.12.098.245.195.372.288a.075.075 0 0 1-.006.125c-.598.344-1.22.635-1.873.877a.075.075 0 0 0-.041.105c.36.687.772 1.341 1.225 1.962a.077.077 0 0 0 .084.028 19.963 19.963 0 0 0 6.002-2.981.076.076 0 0 0 .032-.054c.5-5.094-.838-9.52-3.549-13.442a.06.06 0 0 0-.031-.028z"/>
+                </svg>
+                Powered by <a href="https://fenri-hoshimori.my.id/" target="_blank" rel="noopener">fenri</a>
+            </div>
+
+            <!-- Icon buttons (mobile only) -->
+            <div class="lp-icon-btns">
+                <a href="/auth/login" class="lp-icon-btn" title="Login dengan Discord">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                        <path d="M20.317 4.492c-1.53-.69-3.17-1.2-4.885-1.49a.075.075 0 0 0-.079.036c-.21.369-.444.85-.608 1.23a18.566 18.566 0 0 0-5.487 0 12.36 12.36 0 0 0-.617-1.23A.077.077 0 0 0 8.562 3c-1.714.29-3.354.8-4.885 1.491a.07.07 0 0 0-.032.027C.533 9.093-.32 13.555.099 17.961a.08.08 0 0 0 .031.055 20.03 20.03 0 0 0 5.993 2.98.078.078 0 0 0 .084-.026c.462-.62.874-1.275 1.226-1.963.021-.04.001-.088-.041-.104a13.201 13.201 0 0 1-1.872-.878.075.075 0 0 1-.008-.125c.126-.093.252-.19.372-.287a.075.075 0 0 1 .078-.01c3.927 1.764 8.18 1.764 12.061 0a.075.075 0 0 1 .079.009c.12.098.245.195.372.288a.075.075 0 0 1-.006.125c-.598.344-1.22.635-1.873.877a.075.075 0 0 0-.041.105c.36.687.772 1.341 1.225 1.962a.077.077 0 0 0 .084.028 19.963 19.963 0 0 0 6.002-2.981.076.076 0 0 0 .032-.054c.5-5.094-.838-9.52-3.549-13.442a.06.06 0 0 0-.031-.028z"/>
+                    </svg>
+                </a>
+                <a href="/commands" class="lp-icon-btn" title="Commands">
+                    <i data-lucide="book-open"></i>
+                </a>
+                <a href="https://discord.gg/DMPvHf46gu" target="_blank" rel="noopener" class="lp-icon-btn" title="Discord Server">
+                    <i data-lucide="message-circle"></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- Right: Bot Avatar -->
+        <div class="lp-hero-right">
+            <div class="lp-avatar-wrap">
+                <div class="lp-avatar-glow"></div>
+                <div class="lp-avatar-ring1"></div>
+                <div class="lp-avatar-ring2"></div>
+                <img class="lp-avatar-img"
+                     src="<%- locals.botNavAvatar || 'https://cdn.discordapp.com/embed/avatars/0.png' %>"
+                     alt="<%- locals.botNavName || 'Bot' %>"
+                     onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+                <div class="lp-avatar-status"></div>
+            </div>
+        </div>
+
     </div>
 </div>
 
-<!-- ── Divider ────────────────────────────────────────────────────────────── -->
-<div class="lp-divider">
-    <span class="lp-divider-label">Fitur Utama</span>
-</div>
+<!-- ── Why Section ────────────────────────────────────────────────────────── -->
+<section class="lp-why">
+    <div class="lp-why-inner">
 
-<!-- ── Features ──────────────────────────────────────────────────────────── -->
+        <h2 class="lp-why-heading">Kenapa <span class="gw"><%- locals.botNavName || 'Bot ini' %>?</span></h2>
+
+        <!-- Row 1: Moderation — text left, mock right -->
+        <div class="lp-why-row">
+            <div class="lp-why-text">
+                <div class="lp-why-label" style="color:#ED4245;">Keamanan Server</div>
+                <h3>Moderasi &amp; Automod</h3>
+                <p>
+                    Sistem moderasi lengkap — ban, kick, mute, warn bertahap — dilengkapi automod
+                    yang mendeteksi spam, link berbahaya, mass mention, dan raid secara otomatis.
+                    Semua tindakan tercatat rapi di mod log.
+                </p>
+            </div>
+            <div class="lp-why-visual">
+                <div class="lp-mock">
+                    <div class="lp-mock-bar">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                        </svg>
+                        # mod-log
+                    </div>
+                    <div class="lp-mock-body">
+                        <div class="lp-mock-msg">
+                            <div class="lp-mock-ava">
+                                <img src="<%- locals.botNavAvatar || 'https://cdn.discordapp.com/embed/avatars/0.png' %>"
+                                     alt="" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+                            </div>
+                            <div class="lp-mock-msg-body">
+                                <div class="lp-mock-name">
+                                    <%- locals.botNavName || 'Bot' %>
+                                    <span class="lp-mock-tag">APP</span>
+                                </div>
+                                <div class="lp-mock-embed" style="border-left-color:#ED4245;">
+                                    <div class="lp-mock-embed-title">🔨 Member Banned</div>
+                                    <div class="lp-mock-embed-desc">BadUser#0001 telah dibanned dari server.</div>
+                                    <div class="lp-mock-embed-fields">
+                                        <div class="lp-mock-field">
+                                            <div class="lp-mock-field-name">Alasan</div>
+                                            <div class="lp-mock-field-val">Spam &amp; Toxic</div>
+                                        </div>
+                                        <div class="lp-mock-field">
+                                            <div class="lp-mock-field-name">Moderator</div>
+                                            <div class="lp-mock-field-val">Admin#1234</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="lp-mock-msg">
+                            <div class="lp-mock-ava">
+                                <img src="<%- locals.botNavAvatar || 'https://cdn.discordapp.com/embed/avatars/0.png' %>"
+                                     alt="" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+                            </div>
+                            <div class="lp-mock-msg-body">
+                                <div class="lp-mock-name">
+                                    <%- locals.botNavName || 'Bot' %>
+                                    <span class="lp-mock-tag">APP</span>
+                                </div>
+                                <div class="lp-mock-embed" style="border-left-color:#FEE75C;">
+                                    <div class="lp-mock-embed-title">⚠️ Automod — Spam Terdeteksi</div>
+                                    <div class="lp-mock-embed-desc">Pesan Spammer#9999 dihapus otomatis. Member mendapat warning.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Row 2: Giveaway — visual left, text right -->
+        <div class="lp-why-row rev">
+            <div class="lp-why-text">
+                <div class="lp-why-label" style="color:#FEE75C;">Event &amp; Hiburan</div>
+                <h3>Sistem Giveaway</h3>
+                <p>
+                    Buat giveaway menarik dalam hitungan detik — atur durasi, jumlah pemenang,
+                    dan syarat peserta. Bot secara otomatis memilih pemenang acak dan mendukung
+                    reroll jika diperlukan.
+                </p>
+            </div>
+            <div class="lp-why-visual">
+                <div class="lp-mock">
+                    <div class="lp-mock-bar">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                        </svg>
+                        # giveaway
+                    </div>
+                    <div class="lp-mock-body">
+                        <div class="lp-mock-msg">
+                            <div class="lp-mock-ava">
+                                <img src="<%- locals.botNavAvatar || 'https://cdn.discordapp.com/embed/avatars/0.png' %>"
+                                     alt="" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+                            </div>
+                            <div class="lp-mock-msg-body">
+                                <div class="lp-mock-name">
+                                    <%- locals.botNavName || 'Bot' %>
+                                    <span class="lp-mock-tag">APP</span>
+                                </div>
+                                <div class="lp-mock-embed" style="border-left-color:#FEE75C;">
+                                    <div class="lp-mock-embed-title">🎉 GIVEAWAY</div>
+                                    <div class="lp-mock-embed-desc">React 🎉 untuk ikut serta!</div>
+                                    <div class="lp-mock-embed-fields">
+                                        <div class="lp-mock-field">
+                                            <div class="lp-mock-field-name">Hadiah</div>
+                                            <div class="lp-mock-field-val">Discord Nitro</div>
+                                        </div>
+                                        <div class="lp-mock-field">
+                                            <div class="lp-mock-field-name">Pemenang</div>
+                                            <div class="lp-mock-field-val">1 orang</div>
+                                        </div>
+                                        <div class="lp-mock-field">
+                                            <div class="lp-mock-field-name">Berakhir</div>
+                                            <div class="lp-mock-field-val">24 jam lagi</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Row 3: Welcome — text left, mock right -->
+        <div class="lp-why-row">
+            <div class="lp-why-text">
+                <div class="lp-why-label" style="color:#57F287;">Onboarding Member</div>
+                <h3>Welcome &amp; Auto Role</h3>
+                <p>
+                    Sambut member baru dengan pesan welcome yang bisa dikustomisasi penuh —
+                    embed, welcome card, dan background pilihan sendiri.
+                    Role otomatis langsung diberikan saat join.
+                </p>
+            </div>
+            <div class="lp-why-visual">
+                <div class="lp-mock">
+                    <div class="lp-mock-bar">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                        </svg>
+                        # selamat-datang
+                    </div>
+                    <div class="lp-mock-body">
+                        <div class="lp-mock-msg">
+                            <div class="lp-mock-ava">
+                                <img src="<%- locals.botNavAvatar || 'https://cdn.discordapp.com/embed/avatars/0.png' %>"
+                                     alt="" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+                            </div>
+                            <div class="lp-mock-msg-body">
+                                <div class="lp-mock-name">
+                                    <%- locals.botNavName || 'Bot' %>
+                                    <span class="lp-mock-tag">APP</span>
+                                </div>
+                                <div class="lp-mock-embed" style="border-left-color:#57F287;">
+                                    <div class="lp-mock-embed-title">👋 Selamat Datang, NewMember!</div>
+                                    <div class="lp-mock-embed-desc">
+                                        Kamu adalah member ke-<strong style="color:#fff">247</strong> di server ini.<br>
+                                        Silakan baca #rules dan selamat bergabung!
+                                    </div>
+                                    <div class="lp-mock-embed-fields">
+                                        <div class="lp-mock-field">
+                                            <div class="lp-mock-field-name">Role Diberikan</div>
+                                            <div class="lp-mock-field-val">@Member</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<!-- ── Features Grid ──────────────────────────────────────────────────────── -->
 <section class="lp-features">
     <div class="lp-sect-title">
         <h2>Semua yang kamu butuhkan</h2>
-        <p>Fitur lengkap tersedia langsung dari dashboard — tanpa perlu mengetik command satu per satu.</p>
+        <p>10 fitur powerful tersedia langsung dari dashboard dan slash commands.</p>
     </div>
     <div class="lp-feat-grid">
 
@@ -315,7 +645,7 @@
                 <i data-lucide="users"></i>
             </div>
             <h3>Auto Role</h3>
-            <p>Berikan role otomatis ke member baru, bot, atau booster — termasuk panel tombol pilih role interaktif.</p>
+            <p>Berikan role otomatis ke member baru, bot, atau booster — termasuk panel tombol pilih role.</p>
         </div>
 
         <div class="lp-feat-card">
@@ -323,7 +653,7 @@
                 <i data-lucide="bar-chart-2"></i>
             </div>
             <h3>Server Stats</h3>
-            <p>Tampilkan total member, user, dan bot secara real-time melalui channel voice yang diperbarui otomatis.</p>
+            <p>Tampilkan total member secara real-time melalui voice channel yang diperbarui otomatis.</p>
         </div>
 
         <div class="lp-feat-card">
@@ -331,7 +661,7 @@
                 <i data-lucide="mail"></i>
             </div>
             <h3>Message Builder</h3>
-            <p>Buat dan kirim template embed ke channel manapun langsung dari dashboard web tanpa command.</p>
+            <p>Buat dan kirim template embed ke channel manapun langsung dari dashboard web.</p>
         </div>
 
         <div class="lp-feat-card">
@@ -339,7 +669,41 @@
                 <i data-lucide="link"></i>
             </div>
             <h3>Invite Links</h3>
-            <p>Pantau semua invite link server beserta statistik penggunaan, diurutkan dari yang terbanyak.</p>
+            <p>Pantau semua invite link server beserta statistik penggunaan, diurutkan dari terbanyak.</p>
+        </div>
+
+        <div class="lp-feat-card">
+            <div class="lp-feat-icon" style="--ic-bg:rgba(254,231,92,.12);--ic-color:#FEE75C;">
+                <i data-lucide="ticket"></i>
+            </div>
+            <h3>Ticket System</h3>
+            <p>Sistem tiket privat agar member bisa meminta bantuan staff, dengan panel yang dapat dikustomisasi.</p>
+        </div>
+
+        <div class="lp-feat-card">
+            <div class="lp-feat-icon" style="--ic-bg:rgba(87,242,135,.12);--ic-color:#57F287;">
+                <i data-lucide="gift"></i>
+            </div>
+            <h3>Giveaway</h3>
+            <p>Buat dan kelola giveaway otomatis dengan pemenang acak — start, end, dan reroll via slash command.</p>
+        </div>
+
+        <div class="lp-feat-card">
+            <div class="lp-feat-icon" style="--ic-bg:rgba(237,66,69,.12);--ic-color:#ED4245;">
+                <i data-lucide="shield-check"></i>
+            </div>
+            <h3>Moderation</h3>
+            <p>Kelola keamanan server — ban, kick, mute, warn bertahap, automod, dan mod log lengkap.</p>
+        </div>
+
+        <div class="lp-feat-card">
+            <div class="lp-feat-icon" style="--ic-bg:rgba(237,66,69,.1);--ic-color:#f05060;">
+                <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true">
+                    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                </svg>
+            </div>
+            <h3>Social Media</h3>
+            <p>Notifikasi otomatis dari YouTube, TikTok, Twitch, dan Kick saat ada video atau live baru.</p>
         </div>
 
     </div>
@@ -349,8 +713,8 @@
 <div class="lp-bottom">
     <h2>Siap mengelola server?</h2>
     <p>Login dengan akun Discord kamu dan mulai kelola server langsung dari browser.</p>
-    <a href="/auth/login" class="btn btn-primary lp-cta-btn">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+    <a href="/auth/login" class="lp-btn lp-btn-primary">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
             <path d="M20.317 4.492c-1.53-.69-3.17-1.2-4.885-1.49a.075.075 0 0 0-.079.036c-.21.369-.444.85-.608 1.23a18.566 18.566 0 0 0-5.487 0 12.36 12.36 0 0 0-.617-1.23A.077.077 0 0 0 8.562 3c-1.714.29-3.354.8-4.885 1.491a.07.07 0 0 0-.032.027C.533 9.093-.32 13.555.099 17.961a.08.08 0 0 0 .031.055 20.03 20.03 0 0 0 5.993 2.98.078.078 0 0 0 .084-.026c.462-.62.874-1.275 1.226-1.963.021-.04.001-.088-.041-.104a13.201 13.201 0 0 1-1.872-.878.075.075 0 0 1-.008-.125c.126-.093.252-.19.372-.287a.075.075 0 0 1 .078-.01c3.927 1.764 8.18 1.764 12.061 0a.075.075 0 0 1 .079.009c.12.098.245.195.372.288a.075.075 0 0 1-.006.125c-.598.344-1.22.635-1.873.877a.075.075 0 0 0-.041.105c.36.687.772 1.341 1.225 1.962a.077.077 0 0 0 .084.028 19.963 19.963 0 0 0 6.002-2.981.076.076 0 0 0 .032-.054c.5-5.094-.838-9.52-3.549-13.442a.06.06 0 0 0-.031-.028z"/>
         </svg>
         Login dengan Discord

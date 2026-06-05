@@ -85,7 +85,7 @@ app.use((req, res, next) => {
     const botClientUser = discordClient?.user;
     res.locals.botNavName   = botClientUser?.username || 'OCTA BOT';
     res.locals.botNavAvatar = botClientUser?.avatar
-        ? `https://cdn.discordapp.com/avatars/${botClientUser.id}/${botClientUser.avatar}.png?size=64`
+        ? `https://cdn.discordapp.com/avatars/${botClientUser.id}/${botClientUser.avatar}.png?size=512`
         : 'https://cdn.discordapp.com/embed/avatars/0.png';
 
     next();

@@ -93,6 +93,15 @@ const COMMANDS = {
         { name: '/autorole-button hapus-button', desc: 'Hapus satu tombol role dari panel.',                                     example: '/autorole-button hapus-button panel:gaming role:@Gaming' },
         { name: '/autorole-button hapus-bulk',   desc: 'Hapus banyak tombol sekaligus dari panel.',                              example: '/autorole-button hapus-bulk panel:gaming' },
         { name: '/autorole-button kirim',        desc: 'Kirim panel tombol role ke channel agar bisa diklik member.',            example: '/autorole-button kirim panel:gaming channel:#roles' },
+        // ── Autorole Reaction ──────────────────────────────────────────────
+        { name: '/autorole-reaction list',           desc: 'Lihat semua panel autorole reaction yang ada.',                          example: '/autorole-reaction list' },
+        { name: '/autorole-reaction buat',           desc: 'Buat panel baru atau edit tampilan embed. Mode: Multi atau Single.',     example: '/autorole-reaction buat nama:color mode:multi' },
+        { name: '/autorole-reaction tambah-reaction',desc: 'Tambah emoji reaction + role ke panel.',                                example: '/autorole-reaction tambah-reaction panel:color emoji:🔴 role:@Red' },
+        { name: '/autorole-reaction hapus-reaction', desc: 'Hapus sebuah reaction dari panel berdasarkan role.',                    example: '/autorole-reaction hapus-reaction panel:color role:@Red' },
+        { name: '/autorole-reaction hapus-panel',    desc: 'Hapus seluruh panel dari database.',                                    example: '/autorole-reaction hapus-panel panel:color' },
+        { name: '/autorole-reaction set-warna',      desc: 'Ubah warna garis kiri embed panel (hex).',                              example: '/autorole-reaction set-warna panel:color hex:#5865F2' },
+        { name: '/autorole-reaction preview',        desc: 'Pratinjau tampilan panel (hanya terlihat olehmu).',                     example: '/autorole-reaction preview panel:color' },
+        { name: '/autorole-reaction kirim',          desc: 'Kirim panel ke channel (hanya bisa dikirim 1 kali).',                   example: '/autorole-reaction kirim panel:color channel:#roles' },
         // ── Booster ────────────────────────────────────────────────────────
         { name: '/booster status',               desc: 'Lihat semua konfigurasi fitur booster.',                                  example: '/booster status' },
         { name: '/booster list',                 desc: 'Daftar semua member yang sedang boost server.',                           example: '/booster list' },
@@ -153,6 +162,38 @@ const COMMANDS = {
         { name: '/automod whitelist add',      desc: 'Tambah channel atau role ke whitelist (bebas dari automod).',                   example: '/automod whitelist add channel:#bot-spam' },
         { name: '/automod whitelist remove',   desc: 'Hapus channel atau role dari whitelist.',                                       example: '/automod whitelist remove role:@Staff' },
         { name: '/automod whitelist list',     desc: 'Lihat semua channel dan role yang di-whitelist.',                               example: '/automod whitelist list' },
+        // ── Ticket ─────────────────────────────────────────────────────────
+        { name: '/ticket kirim-panel',  desc: 'Kirim panel tiket ke channel tertentu.',                                     example: '/ticket kirim-panel channel:#tiket' },
+        { name: '/ticket list',         desc: 'Lihat semua tiket yang sedang terbuka di server.',                           example: '/ticket list' },
+        { name: '/ticket tutup',        desc: 'Tutup tiket di channel tiket ini.',                                          example: '/ticket tutup' },
+        { name: '/ticket tambah',       desc: 'Tambahkan user ke tiket yang sedang aktif.',                                 example: '/ticket tambah user:@user' },
+        { name: '/ticket hapus',        desc: 'Hapus akses user dari tiket yang sedang aktif.',                             example: '/ticket hapus user:@user' },
+        // ── Giveaway ───────────────────────────────────────────────────────
+        { name: '/giveaway start',  desc: 'Mulai giveaway baru dengan hadiah, durasi, dan jumlah pemenang.',               example: '/giveaway start hadiah:Nitro durasi:1d channel:#giveaway pemenang:3' },
+        { name: '/giveaway end',    desc: 'Akhiri giveaway aktif sekarang dan pilih pemenang.',                            example: '/giveaway end giveaway:id' },
+        { name: '/giveaway reroll', desc: 'Pilih ulang pemenang giveaway yang sudah selesai.',                             example: '/giveaway reroll giveaway:id' },
+        { name: '/giveaway list',   desc: 'Lihat semua giveaway aktif di server.',                                         example: '/giveaway list' },
+        // ── Modlog ─────────────────────────────────────────────────────────
+        { name: '/modlog set',      desc: 'Atur channel untuk mencatat aksi moderasi (ban, kick, timeout, warn).',         example: '/modlog set channel:#mod-log' },
+        { name: '/modlog disable',  desc: 'Matikan dan hapus konfigurasi mod log.',                                        example: '/modlog disable' },
+        { name: '/modlog events',   desc: 'Pilih event yang dicatat: ban, unban, kick, timeout, warn.',                    example: '/modlog events' },
+        // ── Warning ────────────────────────────────────────────────────────
+        { name: '/warn add',    desc: 'Tambahkan peringatan ke member dengan alasan opsional.',                            example: '/warn add member:@user alasan:spam' },
+        { name: '/warn remove', desc: 'Hapus satu peringatan berdasarkan ID (lihat ID dari /warn list).',                  example: '/warn remove member:@user id:abc123' },
+        { name: '/warn clear',  desc: 'Hapus semua peringatan dari member.',                                               example: '/warn clear member:@user' },
+        { name: '/warn list',   desc: 'Lihat daftar semua peringatan member beserta ID dan alasan.',                       example: '/warn list member:@user' },
+        // ── Ban / Kick / Mute ──────────────────────────────────────────────
+        { name: '/ban member',   desc: 'Ban member dari server. Opsional: alasan dan hapus riwayat pesan (0–7 hari).',    example: '/ban member user:@user alasan:pelanggaran' },
+        { name: '/ban unban',    desc: 'Unban user dari server berdasarkan ID.',                                           example: '/ban unban user:123456789' },
+        { name: '/kick',         desc: 'Kick member dari server dengan alasan opsional.',                                  example: '/kick user:@user alasan:spam' },
+        { name: '/mute member',  desc: 'Beri timeout pada member (contoh: 10m, 1h, 2d — maks 28d).',                     example: '/mute member user:@user durasi:1h' },
+        { name: '/mute unmute',  desc: 'Cabut timeout dari member.',                                                       example: '/mute unmute user:@user' },
+        // ── Purge / Lock / Slowmode ────────────────────────────────────────
+        { name: '/purge all',    desc: 'Hapus sejumlah pesan terakhir di channel (1–100).',                               example: '/purge all jumlah:50' },
+        { name: '/purge user',   desc: 'Hapus pesan dari user tertentu di channel (1–100 pesan dicari).',                 example: '/purge user user:@user jumlah:20' },
+        { name: '/lock channel', desc: 'Kunci channel agar member tidak bisa mengirim pesan. Mendukung strict mode.',     example: '/lock channel alasan:maintenance' },
+        { name: '/lock unlock',  desc: 'Buka kunci channel yang sebelumnya dikunci.',                                     example: '/lock unlock' },
+        { name: '/slowmode',     desc: 'Atur atau hapus slowmode di channel (contoh: 30s, 5m, 1h — 0 untuk matikan).',   example: '/slowmode durasi:30s' },
         // ── Lainnya ────────────────────────────────────────────────────────
         { name: '/set-nickname',            desc: 'Ganti atau reset nickname bot di server ini.',                                 example: '/set-nickname nama:OCTA' },
     ],
@@ -179,10 +220,27 @@ const COMMANDS = {
     ],
     moderator: [
         { name: '/booster list',  desc: 'Lihat daftar member yang sedang boost server.',               example: '/booster list' },
+        // ── Warning ────────────────────────────────────────────────────────
+        { name: '/warn add',    desc: 'Tambahkan peringatan ke member dengan alasan opsional.',        example: '/warn add member:@user alasan:spam' },
+        { name: '/warn remove', desc: 'Hapus satu peringatan berdasarkan ID.',                         example: '/warn remove member:@user id:abc123' },
+        { name: '/warn clear',  desc: 'Hapus semua peringatan dari member.',                           example: '/warn clear member:@user' },
+        { name: '/warn list',   desc: 'Lihat daftar peringatan member beserta ID dan alasan.',         example: '/warn list member:@user' },
+        // ── Ban / Kick / Mute ──────────────────────────────────────────────
+        { name: '/ban member',   desc: 'Ban member dari server dengan alasan opsional.',               example: '/ban member user:@user alasan:pelanggaran' },
+        { name: '/ban unban',    desc: 'Unban user dari server.',                                      example: '/ban unban user:123456789' },
+        { name: '/kick',         desc: 'Kick member dari server dengan alasan opsional.',              example: '/kick user:@user alasan:spam' },
+        { name: '/mute member',  desc: 'Beri timeout pada member (contoh: 10m, 1h, 2d — maks 28d).',  example: '/mute member user:@user durasi:1h' },
+        { name: '/mute unmute',  desc: 'Cabut timeout dari member.',                                   example: '/mute unmute user:@user' },
+        // ── Purge ──────────────────────────────────────────────────────────
+        { name: '/purge all',    desc: 'Hapus sejumlah pesan terakhir di channel (1–100).',            example: '/purge all jumlah:50' },
+        { name: '/purge user',   desc: 'Hapus pesan dari user tertentu di channel.',                   example: '/purge user user:@user jumlah:20' },
+        // ── Info ───────────────────────────────────────────────────────────
+        { name: '/userinfo',     desc: 'Tampilkan informasi detail tentang member.',                   example: '/userinfo user:@user' },
     ],
     member: [
-        { name: '/help',    desc: 'Tampilkan menu bantuan ini.',  example: '/help' },
-        { name: '/ping',    desc: 'Cek latensi koneksi bot.',     example: '/ping' },
+        { name: '/help',      desc: 'Tampilkan menu bantuan ini.',                                     example: '/help' },
+        { name: '/ping',      desc: 'Cek latensi koneksi bot.',                                        example: '/ping' },
+        { name: '/userinfo',  desc: 'Tampilkan informasi detail tentang dirimu atau member lain.',     example: '/userinfo' },
     ],
 };
 
@@ -205,10 +263,10 @@ function buildPagedEmbed(category, isDM, guildName, userLevel, page = 0) {
 
         const lines = [];
         if (idx <= ORDER.indexOf('dev'))       lines.push('🛠️ **Developer** — Kontrol bot, eval, reload, offline, restart, server DM');
-        if (idx <= ORDER.indexOf('admin'))     lines.push('👑 **Admin** — Welcome, goodbye, autorole, autorole-button, booster, serverstats, pesan, invites, set-nickname');
+        if (idx <= ORDER.indexOf('admin'))     lines.push('👑 **Admin** — Welcome, goodbye, autorole, booster, serverstats, pesan, ticket, giveaway, modlog, warn, ban, kick, mute, purge, lock, slowmode');
         if (idx <= ORDER.indexOf('manager'))   lines.push('⚙️ **Manajer** — Pengaturan server tanpa administrator, invites');
-        if (idx <= ORDER.indexOf('moderator')) lines.push('🛡️ **Moderator** — Booster list');
-        lines.push('👤 **Member** — /help dan /ping');
+        if (idx <= ORDER.indexOf('moderator')) lines.push('🛡️ **Moderator** — Warn, ban, kick, mute, purge, userinfo, booster list');
+        lines.push('👤 **Member** — /help, /ping, /userinfo');
 
         if (isDM && userLevel === 'member') {
             return new EmbedBuilder()
@@ -308,13 +366,13 @@ function buildMenu(userLevel, isDM) {
         .setLabel('🛠️ Developer / Owner Bot').setDescription('Eval, reload, offline, restart, kontrol server lewat DM.').setValue('dev').setEmoji('🛠️'));
 
     if (idx <= ORDER.indexOf('admin')) options.push(new StringSelectMenuOptionBuilder()
-        .setLabel('👑 Owner & Admin Server').setDescription('Welcome, autorole-button, booster, serverstats, pesan.').setValue('admin').setEmoji('👑'));
+        .setLabel('👑 Owner & Admin Server').setDescription('Welcome, autorole, booster, ticket, giveaway, modlog, warn, dan lebih.').setValue('admin').setEmoji('👑'));
 
     if (idx <= ORDER.indexOf('manager')) options.push(new StringSelectMenuOptionBuilder()
         .setLabel('⚙️ Manajer Server').setDescription('Pengaturan server tanpa administrator.').setValue('manager').setEmoji('⚙️'));
 
     if (idx <= ORDER.indexOf('moderator')) options.push(new StringSelectMenuOptionBuilder()
-        .setLabel('🛡️ Moderator Server').setDescription('Booster list.').setValue('moderator').setEmoji('🛡️'));
+        .setLabel('🛡️ Moderator Server').setDescription('Warn, ban, kick, mute, purge, userinfo, dan lebih.').setValue('moderator').setEmoji('🛡️'));
 
     options.push(new StringSelectMenuOptionBuilder()
         .setLabel('👤 Member').setDescription('/help dan /ping untuk semua orang.').setValue('member').setEmoji('👤'));

@@ -206,6 +206,47 @@
             </div>
         </div>
 
+        <!-- ── Moderation ────────────────────────────────────── -->
+        <div class="ov-feat-section">
+            <div class="ov-section-header">
+                <div class="ov-section-dot" style="background:#ED4245;"></div>
+                <span>Moderation</span>
+                <div class="ov-section-line"></div>
+            </div>
+            <div class="ov-feat-grid">
+                <a href="/dashboard/<%= guild.id %>/automod" class="ov-feat-card">
+                    <div class="ov-feat-icon" style="background:rgba(237,66,69,.12);color:#ED4245;">
+                        <i data-lucide="shield-check"></i>
+                    </div>
+                    <div class="ov-feat-body">
+                        <div class="ov-feat-title">Automod</div>
+                        <div class="ov-feat-desc">Anti-link, anti-invite, spam detection, mass mention, dan antiraid otomatis.</div>
+                    </div>
+                    <i data-lucide="arrow-right" class="ov-feat-arrow"></i>
+                </a>
+                <a href="/dashboard/<%= guild.id %>/warnings" class="ov-feat-card">
+                    <div class="ov-feat-icon" style="background:rgba(240,160,50,.12);color:#F0A032;">
+                        <i data-lucide="triangle-alert"></i>
+                    </div>
+                    <div class="ov-feat-body">
+                        <div class="ov-feat-title">Warning System</div>
+                        <div class="ov-feat-desc">Sistem peringatan bertahap dengan tindakan otomatis saat threshold tercapai.</div>
+                    </div>
+                    <i data-lucide="arrow-right" class="ov-feat-arrow"></i>
+                </a>
+                <a href="/dashboard/<%= guild.id %>/modlog" class="ov-feat-card">
+                    <div class="ov-feat-icon" style="background:rgba(88,101,242,.12);color:#949cf7;">
+                        <i data-lucide="scroll-text"></i>
+                    </div>
+                    <div class="ov-feat-body">
+                        <div class="ov-feat-title">Mod Log</div>
+                        <div class="ov-feat-desc">Catat semua aksi moderasi — ban, kick, timeout, dan warn — ke channel log.</div>
+                    </div>
+                    <i data-lucide="arrow-right" class="ov-feat-arrow"></i>
+                </a>
+            </div>
+        </div>
+
         <!-- ── Utility ──────────────────────────────────────── -->
         <div class="ov-feat-section">
             <div class="ov-section-header">
