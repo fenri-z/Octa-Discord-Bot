@@ -197,6 +197,31 @@ class YouTubeNotifier {
         // WebSub push datang sangat cepat, tunggu sebentar agar thumbnail tersedia.
         await new Promise(r => setTimeout(r, 30_000));
 
+        // Tentukan tipe konten sekali — hasilnya sama untuk semua guild
+        let type = 'video';
+        const isShort = await this._isShort(videoId);
+        if (isShort) {
+            type = 'short';
+        } else {
+            const liveInfo = await this._isLive(videoId);
+            // Waiting room / scheduled premiere — abaikan, live poll akan kirim saat benar-benar live
+            if (liveInfo.isUpcoming) {
+                info(`[WebSub] ${videoId} masih upcoming/waiting room, skip`);
+                return;
+            }
+            // Verifikasi video memang milik channel yang dipantau
+            if (liveInfo.channelId && liveInfo.channelId !== channelId) {
+                warn(`[WebSub] Video ${videoId} bukan milik channel ${channelId} (actual: ${liveInfo.channelId}), skip`);
+                return;
+            }
+            if (liveInfo.live) type = 'live';
+        }
+
+        // Untuk short, gunakan URL format /shorts/ agar terbuka di Shorts player
+        const finalUrl = type === 'short'
+            ? `https://www.youtube.com/shorts/${videoId}`
+            : videoUrl;
+
         // Cari semua guild yang memantau channel ini
         for (const guild of this.client.guilds.cache.values()) {
             const raw = db.get(`youtube-channels-${guild.id}`);
@@ -211,20 +236,6 @@ class YouTubeNotifier {
             if (db.get(lastKey) === videoId) continue; // sudah diproses
             db.set(lastKey, videoId);
 
-            let type = 'video';
-            const isShort = await this._isShort(videoId);
-            if (isShort) {
-                type = 'short';
-            } else {
-                const isLive = await this._isLive(videoId);
-                if (isLive) type = 'live';
-            }
-
-            // Untuk short, gunakan URL format /shorts/ agar terbuka di Shorts player
-            const finalUrl = type === 'short'
-                ? `https://www.youtube.com/shorts/${videoId}`
-                : videoUrl;
-
             info(`[WebSub] ${type.toUpperCase()} | ${title} → guild ${guild.name}`);
 
             // Jika live, cek dulu apakah sudah pernah dikirim (cegah double dari live poll)
@@ -236,7 +247,7 @@ class YouTubeNotifier {
 
             await this._sendNotification(guild, ytCh, type, {
                 videoId, url: finalUrl, title,
-                channel:   channelName || ytCh.name,
+                channel:   ytCh.name,
                 thumbnail,
             }).catch(err => warn(`[WebSub] Kirim notif gagal: ${err.message}`));
         }
@@ -403,8 +414,10 @@ class YouTubeNotifier {
         } else {
             // Selalu cek live terlepas dari liveEnabled,
             // agar live stream tidak terkirim sebagai "Video Baru"
-            const isLive = await this._isLive(entry.id);
-            if (isLive) type = 'live';
+            const liveInfo = await this._isLive(entry.id);
+            // Waiting room / scheduled premiere — skip, jangan kirim sebagai "Video Baru"
+            if (liveInfo.isUpcoming) return;
+            if (liveInfo.live) type = 'live';
         }
 
         // Untuk short, gunakan URL format /shorts/
@@ -438,6 +451,7 @@ class YouTubeNotifier {
         } catch { return false; }
     }
 
+    // Mengembalikan { live: boolean, isUpcoming: boolean, channelId: string|null }
     async _isLive(videoId) {
         // Primary: InnerTube API — lebih andal, tidak kena bot-detection YouTube
         try {
@@ -464,14 +478,24 @@ class YouTubeNotifier {
             });
 
             if (res.ok) {
-                const data    = await res.json();
-                const details = data?.videoDetails;
+                const data       = await res.json();
+                const details    = data?.videoDetails;
+                const channelId  = details?.channelId || null;
+                const isUpcoming = details?.isUpcoming === true;
+
                 // isLive:true = sedang live sekarang (bukan upcoming, bukan VOD)
-                if (details?.isLive === true) return true;
+                if (details?.isLive === true) {
+                    return { live: true, isUpcoming: false, channelId };
+                }
                 // Jika isLive tidak ada tapi ada dashManifestUrl = stream aktif
-                if (details?.isLiveContent === true
-                    && details?.isUpcoming !== true
-                    && data?.streamingData?.dashManifestUrl) return true;
+                if (details?.isLiveContent === true && !isUpcoming && data?.streamingData?.dashManifestUrl) {
+                    return { live: true, isUpcoming: false, channelId };
+                }
+                // Waiting room / scheduled premiere — belum dimulai
+                if (isUpcoming) {
+                    return { live: false, isUpcoming: true, channelId };
+                }
+                return { live: false, isUpcoming: false, channelId };
             }
         } catch { /* jatuh ke fallback */ }
 
@@ -480,13 +504,17 @@ class YouTubeNotifier {
             const res = await fetch(`https://www.youtube.com/watch?v=${videoId}`, {
                 signal: AbortSignal.timeout(10_000), headers: BROWSER_HEADERS,
             });
-            if (!res.ok) return false;
+            if (!res.ok) return { live: false, isUpcoming: false, channelId: null };
             const html = await res.text();
-            if (html.includes('"isLive":true'))    return true;
-            if (html.includes('"isLiveNow":true')) return true;
-            // Kondisi ketiga dihapus — terlalu permisif, bisa false-positive untuk "upcoming"
-            return false;
-        } catch { return false; }
+
+            // Cegah false-positive: waiting room memiliki "isUpcoming":true di HTML
+            if (html.includes('"isUpcoming":true')) {
+                return { live: false, isUpcoming: true, channelId: null };
+            }
+            if (html.includes('"isLive":true'))    return { live: true, isUpcoming: false, channelId: null };
+            if (html.includes('"isLiveNow":true')) return { live: true, isUpcoming: false, channelId: null };
+            return { live: false, isUpcoming: false, channelId: null };
+        } catch { return { live: false, isUpcoming: false, channelId: null }; }
     }
 
     // ─── Live-stream dedicated poll ────────────────────────────────────────────
@@ -533,8 +561,14 @@ class YouTubeNotifier {
             const notifKey = `youtube-liveNotified-${guild.id}-${entry.id}`;
             if (db.get(notifKey)) continue; // sudah pernah kirim notif live untuk video ini
 
-            const isLive = await this._isLive(entry.id);
-            if (!isLive) continue;
+            const liveInfo = await this._isLive(entry.id);
+            if (!liveInfo.live) continue;
+
+            // Verifikasi video memang milik channel yang dipantau (cegah cross-channel notification)
+            if (liveInfo.channelId && liveInfo.channelId !== ytCh.id) {
+                warn(`[YouTube/Live] Video ${entry.id} bukan milik channel ${ytCh.id} (actual: ${liveInfo.channelId}), skip`);
+                continue;
+            }
 
             // Tandai dulu sebelum kirim (hindari double-send jika poll overlap)
             db.set(notifKey, String(Date.now()));
