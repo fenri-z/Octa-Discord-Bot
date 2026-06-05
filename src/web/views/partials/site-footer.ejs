@@ -29,9 +29,14 @@
     color: var(--text); margin-bottom: .15rem;
 }
 .site-footer-badge {
-    font-size: .6rem; font-weight: 700; padding: .15rem .45rem;
-    border-radius: 4px; background: rgba(88,101,242,.25);
-    color: #8b95f7; letter-spacing: .06em; text-transform: uppercase;
+    display: inline-flex; align-items: center; gap: .3rem;
+    font-size: .62rem; font-weight: 700; padding: .18rem .5rem;
+    border-radius: 3px; background: #5865F2;
+    color: #fff; letter-spacing: .04em; text-transform: uppercase;
+    line-height: 1;
+}
+.site-footer-badge svg {
+    flex-shrink: 0;
 }
 .site-footer-desc {
     font-size: .8rem; color: var(--text-muted);
@@ -98,7 +103,12 @@
                 <div>
                     <div class="site-footer-name">
                         <%- locals.botNavName || 'Bot' %>
-                        <span class="site-footer-badge">APP</span>
+                        <span class="site-footer-badge">
+                            <svg width="10" height="10" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                <path d="M1.5 6L4.5 9L10.5 3" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            APP
+                        </span>
                     </div>
                 </div>
             </div>
