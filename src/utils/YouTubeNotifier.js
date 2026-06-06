@@ -90,7 +90,12 @@ class YouTubeNotifier {
         if (!res.ok) throw new Error(`HTTP ${res.status} while fetching channel page`);
         const html = await res.text();
 
-        const idMatch = html.match(/"channelId"\s*:\s*"(UC[\w-]+)"/)
+        // externalId selalu milik channel halaman ini — paling andal
+        // "channelId" bisa muncul dari konten lain di halaman (rekomendasi, dsb.)
+        const idMatch = html.match(/"externalId"\s*:\s*"(UC[\w-]+)"/)
+                     || html.match(/<link[^>]+rel=["']canonical["'][^>]+href=["'][^"']*\/channel\/(UC[\w-]+)/i)
+                     || html.match(/<link[^>]+href=["'][^"']*\/channel\/(UC[\w-]+)[^"']*["'][^>]+rel=["']canonical["']/i)
+                     || html.match(/"channelId"\s*:\s*"(UC[\w-]+)"/)
                      || html.match(/channel\/(UC[\w-]{22})/);
         if (!idMatch) throw new Error('Channel not found. Try using the Channel ID (UCxxxxxx) directly.');
         const id = idMatch[1];

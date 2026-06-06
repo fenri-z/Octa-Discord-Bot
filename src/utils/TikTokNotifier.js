@@ -304,17 +304,29 @@ class TikTokNotifier {
     async _checkLive(guild, db, account) {
         const isLive  = await this._isLive(account.username);
         const liveKey = `tiktok-liveActive-${guild.id}-${account.username}`;
+        const failKey = `tiktok-liveFail-${guild.id}-${account.username}`;
         const wasLive = !!db.get(liveKey);
 
-        if (isLive && !wasLive) {
-            db.set(liveKey, String(Date.now()));
-            info(`[TikTok/Live] LIVE terdeteksi: ${account.username} → ${guild.name}`);
-            await this._sendLiveNotification(guild, account).catch(err =>
-                warn(`[TikTok/Live] Failed to send notification: ${err.message}`)
-            );
-        } else if (!isLive && wasLive) {
-            db.delete(liveKey);
-            info(`[TikTok/Live] Live berakhir: ${account.username}`);
+        if (isLive) {
+            db.delete(failKey);
+            if (!wasLive) {
+                db.set(liveKey, String(Date.now()));
+                info(`[TikTok/Live] LIVE terdeteksi: ${account.username} → ${guild.name}`);
+                await this._sendLiveNotification(guild, account).catch(err =>
+                    warn(`[TikTok/Live] Failed to send notification: ${err.message}`)
+                );
+            }
+        } else if (wasLive) {
+            // Butuh 2x cek berturut-turut gagal sebelum dianggap live berakhir
+            // Mencegah notifikasi duplikat akibat koneksi WebSocket yang tidak stabil
+            const fails = parseInt(db.get(failKey) || '0') + 1;
+            if (fails >= 2) {
+                db.delete(liveKey);
+                db.delete(failKey);
+                info(`[TikTok/Live] Live berakhir: ${account.username}`);
+            } else {
+                db.set(failKey, String(fails));
+            }
         }
     }
 
