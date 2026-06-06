@@ -96,7 +96,7 @@
     "embed_description": "Deskripsi Embed",
     "embed_color": "Warna Embed",
     "footer_label": "Footer",
-    "footer_optional": "opsional",
+    "footer_optional": "(opsional)",
     "footer_placeholder": "Kosongkan untuk menghapus",
     "thumbnail_label": "Tampilkan foto profil member (thumbnail)",
     "info_fields": "Field Info",

@@ -36,7 +36,7 @@
             <div style="font-size:.8rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.9rem;"><%= t('ticket.channel_config') %></div>
 
             <div class="form-group">
-                <label class="label"><%= t('ticket.category_label') %> <span class="hint-inline">(<%= t('giveaway.required_role_hint') %>)</span></label>
+                <label class="label"><%= t('ticket.category_label') %> <span class="hint-inline"><%= t('giveaway.required_role_hint') %></span></label>
                 <select id="ticketCategory" class="select">
                     <option value=""><%= t('ticket.category_none') %></option>
                     <% categories.forEach(c => { %>

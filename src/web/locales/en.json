@@ -96,7 +96,7 @@
     "embed_description": "Embed Description",
     "embed_color": "Embed Color",
     "footer_label": "Footer",
-    "footer_optional": "optional",
+    "footer_optional": "(optional)",
     "footer_placeholder": "Leave blank to remove",
     "thumbnail_label": "Show member profile picture (thumbnail)",
     "info_fields": "Info Fields",

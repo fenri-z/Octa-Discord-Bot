@@ -82,7 +82,7 @@
                 </div>
 
                 <div class="form-group am-cfg-group">
-                    <label class="label"><%= t('automod.audit_log_channel') %> <span style="font-weight:400;color:var(--text-muted);">(<%= t('common.footer_optional') %>)</span></label>
+                    <label class="label"><%= t('automod.audit_log_channel') %> <span style="font-weight:400;color:var(--text-muted);"><%= t('common.footer_optional') %></span></label>
                     <select id="automodAuditLog" class="select">
                         <option value=""><%= t('automod.audit_log_none') %></option>
                         <% textChannels.forEach(function(c) { %>
