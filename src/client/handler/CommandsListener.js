@@ -115,7 +115,7 @@ class CommandsListener {
                     // Tolak diam-diam — command tidak seharusnya muncul di DM user biasa
                     // karena dm_permission: false sudah dipasang, tapi jaga-jaga
                     await interaction.reply({
-                        content: '❌ Command ini tidak tersedia.',
+                        content: '❌ This command is not available.',
                         flags: MessageFlags.Ephemeral
                     });
                     return;
@@ -141,9 +141,9 @@ class CommandsListener {
                 if (!selectedGuildId) {
                     await interaction.reply({
                         content: [
-                            '⚠️ **Belum ada server yang dipilih.**',
-                            'Gunakan `/server pilih <id>` untuk memilih server terlebih dahulu.',
-                            'Gunakan `/server list` untuk melihat daftar server yang tersedia.'
+                            '⚠️ **No server selected.**',
+                            'Use `/server select <id>` to select a server first.',
+                            'Use `/server list` to see the list of available servers.'
                         ].join('\n'),
                         flags: MessageFlags.Ephemeral
                     });
@@ -156,7 +156,7 @@ class CommandsListener {
 
                 if (!selectedGuild) {
                     await interaction.reply({
-                        content: '❌ Server tidak ditemukan. Bot mungkin sudah keluar dari server tersebut.\nGunakan `/server pilih` untuk memilih server lain.',
+                        content: '❌ Server not found. The bot may have left that server.\nUse `/server select` to choose a different server.',
                         flags: MessageFlags.Ephemeral
                     });
                     return;
@@ -197,7 +197,7 @@ class CommandsListener {
 
                 if (!isOwnerOrDev && !hasManageGuild) {
                     await interaction.reply({
-                        content: '❌ Kamu tidak memiliki izin untuk menggunakan command ini.',
+                        content: '❌ You do not have permission to use this command.',
                         flags: MessageFlags.Ephemeral
                     });
                     return;
@@ -206,7 +206,7 @@ class CommandsListener {
                 // Jika guild tidak ditemukan sama sekali, tolak
                 if (!guild) {
                     await interaction.reply({
-                        content: '❌ Command ini hanya bisa digunakan di server.',
+                        content: '❌ This command can only be used in a server.',
                         flags: MessageFlags.Ephemeral
                     });
                     return;
@@ -245,7 +245,7 @@ class CommandsListener {
                 // Coba kirim pesan error jika interaksi belum dibalas
                 if (!interaction.replied && !interaction.deferred) {
                     await interaction.reply({
-                        content: '❌ Terjadi error saat menjalankan command.',
+                        content: '❌ An error occurred while running the command.',
                         flags: MessageFlags.Ephemeral
                     }).catch(() => null);
                 }

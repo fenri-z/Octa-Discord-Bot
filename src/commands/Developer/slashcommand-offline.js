@@ -29,7 +29,7 @@ function getPm2Name() {
 module.exports = new ApplicationCommand({
     command: {
         name: "offline",
-        description: "Matikan bot dengan aman (database di-close dahulu).",
+        description: "Safely shut down the bot (database is closed first).",
         type: 1
     },
 
@@ -44,7 +44,7 @@ module.exports = new ApplicationCommand({
         // ── Guard: hanya developer ────────────────────────────────────────
         if (!isDeveloper(interaction.user.id)) {
             return interaction.reply({
-                content: "❌ Kamu tidak punya izin untuk menjalankan command ini.",
+                content: "❌ You do not have permission to run this command.",
                 flags: MessageFlags.Ephemeral
             });
         }
@@ -56,11 +56,11 @@ module.exports = new ApplicationCommand({
             embeds: [
                 new EmbedBuilder()
                     .setColor("#ED4245")
-                    .setTitle("⛔ Mematikan Bot...")
+                    .setTitle("⛔ Shutting Down Bot...")
                     .setDescription(
                         underPm2
-                            ? `Menutup database lalu menghapus proses pm2 \`${pm2Name}\`.\nBot akan offline sepenuhnya.`
-                            : "Menutup database lalu mematikan proses bot.\nBot akan offline sepenuhnya."
+                            ? `Closing database then deleting pm2 process \`${pm2Name}\`.\nBot will go fully offline.`
+                            : "Closing database then stopping the bot process.\nBot will go fully offline."
                     )
                     .setTimestamp()
             ],

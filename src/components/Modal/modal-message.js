@@ -24,7 +24,7 @@ function buildEmbed(data) {
 }
 
 module.exports = new Component({
-    customId: 'pesan-modal',  // prefix match: pesan-modal:nama:mode
+    customId: 'message-modal',  // prefix match: message-modal:name:mode
     type: 'modal',
 
     /**
@@ -35,11 +35,10 @@ module.exports = new Component({
         const guildId = interaction.guild.id;
         const userId  = interaction.user.id;
 
-        // Baca pending data { nama, kategori, mode? }
         const rawPending = client.database.get(`pesan-pending-${guildId}-${userId}`);
         if (!rawPending) {
             return interaction.reply({
-                content: '❌ Sesi expired. Jalankan perintahnya lagi.',
+                content: '❌ Session expired. Run the command again.',
                 flags: MessageFlags.Ephemeral
             });
         }
@@ -48,13 +47,11 @@ module.exports = new Component({
 
         let pending;
         try { pending = JSON.parse(rawPending); } catch {
-            // Kompatibilitas mundur: value lama berupa string nama saja
             pending = { nama: rawPending, kategori: KATEGORI.BIASA, mode: 'buat' };
         }
 
         const { nama, kategori = KATEGORI.BIASA, mode = 'buat' } = pending;
 
-        // Baca data lama agar warna/gambar/thumbnail/dll tidak hilang
         const rawExisting = client.database.get(`pesan-${guildId}-${nama}`);
         let existing = null;
         if (rawExisting && typeof rawExisting === 'string') {
@@ -63,10 +60,10 @@ module.exports = new Component({
 
         const now = Date.now();
 
-        // ── MODE TIPE: simpan sebagai plain text ───────────────────────────
+        // ── TYPE MODE: save as plain text ──────────────────────────────────
         if (mode === 'tipe') {
             let plainText = '';
-            try { plainText = interaction.fields.getTextInputValue('pesan-field-plaintext').trim(); } catch {}
+            try { plainText = interaction.fields.getTextInputValue('message-field-plaintext').trim(); } catch {}
             const tmpl = {
                 ...(existing || {}),
                 kategori,
@@ -83,20 +80,20 @@ module.exports = new Component({
             if (!list.includes(nama)) { list.push(nama); client.database.set(`pesan-list-${guildId}`, JSON.stringify(list)); }
 
             return interaction.reply({
-                content: `✅ Template \`${nama}\` diubah ke tipe **Teks Biasa**.\nGunakan \`/pesan preview ${nama}\` untuk pratinjau, lalu \`/pesan kirim ${nama}\` untuk mengirim.`,
+                content: `✅ Template \`${nama}\` changed to **Plain Text** type.\nUse \`/message preview ${nama}\` to preview, then \`/message send ${nama}\` to send.`,
                 flags: MessageFlags.Ephemeral
             });
         }
 
-        // Ambil nilai dari form untuk mode buat/edit
+        // Read form values for create/edit mode
         let title = '', description = '', footer = '', plainText = '';
         const isPlainMode = existing?.messageType === 'plain' && mode === 'edit';
         if (isPlainMode) {
-            try { plainText = interaction.fields.getTextInputValue('pesan-field-plaintext').trim(); } catch {}
+            try { plainText = interaction.fields.getTextInputValue('message-field-plaintext').trim(); } catch {}
         } else {
-            try { title       = interaction.fields.getTextInputValue('pesan-field-title').trim(); }       catch {}
-            try { description = interaction.fields.getTextInputValue('pesan-field-description').trim(); } catch {}
-            try { footer      = interaction.fields.getTextInputValue('pesan-field-footer').trim(); }      catch {}
+            try { title       = interaction.fields.getTextInputValue('message-field-title').trim(); }       catch {}
+            try { description = interaction.fields.getTextInputValue('message-field-description').trim(); } catch {}
+            try { footer      = interaction.fields.getTextInputValue('message-field-footer').trim(); }      catch {}
         }
 
         const isNew = !existing;
@@ -116,10 +113,8 @@ module.exports = new Component({
             updatedAt:  now,
         };
 
-        // Simpan template yang diperbarui
         client.database.set(`pesan-${guildId}-${nama}`, JSON.stringify(tmpl));
 
-        // Update daftar template
         const rawList = client.database.get(`pesan-list-${guildId}`);
         let list = [];
         if (rawList && typeof rawList === 'string') {
@@ -130,19 +125,19 @@ module.exports = new Component({
             client.database.set(`pesan-list-${guildId}`, JSON.stringify(list));
         }
 
-        // ── MODE EDIT: langsung perbarui pesan Discord setelah submit ──────
+        // ── EDIT MODE: immediately update the Discord message ──────────────
         if (mode === 'edit') {
             const rawSent = client.database.get(`pesan-unik-sent-${guildId}-${nama}`);
             if (!rawSent) {
                 return interaction.reply({
-                    content: `✏️ Template \`${nama}\` diperbarui, tapi data pesan hilang. Kirim ulang dengan \`/pesan kirim ${nama}\`.`,
+                    content: `✏️ Template \`${nama}\` updated, but message data is missing. Resend with \`/message send ${nama}\`.`,
                     flags: MessageFlags.Ephemeral
                 });
             }
 
             let sentData;
             try { sentData = JSON.parse(rawSent); } catch {
-                return interaction.reply({ content: '❌ Data pesan unik rusak.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: '❌ Unique message data is corrupted.', flags: MessageFlags.Ephemeral });
             }
 
             const targetChannel = interaction.guild.channels.cache.get(sentData.channelId)
@@ -151,7 +146,7 @@ module.exports = new Component({
             if (!targetChannel) {
                 client.database.delete(`pesan-unik-sent-${guildId}-${nama}`);
                 return interaction.reply({
-                    content: `❌ Channel tidak ditemukan. Data direset — kirim ulang dengan \`/pesan kirim ${nama}\`.`,
+                    content: `❌ Channel not found. Data reset — resend with \`/message send ${nama}\`.`,
                     flags: MessageFlags.Ephemeral
                 });
             }
@@ -162,14 +157,14 @@ module.exports = new Component({
             } catch {
                 client.database.delete(`pesan-unik-sent-${guildId}-${nama}`);
                 return interaction.reply({
-                    content: `❌ Pesan tidak ditemukan (mungkin sudah dihapus manual). Data direset — kirim ulang dengan \`/pesan kirim ${nama}\`.`,
+                    content: `❌ Message not found (may have been manually deleted). Data reset — resend with \`/message send ${nama}\`.`,
                     flags: MessageFlags.Ephemeral
                 });
             }
 
             if (targetMessage.author.id !== interaction.client.user.id) {
                 return interaction.reply({
-                    content: '❌ Bot hanya bisa mengedit pesan milik bot sendiri.',
+                    content: '❌ The bot can only edit its own messages.',
                     flags: MessageFlags.Ephemeral
                 });
             }
@@ -181,41 +176,41 @@ module.exports = new Component({
                     await targetMessage.edit({ embeds: [buildEmbed(tmpl)], content: null });
                 }
                 return interaction.reply({
-                    content: `✅ Pesan unik \`${nama}\` berhasil diperbarui!\n🔗 [Lihat pesan](${targetMessage.url})`,
+                    content: `✅ Unique message \`${nama}\` successfully updated!\n🔗 [View message](${targetMessage.url})`,
                     flags: MessageFlags.Ephemeral
                 });
             } catch {
-                return interaction.reply({ content: '❌ Gagal mengedit pesan di Discord.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: '❌ Failed to edit the message in Discord.', flags: MessageFlags.Ephemeral });
             }
         }
 
-        // ── MODE BUAT: tampilkan konfirmasi seperti biasa ──────────────────
+        // ── CREATE MODE: show confirmation ─────────────────────────────────
         const isEmpty  = !tmpl.title && !tmpl.description;
         const isUnik   = kategori === KATEGORI.UNIK;
-        const badgeKat = isUnik ? '🔒 Unik' : '📄 Biasa';
+        const badgeKat = isUnik ? '🔒 Unique' : '📄 Regular';
 
         const embed = new EmbedBuilder()
             .setColor(isNew ? '#57F287' : '#FEE75C')
             .setTitle(isNew
-                ? `✅ Template \`${nama}\` Dibuat [${badgeKat}]`
-                : `✏️ Template \`${nama}\` Diperbarui [${badgeKat}]`)
+                ? `✅ Template \`${nama}\` Created [${badgeKat}]`
+                : `✏️ Template \`${nama}\` Updated [${badgeKat}]`)
             .setDescription(
                 isEmpty
-                    ? '⚠️ Judul dan deskripsi masih kosong. Isi salah satunya agar embed bisa dikirim.'
+                    ? '⚠️ Title and description are both empty. Fill at least one so the embed can be sent.'
                     : isUnik
-                        ? '🔒 Pesan unik: hanya bisa dikirim **sekali**, lalu gunakan `/pesan edit` untuk memperbarui isinya.'
-                        : '📄 Pesan biasa: bisa dikirim berkali-kali. Tidak bisa diedit/dihapus via command setelah terkirim.'
+                        ? '🔒 Unique message: can only be sent **once**, then use `/message edit` to update its content.'
+                        : '📄 Regular message: can be sent multiple times. Cannot be edited/deleted via command after sending.'
             )
             .addFields(
-                { name: '👁️ Pratinjau',        value: `\`/pesan preview ${nama}\``,       inline: true },
-                { name: '🎨 Ubah Warna',        value: `\`/pesan set-warna ${nama}\``,     inline: true },
-                { name: '🖼️ Tambah Gambar',     value: `\`/pesan set-gambar ${nama}\``,    inline: true },
-                { name: '📌 Tambah Thumbnail',  value: `\`/pesan set-thumbnail ${nama}\``, inline: true },
-                { name: '✍️ Tambah Author',      value: `\`/pesan set-author ${nama}\``,    inline: true },
-                { name: '📤 Kirim',             value: `\`/pesan kirim ${nama}\``,         inline: true },
-                ...(isUnik ? [{ name: '✏️ Edit Pesan', value: `\`/pesan edit ${nama}\``, inline: true }] : []),
+                { name: '👁️ Preview',         value: `\`/message preview ${nama}\``,       inline: true },
+                { name: '🎨 Set Color',        value: `\`/message set-color ${nama}\``,     inline: true },
+                { name: '🖼️ Add Image',        value: `\`/message set-image ${nama}\``,     inline: true },
+                { name: '📌 Add Thumbnail',    value: `\`/message set-thumbnail ${nama}\``, inline: true },
+                { name: '✍️ Add Author',        value: `\`/message set-author ${nama}\``,   inline: true },
+                { name: '📤 Send',             value: `\`/message send ${nama}\``,          inline: true },
+                ...(isUnik ? [{ name: '✏️ Edit Message', value: `\`/message edit ${nama}\``, inline: true }] : []),
             )
-            .setFooter({ text: `Total template: ${list.length} · Gunakan /pesan list untuk melihat semua.` })
+            .setFooter({ text: `Total templates: ${list.length} · Use /message list to view all.` })
             .setTimestamp();
 
         return interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });

@@ -31,8 +31,8 @@ function getConfig(client, guildId) {
         boostChannelId:         client.database.get(`booster-boost-channel-${guildId}`)      ?? null,
         boostMessageType:       client.database.get(`booster-boost-messageType-${guildId}`)  ?? 'embed',
         boostPlainText:         client.database.get(`booster-boost-plainText-${guildId}`)    ?? '',
-        boostTitle:             client.database.get(`booster-boost-title-${guildId}`)        ?? '🚀 Server Boost Baru!',
-        boostDescription:       client.database.get(`booster-boost-desc-${guildId}`)        ?? 'Terima kasih {member} sudah boost server ini! 💖\nTotal boost sekarang: **{boosts}**.',
+        boostTitle:             client.database.get(`booster-boost-title-${guildId}`)        ?? '🚀 New Server Boost!',
+        boostDescription:       client.database.get(`booster-boost-desc-${guildId}`)        ?? 'Thank you {member} for boosting this server! 💖\nTotal boosts now: **{boosts}**.',
         boostColor:             client.database.get(`booster-boost-color-${guildId}`)        ?? '#FF73FA',
         boostFooter:            client.database.get(`booster-boost-footer-${guildId}`)       ?? '',
         boostShowMember:        getBool(client, `booster-boost-showMember-${guildId}`,       true),
@@ -45,8 +45,8 @@ function getConfig(client, guildId) {
         unboostChannelId:       client.database.get(`booster-unboost-channel-${guildId}`)    ?? null,
         unboostMessageType:     client.database.get(`booster-unboost-messageType-${guildId}`) ?? 'embed',
         unboostPlainText:       client.database.get(`booster-unboost-plainText-${guildId}`)  ?? '',
-        unboostTitle:           client.database.get(`booster-unboost-title-${guildId}`)      ?? '💔 Boost Berakhir',
-        unboostDescription:     client.database.get(`booster-unboost-desc-${guildId}`)      ?? '{member} telah mencabut boost-nya dari server.\nTotal boost sekarang: **{boosts}**.',
+        unboostTitle:           client.database.get(`booster-unboost-title-${guildId}`)      ?? '💔 Boost Ended',
+        unboostDescription:     client.database.get(`booster-unboost-desc-${guildId}`)      ?? '{member} has removed their boost from the server.\nTotal boosts now: **{boosts}**.',
         unboostColor:           client.database.get(`booster-unboost-color-${guildId}`)      ?? '#ED4245',
         unboostFooter:          client.database.get(`booster-unboost-footer-${guildId}`)     ?? '',
         unboostShowMember:      getBool(client, `booster-unboost-showMember-${guildId}`,     true),
@@ -97,7 +97,7 @@ function getConfig(client, guildId) {
 module.exports = new ApplicationCommand({
     command: {
         name: 'booster',
-        description: 'Konfigurasi deteksi & notifikasi server booster.',
+        description: 'Configure server booster detection & notifications.',
         type: 1,
         default_member_permissions: String(PermissionFlagsBits.ManageGuild),
         options: [
@@ -105,97 +105,97 @@ module.exports = new ApplicationCommand({
             // ── status ────────────────────────────────────────────────────
             {
                 name: 'status',
-                description: 'Lihat semua konfigurasi booster saat ini.',
+                description: 'View all current booster configurations.',
                 type: 1
             },
 
             // ── list ──────────────────────────────────────────────────────
             {
                 name: 'list',
-                description: 'Tampilkan daftar semua member yang sedang boost server.',
+                description: 'Show a list of all members currently boosting the server.',
                 type: 1
             },
 
             // ── notif ─────────────────────────────────────────────────────
             {
                 name: 'notif',
-                description: 'Atur notifikasi ketika seseorang boost atau unboost.',
+                description: 'Configure notifications when someone boosts or unboosts.',
                 type: 2, // SUB_COMMAND_GROUP
                 options: [
                     {
                         name: 'boost-toggle',
-                        description: 'Aktifkan / nonaktifkan notifikasi saat boost.',
+                        description: 'Enable / disable boost notification.',
                         type: 1,
-                        options: [{ name: 'aktif', description: 'true = nyalakan', type: 5, required: true }]
+                        options: [{ name: 'active', description: 'true = enable', type: 5, required: true }]
                     },
                     {
                         name: 'boost-channel',
-                        description: 'Atur channel untuk notifikasi boost.',
+                        description: 'Set the channel for boost notifications.',
                         type: 1,
                         options: [{
-                            name: 'channel', description: 'Pilih channel teks (mention #channel atau ID)', type: 3, autocomplete: true,
+                            name: 'channel', description: 'Select a text channel (mention #channel or ID)', type: 3, autocomplete: true,
 required: true
                         }]
                     },
                     {
                         name: 'boost-title',
-                        description: 'Ubah judul embed notifikasi boost. Placeholder: {member} {server} {boosts} {tag}',
+                        description: 'Change the embed title for boost notifications. Placeholders: {member} {server} {boosts} {tag}',
                         type: 1,
-                        options: [{ name: 'teks', description: 'Judul embed (maks. 256 karakter)', type: 3, required: true, max_length: 256 }]
+                        options: [{ name: 'text', description: 'Embed title (max 256 characters)', type: 3, required: true, max_length: 256 }]
                     },
                     {
                         name: 'boost-description',
-                        description: 'Ubah deskripsi embed notifikasi boost.',
+                        description: 'Change the embed description for boost notifications.',
                         type: 1,
-                        options: [{ name: 'teks', description: 'Deskripsi embed (maks. 2048 karakter)', type: 3, required: true, max_length: 2048 }]
+                        options: [{ name: 'text', description: 'Embed description (max 2048 characters)', type: 3, required: true, max_length: 2048 }]
                     },
                     {
                         name: 'boost-color',
-                        description: 'Ubah warna embed notifikasi boost (hex).',
+                        description: 'Change the embed color for boost notifications (hex).',
                         type: 1,
-                        options: [{ name: 'hex', description: 'Contoh: #FF73FA', type: 3, required: true, max_length: 7 }]
+                        options: [{ name: 'hex', description: 'Example: #FF73FA', type: 3, required: true, max_length: 7 }]
                     },
                     {
                         name: 'unboost-toggle',
-                        description: 'Aktifkan / nonaktifkan notifikasi saat unboost.',
+                        description: 'Enable / disable unboost notification.',
                         type: 1,
-                        options: [{ name: 'aktif', description: 'true = nyalakan', type: 5, required: true }]
+                        options: [{ name: 'active', description: 'true = enable', type: 5, required: true }]
                     },
                     {
                         name: 'unboost-channel',
-                        description: 'Atur channel untuk notifikasi unboost.',
+                        description: 'Set the channel for unboost notifications.',
                         type: 1,
                         options: [{
-                            name: 'channel', description: 'Pilih channel teks (mention #channel atau ID)', type: 3, autocomplete: true,
+                            name: 'channel', description: 'Select a text channel (mention #channel or ID)', type: 3, autocomplete: true,
 required: true
                         }]
                     },
                     {
                         name: 'unboost-title',
-                        description: 'Ubah judul embed notifikasi unboost.',
+                        description: 'Change the embed title for unboost notifications.',
                         type: 1,
-                        options: [{ name: 'teks', description: 'Judul embed (maks. 256 karakter)', type: 3, required: true, max_length: 256 }]
+                        options: [{ name: 'text', description: 'Embed title (max 256 characters)', type: 3, required: true, max_length: 256 }]
                     },
                     {
                         name: 'unboost-description',
-                        description: 'Ubah deskripsi embed notifikasi unboost.',
+                        description: 'Change the embed description for unboost notifications.',
                         type: 1,
-                        options: [{ name: 'teks', description: 'Deskripsi embed (maks. 2048 karakter)', type: 3, required: true, max_length: 2048 }]
+                        options: [{ name: 'text', description: 'Embed description (max 2048 characters)', type: 3, required: true, max_length: 2048 }]
                     },
                     {
                         name: 'unboost-color',
-                        description: 'Ubah warna embed notifikasi unboost (hex).',
+                        description: 'Change the embed color for unboost notifications (hex).',
                         type: 1,
-                        options: [{ name: 'hex', description: 'Contoh: #ED4245', type: 3, required: true, max_length: 7 }]
+                        options: [{ name: 'hex', description: 'Example: #ED4245', type: 3, required: true, max_length: 7 }]
                     },
                     {
                         name: 'preview-boost',
-                        description: 'Pratinjau tampilan notifikasi boost.',
+                        description: 'Preview the boost notification appearance.',
                         type: 1
                     },
                     {
                         name: 'preview-unboost',
-                        description: 'Pratinjau tampilan notifikasi unboost.',
+                        description: 'Preview the unboost notification appearance.',
                         type: 1
                     }
                 ]
@@ -204,33 +204,33 @@ required: true
             // ── autorole ──────────────────────────────────────────────────
             {
                 name: 'autorole',
-                description: 'Atur role otomatis untuk booster.',
+                description: 'Configure automatic role for boosters.',
                 type: 2,
                 options: [
                     {
                         name: 'set',
-                        description: 'Tetapkan role yang diberikan saat seseorang boost server.',
+                        description: 'Set the role assigned when someone boosts the server.',
                         type: 1,
                         options: [{
-                            name: 'role', description: 'Role booster (mention @role atau ID)', type: 3, autocomplete: true,
+                            name: 'role', description: 'Booster role (mention @role or ID)', type: 3, autocomplete: true,
 required: true
                         }]
                     },
                     {
                         name: 'toggle',
-                        description: 'Aktifkan / nonaktifkan autorole booster.',
+                        description: 'Enable / disable booster autorole.',
                         type: 1,
-                        options: [{ name: 'aktif', description: 'true = nyalakan', type: 5, required: true }]
+                        options: [{ name: 'active', description: 'true = enable', type: 5, required: true }]
                     },
                     {
                         name: 'autoremove',
-                        description: 'Cabut role booster otomatis saat seseorang unboost.',
+                        description: 'Automatically remove the booster role when someone unboosts.',
                         type: 1,
-                        options: [{ name: 'aktif', description: 'true = aktifkan pencabutan otomatis', type: 5, required: true }]
+                        options: [{ name: 'active', description: 'true = enable auto-removal', type: 5, required: true }]
                     },
                     {
                         name: 'remove',
-                        description: 'Hapus konfigurasi autorole booster.',
+                        description: 'Remove the booster autorole configuration.',
                         type: 1
                     }
                 ]
@@ -239,7 +239,7 @@ required: true
             // ── reset ─────────────────────────────────────────────────────
             {
                 name: 'reset',
-                description: 'Reset semua konfigurasi booster ke default.',
+                description: 'Reset all booster configurations to default.',
                 type: 1
             }
         ]
@@ -273,60 +273,60 @@ required: true
             const arRole    = cfg.autoroleRoleId   ? guild.roles.cache.get(cfg.autoroleRoleId)      : null;
 
             const embed = new EmbedBuilder()
-                .setTitle('⚙️ Konfigurasi Booster')
+                .setTitle('⚙️ Booster Configuration')
                 .setColor('#FF73FA')
                 .addFields(
                     {
-                        name: '🚀 Notifikasi Boost',
+                        name: '🚀 Boost Notification',
                         value: [
-                            `**Status:** ${cfg.boostEnabled ? '✅ Aktif' : '❌ Nonaktif'}`,
-                            `**Channel:** ${boostCh ? `<#${boostCh.id}>` : '`Belum diatur`'}`,
-                            `**Tipe:** ${cfg.boostMessageType === 'plain' ? '📝 Teks Biasa' : '🖼️ Embed'}`,
+                            `**Status:** ${cfg.boostEnabled ? '✅ Enabled' : '❌ Disabled'}`,
+                            `**Channel:** ${boostCh ? `<#${boostCh.id}>` : '`Not set`'}`,
+                            `**Type:** ${cfg.boostMessageType === 'plain' ? '📝 Plain Text' : '🖼️ Embed'}`,
                             cfg.boostMessageType === 'plain'
-                                ? `**Pesan:** \`${(cfg.boostPlainText || '-').slice(0, 60)}${cfg.boostPlainText?.length > 60 ? '…' : ''}\``
-                                : `**Judul:** \`${cfg.boostTitle}\``,
-                            `**Warna:** \`${cfg.boostColor}\``,
+                                ? `**Message:** \`${(cfg.boostPlainText || '-').slice(0, 60)}${cfg.boostPlainText?.length > 60 ? '…' : ''}\``
+                                : `**Title:** \`${cfg.boostTitle}\``,
+                            `**Color:** \`${cfg.boostColor}\``,
                         ].join('\n'),
                         inline: false
                     },
                     {
-                        name: '🚀 Field Info Boost',
+                        name: '🚀 Boost Info Fields',
                         value: [
                             `👤 Member: ${cfg.boostShowMember ? '✅' : '❌'}`,
-                            `🚀 Mulai Boost: ${cfg.boostShowMulaiBoost ? '✅' : '❌'}`,
-                            `✨ Total Boost: ${cfg.boostShowTotalBoost ? '✅' : '❌'}`,
-                            `🏅 Level Server: ${cfg.boostShowLevelServer ? '✅' : '❌'}`,
+                            `🚀 Boost Start: ${cfg.boostShowMulaiBoost ? '✅' : '❌'}`,
+                            `✨ Total Boosts: ${cfg.boostShowTotalBoost ? '✅' : '❌'}`,
+                            `🏅 Server Level: ${cfg.boostShowLevelServer ? '✅' : '❌'}`,
                         ].join('\n'),
                         inline: true
                     },
                     {
-                        name: '💔 Notifikasi Unboost',
+                        name: '💔 Unboost Notification',
                         value: [
-                            `**Status:** ${cfg.unboostEnabled ? '✅ Aktif' : '❌ Nonaktif'}`,
-                            `**Channel:** ${unboostCh ? `<#${unboostCh.id}>` : '`Belum diatur`'}`,
-                            `**Tipe:** ${cfg.unboostMessageType === 'plain' ? '📝 Teks Biasa' : '🖼️ Embed'}`,
+                            `**Status:** ${cfg.unboostEnabled ? '✅ Enabled' : '❌ Disabled'}`,
+                            `**Channel:** ${unboostCh ? `<#${unboostCh.id}>` : '`Not set`'}`,
+                            `**Type:** ${cfg.unboostMessageType === 'plain' ? '📝 Plain Text' : '🖼️ Embed'}`,
                             cfg.unboostMessageType === 'plain'
-                                ? `**Pesan:** \`${(cfg.unboostPlainText || '-').slice(0, 60)}${cfg.unboostPlainText?.length > 60 ? '…' : ''}\``
-                                : `**Judul:** \`${cfg.unboostTitle}\``,
-                            `**Warna:** \`${cfg.unboostColor}\``,
+                                ? `**Message:** \`${(cfg.unboostPlainText || '-').slice(0, 60)}${cfg.unboostPlainText?.length > 60 ? '…' : ''}\``
+                                : `**Title:** \`${cfg.unboostTitle}\``,
+                            `**Color:** \`${cfg.unboostColor}\``,
                         ].join('\n'),
                         inline: false
                     },
                     {
-                        name: '💔 Field Info Unboost',
+                        name: '💔 Unboost Info Fields',
                         value: [
                             `👤 Member: ${cfg.unboostShowMember ? '✅' : '❌'}`,
-                            `✨ Total Boost: ${cfg.unboostShowTotalBoost ? '✅' : '❌'}`,
-                            `🏅 Level Server: ${cfg.unboostShowLevelServer ? '✅' : '❌'}`,
+                            `✨ Total Boosts: ${cfg.unboostShowTotalBoost ? '✅' : '❌'}`,
+                            `🏅 Server Level: ${cfg.unboostShowLevelServer ? '✅' : '❌'}`,
                         ].join('\n'),
                         inline: true
                     },
                     {
-                        name: '🎖️ Autorole Booster',
+                        name: '🎖️ Booster Autorole',
                         value: [
-                            `**Status:** ${cfg.autoroleEnabled ? '✅ Aktif' : '❌ Nonaktif'}`,
-                            `**Role:** ${arRole ? `${arRole}` : '`Belum diatur`'}`,
-                            `**Cabut saat unboost:** ${cfg.autoremoveEnabled ? '✅ Ya' : '❌ Tidak'}`
+                            `**Status:** ${cfg.autoroleEnabled ? '✅ Enabled' : '❌ Disabled'}`,
+                            `**Role:** ${arRole ? `${arRole}` : '`Not set`'}`,
+                            `**Remove on unboost:** ${cfg.autoremoveEnabled ? '✅ Yes' : '❌ No'}`
                         ].join('\n'),
                         inline: false
                     }
@@ -347,13 +347,13 @@ required: true
                     embeds: [
                         new EmbedBuilder()
                             .setColor('#ED4245')
-                            .setDescription('❌ Tidak ada member yang sedang boost server ini.')
+                            .setDescription('❌ No members are currently boosting this server.')
                     ],
                     flags: MessageFlags.Ephemeral
                 });
             }
 
-            // Urutkan dari yang paling lama boost
+            // Sort from longest boosting
             const sorted = [...boosters.values()].sort(
                 (a, b) => a.premiumSince - b.premiumSince
             );
@@ -362,15 +362,15 @@ required: true
                 `\`${String(i + 1).padStart(2, '0')}.\` ${m} — <t:${Math.floor(m.premiumSinceTimestamp / 1000)}:R>`
             );
 
-            // Bagi ke chunks 20 per halaman agar tidak melebihi 4096 karakter
+            // Split into chunks of 20 per page to avoid exceeding 4096 characters
             const chunks = [];
             while (lines.length) chunks.push(lines.splice(0, 20));
 
             const embed = new EmbedBuilder()
-                .setTitle(`🚀 Daftar Server Booster — ${guild.name}`)
+                .setTitle(`🚀 Server Boosters — ${guild.name}`)
                 .setColor('#FF73FA')
                 .setDescription(chunks[0].join('\n'))
-                .addFields({ name: '\u200b', value: `Total: **${boosters.size}** booster · Level ${guild.premiumTier}`, inline: false })
+                .addFields({ name: '\u200b', value: `Total: **${boosters.size}** booster(s) · Level ${guild.premiumTier}`, inline: false })
                 .setThumbnail(guild.iconURL({ dynamic: true }))
                 .setTimestamp();
 
@@ -388,7 +388,7 @@ required: true
             ];
             keys.forEach(k => client.database.delete(`booster-${k}-${guildId}`));
             return interaction.reply({
-                content: '🔄 Semua konfigurasi booster telah **direset ke default**.',
+                content: '🔄 All booster configurations have been **reset to default**.',
                 flags: MessageFlags.Ephemeral
             });
         }
@@ -403,77 +403,77 @@ required: true
             const toHex = (val) => val.startsWith('#') ? val : `#${val}`;
 
             if (sub === 'boost-toggle') {
-                const aktif = options.getBoolean('aktif');
-                if (aktif && !cfg.boostChannelId) return interaction.reply({ content: '❌ Atur channel boost terlebih dahulu dengan `/booster notif boost-channel`.', flags: MessageFlags.Ephemeral });
-                setBool(client, `booster-boost-enabled-${guildId}`, aktif);
-                return interaction.reply({ content: aktif ? '✅ Notifikasi boost **diaktifkan**.' : '❌ Notifikasi boost **dinonaktifkan**.', flags: MessageFlags.Ephemeral });
+                const active = options.getBoolean('active');
+                if (active && !cfg.boostChannelId) return interaction.reply({ content: '❌ Set the boost channel first with `/booster notif boost-channel`.', flags: MessageFlags.Ephemeral });
+                setBool(client, `booster-boost-enabled-${guildId}`, active);
+                return interaction.reply({ content: active ? '✅ Boost notification **enabled**.' : '❌ Boost notification **disabled**.', flags: MessageFlags.Ephemeral });
             }
 
             if (sub === 'boost-channel') {
                 const chStr = options.getString('channel');
                 const ch    = resolveChannel(interaction.guild, chStr);
-                if (!ch) return interaction.reply({ content: '❌ Channel tidak ditemukan. Gunakan mention `#channel` atau ID channel.', flags: MessageFlags.Ephemeral });
+                if (!ch) return interaction.reply({ content: '❌ Channel not found. Use a mention `#channel` or channel ID.', flags: MessageFlags.Ephemeral });
                 const chPermsOkBoost = await checkBotPermissions(interaction, [
                     PermissionFlagsBits.SendMessages,
                     PermissionFlagsBits.EmbedLinks,
                 ], ch);
                 if (!chPermsOkBoost) return;
                 client.database.set(`booster-boost-channel-${guildId}`, ch.id);
-                return interaction.reply({ content: `✅ Channel notifikasi boost diatur ke <#${ch.id}>.`, flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: `✅ Boost notification channel set to <#${ch.id}>.`, flags: MessageFlags.Ephemeral });
             }
 
             if (sub === 'boost-title') {
-                client.database.set(`booster-boost-title-${guildId}`, options.getString('teks'));
-                return interaction.reply({ content: `✅ Judul notifikasi boost diperbarui.`, flags: MessageFlags.Ephemeral });
+                client.database.set(`booster-boost-title-${guildId}`, options.getString('text'));
+                return interaction.reply({ content: `✅ Boost notification title updated.`, flags: MessageFlags.Ephemeral });
             }
 
             if (sub === 'boost-description') {
-                client.database.set(`booster-boost-desc-${guildId}`, options.getString('teks'));
-                return interaction.reply({ content: `✅ Deskripsi notifikasi boost diperbarui.`, flags: MessageFlags.Ephemeral });
+                client.database.set(`booster-boost-desc-${guildId}`, options.getString('text'));
+                return interaction.reply({ content: `✅ Boost notification description updated.`, flags: MessageFlags.Ephemeral });
             }
 
             if (sub === 'boost-color') {
                 const val = options.getString('hex').trim();
-                if (!validateHex(val)) return interaction.reply({ content: '❌ Format hex tidak valid. Contoh: `#FF73FA`', flags: MessageFlags.Ephemeral });
+                if (!validateHex(val)) return interaction.reply({ content: '❌ Invalid hex format. Example: `#FF73FA`', flags: MessageFlags.Ephemeral });
                 client.database.set(`booster-boost-color-${guildId}`, toHex(val));
-                return interaction.reply({ content: `✅ Warna notifikasi boost diperbarui ke \`${toHex(val)}\`.`, flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: `✅ Boost notification color updated to \`${toHex(val)}\`.`, flags: MessageFlags.Ephemeral });
             }
 
             if (sub === 'unboost-toggle') {
-                const aktif = options.getBoolean('aktif');
-                if (aktif && !cfg.unboostChannelId) return interaction.reply({ content: '❌ Atur channel unboost terlebih dahulu dengan `/booster notif unboost-channel`.', flags: MessageFlags.Ephemeral });
-                setBool(client, `booster-unboost-enabled-${guildId}`, aktif);
-                return interaction.reply({ content: aktif ? '✅ Notifikasi unboost **diaktifkan**.' : '❌ Notifikasi unboost **dinonaktifkan**.', flags: MessageFlags.Ephemeral });
+                const active = options.getBoolean('active');
+                if (active && !cfg.unboostChannelId) return interaction.reply({ content: '❌ Set the unboost channel first with `/booster notif unboost-channel`.', flags: MessageFlags.Ephemeral });
+                setBool(client, `booster-unboost-enabled-${guildId}`, active);
+                return interaction.reply({ content: active ? '✅ Unboost notification **enabled**.' : '❌ Unboost notification **disabled**.', flags: MessageFlags.Ephemeral });
             }
 
             if (sub === 'unboost-channel') {
                 const chStr = options.getString('channel');
                 const ch    = resolveChannel(interaction.guild, chStr);
-                if (!ch) return interaction.reply({ content: '❌ Channel tidak ditemukan. Gunakan mention `#channel` atau ID channel.', flags: MessageFlags.Ephemeral });
+                if (!ch) return interaction.reply({ content: '❌ Channel not found. Use a mention `#channel` or channel ID.', flags: MessageFlags.Ephemeral });
                 const chPermsOkUnboost = await checkBotPermissions(interaction, [
                     PermissionFlagsBits.SendMessages,
                     PermissionFlagsBits.EmbedLinks,
                 ], ch);
                 if (!chPermsOkUnboost) return;
                 client.database.set(`booster-unboost-channel-${guildId}`, ch.id);
-                return interaction.reply({ content: `✅ Channel notifikasi unboost diatur ke <#${ch.id}>.`, flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: `✅ Unboost notification channel set to <#${ch.id}>.`, flags: MessageFlags.Ephemeral });
             }
 
             if (sub === 'unboost-title') {
-                client.database.set(`booster-unboost-title-${guildId}`, options.getString('teks'));
-                return interaction.reply({ content: `✅ Judul notifikasi unboost diperbarui.`, flags: MessageFlags.Ephemeral });
+                client.database.set(`booster-unboost-title-${guildId}`, options.getString('text'));
+                return interaction.reply({ content: `✅ Unboost notification title updated.`, flags: MessageFlags.Ephemeral });
             }
 
             if (sub === 'unboost-description') {
-                client.database.set(`booster-unboost-desc-${guildId}`, options.getString('teks'));
-                return interaction.reply({ content: `✅ Deskripsi notifikasi unboost diperbarui.`, flags: MessageFlags.Ephemeral });
+                client.database.set(`booster-unboost-desc-${guildId}`, options.getString('text'));
+                return interaction.reply({ content: `✅ Unboost notification description updated.`, flags: MessageFlags.Ephemeral });
             }
 
             if (sub === 'unboost-color') {
                 const val = options.getString('hex').trim();
-                if (!validateHex(val)) return interaction.reply({ content: '❌ Format hex tidak valid. Contoh: `#ED4245`', flags: MessageFlags.Ephemeral });
+                if (!validateHex(val)) return interaction.reply({ content: '❌ Invalid hex format. Example: `#ED4245`', flags: MessageFlags.Ephemeral });
                 client.database.set(`booster-unboost-color-${guildId}`, toHex(val));
-                return interaction.reply({ content: `✅ Warna notifikasi unboost diperbarui ke \`${toHex(val)}\`.`, flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: `✅ Unboost notification color updated to \`${toHex(val)}\`.`, flags: MessageFlags.Ephemeral });
             }
 
             // ── Preview helper ─────────────────────────────────────────────
@@ -520,15 +520,15 @@ required: true
                     const text = cfg.boostPlainText ? parsePrev(cfg.boostPlainText) : '';
                     const payload = { flags: MessageFlags.Ephemeral };
                     payload.content = text
-                        ? `> 👁️ **Pratinjau Boost (Teks Biasa)**\n${text}`
-                        : `> 👁️ **Pratinjau Boost (Teks Biasa)** — pesan kosong, hanya card`;
+                        ? `> 👁️ **Boost Preview (Plain Text)**\n${text}`
+                        : `> 👁️ **Boost Preview (Plain Text)** — empty message, card only`;
                     if (boostCard) payload.files = [boostCard];
                     return interaction.reply(payload);
                 }
 
                 const embed = new EmbedBuilder()
                     .setColor(cfg.boostColor)
-                    .setAuthor({ name: '👁️ Mode Pratinjau — Boost' })
+                    .setAuthor({ name: '👁️ Preview Mode — Boost' })
                     .setTimestamp();
                 const parsedBoostTitle = parsePrev(cfg.boostTitle);
                 if (parsedBoostTitle) embed.setTitle(parsedBoostTitle);
@@ -536,10 +536,10 @@ required: true
                 if (parsedBoostDesc) embed.setDescription(parsedBoostDesc);
                 if (cfg.boostShowThumbnail) embed.setThumbnail(interaction.member.user.displayAvatarURL({ dynamic: true, size: 256 }));
                 const boostFields = [];
-                if (cfg.boostShowMember)      boostFields.push({ name: '👤 Member',       value: interaction.member.user.tag,                        inline: true });
-                if (cfg.boostShowMulaiBoost)  boostFields.push({ name: '🚀 Mulai Boost',  value: `<t:${Math.floor(Date.now() / 1000)}:R>`,           inline: true });
-                if (cfg.boostShowTotalBoost)  boostFields.push({ name: '✨ Total Boost',  value: `**${guild.premiumSubscriptionCount ?? 0}** boost`,  inline: true });
-                if (cfg.boostShowLevelServer) boostFields.push({ name: '🏅 Level Server', value: `Level **${guild.premiumTier}**`,                   inline: true });
+                if (cfg.boostShowMember)      boostFields.push({ name: '👤 Member',        value: interaction.member.user.tag,                        inline: true });
+                if (cfg.boostShowMulaiBoost)  boostFields.push({ name: '🚀 Boost Start',   value: `<t:${Math.floor(Date.now() / 1000)}:R>`,           inline: true });
+                if (cfg.boostShowTotalBoost)  boostFields.push({ name: '✨ Total Boosts',  value: `**${guild.premiumSubscriptionCount ?? 0}** boost(s)`, inline: true });
+                if (cfg.boostShowLevelServer) boostFields.push({ name: '🏅 Server Level',  value: `Level **${guild.premiumTier}**`,                   inline: true });
                 if (boostFields.length) embed.addFields(...boostFields);
                 if (cfg.boostFooter) embed.setFooter({ text: parsePrev(cfg.boostFooter) });
                 if (boostCard) embed.setImage('attachment://boost-card.png');
@@ -583,15 +583,15 @@ required: true
                     const text = cfg.unboostPlainText ? parsePrev(cfg.unboostPlainText) : '';
                     const payload = { flags: MessageFlags.Ephemeral };
                     payload.content = text
-                        ? `> 👁️ **Pratinjau Unboost (Teks Biasa)**\n${text}`
-                        : `> 👁️ **Pratinjau Unboost (Teks Biasa)** — pesan kosong, hanya card`;
+                        ? `> 👁️ **Unboost Preview (Plain Text)**\n${text}`
+                        : `> 👁️ **Unboost Preview (Plain Text)** — empty message, card only`;
                     if (unboostCard) payload.files = [unboostCard];
                     return interaction.reply(payload);
                 }
 
                 const embed = new EmbedBuilder()
                     .setColor(cfg.unboostColor)
-                    .setAuthor({ name: '👁️ Mode Pratinjau — Unboost' })
+                    .setAuthor({ name: '👁️ Preview Mode — Unboost' })
                     .setTimestamp();
                 const parsedUnboostTitle = parsePrev(cfg.unboostTitle);
                 if (parsedUnboostTitle) embed.setTitle(parsedUnboostTitle);
@@ -599,9 +599,9 @@ required: true
                 if (parsedUnboostDesc) embed.setDescription(parsedUnboostDesc);
                 if (cfg.unboostShowThumbnail) embed.setThumbnail(interaction.member.user.displayAvatarURL({ dynamic: true, size: 256 }));
                 const unboostFields = [];
-                if (cfg.unboostShowMember)      unboostFields.push({ name: '👤 Member',       value: interaction.member.user.tag,                        inline: true });
-                if (cfg.unboostShowTotalBoost)  unboostFields.push({ name: '✨ Total Boost',  value: `**${guild.premiumSubscriptionCount ?? 0}** boost`,  inline: true });
-                if (cfg.unboostShowLevelServer) unboostFields.push({ name: '🏅 Level Server', value: `Level **${guild.premiumTier}**`,                    inline: true });
+                if (cfg.unboostShowMember)      unboostFields.push({ name: '👤 Member',        value: interaction.member.user.tag,                         inline: true });
+                if (cfg.unboostShowTotalBoost)  unboostFields.push({ name: '✨ Total Boosts',  value: `**${guild.premiumSubscriptionCount ?? 0}** boost(s)`, inline: true });
+                if (cfg.unboostShowLevelServer) unboostFields.push({ name: '🏅 Server Level',  value: `Level **${guild.premiumTier}**`,                     inline: true });
                 if (unboostFields.length) embed.addFields(...unboostFields);
                 if (cfg.unboostFooter) embed.setFooter({ text: parsePrev(cfg.unboostFooter) });
                 if (unboostCard) embed.setImage('attachment://unboost-card.png');
@@ -619,33 +619,33 @@ required: true
             if (sub === 'set') {
                 const roleStr = options.getString('role');
                 const role    = resolveRole(interaction.guild, roleStr);
-                if (!role) return interaction.reply({ content: '❌ Role tidak ditemukan. Gunakan mention `@role` atau ID role.', flags: MessageFlags.Ephemeral });
-                if (role.managed)   return interaction.reply({ content: '❌ Role yang dikelola integrasi eksternal tidak bisa dipakai.', flags: MessageFlags.Ephemeral });
-                if (role.id === guildId) return interaction.reply({ content: '❌ Role `@everyone` tidak bisa dipakai.', flags: MessageFlags.Ephemeral });
+                if (!role) return interaction.reply({ content: '❌ Role not found. Use a mention `@role` or a role ID.', flags: MessageFlags.Ephemeral });
+                if (role.managed)   return interaction.reply({ content: '❌ Roles managed by external integrations cannot be used.', flags: MessageFlags.Ephemeral });
+                if (role.id === guildId) return interaction.reply({ content: '❌ The `@everyone` role cannot be used.', flags: MessageFlags.Ephemeral });
 
                 client.database.set(`booster-autorole-role-${guildId}`, role.id);
                 setBool(client, `booster-autorole-enabled-${guildId}`, true);
 
                 return interaction.reply({
-                    embeds: [new EmbedBuilder().setColor('#57F287').setDescription(`✅ Autorole booster diatur ke ${role}.\nStatus otomatis **diaktifkan**.`)],
+                    embeds: [new EmbedBuilder().setColor('#57F287').setDescription(`✅ Booster autorole set to ${role}.\nStatus automatically **enabled**.`)],
                     flags: MessageFlags.Ephemeral
                 });
             }
 
             if (sub === 'toggle') {
-                const aktif = options.getBoolean('aktif');
-                if (aktif && !cfg.autoroleRoleId) return interaction.reply({ content: '❌ Belum ada role yang diatur. Gunakan `/booster autorole set` terlebih dahulu.', flags: MessageFlags.Ephemeral });
-                setBool(client, `booster-autorole-enabled-${guildId}`, aktif);
-                return interaction.reply({ content: aktif ? '✅ Autorole booster **diaktifkan**.' : '❌ Autorole booster **dinonaktifkan**.', flags: MessageFlags.Ephemeral });
+                const active = options.getBoolean('active');
+                if (active && !cfg.autoroleRoleId) return interaction.reply({ content: '❌ No role has been set. Use `/booster autorole set` first.', flags: MessageFlags.Ephemeral });
+                setBool(client, `booster-autorole-enabled-${guildId}`, active);
+                return interaction.reply({ content: active ? '✅ Booster autorole **enabled**.' : '❌ Booster autorole **disabled**.', flags: MessageFlags.Ephemeral });
             }
 
             if (sub === 'autoremove') {
-                const aktif = options.getBoolean('aktif');
-                setBool(client, `booster-autoremove-enabled-${guildId}`, aktif);
+                const active = options.getBoolean('active');
+                setBool(client, `booster-autoremove-enabled-${guildId}`, active);
                 return interaction.reply({
-                    content: aktif
-                        ? '✅ Role booster akan **dicabut otomatis** saat member unboost.'
-                        : '❌ Pencabutan role otomatis **dinonaktifkan**.',
+                    content: active
+                        ? '✅ Booster role will be **automatically removed** when a member unboosts.'
+                        : '❌ Automatic role removal **disabled**.',
                     flags: MessageFlags.Ephemeral
                 });
             }
@@ -655,7 +655,7 @@ required: true
                 setBool(client, `booster-autorole-enabled-${guildId}`, false);
                 setBool(client, `booster-autoremove-enabled-${guildId}`, false);
                 return interaction.reply({
-                    embeds: [new EmbedBuilder().setColor('#ED4245').setDescription('🗑️ Konfigurasi autorole booster berhasil dihapus.')],
+                    embeds: [new EmbedBuilder().setColor('#ED4245').setDescription('🗑️ Booster autorole configuration has been removed.')],
                     flags: MessageFlags.Ephemeral
                 });
             }

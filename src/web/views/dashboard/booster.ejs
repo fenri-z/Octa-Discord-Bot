@@ -8,7 +8,7 @@
         <%- include('../partials/perm-notice') %>
         <div class="page-header">
             <h1>Boost Notification</h1>
-            <p>Notifikasi otomatis saat member melakukan boost server.</p>
+            <p>Automatic notification when a member boosts the server.</p>
         </div>
 
         <!-- ══════════════════════════════════════
@@ -24,14 +24,14 @@
                         <input type="checkbox" id="boostEnabled" class="toggle-input"
                                <%= boostData.enabled ? 'checked' : '' %>>
                         <span class="toggle-slider"></span>
-                        <span>Aktifkan Boost Notification</span>
+                        <span>Enable Boost Notification</span>
                     </label>
                 </div>
 
                 <div class="form-group">
-                    <label class="label">Channel Notifikasi</label>
+                    <label class="label">Notification Channel</label>
                     <select id="boostChannel" class="select">
-                        <option value="">— Pilih channel —</option>
+                        <option value="">— Select channel —</option>
                         <% (locals.channels || []).forEach(ch => { %>
                             <option value="<%= ch.id %>" <%= boostData.channelId === ch.id ? 'selected' : '' %>>#<%= ch.name %></option>
                         <% }) %>
@@ -39,7 +39,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label class="label">Tipe Pesan</label>
+                    <label class="label">Message Type</label>
                     <div style="display:flex;gap:.75rem;">
                         <label class="radio-label" style="display:flex;align-items:center;gap:.5rem;cursor:pointer;">
                             <input type="radio" name="boostMessageType" id="boostTypeEmbed" value="embed"
@@ -57,14 +57,14 @@
                 <!-- Panel Teks Biasa -->
                 <div id="boostPlainPanel" class="form-group" style="display:none;">
                     <div class="label-with-picker">
-                        <label class="label" style="margin-bottom:0;">Isi Pesan Teks Biasa</label>
+                        <label class="label" style="margin-bottom:0;">Plain Text Message</label>
                         <div class="ph-picker-anchor">
                             <button type="button" class="ph-toggle-btn" onclick="togglePicker('boostPlainPicker',event)">{…} Placeholder</button>
                             <div class="ph-dropdown" id="boostPlainPicker" style="display:none;"></div>
                         </div>
                     </div>
                     <textarea id="boostPlainText" class="textarea" rows="4"
-                              placeholder="🚀 {member} baru saja boost **{server}**! Total boost: **{boosts}**."
+                              placeholder="🚀 {member} just boosted **{server}**! Total boosts: **{boosts}**."
                               oninput="updateBoostPreview()"><%= boostData.plainText %></textarea>
                 </div>
 
@@ -78,21 +78,21 @@
                     </div>
 
                     <div class="form-group">
-                        <label class="label">Judul Embed</label>
+                        <label class="label">Embed Title</label>
                         <input type="text" id="boostTitle" class="input"
-                               placeholder="🚀 Server Boost Baru!"
+                               placeholder="🚀 New Server Boost!"
                                value="<%= boostData.title %>"
                                oninput="updateBoostPreview()">
                     </div>
 
                     <div class="form-group">
-                        <label class="label">Deskripsi Embed</label>
+                        <label class="label">Embed Description</label>
                         <textarea id="boostDesc" class="textarea" rows="4"
-                                  placeholder="Terima kasih {member} sudah boost server ini! 💖" oninput="updateBoostPreview()"><%= boostData.description %></textarea>
+                                  placeholder="Thank you {member} for boosting this server! 💖" oninput="updateBoostPreview()"><%= boostData.description %></textarea>
                     </div>
 
                     <div class="form-group">
-                        <label class="label">Warna Embed</label>
+                        <label class="label">Embed Color</label>
                         <div style="display:flex;gap:.75rem;align-items:center;">
                             <input type="color" id="boostColorPicker" value="<%= boostData.color || '#FF73FA' %>"
                                    style="width:44px;height:36px;border:none;border-radius:6px;cursor:pointer;padding:0;background:none;"
@@ -105,9 +105,9 @@
                     </div>
 
                     <div class="form-group">
-                        <label class="label">Footer <span style="font-weight:400;color:var(--text-muted)">(opsional)</span></label>
+                        <label class="label">Footer <span style="font-weight:400;color:var(--text-muted)">(optional)</span></label>
                         <input type="text" id="boostFooter" class="input"
-                               placeholder="Kosongkan untuk menghapus"
+                               placeholder="Leave blank to remove"
                                value="<%= boostData.footerText || '' %>"
                                oninput="updateBoostPreview()">
                     </div>
@@ -117,7 +117,7 @@
                             <input type="checkbox" id="boostShowThumbnail" class="toggle-input"
                                    <%= boostData.showThumbnail !== false ? 'checked' : '' %> onchange="updateBoostPreview()">
                             <span class="toggle-slider"></span>
-                            <span>Tampilkan foto profil member (thumbnail)</span>
+                            <span>Show member profile picture (thumbnail)</span>
                         </label>
                     </div>
 
@@ -132,7 +132,7 @@
                             <label class="toggle-label">
                                 <input type="checkbox" id="boostShowMulaiBoost" class="toggle-input"
                                        <%= boostData.showMulaiBoost ? 'checked' : '' %> onchange="updateBoostPreview()">
-                                <span class="toggle-slider"></span><span>🚀 Mulai Boost</span>
+                                <span class="toggle-slider"></span><span>🚀 Boost Start</span>
                             </label>
                             <label class="toggle-label">
                                 <input type="checkbox" id="boostShowTotalBoost" class="toggle-input"
@@ -155,21 +155,21 @@
                         <input type="checkbox" id="boostCardEnabled" class="toggle-input"
                                <%= boostData.cardEnabled ? 'checked' : '' %>>
                         <span class="toggle-slider"></span>
-                        <span>Kirim gambar boost card</span>
+                        <span>Send boost card image</span>
                     </label>
                 </div>
                 <div id="boostCardPanel" style="display:none;">
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;">
                         <div class="form-group">
-                            <label class="label">Bentuk Avatar</label>
+                            <label class="label">Avatar Shape</label>
                             <div style="display:flex;gap:.6rem;margin-top:.2rem;">
                                 <label style="display:flex;align-items:center;gap:.4rem;cursor:pointer;font-size:.85rem;">
                                     <input type="radio" name="boostCardAvatarShape" value="circle" <%= (boostData.cardAvatarShape||'circle')==='circle'?'checked':'' %>>
-                                    <span>Lingkaran</span>
+                                    <span>Circle</span>
                                 </label>
                                 <label style="display:flex;align-items:center;gap:.4rem;cursor:pointer;font-size:.85rem;">
                                     <input type="radio" name="boostCardAvatarShape" value="square" <%= boostData.cardAvatarShape==='square'?'checked':'' %>>
-                                    <span>Kotak</span>
+                                    <span>Square</span>
                                 </label>
                             </div>
                         </div>
@@ -183,9 +183,9 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="label">Tipe Background</label>
+                        <label class="label">Background Type</label>
                         <div style="display:flex;gap:.75rem;flex-wrap:wrap;margin-top:.2rem;">
-                            <% [['gradient','Gradien'],['solid','Solid'],['image','Gambar URL'],['transparent','Transparan']].forEach(function(bt){ %>
+                            <% [['gradient','Gradient'],['solid','Solid'],['image','Image URL'],['transparent','Transparent']].forEach(function(bt){ %>
                             <label style="display:flex;align-items:center;gap:.4rem;cursor:pointer;font-size:.85rem;">
                                 <input type="radio" name="boostCardBgType" value="<%= bt[0] %>" <%= (boostData.cardBgType||'gradient')===bt[0]?'checked':'' %>>
                                 <span><%= bt[1] %></span>
@@ -195,14 +195,14 @@
                     </div>
                     <div id="boostCardBgGradientPanel" style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;">
                         <div class="form-group">
-                            <label class="label" id="boostCardBgColor1Label">Latar Kiri</label>
+                            <label class="label" id="boostCardBgColor1Label">Left Background</label>
                             <div style="display:flex;gap:.5rem;align-items:center;">
                                 <input type="color" id="boostCardBgColorPicker" value="<%= boostData.cardBgColor||'#0a0a1e' %>" style="width:38px;height:32px;border:none;border-radius:5px;cursor:pointer;padding:0;background:none;" oninput="bcSync('boostCardBgColor','boostCardBgColorPicker');drawBoostCard()">
                                 <input type="text" id="boostCardBgColor" class="input" style="max-width:110px;" maxlength="7" value="<%= boostData.cardBgColor||'#0a0a1e' %>" oninput="bcSyncP('boostCardBgColor','boostCardBgColorPicker');drawBoostCard()">
                             </div>
                         </div>
                         <div class="form-group" id="boostCardBgColor2Group">
-                            <label class="label">Latar Kanan</label>
+                            <label class="label">Right Background</label>
                             <div style="display:flex;gap:.5rem;align-items:center;">
                                 <input type="color" id="boostCardBgColor2Picker" value="<%= boostData.cardBgColor2||'#1e0a2e' %>" style="width:38px;height:32px;border:none;border-radius:5px;cursor:pointer;padding:0;background:none;" oninput="bcSync('boostCardBgColor2','boostCardBgColor2Picker');drawBoostCard()">
                                 <input type="text" id="boostCardBgColor2" class="input" style="max-width:110px;" maxlength="7" value="<%= boostData.cardBgColor2||'#1e0a2e' %>" oninput="bcSyncP('boostCardBgColor2','boostCardBgColor2Picker');drawBoostCard()">
@@ -210,46 +210,46 @@
                         </div>
                     </div>
                     <div id="boostCardBgImagePanel" style="display:none;" class="form-group">
-                        <label class="label">URL Gambar Latar</label>
+                        <label class="label">Background Image URL</label>
                         <input type="text" id="boostCardBgImageUrl" class="input" placeholder="https://..." value="<%= boostData.cardBgImageUrl||'' %>">
                     </div>
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;">
                         <div class="form-group">
-                            <label class="label">Warna Overlay</label>
+                            <label class="label">Overlay Color</label>
                             <div style="display:flex;gap:.5rem;align-items:center;">
                                 <input type="color" id="boostCardOverlayColorPicker" value="<%= boostData.cardOverlayColor||'#000000' %>" style="width:38px;height:32px;border:none;border-radius:5px;cursor:pointer;padding:0;background:none;" oninput="bcSync('boostCardOverlayColor','boostCardOverlayColorPicker');drawBoostCard()">
                                 <input type="text" id="boostCardOverlayColor" class="input" style="max-width:110px;" maxlength="7" value="<%= boostData.cardOverlayColor||'#000000' %>" oninput="bcSyncP('boostCardOverlayColor','boostCardOverlayColorPicker');drawBoostCard()">
                             </div>
                         </div>
                         <div class="form-group">
-                            <label class="label" style="display:flex;justify-content:space-between;"><span>Opasitas Overlay</span><span id="boostCardOverlayOpacityVal" style="color:var(--text-muted);font-weight:400;"><%= boostData.cardOverlayOpacity||'0' %>%</span></label>
+                            <label class="label" style="display:flex;justify-content:space-between;"><span>Overlay Opacity</span><span id="boostCardOverlayOpacityVal" style="color:var(--text-muted);font-weight:400;"><%= boostData.cardOverlayOpacity||'0' %>%</span></label>
                             <input type="range" id="boostCardOverlayOpacity" min="0" max="100" value="<%= boostData.cardOverlayOpacity||'0' %>" style="width:100%;margin-top:.45rem;accent-color:var(--accent,#5865f2);" oninput="document.getElementById('boostCardOverlayOpacityVal').textContent=this.value+'%';drawBoostCard()">
                         </div>
                     </div>
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;">
                         <div class="form-group">
-                            <label class="label">Warna Judul</label>
+                            <label class="label">Title Color</label>
                             <div style="display:flex;gap:.5rem;align-items:center;">
                                 <input type="color" id="boostCardTitleColorPicker" value="<%= boostData.cardTitleColor||'#ffffff' %>" style="width:38px;height:32px;border:none;border-radius:5px;cursor:pointer;padding:0;background:none;" oninput="bcSync('boostCardTitleColor','boostCardTitleColorPicker');drawBoostCard()">
                                 <input type="text" id="boostCardTitleColor" class="input" style="max-width:110px;" maxlength="7" value="<%= boostData.cardTitleColor||'#ffffff' %>" oninput="bcSyncP('boostCardTitleColor','boostCardTitleColorPicker');drawBoostCard()">
                             </div>
                         </div>
                         <div class="form-group">
-                            <label class="label">Warna Nama Pengguna</label>
+                            <label class="label">Username Color</label>
                             <div style="display:flex;gap:.5rem;align-items:center;">
                                 <input type="color" id="boostCardUsernameColorPicker" value="<%= boostData.cardUsernameColor||'#FF73FA' %>" style="width:38px;height:32px;border:none;border-radius:5px;cursor:pointer;padding:0;background:none;" oninput="bcSync('boostCardUsernameColor','boostCardUsernameColorPicker');drawBoostCard()">
                                 <input type="text" id="boostCardUsernameColor" class="input" style="max-width:110px;" maxlength="7" value="<%= boostData.cardUsernameColor||'#FF73FA' %>" oninput="bcSyncP('boostCardUsernameColor','boostCardUsernameColorPicker');drawBoostCard()">
                             </div>
                         </div>
                         <div class="form-group">
-                            <label class="label">Warna Pesan (sub teks)</label>
+                            <label class="label">Message Color (sub text)</label>
                             <div style="display:flex;gap:.5rem;align-items:center;">
                                 <input type="color" id="boostCardMsgColorPicker" value="<%= boostData.cardMsgColor||'#cccccc' %>" style="width:38px;height:32px;border:none;border-radius:5px;cursor:pointer;padding:0;background:none;" oninput="bcSync('boostCardMsgColor','boostCardMsgColorPicker');drawBoostCard()">
                                 <input type="text" id="boostCardMsgColor" class="input" style="max-width:110px;" maxlength="7" value="<%= boostData.cardMsgColor||'#cccccc' %>" oninput="bcSyncP('boostCardMsgColor','boostCardMsgColorPicker');drawBoostCard()">
                             </div>
                         </div>
                         <div class="form-group">
-                            <label class="label">Warna Border Avatar</label>
+                            <label class="label">Avatar Border Color</label>
                             <div style="display:flex;gap:.5rem;align-items:center;">
                                 <input type="color" id="boostCardAccentPicker" value="<%= boostData.cardAccentColor||'#FF73FA' %>" style="width:38px;height:32px;border:none;border-radius:5px;cursor:pointer;padding:0;background:none;" oninput="bcSync('boostCardAccentColor','boostCardAccentPicker');drawBoostCard()">
                                 <input type="text" id="boostCardAccentColor" class="input" style="max-width:110px;" maxlength="7" value="<%= boostData.cardAccentColor||'#FF73FA' %>" oninput="bcSyncP('boostCardAccentColor','boostCardAccentPicker');drawBoostCard()">
@@ -257,18 +257,18 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="label">Teks Besar</label>
+                        <label class="label">Large Text</label>
                         <input type="text" id="boostCardWelcomeText" class="input" maxlength="20" placeholder="BOOST!" value="<%= boostData.cardWelcomeText||'BOOST!' %>">
                     </div>
                     <div class="form-group">
-                        <label class="label">Teks Kecil Bawah</label>
+                        <label class="label">Small Text Below</label>
                         <input type="text" id="boostCardSubText" class="input" maxlength="60" placeholder="Thank you for boosting!" value="<%= boostData.cardSubText||'Thank you for boosting!' %>">
                         <div class="hint" style="margin-top:.3rem;"><code>{server}</code> · <code>{boosts}</code> · <code>{level}</code></div>
                     </div>
                 </div>
 
                 <div class="form-actions">
-                    <button class="btn btn-primary" onclick="saveBoost()">Simpan</button>
+                    <button class="btn btn-primary" onclick="saveBoost()">Save</button>
                 </div>
                 <div id="boostMsg" class="form-message"></div>
             </div>
@@ -292,7 +292,7 @@
                                  alt="avatar" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
                             <div class="dc-msg-body">
                                 <span class="dc-username" style="color:<%- botUser ? botUser.roleColor : '#ffffff' %>"><%- botUser ? botUser.username : 'Bot' %></span>
-                                <span class="dc-timestamp">Hari ini pukul 12:00</span>
+                                <span class="dc-timestamp">Today at 12:00 PM</span>
                                 <!-- Plain text preview -->
                                 <div id="boostPreviewPlain" class="dc-plain-msg" style="display:none;"></div>
                                 <!-- Card menyatu di bawah teks biasa -->
@@ -332,14 +332,14 @@
                         <input type="checkbox" id="unboostEnabled" class="toggle-input"
                                <%= unboostData.enabled ? 'checked' : '' %>>
                         <span class="toggle-slider"></span>
-                        <span>Aktifkan Unboost Notification</span>
+                        <span>Enable Unboost Notification</span>
                     </label>
                 </div>
 
                 <div class="form-group">
                     <label class="label">Channel Notifikasi</label>
                     <select id="unboostChannel" class="select">
-                        <option value="">— Pilih channel —</option>
+                        <option value="">— Select channel —</option>
                         <% (locals.channels || []).forEach(ch => { %>
                             <option value="<%= ch.id %>" <%= unboostData.channelId === ch.id ? 'selected' : '' %>>#<%= ch.name %></option>
                         <% }) %>
@@ -347,7 +347,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label class="label">Tipe Pesan</label>
+                    <label class="label">Message Type</label>
                     <div style="display:flex;gap:.75rem;">
                         <label class="radio-label" style="display:flex;align-items:center;gap:.5rem;cursor:pointer;">
                             <input type="radio" name="unboostMessageType" id="unboostTypeEmbed" value="embed"
@@ -365,14 +365,14 @@
                 <!-- Panel Teks Biasa -->
                 <div id="unboostPlainPanel" class="form-group" style="display:none;">
                     <div class="label-with-picker">
-                        <label class="label" style="margin-bottom:0;">Isi Pesan Teks Biasa</label>
+                        <label class="label" style="margin-bottom:0;">Plain Text Message</label>
                         <div class="ph-picker-anchor">
                             <button type="button" class="ph-toggle-btn" onclick="togglePicker('unboostPlainPicker',event)">{…} Placeholder</button>
                             <div class="ph-dropdown" id="unboostPlainPicker" style="display:none;"></div>
                         </div>
                     </div>
                     <textarea id="unboostPlainText" class="textarea" rows="4"
-                              placeholder="💔 {member} telah berhenti boost **{server}**. Total boost: **{boosts}**."
+                              placeholder="💔 {member} has stopped boosting **{server}**. Total boosts: **{boosts}**."
                               oninput="updateUnboostPreview()"><%= unboostData.plainText %></textarea>
                 </div>
 
@@ -386,21 +386,21 @@
                     </div>
 
                     <div class="form-group">
-                        <label class="label">Judul Embed</label>
+                        <label class="label">Embed Title</label>
                         <input type="text" id="unboostTitle" class="input"
-                               placeholder="💔 Boost Berakhir"
+                               placeholder="💔 Boost Ended"
                                value="<%= unboostData.title %>"
                                oninput="updateUnboostPreview()">
                     </div>
 
                     <div class="form-group">
-                        <label class="label">Deskripsi Embed</label>
+                        <label class="label">Embed Description</label>
                         <textarea id="unboostDesc" class="textarea" rows="4"
-                                  placeholder="{member} telah mencabut boost-nya dari server." oninput="updateUnboostPreview()"><%= unboostData.description %></textarea>
+                                  placeholder="{member} has removed their boost from the server." oninput="updateUnboostPreview()"><%= unboostData.description %></textarea>
                     </div>
 
                     <div class="form-group">
-                        <label class="label">Warna Embed</label>
+                        <label class="label">Embed Color</label>
                         <div style="display:flex;gap:.75rem;align-items:center;">
                             <input type="color" id="unboostColorPicker" value="<%= unboostData.color || '#ED4245' %>"
                                    style="width:44px;height:36px;border:none;border-radius:6px;cursor:pointer;padding:0;background:none;"
@@ -413,9 +413,9 @@
                     </div>
 
                     <div class="form-group">
-                        <label class="label">Footer <span style="font-weight:400;color:var(--text-muted)">(opsional)</span></label>
+                        <label class="label">Footer <span style="font-weight:400;color:var(--text-muted)">(optional)</span></label>
                         <input type="text" id="unboostFooter" class="input"
-                               placeholder="Kosongkan untuk menghapus"
+                               placeholder="Leave blank to remove"
                                value="<%= unboostData.footerText || '' %>"
                                oninput="updateUnboostPreview()">
                     </div>
@@ -425,7 +425,7 @@
                             <input type="checkbox" id="unboostShowThumbnail" class="toggle-input"
                                    <%= unboostData.showThumbnail !== false ? 'checked' : '' %> onchange="updateUnboostPreview()">
                             <span class="toggle-slider"></span>
-                            <span>Tampilkan foto profil member (thumbnail)</span>
+                            <span>Show member profile picture (thumbnail)</span>
                         </label>
                     </div>
 
@@ -458,21 +458,21 @@
                         <input type="checkbox" id="unboostCardEnabled" class="toggle-input"
                                <%= unboostData.cardEnabled ? 'checked' : '' %>>
                         <span class="toggle-slider"></span>
-                        <span>Kirim gambar unboost card</span>
+                        <span>Send unboost card image</span>
                     </label>
                 </div>
                 <div id="unboostCardPanel" style="display:none;">
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;">
                         <div class="form-group">
-                            <label class="label">Bentuk Avatar</label>
+                            <label class="label">Avatar Shape</label>
                             <div style="display:flex;gap:.6rem;margin-top:.2rem;">
                                 <label style="display:flex;align-items:center;gap:.4rem;cursor:pointer;font-size:.85rem;">
                                     <input type="radio" name="unboostCardAvatarShape" value="circle" <%= (unboostData.cardAvatarShape||'circle')==='circle'?'checked':'' %>>
-                                    <span>Lingkaran</span>
+                                    <span>Circle</span>
                                 </label>
                                 <label style="display:flex;align-items:center;gap:.4rem;cursor:pointer;font-size:.85rem;">
                                     <input type="radio" name="unboostCardAvatarShape" value="square" <%= unboostData.cardAvatarShape==='square'?'checked':'' %>>
-                                    <span>Kotak</span>
+                                    <span>Square</span>
                                 </label>
                             </div>
                         </div>
@@ -486,9 +486,9 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="label">Tipe Background</label>
+                        <label class="label">Background Type</label>
                         <div style="display:flex;gap:.75rem;flex-wrap:wrap;margin-top:.2rem;">
-                            <% [['gradient','Gradien'],['solid','Solid'],['image','Gambar URL'],['transparent','Transparan']].forEach(function(bt){ %>
+                            <% [['gradient','Gradient'],['solid','Solid'],['image','Image URL'],['transparent','Transparent']].forEach(function(bt){ %>
                             <label style="display:flex;align-items:center;gap:.4rem;cursor:pointer;font-size:.85rem;">
                                 <input type="radio" name="unboostCardBgType" value="<%= bt[0] %>" <%= (unboostData.cardBgType||'gradient')===bt[0]?'checked':'' %>>
                                 <span><%= bt[1] %></span>
@@ -498,14 +498,14 @@
                     </div>
                     <div id="unboostCardBgGradientPanel" style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;">
                         <div class="form-group">
-                            <label class="label" id="unboostCardBgColor1Label">Latar Kiri</label>
+                            <label class="label" id="unboostCardBgColor1Label">Left Background</label>
                             <div style="display:flex;gap:.5rem;align-items:center;">
                                 <input type="color" id="unboostCardBgColorPicker" value="<%= unboostData.cardBgColor||'#1e0a0a' %>" style="width:38px;height:32px;border:none;border-radius:5px;cursor:pointer;padding:0;background:none;" oninput="bcSync('unboostCardBgColor','unboostCardBgColorPicker');drawUnboostCard()">
                                 <input type="text" id="unboostCardBgColor" class="input" style="max-width:110px;" maxlength="7" value="<%= unboostData.cardBgColor||'#1e0a0a' %>" oninput="bcSyncP('unboostCardBgColor','unboostCardBgColorPicker');drawUnboostCard()">
                             </div>
                         </div>
                         <div class="form-group" id="unboostCardBgColor2Group">
-                            <label class="label">Latar Kanan</label>
+                            <label class="label">Right Background</label>
                             <div style="display:flex;gap:.5rem;align-items:center;">
                                 <input type="color" id="unboostCardBgColor2Picker" value="<%= unboostData.cardBgColor2||'#2e0a0a' %>" style="width:38px;height:32px;border:none;border-radius:5px;cursor:pointer;padding:0;background:none;" oninput="bcSync('unboostCardBgColor2','unboostCardBgColor2Picker');drawUnboostCard()">
                                 <input type="text" id="unboostCardBgColor2" class="input" style="max-width:110px;" maxlength="7" value="<%= unboostData.cardBgColor2||'#2e0a0a' %>" oninput="bcSyncP('unboostCardBgColor2','unboostCardBgColor2Picker');drawUnboostCard()">
@@ -513,46 +513,46 @@
                         </div>
                     </div>
                     <div id="unboostCardBgImagePanel" style="display:none;" class="form-group">
-                        <label class="label">URL Gambar Latar</label>
+                        <label class="label">Background Image URL</label>
                         <input type="text" id="unboostCardBgImageUrl" class="input" placeholder="https://..." value="<%= unboostData.cardBgImageUrl||'' %>">
                     </div>
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;">
                         <div class="form-group">
-                            <label class="label">Warna Overlay</label>
+                            <label class="label">Overlay Color</label>
                             <div style="display:flex;gap:.5rem;align-items:center;">
                                 <input type="color" id="unboostCardOverlayColorPicker" value="<%= unboostData.cardOverlayColor||'#000000' %>" style="width:38px;height:32px;border:none;border-radius:5px;cursor:pointer;padding:0;background:none;" oninput="bcSync('unboostCardOverlayColor','unboostCardOverlayColorPicker');drawUnboostCard()">
                                 <input type="text" id="unboostCardOverlayColor" class="input" style="max-width:110px;" maxlength="7" value="<%= unboostData.cardOverlayColor||'#000000' %>" oninput="bcSyncP('unboostCardOverlayColor','unboostCardOverlayColorPicker');drawUnboostCard()">
                             </div>
                         </div>
                         <div class="form-group">
-                            <label class="label" style="display:flex;justify-content:space-between;"><span>Opasitas Overlay</span><span id="unboostCardOverlayOpacityVal" style="color:var(--text-muted);font-weight:400;"><%= unboostData.cardOverlayOpacity||'0' %>%</span></label>
+                            <label class="label" style="display:flex;justify-content:space-between;"><span>Overlay Opacity</span><span id="unboostCardOverlayOpacityVal" style="color:var(--text-muted);font-weight:400;"><%= unboostData.cardOverlayOpacity||'0' %>%</span></label>
                             <input type="range" id="unboostCardOverlayOpacity" min="0" max="100" value="<%= unboostData.cardOverlayOpacity||'0' %>" style="width:100%;margin-top:.45rem;accent-color:var(--accent,#5865f2);" oninput="document.getElementById('unboostCardOverlayOpacityVal').textContent=this.value+'%';drawUnboostCard()">
                         </div>
                     </div>
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;">
                         <div class="form-group">
-                            <label class="label">Warna Judul</label>
+                            <label class="label">Title Color</label>
                             <div style="display:flex;gap:.5rem;align-items:center;">
                                 <input type="color" id="unboostCardTitleColorPicker" value="<%= unboostData.cardTitleColor||'#ffffff' %>" style="width:38px;height:32px;border:none;border-radius:5px;cursor:pointer;padding:0;background:none;" oninput="bcSync('unboostCardTitleColor','unboostCardTitleColorPicker');drawUnboostCard()">
                                 <input type="text" id="unboostCardTitleColor" class="input" style="max-width:110px;" maxlength="7" value="<%= unboostData.cardTitleColor||'#ffffff' %>" oninput="bcSyncP('unboostCardTitleColor','unboostCardTitleColorPicker');drawUnboostCard()">
                             </div>
                         </div>
                         <div class="form-group">
-                            <label class="label">Warna Nama Pengguna</label>
+                            <label class="label">Username Color</label>
                             <div style="display:flex;gap:.5rem;align-items:center;">
                                 <input type="color" id="unboostCardUsernameColorPicker" value="<%= unboostData.cardUsernameColor||'#ED4245' %>" style="width:38px;height:32px;border:none;border-radius:5px;cursor:pointer;padding:0;background:none;" oninput="bcSync('unboostCardUsernameColor','unboostCardUsernameColorPicker');drawUnboostCard()">
                                 <input type="text" id="unboostCardUsernameColor" class="input" style="max-width:110px;" maxlength="7" value="<%= unboostData.cardUsernameColor||'#ED4245' %>" oninput="bcSyncP('unboostCardUsernameColor','unboostCardUsernameColorPicker');drawUnboostCard()">
                             </div>
                         </div>
                         <div class="form-group">
-                            <label class="label">Warna Pesan (sub teks)</label>
+                            <label class="label">Message Color (sub text)</label>
                             <div style="display:flex;gap:.5rem;align-items:center;">
                                 <input type="color" id="unboostCardMsgColorPicker" value="<%= unboostData.cardMsgColor||'#cccccc' %>" style="width:38px;height:32px;border:none;border-radius:5px;cursor:pointer;padding:0;background:none;" oninput="bcSync('unboostCardMsgColor','unboostCardMsgColorPicker');drawUnboostCard()">
                                 <input type="text" id="unboostCardMsgColor" class="input" style="max-width:110px;" maxlength="7" value="<%= unboostData.cardMsgColor||'#cccccc' %>" oninput="bcSyncP('unboostCardMsgColor','unboostCardMsgColorPicker');drawUnboostCard()">
                             </div>
                         </div>
                         <div class="form-group">
-                            <label class="label">Warna Border Avatar</label>
+                            <label class="label">Avatar Border Color</label>
                             <div style="display:flex;gap:.5rem;align-items:center;">
                                 <input type="color" id="unboostCardAccentPicker" value="<%= unboostData.cardAccentColor||'#ED4245' %>" style="width:38px;height:32px;border:none;border-radius:5px;cursor:pointer;padding:0;background:none;" oninput="bcSync('unboostCardAccentColor','unboostCardAccentPicker');drawUnboostCard()">
                                 <input type="text" id="unboostCardAccentColor" class="input" style="max-width:110px;" maxlength="7" value="<%= unboostData.cardAccentColor||'#ED4245' %>" oninput="bcSyncP('unboostCardAccentColor','unboostCardAccentPicker');drawUnboostCard()">
@@ -560,18 +560,18 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="label">Teks Besar</label>
+                        <label class="label">Large Text</label>
                         <input type="text" id="unboostCardWelcomeText" class="input" maxlength="20" placeholder="UNBOOST" value="<%= unboostData.cardWelcomeText||'UNBOOST' %>">
                     </div>
                     <div class="form-group">
-                        <label class="label">Teks Kecil Bawah</label>
-                        <input type="text" id="unboostCardSubText" class="input" maxlength="60" placeholder="Boost berakhir..." value="<%= unboostData.cardSubText||'Boost berakhir...' %>">
+                        <label class="label">Small Text Below</label>
+                        <input type="text" id="unboostCardSubText" class="input" maxlength="60" placeholder="Boost ended..." value="<%= unboostData.cardSubText||'Boost ended...' %>">
                         <div class="hint" style="margin-top:.3rem;"><code>{server}</code> · <code>{boosts}</code> · <code>{level}</code></div>
                     </div>
                 </div>
 
                 <div class="form-actions">
-                    <button class="btn btn-primary" onclick="saveUnboost()">Simpan</button>
+                    <button class="btn btn-primary" onclick="saveUnboost()">Save</button>
                 </div>
                 <div id="unboostMsg" class="form-message"></div>
             </div>
@@ -595,7 +595,7 @@
                                  alt="avatar" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
                             <div class="dc-msg-body">
                                 <span class="dc-username" style="color:<%- botUser ? botUser.roleColor : '#ffffff' %>"><%- botUser ? botUser.username : 'Bot' %></span>
-                                <span class="dc-timestamp">Hari ini pukul 12:00</span>
+                                <span class="dc-timestamp">Today at 12:00 PM</span>
                                 <!-- Plain text preview -->
                                 <div id="unboostPreviewPlain" class="dc-plain-msg" style="display:none;"></div>
                                 <!-- Card menyatu di bawah teks biasa -->
@@ -871,7 +871,7 @@ async function _drawCard(prefix, canvasId, wrapId, defaultBig, defaultSub, defau
     if (gradPanel) gradPanel.style.display = hasBgClr ? 'grid' : 'none';
     if (imgPanel)  imgPanel.style.display  = bgType === 'image' ? 'block' : 'none';
     if (col2Grp)   col2Grp.style.display   = bgType === 'gradient' ? 'block' : 'none';
-    if (lbl)       lbl.textContent         = bgType === 'gradient' ? 'Latar Kiri' : 'Warna Latar';
+    if (lbl)       lbl.textContent         = bgType === 'gradient' ? 'Left Background' : 'Background Color';
 
     ctx.clearRect(0, 0, W, H);
     function rr(x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y); ctx.quadraticCurveTo(x+w,y,x+w,y+r); ctx.lineTo(x+w,y+h-r); ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h); ctx.lineTo(x+r,y+h); ctx.quadraticCurveTo(x,y+h,x,y+h-r); ctx.lineTo(x,y+r); ctx.quadraticCurveTo(x,y,x+r,y); ctx.closePath(); }
@@ -924,7 +924,7 @@ async function drawUnboostCard() {
 // ── Field sample data ──────────────────────────────────────────────────────
 const BOOST_FIELDS = [
     { id: 'boostShowMember',     name: '👤 Member',      value: () => SAMPLE.username },
-    { id: 'boostShowMulaiBoost', name: '🚀 Mulai Boost', value: () => 'baru saja' },
+    { id: 'boostShowMulaiBoost', name: '🚀 Boost Start', value: () => 'just now' },
     { id: 'boostShowTotalBoost', name: '✨ Total Boost',  value: () => `${SAMPLE.boosts} boost` },
     { id: 'boostShowLevelServer',name: '🏅 Level Server', value: () => `Level <%= guild.premiumTier %>` },
 ];
@@ -1087,11 +1087,11 @@ function insertPhDyn(pickerId, ph) {
 async function saveBoost() {
     const msg         = document.getElementById('boostMsg');
     if (!document.getElementById('boostChannel').value)
-        return showMsg(msg, 'Pilih channel tujuan terlebih dahulu.', 'error');
+        return showMsg(msg, 'Please select a destination channel first.', 'error');
     const messageType = document.querySelector('input[name="boostMessageType"]:checked')?.value || 'embed';
     const color       = document.getElementById('boostColor').value.trim() || '#FF73FA';
     if (messageType === 'embed' && !/^#[0-9A-Fa-f]{6}$/.test(color))
-        return showMsg(msg, 'Format warna tidak valid. Contoh: #FF73FA', 'error');
+        return showMsg(msg, 'Invalid color format. Example: #FF73FA', 'error');
 
     const res = await fetch(`/api/guild/${GUILD_ID}/booster-boost`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -1133,11 +1133,11 @@ async function saveBoost() {
 async function saveUnboost() {
     const msg         = document.getElementById('unboostMsg');
     if (!document.getElementById('unboostChannel').value)
-        return showMsg(msg, 'Pilih channel tujuan terlebih dahulu.', 'error');
+        return showMsg(msg, 'Please select a destination channel first.', 'error');
     const messageType = document.querySelector('input[name="unboostMessageType"]:checked')?.value || 'embed';
     const color       = document.getElementById('unboostColor').value.trim() || '#ED4245';
     if (messageType === 'embed' && !/^#[0-9A-Fa-f]{6}$/.test(color))
-        return showMsg(msg, 'Format warna tidak valid. Contoh: #ED4245', 'error');
+        return showMsg(msg, 'Invalid color format. Example: #ED4245', 'error');
 
     const res = await fetch(`/api/guild/${GUILD_ID}/booster-unboost`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },

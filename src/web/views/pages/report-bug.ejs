@@ -206,7 +206,7 @@
                 <div>
                     <label class="rb-label" for="rbDiscordId">
                         Discord ID <span>*</span>
-                        <span style="font-weight:400;color:var(--text-muted);font-size:.72rem;margin-left:.3rem;">— ID unik akun Discord kamu</span>
+                        <span style="font-weight:400;color:var(--text-muted);font-size:.72rem;margin-left:.3rem;">— your unique Discord account ID</span>
                     </label>
                     <input class="rb-input" id="rbDiscordId" type="text" placeholder="123456789012345678"
                            required maxlength="20" pattern="\d{15,20}"
@@ -223,7 +223,7 @@
             <!-- Pesan -->
             <div class="rb-field">
                 <label class="rb-label" for="rbMessage">Message <span>*</span></label>
-                <textarea class="rb-textarea" id="rbMessage" placeholder="Deskripsikan bug yang kamu temukan — fitur apa, apa yang terjadi, dan langkah reproduksi..." required maxlength="2000"></textarea>
+                <textarea class="rb-textarea" id="rbMessage" placeholder="Describe the bug you found — what feature, what happened, and steps reproduksi..." required maxlength="2000"></textarea>
             </div>
 
             <!-- Upload gambar -->
@@ -337,7 +337,7 @@ async function submitReport(e) {
             document.getElementById('rbFilePreview').style.display = 'none';
         }
     } catch (err) {
-        showMsg(null, 'Gagal terhubung ke server. Periksa koneksi internet kamu.', 'error');
+        showMsg(null, 'Failed to connect to server. Check your internet connection.', 'error');
     } finally {
         btn.disabled  = false;
         btn.innerHTML = orig;

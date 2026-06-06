@@ -1,18 +1,18 @@
 <%
 const _colors  = { video: '#FF0000', short: '#FF6B35', live: '#CC0000' };
 const _titles  = { video: `📹 ${ytCh.name} — Video Baru!`, short: `🎬 ${ytCh.name} — Short Baru!`, live: `🔴 ${ytCh.name} is Live Now!` };
-const _fields  = { video: '🎬 Judul Video', short: '🎬 Judul Short', live: '🎙️ Judul Stream' };
+const _fields  = { video: '🎬 Video Title', short: '🎬 Short Title', live: '🎙️ Stream Title' };
 const _pill    = _colors[type]  || '#5865F2';
 const _title   = _titles[type] || '';
-const _field   = _fields[type] || 'Judul';
+const _field   = _fields[type] || 'Title';
 const _mockTitle = type === 'live'  ? 'Malam Jumat Membership'
-                 : type === 'short' ? 'Contoh Judul Short #shorts'
-                 : 'Contoh Judul Video yang Akan Muncul';
+                 : type === 'short' ? 'Example Short Title #shorts'
+                 : 'Example Video Title That Will Appear';
 const _mockUrl = 'https://youtube.com/watch?v=dQw4w9WgXcQ';
 const _defaultDescs = {
-    video: `Hey, **${ytCh.name}** baru aja upload video baru di YouTube!\nJangan ketinggalan, tonton sekarang! 🎉`,
-    short: `**${ytCh.name}** baru aja posting Short terbaru!\nCek video pendeknya, jangan sampai ketinggalan! ⚡`,
-    live:  `Hey, **${ytCh.name}** lagi **LIVE** di YouTube sekarang!\nYuk, join dan saksikan streamnya~ 🎉`,
+    video: `Hey, **${ytCh.name}** just uploaded a new video on YouTube!\nDon't miss it, watch now! 🎉`,
+    short: `**${ytCh.name}** just posted a new Short!\nCheck out their quick video, don't miss out! ⚡`,
+    live:  `Hey, **${ytCh.name}** is **LIVE** on YouTube right now!\nCome join and watch the stream~ 🎉`,
 };
 const _prevId  = `ytPrev-${ytCh.id}-${type}`;
 %>
@@ -28,7 +28,7 @@ const _prevId  = `ytPrev-${ytCh.id}-${type}`;
                  alt="" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
             <div class="dc-msg-body">
                 <span class="dc-username"><%= botNavName || 'Bot' %></span>
-                <span class="dc-timestamp">Hari ini pukul 12:00</span>
+                <span class="dc-timestamp">Today at 12:00 PM</span>
 
                 <!-- Embed -->
                 <div class="dc-embed" style="max-width:100%;">

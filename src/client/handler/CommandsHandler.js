@@ -146,7 +146,7 @@ class CommandsHandler {
             // 2. Command dev-only → dev guild saja (wajib isi devGuildId di config)
             if (devOnlyCmds.length > 0) {
                 if (!development.devGuildId) {
-                    error('[CommandsHandler] PRIVATE_COMMANDS ada tapi development.devGuildId belum diisi di config.js — command dev-only tidak didaftarkan.');
+                    error('[CommandsHandler] PRIVATE_COMMANDS is set but development.devGuildId is not filled in config.js — dev-only commands will not be registered.');
                 } else {
                     await rest.put(
                         Routes.applicationGuildCommands(this.client.user.id, development.devGuildId),

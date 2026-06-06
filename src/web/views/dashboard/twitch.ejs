@@ -159,7 +159,7 @@
         <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
             <div>
                 <h1>Twitch Notification</h1>
-                <p>Pantau streamer Twitch dan kirim notifikasi otomatis ke Discord saat mereka mulai Live.</p>
+                <p>Monitor Twitch streamers and automatically send notifications to Discord when they go Live.</p>
             </div>
         </div>
 
@@ -168,11 +168,11 @@
         <div class="perm-card perm-warn" style="margin-bottom:1.5rem;">
             <i data-lucide="alert-triangle"></i>
             <div>
-                <strong>Twitch belum dikonfigurasi.</strong> Tambahkan variabel berikut ke file <code>.env</code> lalu restart bot:
+                <strong>Twitch is not configured.</strong> Add the following variables to your <code>.env</code> file and restart the bot:
                 <div style="margin-top:.5rem;font-size:.82rem;background:rgba(0,0,0,.3);padding:.5rem .75rem;border-radius:6px;font-family:monospace;line-height:1.8;">
                     TWITCH_CLIENT_ID=xxx<br>
                     TWITCH_CLIENT_SECRET=xxx<br>
-                    TWITCH_WEBHOOK_SECRET=rahasia_random<br>
+                    TWITCH_WEBHOOK_SECRET=random_secret<br>
                     BASE_URL=https://domainmu.com
                 </div>
                 <div style="margin-top:.5rem;font-size:.79rem;color:var(--text-muted);">
@@ -199,7 +199,7 @@
                 </div>
                 <div class="stat-info">
                     <div class="stat-value"><%= twAccounts.filter(a => a.enabled).length %></div>
-                    <div class="stat-label">Notifikasi Aktif</div>
+                    <div class="stat-label">Active Notifications</div>
                 </div>
             </div>
             <div class="stat-card">
@@ -213,12 +213,12 @@
             </div>
         </div>
 
-        <!-- Tambah Streamer -->
+        <!-- Add Streamer -->
         <% if (twAccounts.length < maxAccounts) { %>
         <div class="settings-card" style="margin-bottom:1.5rem;">
             <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:1rem;">
                 <i data-lucide="plus-circle" style="color:#9146FF;width:18px;height:18px;flex-shrink:0;"></i>
-                <h2 style="margin:0;font-size:1rem;font-weight:600;">Tambah Streamer Twitch</h2>
+                <h2 style="margin:0;font-size:1rem;font-weight:600;">Add Twitch Streamer</h2>
             </div>
             <p style="font-size:.85rem;color:var(--text-muted);margin:0 0 1rem 0;">
                 Masukkan username atau URL Twitch. Sisa slot: <strong><%= maxAccounts - twAccounts.length %></strong> dari <%= maxAccounts %>.
@@ -276,7 +276,7 @@
                         <div id="twLookupLogin" style="font-size:.78rem;color:var(--text-muted);"></div>
                     </div>
                     <button class="btn btn-success" onclick="addStreamer()" style="flex-shrink:0;">
-                        <i data-lucide="plus" style="width:14px;height:14px;"></i> Tambah
+                        <i data-lucide="plus" style="width:14px;height:14px;"></i> Add
                     </button>
                 </div>
             </div>
@@ -293,7 +293,7 @@
         <% if (twAccounts.length === 0) { %>
             <div class="settings-card" style="text-align:center;padding:3rem 1.5rem;">
                 <svg viewBox="0 0 24 24" fill="currentColor" style="width:48px;height:48px;color:#9146FF;opacity:.4;display:block;margin:0 auto .75rem;"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"/></svg>
-                <p style="color:var(--text-muted);margin:0;">Belum ada streamer Twitch yang dipantau.</p>
+                <p style="color:var(--text-muted);margin:0;">No Twitch streamers being monitored yet.</p>
             </div>
         <% } else { %>
         <% twAccounts.forEach(function(acc) { %>
@@ -324,7 +324,7 @@
                         data-userid="<%= acc.userId %>"
                         data-name="<%= (acc.displayName||acc.login).replace(/"/g,'&quot;') %>"
                         onclick="removeStreamer(this.dataset.userid, this.dataset.name)"
-                        style="flex-shrink:0;" title="Hapus streamer">
+                        style="flex-shrink:0;" title="Delete streamer">
                     <i data-lucide="trash-2" style="width:13px;height:13px;"></i>
                 </button>
             </div>
@@ -340,13 +340,13 @@
                                    <%= acc.enabled ? 'checked' : '' %>
                                    onchange="updatePreview('<%= acc.userId %>')">
                             <span class="toggle-slider"></span>
-                            <span>Aktifkan notifikasi Live</span>
+                            <span>Enable Live notifications</span>
                         </label>
                     </div>
                     <div class="form-group">
                         <label class="label">Channel Discord</label>
                         <select class="select" id="twChannel-<%= acc.userId %>" onchange="updatePreview('<%= acc.userId %>')">
-                            <option value="">— Pilih channel —</option>
+                            <option value="">— Select channel —</option>
                             <% (locals.channels||[]).forEach(ch => { %>
                             <option value="<%= ch.id %>" <%= acc.channelId===ch.id?'selected':'' %>>#<%= ch.name %></option>
                             <% }) %>
@@ -354,7 +354,7 @@
                     </div>
                     <div class="form-group" style="margin-bottom:0;">
                         <div class="label-with-picker">
-                            <label class="label" style="margin-bottom:0;">Pesan kustom <span style="font-weight:400;color:var(--text-muted);">(opsional)</span></label>
+                            <label class="label" style="margin-bottom:0;">Custom message <span style="font-weight:400;color:var(--text-muted);">(optional)</span></label>
                             <div class="ph-picker-anchor">
                                 <button type="button" class="ph-toggle-btn" onclick="togglePicker('twPicker-<%= acc.userId %>',event)">{…} Placeholder</button>
                                 <div class="ph-dropdown" id="twPicker-<%= acc.userId %>" style="display:none;"></div>
@@ -362,7 +362,7 @@
                         </div>
                         <textarea class="textarea" rows="3" id="twMessage-<%= acc.userId %>"
                                   style="font-size:.82rem;"
-                                  placeholder="🔴 {account} lagi LIVE! Main {game} — {url}"
+                                  placeholder="🔴 {account} is LIVE! Playing {game} — {url}"
                                   oninput="updatePreview('<%= acc.userId %>')"
                         ><%= acc.message||'' %></textarea>
                     </div>
@@ -373,7 +373,7 @@
                             <i data-lucide="send" style="width:14px;height:14px;"></i> Test Notif
                         </button>
                         <button class="btn btn-primary" onclick="saveStreamer('<%= acc.userId %>')">
-                            <i data-lucide="save" style="width:14px;height:14px;"></i> Simpan
+                            <i data-lucide="save" style="width:14px;height:14px;"></i> Save
                         </button>
                     </div>
                     <div id="msg-<%= acc.userId %>" class="form-message" style="margin-top:.4rem;"></div>
@@ -396,7 +396,7 @@
                                     <span class="dc-username" style="color:<%- botUser ? botUser.roleColor : '#ffffff' %>">
                                         <%= botUser ? botUser.username : 'Bot' %>
                                     </span>
-                                    <span class="dc-timestamp">Hari ini pukul 12:00</span>
+                                    <span class="dc-timestamp">Today at 12:00 PM</span>
 
                                     <!-- Embed preview (struktur sama dengan YouTube) -->
                                     <div id="prev-<%= acc.userId %>" class="dc-embed" style="max-width:100%;">
@@ -548,7 +548,7 @@ async function saveStreamer(userId) {
     const message  = document.getElementById(`twMessage-${userId}`)?.value?.trim() || '';
 
     if (enabled && !channelId) {
-        showMsg(msgEl, 'Notifikasi diaktifkan tapi channel Discord belum dipilih.', 'error');
+        showMsg(msgEl, 'Notification is enabled but no Discord channel has been selected.', 'error');
         document.getElementById(`twChannel-${userId}`)?.focus();
         return;
     }
@@ -574,7 +574,7 @@ async function testNotif(userId) {
 
 // ── Hapus streamer ────────────────────────────────────────────────────────────
 async function removeStreamer(userId, name) {
-    if (!confirm(`Hapus streamer "${name}"?`)) return;
+    if (!confirm(`Delete streamer "${name}"?`)) return;
     const r    = await fetch(`/api/guild/${GUILD_ID}/twitch/accounts/${encodeURIComponent(userId)}`, { method: 'DELETE' });
     const data = await r.json();
     if (data.success) location.reload();
@@ -617,7 +617,7 @@ const PH_TWITCH = [
     ['{login}',    'Username Twitch'],
     ['{url}',      'Link stream'],
     ['{game}',     'Nama game yang dimainkan'],
-    ['{title}',    'Judul stream'],
+    ['{title}',    'Stream title'],
     ['{viewers}',  'Jumlah penonton'],
 ];
 

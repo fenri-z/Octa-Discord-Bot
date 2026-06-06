@@ -8,33 +8,33 @@ const ApplicationCommand = require('../../structure/ApplicationCommand');
 module.exports = new ApplicationCommand({
     command: {
         name: 'purge',
-        description: 'Hapus pesan massal di channel',
+        description: 'Bulk delete messages in a channel',
         type: 1,
         default_member_permissions: String(PermissionFlagsBits.ManageMessages),
         options: [
             {
                 type: 1,
                 name: 'all',
-                description: 'Hapus sejumlah pesan terakhir di channel',
+                description: 'Delete a number of recent messages in the channel',
                 options: [
-                    { type: 4, name: 'jumlah', description: 'Jumlah pesan yang dihapus (1–100)', required: true, min_value: 1, max_value: 100 },
+                    { type: 4, name: 'amount', description: 'Number of messages to delete (1–100)', required: true, min_value: 1, max_value: 100 },
                 ],
             },
             {
                 type: 1,
                 name: 'user',
-                description: 'Hapus pesan dari user tertentu',
+                description: 'Delete messages from a specific user',
                 options: [
-                    { type: 6, name: 'user', description: 'User yang pesannya dihapus', required: true },
-                    { type: 4, name: 'jumlah', description: 'Jumlah pesan yang dicari (1–100)', required: true, min_value: 1, max_value: 100 },
+                    { type: 6, name: 'user',   description: 'User whose messages to delete', required: true },
+                    { type: 4, name: 'amount', description: 'Number of messages to search (1–100)', required: true, min_value: 1, max_value: 100 },
                 ],
             },
             {
                 type: 1,
                 name: 'bots',
-                description: 'Hapus pesan dari bot saja',
+                description: 'Delete messages from bots only',
                 options: [
-                    { type: 4, name: 'jumlah', description: 'Jumlah pesan yang dicari (1–100)', required: true, min_value: 1, max_value: 100 },
+                    { type: 4, name: 'amount', description: 'Number of messages to search (1–100)', required: true, min_value: 1, max_value: 100 },
                 ],
             },
         ],
@@ -47,7 +47,7 @@ module.exports = new ApplicationCommand({
         const botPerms = channel.permissionsFor(interaction.guild.members.me);
         if (!botPerms.has(PermissionFlagsBits.ManageMessages) || !botPerms.has(PermissionFlagsBits.ReadMessageHistory)) {
             return interaction.reply({
-                content: '❌ Bot tidak punya permission **Manage Messages** atau **Read Message History** di channel ini.',
+                content: '❌ Bot does not have **Manage Messages** or **Read Message History** permission in this channel.',
                 flags: MessageFlags.Ephemeral,
             });
         }
@@ -55,41 +55,41 @@ module.exports = new ApplicationCommand({
         await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
         try {
-            const jumlah = interaction.options.getInteger('jumlah');
+            const amount = interaction.options.getInteger('amount');
             let messages = await channel.messages.fetch({ limit: 100 });
 
-            // Filter hanya pesan yang belum lebih dari 14 hari (Discord limit bulk delete)
+            // Filter messages not older than 14 days (Discord bulk delete limit)
             const twoWeeksAgo = Date.now() - 14 * 24 * 60 * 60 * 1000;
             messages = messages.filter(m => m.createdTimestamp > twoWeeksAgo);
 
             let toDelete;
 
             if (sub === 'all') {
-                toDelete = [...messages.values()].slice(0, jumlah);
+                toDelete = [...messages.values()].slice(0, amount);
             } else if (sub === 'user') {
                 const target = interaction.options.getUser('user');
                 toDelete = [...messages.values()]
                     .filter(m => m.author.id === target.id)
-                    .slice(0, jumlah);
+                    .slice(0, amount);
             } else if (sub === 'bots') {
                 toDelete = [...messages.values()]
                     .filter(m => m.author.bot)
-                    .slice(0, jumlah);
+                    .slice(0, amount);
             }
 
             if (!toDelete || toDelete.length === 0) {
-                return interaction.editReply({ content: '❌ Tidak ada pesan yang bisa dihapus (pesan mungkin sudah lebih dari 14 hari).' });
+                return interaction.editReply({ content: '❌ No messages to delete (messages may be older than 14 days).' });
             }
 
             const deleted = await channel.bulkDelete(toDelete, true);
 
             const embed = new EmbedBuilder()
                 .setColor('#57F287')
-                .setTitle('🗑️ Purge Berhasil')
+                .setTitle('🗑️ Purge Successful')
                 .addFields(
-                    { name: '📦 Dihapus', value: `**${deleted.size}** pesan`, inline: true },
-                    { name: '📌 Channel', value: `${channel}`, inline: true },
-                    { name: '🛡️ Moderator', value: `${interaction.user}`, inline: true },
+                    { name: '📦 Deleted',     value: `**${deleted.size}** message(s)`, inline: true },
+                    { name: '📌 Channel',     value: `${channel}`, inline: true },
+                    { name: '🛡️ Moderator',  value: `${interaction.user}`, inline: true },
                 )
                 .setTimestamp();
 
@@ -97,7 +97,7 @@ module.exports = new ApplicationCommand({
                 embed.addFields({ name: '👤 Target', value: `${interaction.options.getUser('user')}`, inline: true });
             }
 
-            // Log ke mod log jika dikonfigurasi
+            // Log to mod log channel if configured
             const logChId = client.database.get(`modlog-channel-${interaction.guild.id}`);
             if (logChId) {
                 const logChannel = interaction.guild.channels.cache.get(logChId);
@@ -109,12 +109,12 @@ module.exports = new ApplicationCommand({
             await interaction.editReply({
                 embeds: [new EmbedBuilder()
                     .setColor('#57F287')
-                    .setDescription(`✅ Berhasil menghapus **${deleted.size}** pesan.`)],
+                    .setDescription(`✅ Successfully deleted **${deleted.size}** message(s).`)],
             });
 
         } catch (err) {
             console.error('[purge]', err);
-            await interaction.editReply({ content: '❌ Gagal menghapus pesan. Cek permission bot.' });
+            await interaction.editReply({ content: '❌ Failed to delete messages. Check bot permissions.' });
         }
     },
 }).toJSON();

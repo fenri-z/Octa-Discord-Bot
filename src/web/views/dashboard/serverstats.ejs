@@ -9,7 +9,7 @@
         <%- include('../partials/perm-notice') %>
         <div class="page-header">
             <h1>Server Stats</h1>
-            <p>Tampilkan statistik member server secara otomatis melalui channel voice.</p>
+            <p>Automatically display server member statistics via voice channels.</p>
         </div>
 
         <!-- ── Stats Overview ──────────────────────────────────────────── -->
@@ -47,13 +47,13 @@
         <!-- ── Status Toggle ───────────────────────────────────────────── -->
         <div class="settings-card">
             <h2>Status Server Stats</h2>
-            <p class="section-desc" style="margin-bottom:1rem;">Aktifkan agar channel voice diperbarui otomatis setiap ada member bergabung atau keluar.</p>
+            <p class="section-desc" style="margin-bottom:1rem;">Enable to automatically update voice channels when a member joins or leaves.</p>
             <div class="form-group">
                 <label class="toggle-label">
                     <input type="checkbox" id="ssEnabled" class="toggle-input" <%= serverstatsData.enabled ? 'checked' : '' %>
                            <% if (!serverstatsData.categoryId || !serverstatsData.totalId) { %>disabled title="Lakukan Setup terlebih dahulu"<% } %>>
                     <span class="toggle-slider"></span>
-                    <span>Aktifkan Server Stats</span>
+                    <span>Enable Server Stats</span>
                 </label>
             </div>
             <div id="statusMsg" class="form-message"></div>
@@ -66,7 +66,7 @@
             <p class="section-desc">Gunakan <code>{count}</code> sebagai placeholder angka. Maksimal 90 karakter per label.</p>
 
             <div class="form-group" style="margin-top:1.25rem;">
-                <label class="label">Nama Kategori</label>
+                <label class="label">Category Name</label>
                 <input type="text" id="lblCategory" class="input" maxlength="90"
                        value="<%= serverstatsData.categoryLabel %>" placeholder="📊 Server Stats">
                 <div style="font-size:.78rem;color:var(--text-muted);margin-top:.3rem;">
@@ -75,7 +75,7 @@
             </div>
 
             <div class="form-group">
-                <label class="label">Format Total Member</label>
+                <label class="label">Total Members Format</label>
                 <input type="text" id="lblTotal" class="input" maxlength="90"
                        value="<%= serverstatsData.totalLabel %>" placeholder="👥 Total Member: {count}">
                 <div style="font-size:.78rem;color:var(--text-muted);margin-top:.3rem;">
@@ -84,7 +84,7 @@
             </div>
 
             <div class="form-group">
-                <label class="label">Format User</label>
+                <label class="label">Users Format</label>
                 <input type="text" id="lblHuman" class="input" maxlength="90"
                        value="<%= serverstatsData.humanLabel %>" placeholder="👤 User: {count}">
                 <div style="font-size:.78rem;color:var(--text-muted);margin-top:.3rem;">
@@ -93,7 +93,7 @@
             </div>
 
             <div class="form-group">
-                <label class="label">Format Bot</label>
+                <label class="label">Bots Format</label>
                 <input type="text" id="lblBot" class="input" maxlength="90"
                        value="<%= serverstatsData.botLabel %>" placeholder="🤖 Bot: {count}">
                 <div style="font-size:.78rem;color:var(--text-muted);margin-top:.3rem;">
@@ -102,7 +102,7 @@
             </div>
 
             <div class="form-row" style="gap:.75rem;margin-top:.5rem;">
-                <button class="btn btn-primary" onclick="saveLabels('<%= guild.id %>')">Simpan Label</button>
+                <button class="btn btn-primary" onclick="saveLabels('<%= guild.id %>')">Save Labels</button>
             </div>
             <div id="labelsMsg" class="form-message"></div>
         </div>
@@ -110,7 +110,7 @@
         <!-- ── Danger Zone ─────────────────────────────────────────────── -->
         <div class="settings-card" style="border:1px solid rgba(237,66,69,.3);">
             <h2 style="color:#ED4245;">Reset Server Stats</h2>
-            <p class="section-desc" style="margin-bottom:1.25rem;">Menghapus semua konfigurasi <strong>dan</strong> menghapus channel kategori serta ketiga channel voice statistik dari Discord secara permanen.</p>
+            <p class="section-desc" style="margin-bottom:1.25rem;">Deletes all configuration <strong>and</strong> removes the category &amp; stats channels created by the bot.</p>
             <button class="btn" style="background:#ED4245;color:#fff;" onclick="openResetModal('<%= guild.id %>')">
                 <i data-lucide="trash-2"></i> Reset Server Stats
             </button>
@@ -120,20 +120,20 @@
         <!-- ── Setup ───────────────────────────────────────────────────── -->
         <div class="settings-card">
             <h2>Setup Server Stats</h2>
-            <p class="section-desc" style="margin-bottom:1.25rem;">Server Stats belum disetup. Klik tombol di bawah untuk membuat kategori dan tiga channel voice statistik secara otomatis.</p>
+            <p class="section-desc" style="margin-bottom:1.25rem;">Server Stats is not set up. Click the button below to create the category and stats channels.</p>
             <div style="background:rgba(88,101,242,.08);border:1px solid rgba(88,101,242,.25);border-radius:8px;padding:.9rem 1rem;margin-bottom:1.2rem;">
                 <div style="font-size:.85rem;color:var(--text-secondary);line-height:1.6;">
                     <strong style="color:#5865F2;">Yang akan dibuat:</strong><br>
-                    📁 1 Kategori &nbsp;·&nbsp; 👥 Channel Total Member &nbsp;·&nbsp; 👤 Channel User &nbsp;·&nbsp; 🤖 Channel Bot
+                    📁 1 Category &nbsp;·&nbsp; 👥 Total Members Channel &nbsp;·&nbsp; 👤 Users Channel &nbsp;·&nbsp; 🤖 Bhannel Bot
                 </div>
             </div>
             <div class="form-group">
-                <label class="label">Nama Kategori <span style="color:var(--text-muted);font-weight:400;">(opsional)</span></label>
+                <label class="label">Category Name <span style="color:var(--text-muted);font-weight:400;">(optional)</span></label>
                 <input type="text" id="setupCategoryName" class="input" maxlength="90"
                        placeholder="📊 Server Stats" style="max-width:320px;">
             </div>
             <div class="form-row">
-                <button class="btn btn-primary" onclick="doSetup('<%= guild.id %>')">+ Buat Channel Statistik</button>
+                <button class="btn btn-primary" onclick="doSetup('<%= guild.id %>')">+ Create Stats Channels</button>
             </div>
             <div id="setupMsg" class="form-message"></div>
         </div>
@@ -148,10 +148,10 @@
 <div id="resetModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.6);align-items:center;justify-content:center;">
     <div style="background:var(--bg-2,#2b2d31);border-radius:12px;padding:1.75rem 2rem;max-width:420px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,.4);">
         <h3 style="margin:0 0 .6rem;color:#ED4245;display:flex;align-items:center;gap:.5rem;"><i data-lucide="alert-triangle"></i> Konfirmasi Reset</h3>
-        <p style="color:var(--text-secondary);font-size:.9rem;margin:0 0 1.25rem;">Tindakan ini akan <strong>menghapus permanen</strong> semua channel statistik dan konfigurasi Server Stats dari server ini. Tidak bisa dibatalkan!</p>
+        <p style="color:var(--text-secondary);font-size:.9rem;margin:0 0 1.25rem;">This action will <strong>permanently delete</strong> all stats channels created by the bot.</p>
         <div style="display:flex;gap:.75rem;">
             <button class="btn" style="background:#ED4245;color:#fff;flex:1;" id="resetConfirmBtn" onclick="confirmReset()">
-                <i data-lucide="trash-2"></i> Ya, Hapus Semuanya
+                <i data-lucide="trash-2"></i> Yes, Delete All
             </button>
             <button class="btn" style="background:var(--bg-3);color:var(--text-secondary);flex:1;" onclick="closeResetModal()">Batal</button>
         </div>
@@ -232,7 +232,7 @@ async function doSetup(guildId) {
     });
     const data = await res.json();
     showMsg(msg, data.message, data.success ? 'success' : 'error');
-    if (btn) { btn.disabled = false; btn.innerHTML = '<i data-lucide="plus-circle"></i> Buat Channel Statistik'; if(window.lucide) lucide.createIcons(); }
+    if (btn) { btn.disabled = false; btn.innerHTML = '<i data-lucide="plus-circle"></i> Create Stats Channels'; if(window.lucide) lucide.createIcons(); }
     if (data.success) setTimeout(() => location.reload(), 1500);
 }
 
@@ -259,7 +259,7 @@ async function confirmReset() {
     const data = await res.json();
     showMsg(msg, data.message, data.success ? 'success' : 'error');
     btn.disabled = false;
-    btn.innerHTML = '<i data-lucide="trash-2"></i> Ya, Hapus Semuanya';
+    btn.innerHTML = '<i data-lucide="trash-2"></i> Yes, Delete All';
     if (window.lucide) lucide.createIcons();
     if (data.success) setTimeout(() => { closeResetModal(); location.reload(); }, 1500);
 }

@@ -9,7 +9,7 @@
         <%- include('../partials/perm-notice') %>
         <div class="page-header">
             <h1>🎫 Ticketing</h1>
-            <p>Sistem tiket privat untuk member meminta bantuan staff.</p>
+            <p>Private ticket system for members to request help from staff.</p>
         </div>
 
         <div class="tk-layout">
@@ -21,8 +21,8 @@
         <div class="settings-card" style="margin-bottom:1rem;">
             <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;">
                 <div>
-                    <div style="font-weight:600;font-size:.95rem;">Aktifkan Ticketing</div>
-                    <div style="font-size:.8rem;color:var(--text-muted);margin-top:.15rem;">Member bisa membuat tiket via tombol panel.</div>
+                    <div style="font-weight:600;font-size:.95rem;">Enable Ticketing</div>
+                    <div style="font-size:.8rem;color:var(--text-muted);margin-top:.15rem;">Members can create tickets via the panel button.</div>
                 </div>
                 <label class="toggle-label">
                     <input type="checkbox" id="ticketEnabled" class="toggle-input" <%= ticketData.enabled ? 'checked' : '' %>>
@@ -31,30 +31,30 @@
             </div>
         </div>
 
-        <!-- Channel & Kategori -->
+        <!-- Channel & Category -->
         <div class="settings-card" style="margin-bottom:1rem;">
-            <div style="font-size:.8rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.9rem;">⚙️ Konfigurasi Channel</div>
+            <div style="font-size:.8rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.9rem;">⚙️ Channel Configuration</div>
 
             <div class="form-group">
-                <label class="label">Kategori Tiket <span class="hint-inline">(opsional)</span></label>
+                <label class="label">Ticket Category <span class="hint-inline">(optional)</span></label>
                 <select id="ticketCategory" class="select">
-                    <option value="">— Tanpa Kategori —</option>
+                    <option value="">— No Category —</option>
                     <% categories.forEach(c => { %>
                         <option value="<%= c.id %>" <%= ticketData.categoryId === c.id ? 'selected' : '' %>>📁 <%= c.name %></option>
                     <% }) %>
                 </select>
-                <div class="hint">Channel tiket akan dibuat di dalam kategori ini.</div>
+                <div class="hint">Ticket channels will be created inside this category.</div>
             </div>
 
             <div class="form-group">
                 <label class="label">Channel Log Transcript</label>
                 <select id="ticketLogChannel" class="select">
-                    <option value="">— Tidak ada —</option>
+                    <option value="">— None —</option>
                     <% channels.forEach(c => { %>
                         <option value="<%= c.id %>" <%= ticketData.logChannelId === c.id ? 'selected' : '' %>>#<%= c.name %></option>
                     <% }) %>
                 </select>
-                <div class="hint">Transcript dikirim ke channel ini saat tiket ditutup.</div>
+                <div class="hint">Transcript is sent to this channel when a ticket is closed.</div>
             </div>
         </div>
 
@@ -71,29 +71,29 @@
                     <div class="tk-role-chip" data-id="<%= role.id %>">
                         <span class="tk-role-dot" style="background:<%= role.color %>;"></span>
                         <span>@<%= role.name %></span>
-                        <button class="tk-role-remove" onclick="removeStaffRole('<%= role.id %>')" title="Hapus">✕</button>
+                        <button class="tk-role-remove" onclick="removeStaffRole('<%= role.id %>')" title="Remove">✕</button>
                     </div>
                     <% } %>
                 <% }) %>
                 <div id="staffRoleEmpty" style="color:var(--text-muted);font-size:.82rem;padding:.3rem 0;<%= ticketData.staffRoles.length > 0 ? 'display:none;' : '' %>">
-                    Belum ada staff role. Tambahkan di bawah.
+                    No staff roles yet. Add one below.
                 </div>
             </div>
             <div style="display:flex;gap:.5rem;">
                 <select id="staffRoleAdd" class="select" style="flex:1;">
-                    <option value="">— Pilih role —</option>
+                    <option value="">— Select role —</option>
                     <% roles.forEach(r => { %>
                         <option value="<%= r.id %>" style="color:<%= r.color %>">@<%= r.name %></option>
                     <% }) %>
                 </select>
-                <button class="btn btn-primary btn-sm" onclick="addStaffRole()">＋ Tambah</button>
+                <button class="btn btn-primary btn-sm" onclick="addStaffRole()">＋ Add</button>
             </div>
-            <div class="hint" style="margin-top:.5rem;">Role yang bisa melihat dan mengelola semua tiket. Owner server selalu bisa melihat tiket.</div>
+            <div class="hint" style="margin-top:.5rem;">Role that can view and manage all tickets. The server owner can always view tickets.</div>
         </div>
 
-        <!-- Simpan Konfigurasi -->
+        <!-- Save Configuration -->
         <div style="display:flex;justify-content:flex-end;margin-bottom:1rem;">
-            <button class="btn btn-primary" onclick="saveConfig()">💾 Simpan Konfigurasi</button>
+            <button class="btn btn-primary" onclick="saveConfig()">💾 Save Configuration</button>
         </div>
         <div id="configMsg" class="form-message"></div>
 
@@ -103,22 +103,22 @@
         <div class="tk-panel-col">
 
         <div class="settings-card">
-            <div style="font-size:.8rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.9rem;">🎨 Tampilan Panel</div>
+            <div style="font-size:.8rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.9rem;">🎨 Panel Appearance</div>
 
             <div class="form-group">
-                <label class="label">Judul Embed</label>
+                <label class="label">Embed Title</label>
                 <input type="text" id="panelTitle" class="input" maxlength="256"
                        value="<%= ticketData.embedTitle %>" placeholder="🎫 Support Ticket"
                        oninput="updateTicketPreview()">
             </div>
             <div class="form-group">
-                <label class="label">Deskripsi</label>
+                <label class="label">Description</label>
                 <textarea id="panelDesc" class="textarea" rows="4" maxlength="4000"
-                          placeholder="Klik tombol di bawah untuk membuat tiket..."
+                          placeholder="Click the button below to create a ticket..."
                           oninput="updateTicketPreview()"><%= ticketData.embedDesc %></textarea>
             </div>
             <div class="form-group">
-                <label class="label">Warna Embed</label>
+                <label class="label">Embed Color</label>
                 <div style="display:flex;gap:.75rem;align-items:center;">
                     <input type="color" id="panelColorPicker" value="<%= ticketData.embedColor || '#5865F2' %>"
                            style="width:44px;height:36px;border:none;border-radius:6px;cursor:pointer;padding:0;background:none;"
@@ -129,9 +129,9 @@
                 </div>
             </div>
             <div class="form-group">
-                <label class="label">Label Tombol</label>
+                <label class="label">Button Label</label>
                 <input type="text" id="panelBtnLabel" class="input" maxlength="80"
-                       value="<%= ticketData.btnLabel %>" placeholder="📩 Buat Ticket"
+                       value="<%= ticketData.btnLabel %>" placeholder="📩 Create Ticket"
                        oninput="updateTicketPreview()">
             </div>
 
@@ -144,12 +144,12 @@
                         <img class="dc-avatar" src="<%- locals.botNavAvatar || 'https://cdn.discordapp.com/embed/avatars/0.png' %>" alt="bot" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
                         <div class="dc-msg-body">
                             <span class="dc-username" style="color:<%- locals.botNavColor||'#fff' %>"><%- locals.botNavName||'Bot' %></span>
-                            <span class="dc-timestamp">Hari ini pukul 12:00</span>
+                            <span class="dc-timestamp">Today at 12:00 PM</span>
                             <div class="dc-embed" id="tkPreviewEmbed">
                                 <div class="dc-embed-pill" id="tkPreviewPill" style="background:<%= ticketData.embedColor||'#5865F2' %>;"></div>
                                 <div class="dc-embed-content">
                                     <div class="dc-embed-title" id="tkPreviewTitle"><%= ticketData.embedTitle || '🎫 Support Ticket' %></div>
-                                    <div class="dc-embed-desc" id="tkPreviewDesc"><%= ticketData.embedDesc || 'Klik tombol di bawah untuk membuat tiket.' %></div>
+                                    <div class="dc-embed-desc" id="tkPreviewDesc"><%= ticketData.embedDesc || 'Click the button below to create a ticket.' %></div>
                                 </div>
                             </div>
                             <!-- Preview tombol -->
@@ -161,35 +161,35 @@
                 </div>
             </div>
 
-            <!-- Pilih channel kirim -->
+            <!-- Select send channel -->
             <div class="form-group" style="margin-top:1rem;" id="panelSendChannelGroup">
                 <label class="label">Channel tujuan panel</label>
                 <select id="panelSendChannel" class="select">
-                    <option value="">— Pilih channel —</option>
+                    <option value="">— Select channel —</option>
                     <% channels.forEach(c => { %>
                         <option value="<%= c.id %>">#<%= c.name %></option>
                     <% }) %>
                 </select>
                 <% if (ticketData.panelSent) { %>
                 <div class="hint" style="margin-top:.4rem;">
-                    ✅ Panel sudah terkirim — <a href="https://discord.com/channels/<%= guild.id %>/<%= ticketData.panelChannelId %>/<%= ticketData.panelMsgId %>" target="_blank" style="color:var(--accent);">Lihat</a>.
-                    Klik <strong>Kirim Panel</strong> untuk memperbarui.
+                    ✅ Panel already sent — <a href="https://discord.com/channels/<%= guild.id %>/<%= ticketData.panelChannelId %>/<%= ticketData.panelMsgId %>" target="_blank" style="color:var(--accent);">View</a>.
+                    Click <strong>Send Panel</strong> to update.
                 </div>
                 <% } %>
             </div>
 
             <div style="display:flex;gap:.75rem;margin-top:1rem;flex-wrap:wrap;">
-                <button class="btn btn-outline" onclick="savePanelEmbed()">💾 Simpan Embed</button>
-                <button class="btn btn-primary" onclick="sendPanel()">📨 Kirim Panel</button>
+                <button class="btn btn-outline" onclick="savePanelEmbed()">💾 Save Embed</button>
+                <button class="btn btn-primary" onclick="sendPanel()">📨 Send Panel</button>
             </div>
             <div id="panelMsg" class="form-message" style="margin-top:.5rem;"></div>
         </div>
 
-        <!-- Daftar Tiket Aktif -->
+        <!-- Active Tickets List -->
         <% if (openTickets.length > 0) { %>
         <div class="settings-card" style="margin-top:1rem;">
             <div style="font-size:.8rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.9rem;">
-                📋 Tiket Aktif
+                📋 Active Tickets
                 <span style="font-size:.72rem;padding:.15rem .45rem;border-radius:999px;background:var(--bg2);border:1px solid rgba(87,242,135,.3);color:#57F287;margin-left:.5rem;"><%= openTickets.length %> terbuka</span>
             </div>
             <div style="display:flex;flex-direction:column;gap:.45rem;">
@@ -307,7 +307,7 @@ function updateTicketPreview() {
     const btn   = document.getElementById('panelBtnLabel').value || '📩 Buat Ticket';
 
     document.getElementById('tkPreviewTitle').textContent = title || '🎫 Support Ticket';
-    document.getElementById('tkPreviewDesc').textContent  = desc  || 'Klik tombol di bawah untuk membuat tiket.';
+    document.getElementById('tkPreviewDesc').textContent  = desc  || 'Click the button below to create a ticket.';
     document.getElementById('tkPreviewPill').style.background = color;
     document.getElementById('tkPreviewBtn').textContent   = btn;
 }
@@ -385,7 +385,7 @@ async function savePanelEmbed() {
 async function sendPanel() {
     const msg       = document.getElementById('panelMsg');
     const channelId = document.getElementById('panelSendChannel').value;
-    if (!channelId) return showMsg(msg, 'Pilih channel tujuan terlebih dahulu.', 'error');
+    if (!channelId) return showMsg(msg, 'Please select a destination channel first.', 'error');
 
     // Simpan embed dulu
     await savePanelEmbed();
@@ -395,7 +395,7 @@ async function sendPanel() {
         body: JSON.stringify({ channelId })
     });
     const data = await res.json();
-    if (data.success) showMsg(msg, '✅ Panel berhasil dikirim!', 'success');
+    if (data.success) showMsg(msg, '✅ Panel sent successfully!', 'success');
     else              showMsg(msg, data.message, 'error');
 
     if (data.success) setTimeout(() => location.reload(), 1200);

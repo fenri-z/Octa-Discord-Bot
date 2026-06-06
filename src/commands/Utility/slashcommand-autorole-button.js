@@ -138,17 +138,17 @@ const STYLE_MAP = {
 };
 
 const STYLE_LABEL = {
-    [ButtonStyle.Primary]:   '🔵 Biru (Primary)',
-    [ButtonStyle.Success]:   '🟢 Hijau (Success)',
-    [ButtonStyle.Danger]:    '🔴 Merah (Danger)',
-    [ButtonStyle.Secondary]: '⚪ Abu-abu (Secondary)'
+    [ButtonStyle.Primary]:   '🔵 Blue (Primary)',
+    [ButtonStyle.Success]:   '🟢 Green (Success)',
+    [ButtonStyle.Danger]:    '🔴 Red (Danger)',
+    [ButtonStyle.Secondary]: '⚪ Gray (Secondary)'
 };
 
 // ── Command ────────────────────────────────────────────────────────────────
 module.exports = new ApplicationCommand({
     command: {
         name: 'autorole-button',
-        description: 'Buat panel button untuk member mengambil/melepas role sendiri.',
+        description: 'Create a button panel for members to self-assign/remove roles.',
         type: 1,
         default_member_permissions: String(PermissionFlagsBits.ManageGuild),
         options: [
@@ -156,19 +156,19 @@ module.exports = new ApplicationCommand({
             // ── list ──────────────────────────────────────────────────────
             {
                 name: 'list',
-                description: 'Lihat semua panel autorole button yang ada.',
+                description: 'View all existing autorole button panels.',
                 type: 1
             },
 
             // ── buat ─────────────────────────────────────────────────────
             {
-                name: 'buat',
-                description: 'Buat panel baru atau edit tampilan embed panel yang sudah ada.',
+                name: 'create',
+                description: 'Create a new panel or edit the embed appearance of an existing panel.',
                 type: 1,
                 options: [
                     {
-                        name: 'nama',
-                        description: 'Nama panel (huruf, angka, - dan _, maks 32 karakter)',
+                        name: 'name',
+                        description: 'Panel name (letters, numbers, - and _, max 32 characters)',
                         type: 3,
                         required: true,
                         max_length: 32,
@@ -176,12 +176,12 @@ module.exports = new ApplicationCommand({
                     },
                     {
                         name: 'mode',
-                        description: 'Multi = bisa klik semua button | Single = hanya boleh 1 role aktif',
+                        description: 'Multi = can click all buttons | Single = only 1 role active at a time',
                         type: 3,
                         required: false,
                         choices: [
-                            { name: '✅ Multi  – bisa ambil banyak role sekaligus', value: 'multi'  },
-                            { name: '🔘 Single – hanya boleh 1 role (radio button)',  value: 'single' }
+                            { name: '✅ Multi  – can pick multiple roles at once', value: 'multi'  },
+                            { name: '🔘 Single – only 1 role allowed (radio button)',  value: 'single' }
                         ]
                     }
                 ]
@@ -189,18 +189,18 @@ module.exports = new ApplicationCommand({
 
             // ── set-warna ─────────────────────────────────────────────────
             {
-                name: 'set-warna',
-                description: 'Ubah warna garis kiri embed panel.',
+                name: 'set-color',
+                description: 'Change the panel embed left border color.',
                 type: 1,
                 options: [
                     {
                         name: 'panel',
-                        description: 'Nama panel',
+                        description: 'Panel name',
                         type: 3, required: true, autocomplete: true
                     },
                     {
                         name: 'hex',
-                        description: 'Kode warna hex, contoh: #5865F2 atau FF5733',
+                        description: 'Hex color code, e.g. #5865F2 or FF5733',
                         type: 3, required: true, max_length: 7
                     }
                 ]
@@ -208,18 +208,18 @@ module.exports = new ApplicationCommand({
 
             // ── set-gambar ────────────────────────────────────────────────
             {
-                name: 'set-gambar',
-                description: 'Pasang atau hapus gambar besar di bawah embed panel.',
+                name: 'set-image',
+                description: 'Set or remove the large image below the panel embed.',
                 type: 1,
                 options: [
                     {
                         name: 'panel',
-                        description: 'Nama panel',
+                        description: 'Panel name',
                         type: 3, required: true, autocomplete: true
                     },
                     {
                         name: 'url',
-                        description: 'URL gambar (https://...). Ketik - untuk menghapus.',
+                        description: 'Image URL (https://...). Type - to remove.',
                         type: 3, required: true
                     }
                 ]
@@ -228,17 +228,17 @@ module.exports = new ApplicationCommand({
             // ── set-thumbnail ─────────────────────────────────────────────
             {
                 name: 'set-thumbnail',
-                description: 'Pasang atau hapus thumbnail (gambar kecil pojok kanan) embed panel.',
+                description: 'Set or remove the thumbnail (small corner image) of the panel embed.',
                 type: 1,
                 options: [
                     {
                         name: 'panel',
-                        description: 'Nama panel',
+                        description: 'Panel name',
                         type: 3, required: true, autocomplete: true
                     },
                     {
                         name: 'url',
-                        description: 'URL thumbnail (https://...). Ketik - untuk menghapus.',
+                        description: 'Thumbnail URL (https://...). Type - to remove.',
                         type: 3, required: true
                     }
                 ]
@@ -246,53 +246,53 @@ module.exports = new ApplicationCommand({
 
             // ── tambah-button ─────────────────────────────────────────────
             {
-                name: 'tambah-button',
-                description: 'Tambah tombol role ke sebuah panel.',
+                name: 'add-button',
+                description: 'Add a role button to a panel.',
                 type: 1,
                 options: [
                     {
                         name: 'panel',
-                        description: 'Nama panel tujuan',
+                        description: 'Target panel name',
                         type: 3, required: true, autocomplete: true
                     },
                     {
                         name: 'role',
-                        description: 'Role yang diberikan/dicabut saat tombol diklik',
+                        description: 'Role granted/removed when the button is clicked',
                         type: 3, required: true, autocomplete: true
                     },
                     {
                         name: 'label',
-                        description: 'Teks label tombol, bisa sertakan emoji: 🎮 Gaming (maks 80 karakter)',
+                        description: 'Button label text, can include emoji: 🎮 Gaming (max 80 characters)',
                         type: 3, required: true, max_length: 80
                     },
                     {
-                        name: 'warna',
-                        description: 'Warna tombol',
+                        name: 'color',
+                        description: 'Button color',
                         type: 3, required: false,
                         choices: [
-                            { name: '🔵 Biru (Primary)',      value: 'primary'   },
-                            { name: '🟢 Hijau (Success)',     value: 'success'   },
-                            { name: '🔴 Merah (Danger)',      value: 'danger'    },
-                            { name: '⚪ Abu-abu (Secondary)', value: 'secondary' }
+                            { name: '🔵 Blue (Primary)',      value: 'primary'   },
+                            { name: '🟢 Green (Success)',     value: 'success'   },
+                            { name: '🔴 Red (Danger)',        value: 'danger'    },
+                            { name: '⚪ Gray (Secondary)',    value: 'secondary' }
                         ]
                     }
                 ]
             },
 
-            // ── tambah-bulk ───────────────────────────────────────────────
+            // ── add-bulk ───────────────────────────────────────────────
             {
-                name: 'tambah-bulk',
-                description: 'Tambah banyak tombol sekaligus. Format tiap baris: @Role | Label | warna',
+                name: 'add-bulk',
+                description: 'Add multiple buttons at once. Format per line: @Role | Label | color',
                 type: 1,
                 options: [
                     {
                         name: 'panel',
-                        description: 'Nama panel tujuan',
+                        description: 'Target panel name',
                         type: 3, required: true, autocomplete: true
                     },
                     {
                         name: 'data',
-                        description: 'Satu baris = 1 tombol: @Role | Label | warna  (warna opsional, default: primary)',
+                        description: 'One line = 1 button: @Role | Label | color  (color optional, default: primary)',
                         type: 3, required: true, max_length: 2000
                     }
                 ]
@@ -301,33 +301,33 @@ module.exports = new ApplicationCommand({
             // ── edit-button ───────────────────────────────────────────────
             {
                 name: 'edit-button',
-                description: 'Edit label atau warna tombol yang sudah ada di panel.',
+                description: 'Edit the label or color of an existing button in a panel.',
                 type: 1,
                 options: [
                     {
                         name: 'panel',
-                        description: 'Nama panel yang berisi tombol',
+                        description: 'Panel name containing the button',
                         type: 3, required: true, autocomplete: true
                     },
                     {
                         name: 'role',
-                        description: 'Role yang tombolnya ingin diedit',
+                        description: 'Role whose button you want to edit',
                         type: 3, required: true, autocomplete: true
                     },
                     {
                         name: 'label',
-                        description: 'Label baru tombol (maks 80 karakter)',
+                        description: 'New button label (max 80 characters)',
                         type: 3, required: false, max_length: 80
                     },
                     {
-                        name: 'warna',
-                        description: 'Warna baru tombol',
+                        name: 'color',
+                        description: 'New button color',
                         type: 3, required: false,
                         choices: [
-                            { name: '🔵 Biru (Primary)',      value: 'primary'   },
-                            { name: '🟢 Hijau (Success)',     value: 'success'   },
-                            { name: '🔴 Merah (Danger)',      value: 'danger'    },
-                            { name: '⚪ Abu-abu (Secondary)', value: 'secondary' }
+                            { name: '🔵 Blue (Primary)',      value: 'primary'   },
+                            { name: '🟢 Green (Success)',     value: 'success'   },
+                            { name: '🔴 Red (Danger)',        value: 'danger'    },
+                            { name: '⚪ Gray (Secondary)',    value: 'secondary' }
                         ]
                     }
                 ]
@@ -336,17 +336,17 @@ module.exports = new ApplicationCommand({
             // ── edit-bulk ─────────────────────────────────────────────────
             {
                 name: 'edit-bulk',
-                description: 'Edit label/warna banyak tombol sekaligus. Format: @Role | Label baru | warna baru',
+                description: 'Edit label/color of multiple buttons at once. Format: @Role | New label | new color',
                 type: 1,
                 options: [
                     {
                         name: 'panel',
-                        description: 'Nama panel yang berisi tombol',
+                        description: 'Panel name containing the buttons',
                         type: 3, required: true, autocomplete: true
                     },
                     {
                         name: 'data',
-                        description: 'Satu baris = 1 tombol: @Role | Label baru | warna baru  (keduanya opsional)',
+                        description: 'One line = 1 button: @Role | New label | new color  (both optional)',
                         type: 3, required: true, max_length: 2000
                     }
                 ]
@@ -354,18 +354,18 @@ module.exports = new ApplicationCommand({
 
             // ── hapus-button ──────────────────────────────────────────────
             {
-                name: 'hapus-button',
-                description: 'Hapus sebuah tombol dari panel berdasarkan role.',
+                name: 'delete-button',
+                description: 'Remove a button from a panel by role.',
                 type: 1,
                 options: [
                     {
                         name: 'panel',
-                        description: 'Nama panel',
+                        description: 'Panel name',
                         type: 3, required: true, autocomplete: true
                     },
                     {
                         name: 'role',
-                        description: 'Role yang ingin dihapus tombolnya',
+                        description: 'Role whose button you want to remove',
                         type: 3, required: true, autocomplete: true
                     }
                 ]
@@ -373,18 +373,18 @@ module.exports = new ApplicationCommand({
 
             // ── hapus-bulk ────────────────────────────────────────────────
             {
-                name: 'hapus-bulk',
-                description: 'Hapus banyak tombol sekaligus. Format tiap baris: @Role',
+                name: 'delete-bulk',
+                description: 'Remove multiple buttons at once. Format per line: @Role',
                 type: 1,
                 options: [
                     {
                         name: 'panel',
-                        description: 'Nama panel yang berisi tombol',
+                        description: 'Panel name containing the buttons',
                         type: 3, required: true, autocomplete: true
                     },
                     {
                         name: 'data',
-                        description: 'Satu baris = 1 role yang tombolnya akan dihapus: @Role',
+                        description: 'One line = 1 role whose button will be removed: @Role',
                         type: 3, required: true, max_length: 2000
                     }
                 ]
@@ -392,18 +392,18 @@ module.exports = new ApplicationCommand({
 
             // ── kirim ─────────────────────────────────────────────────────
             {
-                name: 'kirim',
-                description: 'Kirim panel ke channel tertentu (hanya bisa dikirim 1 kali).',
+                name: 'send',
+                description: 'Send the panel to a specific channel (can only be sent once).',
                 type: 1,
                 options: [
                     {
                         name: 'panel',
-                        description: 'Nama panel yang akan dikirim',
+                        description: 'Name of the panel to send',
                         type: 3, required: true, autocomplete: true
                     },
                     {
                         name: 'channel',
-                        description: 'Channel tujuan (kosong = channel saat ini)',
+                        description: 'Target channel (empty = current channel)',
                         type: 3, required: false, autocomplete: true
                     }
                 ]
@@ -411,13 +411,13 @@ module.exports = new ApplicationCommand({
 
             // ── hapus-panel ───────────────────────────────────────────────
             {
-                name: 'hapus-panel',
-                description: 'Hapus seluruh panel dari database.',
+                name: 'delete-panel',
+                description: 'Delete the entire panel from the database.',
                 type: 1,
                 options: [
                     {
                         name: 'panel',
-                        description: 'Nama panel yang akan dihapus',
+                        description: 'Name of the panel to delete',
                         type: 3, required: true, autocomplete: true
                     }
                 ]
@@ -426,23 +426,23 @@ module.exports = new ApplicationCommand({
             // ── color-button ──────────────────────────────────────────────
             {
                 name: 'color-button',
-                description: 'Atur warna default tombol baru untuk sebuah panel.',
+                description: 'Set the default color for new buttons in a panel.',
                 type: 1,
                 options: [
                     {
                         name: 'panel',
-                        description: 'Nama panel yang ingin diubah warna defaultnya',
+                        description: 'Panel name whose default color you want to change',
                         type: 3, required: true, autocomplete: true
                     },
                     {
-                        name: 'warna',
-                        description: 'Warna default baru untuk semua tombol baru di panel ini',
+                        name: 'color',
+                        description: 'New default color for all new buttons in this panel',
                         type: 3, required: true,
                         choices: [
-                            { name: '🔵 Biru (Primary)',      value: 'primary'   },
-                            { name: '🟢 Hijau (Success)',     value: 'success'   },
-                            { name: '🔴 Merah (Danger)',      value: 'danger'    },
-                            { name: '⚪ Abu-abu (Secondary)', value: 'secondary' }
+                            { name: '🔵 Blue (Primary)',      value: 'primary'   },
+                            { name: '🟢 Green (Success)',     value: 'success'   },
+                            { name: '🔴 Red (Danger)',        value: 'danger'    },
+                            { name: '⚪ Gray (Secondary)',    value: 'secondary' }
                         ]
                     }
                 ]
@@ -451,33 +451,33 @@ module.exports = new ApplicationCommand({
             // ── preview ───────────────────────────────────────────────────
             {
                 name: 'preview',
-                description: 'Pratinjau panel (hanya terlihat olehmu).',
+                description: 'Preview the panel (only visible to you).',
                 type: 1,
                 options: [
                     {
                         name: 'panel',
-                        description: 'Nama panel yang ingin dipratinjau',
+                        description: 'Name of the panel to preview',
                         type: 3, required: true, autocomplete: true
                     }
                 ]
             },
 
-            // ── tipe ──────────────────────────────────────────────────────
+            // ── type ──────────────────────────────────────────────────────
             {
-                name: 'tipe',
-                description: 'Ubah tipe pesan panel: embed atau teks biasa.',
+                name: 'type',
+                description: 'Change the panel message type: embed or plain text.',
                 type: 1,
                 options: [
                     {
-                        name: 'panel', description: 'Nama panel',
+                        name: 'panel', description: 'Panel name',
                         type: 3, required: true, autocomplete: true
                     },
                     {
-                        name: 'tipe', description: 'Tipe pesan yang diinginkan',
+                        name: 'type', description: 'Desired message type',
                         type: 3, required: true,
                         choices: [
-                            { name: 'Embed — pesan dalam kotak dengan warna', value: 'embed' },
-                            { name: 'Teks Biasa — teks tanpa kotak embed', value: 'plain' }
+                            { name: 'Embed — message in a colored box', value: 'embed' },
+                            { name: 'Plain Text — text without an embed box', value: 'plain' }
                         ]
                     }
                 ]
@@ -495,7 +495,7 @@ module.exports = new ApplicationCommand({
         const { guild, options } = interaction;
         const sub = options.getSubcommand();
 
-        // ── Cek permission bot ────────────────────────────────────────
+        // ── Check bot permissions ──────────────────────────────────────
         const ok = await checkBotPermissions(interaction, [
             PermissionFlagsBits.SendMessages,
             PermissionFlagsBits.EmbedLinks,
@@ -509,7 +509,7 @@ module.exports = new ApplicationCommand({
 
             if (list.length === 0) {
                 return interaction.reply({
-                    content: '📭 Belum ada panel autorole button. Buat dengan `/autorole-button buat`.',
+                    content: '📭 No autorole button panels yet. Create one with `/autorole-button create`.',
                     flags: MessageFlags.Ephemeral
                 });
             }
@@ -522,20 +522,20 @@ module.exports = new ApplicationCommand({
 
                 const sent    = getSentPanel(client, guild.id, name);
                 const sentStr = sent
-                    ? `📤 Terkirim — [Lihat](https://discord.com/channels/${guild.id}/${sent.channelId}/${sent.messageId})`
-                    : '📭 Belum dikirim';
+                    ? `📤 Sent — [View](https://discord.com/channels/${guild.id}/${sent.channelId}/${sent.messageId})`
+                    : '📭 Not sent yet';
 
                 const defaultWarna = panel.defaultStyle
-                    ? (STYLE_LABEL[panel.defaultStyle] ?? '🔵 Biru (Primary)')
-                    : '🔵 Biru (Primary)';
+                    ? (STYLE_LABEL[panel.defaultStyle] ?? '🔵 Blue (Primary)')
+                    : '🔵 Blue (Primary)';
 
                 return {
                     name: `\`${name}\``,
                     value: [
                         `${modeIcon} **Mode:** ${panel.mode === 'single' ? 'Single (radio)' : 'Multi'}`,
-                        `🎭 **Tombol:** ${panel.buttons?.length ?? 0}`,
-                        `🎨 **Warna Default:** ${defaultWarna}`,
-                        `🎨 **Warna Embed:** ${panel.embedColor || '#5865F2'}`,
+                        `🎭 **Buttons:** ${panel.buttons?.length ?? 0}`,
+                        `🎨 **Default Color:** ${defaultWarna}`,
+                        `🎨 **Embed Color:** ${panel.embedColor || '#5865F2'}`,
                         sentStr
                     ].join('\n'),
                     inline: true
@@ -543,7 +543,7 @@ module.exports = new ApplicationCommand({
             });
 
             const embed = new EmbedBuilder()
-                .setTitle('🗂️ Daftar Panel Autorole Button')
+                .setTitle('🗂️ Autorole Button Panel List')
                 .setColor('#5865F2')
                 .addFields(fields)
                 .setFooter({ text: `${list.length} panel · ${guild.name}` })
@@ -552,19 +552,19 @@ module.exports = new ApplicationCommand({
             return interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
         }
 
-        // ── /autorole-button tipe ──────────────────────────────────────────
-        if (sub === 'tipe') {
+        // ── /autorole-button type ──────────────────────────────────────────
+        if (sub === 'type') {
             const panelName = options.getString('panel');
-            const tipe      = options.getString('tipe');
+            const tipe      = options.getString('type');
             const panel     = getPanel(client, guild.id, panelName);
-            if (!panel) return interaction.reply({ content: `❌ Panel \`${panelName}\` tidak ditemukan.`, flags: MessageFlags.Ephemeral });
+            if (!panel) return interaction.reply({ content: `❌ Panel \`${panelName}\` not found.`, flags: MessageFlags.Ephemeral });
 
             if (tipe === 'embed') {
                 panel.messageType = 'embed';
                 panel.updatedAt   = Date.now();
                 savePanel(client, guild.id, panelName, panel);
                 return interaction.reply({
-                    content: `✅ Tipe panel \`${panelName}\` diubah ke **Embed**.\nGunakan \`/autorole-button buat ${panelName}\` untuk mengatur judul, deskripsi, dan footer embed.`,
+                    content: `✅ Panel \`${panelName}\` type changed to **Embed**.\nUse \`/autorole-button create ${panelName}\` to set the title, description, and footer.`,
                     flags: MessageFlags.Ephemeral
                 });
             }
@@ -576,13 +576,13 @@ module.exports = new ApplicationCommand({
                 );
                 await interaction.showModal({
                     custom_id: `autobtn-modal:${panelName}`,
-                    title: `Teks Biasa: ${panelName}`.slice(0, 45),
+                    title: `Plain Text: ${panelName}`.slice(0, 45),
                     components: [{
                         type: 1,
                         components: [{
                             type: 4, custom_id: 'autobtn-field-plaintext',
-                            label: 'Isi Pesan Teks Biasa (maks. 2000)', style: 2,
-                            placeholder: 'Tulis isi pesan di sini...',
+                            label: 'Plain Text Message Content (max. 2000)', style: 2,
+                            placeholder: 'Write the message content here...',
                             value: panel.plainText || '', required: true, max_length: 2000
                         }]
                     }]
@@ -592,35 +592,35 @@ module.exports = new ApplicationCommand({
         }
 
         // ── /autorole-button buat ──────────────────────────────────────────
-        if (sub === 'buat') {
-            const nama = options.getString('nama').trim().toLowerCase();
-            const mode = options.getString('mode'); // bisa null (untuk edit ulang)
+        if (sub === 'create') {
+            const nama = options.getString('name').trim().toLowerCase();
+            const mode = options.getString('mode'); // can be null (for re-editing)
 
             if (!isValidName(nama)) {
                 return interaction.reply({
-                    content: '❌ Nama panel hanya boleh berisi huruf, angka, `-`, dan `_` (1–32 karakter).',
+                    content: '❌ Panel name can only contain letters, numbers, `-`, and `_` (1–32 characters).',
                     flags: MessageFlags.Ephemeral
                 });
             }
 
             const existing = getPanel(client, guild.id, nama);
 
-            // Jika panel baru, mode wajib diisi
+            // If new panel, mode is required
             if (!existing && !mode) {
                 return interaction.reply({
-                    content: '❌ Panel baru memerlukan opsi `mode`. Pilih `multi` atau `single`.',
+                    content: '❌ New panels require the `mode` option. Choose `multi` or `single`.',
                     flags: MessageFlags.Ephemeral
                 });
             }
 
-            // Simpan pending untuk modal handler
+            // Save pending for modal handler
             const pendingMode = mode || existing?.mode || 'multi';
             client.database.set(
                 `autobtn-pending-${guild.id}-${interaction.user.id}`,
                 JSON.stringify({ nama, mode: pendingMode, isNew: !existing })
             );
 
-            // Buka modal dengan pre-fill dari data panel (jika sudah ada)
+            // Open modal with pre-fill from panel data (if exists)
             await interaction.showModal({
                 custom_id: `autobtn-modal:${nama}`,
                 title: `Panel: ${nama}`.slice(0, 45),
@@ -629,8 +629,8 @@ module.exports = new ApplicationCommand({
                         type: 1,
                         components: [{
                             type: 4, custom_id: 'autobtn-field-title',
-                            label: 'Judul Embed (maks. 256 karakter)', style: 1,
-                            placeholder: 'Contoh: Pilih Role Kamu',
+                            label: 'Embed Title (max. 256 characters)', style: 1,
+                            placeholder: 'Example: Choose Your Role',
                             value: existing?.embedTitle || '', required: false, max_length: 256
                         }]
                     },
@@ -638,8 +638,8 @@ module.exports = new ApplicationCommand({
                         type: 1,
                         components: [{
                             type: 4, custom_id: 'autobtn-field-description',
-                            label: 'Deskripsi Embed (maks. 4000 karakter)', style: 2,
-                            placeholder: 'Jelaskan fungsi tombol di sini...',
+                            label: 'Embed Description (max. 4000 characters)', style: 2,
+                            placeholder: 'Describe the button function here...',
                             value: existing?.embedDescription || '', required: false, max_length: 4000
                         }]
                     },
@@ -647,8 +647,8 @@ module.exports = new ApplicationCommand({
                         type: 1,
                         components: [{
                             type: 4, custom_id: 'autobtn-field-footer',
-                            label: 'Footer Embed (maks. 2048 karakter)', style: 1,
-                            placeholder: 'Teks di bagian bawah embed...',
+                            label: 'Embed Footer (max. 2048 characters)', style: 1,
+                            placeholder: 'Text at the bottom of the embed...',
                             value: existing?.embedFooter || '', required: false, max_length: 2048
                         }]
                     }
@@ -658,65 +658,65 @@ module.exports = new ApplicationCommand({
         }
 
         // ── /autorole-button set-warna ─────────────────────────────────────
-        if (sub === 'set-warna') {
+        if (sub === 'set-color') {
             const panelName = options.getString('panel');
             const hex       = options.getString('hex').trim();
             const panel     = getPanel(client, guild.id, panelName);
-            if (!panel) return interaction.reply({ content: `❌ Panel \`${panelName}\` tidak ditemukan.`, flags: MessageFlags.Ephemeral });
-            if (!/^#?[0-9A-Fa-f]{6}$/.test(hex)) return interaction.reply({ content: '❌ Format warna tidak valid. Contoh: `#FF5733` atau `FF5733`.', flags: MessageFlags.Ephemeral });
+            if (!panel) return interaction.reply({ content: `❌ Panel \`${panelName}\` not found.`, flags: MessageFlags.Ephemeral });
+            if (!/^#?[0-9A-Fa-f]{6}$/.test(hex)) return interaction.reply({ content: '❌ Invalid color format. Example: `#FF5733` or `FF5733`.', flags: MessageFlags.Ephemeral });
 
             panel.embedColor = hex.startsWith('#') ? hex : `#${hex}`;
             panel.updatedAt  = Date.now();
             savePanel(client, guild.id, panelName, panel);
 
-            // Perbarui pesan yang sudah terkirim
+            // Update the already-sent message
             const sentResult = await resolveSentMessage(client, guild, panelName);
-            let statusStr = '📭 Panel belum dikirim.';
+            let statusStr = '📭 Panel not yet sent.';
             if (sentResult) {
                 try {
                     await sentResult.message.edit({ embeds: [buildPanelEmbed(panel)], components: buildButtonRows(panel) });
-                    statusStr = `✅ Pesan terkirim langsung diperbarui!\n🔗 https://discord.com/channels/${guild.id}/${sentResult.sent.channelId}/${sentResult.sent.messageId}`;
+                    statusStr = `✅ Sent message updated immediately!\n🔗 https://discord.com/channels/${guild.id}/${sentResult.sent.channelId}/${sentResult.sent.messageId}`;
                 } catch {
-                    statusStr = `⚠️ Gagal memperbarui pesan. Kirim ulang: \`/autorole-button kirim ${panelName}\``;
+                    statusStr = `⚠️ Failed to update message. Resend with: \`/autorole-button send ${panelName}\``;
                 }
             }
 
             return interaction.reply({
-                content: `✅ Warna embed panel \`${panelName}\` diperbarui ke \`${panel.embedColor}\`.\n${statusStr}`,
+                content: `✅ Embed color for panel \`${panelName}\` updated to \`${panel.embedColor}\`.\n${statusStr}`,
                 flags: MessageFlags.Ephemeral
             });
         }
 
         // ── /autorole-button set-gambar ────────────────────────────────────
-        if (sub === 'set-gambar') {
+        if (sub === 'set-image') {
             const panelName = options.getString('panel');
             const url       = options.getString('url').trim();
             const panel     = getPanel(client, guild.id, panelName);
-            if (!panel) return interaction.reply({ content: `❌ Panel \`${panelName}\` tidak ditemukan.`, flags: MessageFlags.Ephemeral });
+            if (!panel) return interaction.reply({ content: `❌ Panel \`${panelName}\` not found.`, flags: MessageFlags.Ephemeral });
 
             if (url === '-') {
                 panel.embedImage = '';
             } else {
-                if (!/^https?:\/\/.+\..+/.test(url)) return interaction.reply({ content: '❌ URL tidak valid. Harus dimulai dengan `https://`.', flags: MessageFlags.Ephemeral });
+                if (!/^https?:\/\/.+\..+/.test(url)) return interaction.reply({ content: '❌ Invalid URL. Must start with `https://`.', flags: MessageFlags.Ephemeral });
                 panel.embedImage = url;
             }
             panel.updatedAt = Date.now();
             savePanel(client, guild.id, panelName, panel);
 
             const sentResult = await resolveSentMessage(client, guild, panelName);
-            let statusStr = '📭 Panel belum dikirim.';
+            let statusStr = '📭 Panel not yet sent.';
             if (sentResult) {
                 try {
                     await sentResult.message.edit({ embeds: [buildPanelEmbed(panel)], components: buildButtonRows(panel) });
-                    statusStr = `✅ Pesan terkirim langsung diperbarui!\n🔗 https://discord.com/channels/${guild.id}/${sentResult.sent.channelId}/${sentResult.sent.messageId}`;
+                    statusStr = `✅ Sent message updated immediately!\n🔗 https://discord.com/channels/${guild.id}/${sentResult.sent.channelId}/${sentResult.sent.messageId}`;
                 } catch {
-                    statusStr = `⚠️ Gagal memperbarui pesan. Kirim ulang: \`/autorole-button kirim ${panelName}\``;
+                    statusStr = `⚠️ Failed to update message. Resend with: \`/autorole-button send ${panelName}\``;
                 }
             }
 
-            const action = url === '-' ? '**dihapus**' : 'diperbarui';
+            const action = url === '-' ? '**removed**' : 'updated';
             return interaction.reply({
-                content: `✅ Gambar embed panel \`${panelName}\` ${action}.\n${statusStr}`,
+                content: `✅ Panel \`${panelName}\` embed image ${action}.\n${statusStr}`,
                 flags: MessageFlags.Ephemeral
             });
         }
@@ -726,44 +726,44 @@ module.exports = new ApplicationCommand({
             const panelName = options.getString('panel');
             const url       = options.getString('url').trim();
             const panel     = getPanel(client, guild.id, panelName);
-            if (!panel) return interaction.reply({ content: `❌ Panel \`${panelName}\` tidak ditemukan.`, flags: MessageFlags.Ephemeral });
+            if (!panel) return interaction.reply({ content: `❌ Panel \`${panelName}\` not found.`, flags: MessageFlags.Ephemeral });
 
             if (url === '-') {
                 panel.embedThumbnail = '';
             } else {
-                if (!/^https?:\/\/.+\..+/.test(url)) return interaction.reply({ content: '❌ URL tidak valid. Harus dimulai dengan `https://`.', flags: MessageFlags.Ephemeral });
+                if (!/^https?:\/\/.+\..+/.test(url)) return interaction.reply({ content: '❌ Invalid URL. Must start with `https://`.', flags: MessageFlags.Ephemeral });
                 panel.embedThumbnail = url;
             }
             panel.updatedAt = Date.now();
             savePanel(client, guild.id, panelName, panel);
 
             const sentResult = await resolveSentMessage(client, guild, panelName);
-            let statusStr = '📭 Panel belum dikirim.';
+            let statusStr = '📭 Panel not yet sent.';
             if (sentResult) {
                 try {
                     await sentResult.message.edit({ embeds: [buildPanelEmbed(panel)], components: buildButtonRows(panel) });
-                    statusStr = `✅ Pesan terkirim langsung diperbarui!\n🔗 https://discord.com/channels/${guild.id}/${sentResult.sent.channelId}/${sentResult.sent.messageId}`;
+                    statusStr = `✅ Sent message updated immediately!\n🔗 https://discord.com/channels/${guild.id}/${sentResult.sent.channelId}/${sentResult.sent.messageId}`;
                 } catch {
-                    statusStr = `⚠️ Gagal memperbarui pesan. Kirim ulang: \`/autorole-button kirim ${panelName}\``;
+                    statusStr = `⚠️ Failed to update message. Resend with: \`/autorole-button send ${panelName}\``;
                 }
             }
 
-            const action = url === '-' ? '**dihapus**' : 'diperbarui';
+            const action = url === '-' ? '**removed**' : 'updated';
             return interaction.reply({
-                content: `✅ Thumbnail embed panel \`${panelName}\` ${action}.\n${statusStr}`,
+                content: `✅ Panel \`${panelName}\` embed thumbnail ${action}.\n${statusStr}`,
                 flags: MessageFlags.Ephemeral
             });
         }
 
         // ── /autorole-button tambah-button ─────────────────────────────────
-        if (sub === 'tambah-button') {
+        if (sub === 'add-button') {
             const panelName = options.getString('panel');
             const roleStr   = options.getString('role');
             const label     = options.getString('label').trim();
             const panel = getPanel(client, guild.id, panelName);
             if (!panel) {
                 return interaction.reply({
-                    content: `❌ Panel \`${panelName}\` tidak ditemukan.`,
+                    content: `❌ Panel \`${panelName}\` not found.`,
                     flags: MessageFlags.Ephemeral
                 });
             }
@@ -771,24 +771,24 @@ module.exports = new ApplicationCommand({
             const defaultKey = panel.defaultStyle
                 ? Object.keys(STYLE_MAP).find(k => STYLE_MAP[k] === panel.defaultStyle) || 'primary'
                 : 'primary';
-            const warnaKey  = options.getString('warna') || defaultKey;
+            const warnaKey  = options.getString('color') || defaultKey;
 
             const role = resolveRole(guild, roleStr);
             if (!role) {
-                return interaction.reply({ content: '❌ Role tidak ditemukan.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: '❌ Role not found.', flags: MessageFlags.Ephemeral });
             }
             if (role.managed || role.id === guild.id) {
-                return interaction.reply({ content: '❌ Role ini tidak bisa digunakan (managed atau @everyone).', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: '❌ This role cannot be used (managed or @everyone).', flags: MessageFlags.Ephemeral });
             }
             if (panel.buttons.some(b => b.roleId === role.id)) {
                 return interaction.reply({
-                    content: `⚠️ Role ${role} sudah punya tombol di panel \`${panelName}\`. Gunakan \`/autorole-button edit-button\` untuk mengubahnya.`,
+                    content: `⚠️ Role ${role} already has a button in panel \`${panelName}\`. Use \`/autorole-button edit-button\` to modify it.`,
                     flags: MessageFlags.Ephemeral
                 });
             }
             if (panel.buttons.length >= 25) {
                 return interaction.reply({
-                    content: '❌ Satu panel maksimal 25 tombol (5 baris × 5 kolom).',
+                    content: '❌ A panel can have at most 25 buttons (5 rows × 5 columns).',
                     flags: MessageFlags.Ephemeral
                 });
             }
@@ -802,7 +802,7 @@ module.exports = new ApplicationCommand({
             savePanel(client, guild.id, panelName, panel);
 
             const sentResult = await resolveSentMessage(client, guild, panelName);
-            let statusStr = `Kirim panel dengan \`/autorole-button kirim ${panelName}\``;
+            let statusStr = `Send the panel with \`/autorole-button send ${panelName}\``;
 
             if (sentResult) {
                 try {
@@ -810,9 +810,9 @@ module.exports = new ApplicationCommand({
                         embeds:     [buildPanelEmbed(panel)],
                         components: buildButtonRows(panel)
                     });
-                    statusStr = `✅ Pesan terkirim langsung diperbarui!\n🔗 https://discord.com/channels/${guild.id}/${sentResult.sent.channelId}/${sentResult.sent.messageId}`;
+                    statusStr = `✅ Sent message updated immediately!\n🔗 https://discord.com/channels/${guild.id}/${sentResult.sent.channelId}/${sentResult.sent.messageId}`;
                 } catch {
-                    statusStr = `⚠️ Gagal memperbarui pesan. Kirim ulang: \`/autorole-button kirim ${panelName}\``;
+                    statusStr = `⚠️ Failed to update message. Resend with: \`/autorole-button send ${panelName}\``;
                 }
             }
 
@@ -820,12 +820,12 @@ module.exports = new ApplicationCommand({
                 embeds: [
                     new EmbedBuilder()
                         .setColor('#57F287')
-                        .setTitle(`✅ Tombol Ditambahkan ke Panel \`${panelName}\``)
+                        .setTitle(`✅ Button Added to Panel \`${panelName}\``)
                         .addFields(
                             { name: '🎭 Role',   value: `${role}`,  inline: true },
                             { name: '🏷️ Label',  value: label,      inline: true },
-                            { name: '🎨 Warna',  value: STYLE_LABEL[STYLE_MAP[warnaKey]] ?? warnaKey, inline: true },
-                            { name: '📊 Total',  value: `${panel.buttons.length}/25 tombol`, inline: true },
+                            { name: '🎨 Color',  value: STYLE_LABEL[STYLE_MAP[warnaKey]] ?? warnaKey, inline: true },
+                            { name: '📊 Total',  value: `${panel.buttons.length}/25 buttons`, inline: true },
                             { name: '📤 Status', value: statusStr, inline: false }
                         )
                         .setTimestamp()
@@ -835,14 +835,14 @@ module.exports = new ApplicationCommand({
         }
 
         // ── /autorole-button tambah-bulk ──────────────────────────────────
-        if (sub === 'tambah-bulk') {
+        if (sub === 'add-bulk') {
             const panelName = options.getString('panel');
             const rawData   = options.getString('data');
 
             const panel = getPanel(client, guild.id, panelName);
             if (!panel) {
                 return interaction.reply({
-                    content: `❌ Panel \`${panelName}\` tidak ditemukan.`,
+                    content: `❌ Panel \`${panelName}\` not found.`,
                     flags: MessageFlags.Ephemeral
                 });
             }
@@ -850,7 +850,7 @@ module.exports = new ApplicationCommand({
             const lines = rawData.split(/[\n;]/g).map(l => l.trim()).filter(Boolean);
             if (lines.length === 0) {
                 return interaction.reply({
-                    content: '❌ Input kosong. Masukkan minimal satu baris: `@Role | Label | warna`',
+                    content: '❌ Empty input. Enter at least one line: `@Role | Label | color`',
                     flags: MessageFlags.Ephemeral
                 });
             }
@@ -861,7 +861,7 @@ module.exports = new ApplicationCommand({
             for (const line of lines) {
                 const parts = line.split('|').map(p => p.trim());
                 if (parts.length < 2) {
-                    results.push({ status: '❌', label: line, reason: 'Format salah (kurang `|`)' });
+                    results.push({ status: '❌', label: line, reason: 'Wrong format (missing `|`)' });
                     continue;
                 }
                 const [roleStr, labelRaw, warnaRaw] = parts;
@@ -872,32 +872,32 @@ module.exports = new ApplicationCommand({
                 const warnaKey = (warnaRaw?.trim().toLowerCase()) || panelDefaultKey;
 
                 if (!label) {
-                    results.push({ status: '❌', label: roleStr, reason: 'Label kosong' });
+                    results.push({ status: '❌', label: roleStr, reason: 'Empty label' });
                     continue;
                 }
                 if (label.length > 80) {
-                    results.push({ status: '❌', label, reason: 'Label melebihi 80 karakter' });
+                    results.push({ status: '❌', label, reason: 'Label exceeds 80 characters' });
                     continue;
                 }
                 if (!['primary','success','danger','secondary'].includes(warnaKey)) {
-                    results.push({ status: '❌', label, reason: `Warna tidak valid: \`${warnaKey}\`` });
+                    results.push({ status: '❌', label, reason: `Invalid color: \`${warnaKey}\`` });
                     continue;
                 }
                 const role = resolveRole(guild, roleStr);
                 if (!role) {
-                    results.push({ status: '❌', label, reason: `Role \`${roleStr}\` tidak ditemukan` });
+                    results.push({ status: '❌', label, reason: `Role \`${roleStr}\` not found` });
                     continue;
                 }
                 if (role.managed || role.id === guild.id) {
-                    results.push({ status: '❌', label, role: role.toString(), reason: 'Role managed atau @everyone' });
+                    results.push({ status: '❌', label, role: role.toString(), reason: 'Managed role or @everyone' });
                     continue;
                 }
                 if (panel.buttons.some(b => b.roleId === role.id)) {
-                    results.push({ status: '⚠️', label, role: role.toString(), reason: 'Role sudah punya tombol (dilewati)' });
+                    results.push({ status: '⚠️', label, role: role.toString(), reason: 'Role already has a button (skipped)' });
                     continue;
                 }
                 if (panel.buttons.length + addedCount >= 25) {
-                    results.push({ status: '❌', label, role: role.toString(), reason: 'Panel sudah penuh (maks 25 tombol)' });
+                    results.push({ status: '❌', label, role: role.toString(), reason: 'Panel is full (max 25 buttons)' });
                     continue;
                 }
 
@@ -908,15 +908,15 @@ module.exports = new ApplicationCommand({
 
             if (addedCount > 0) { panel.updatedAt = Date.now(); savePanel(client, guild.id, panelName, panel); }
 
-            let statusStr = addedCount > 0 ? `Kirim panel: \`/autorole-button kirim ${panelName}\`` : 'Tidak ada perubahan.';
+            let statusStr = addedCount > 0 ? `Send panel: \`/autorole-button send ${panelName}\`` : 'No changes.';
             if (addedCount > 0) {
                 const sentResult = await resolveSentMessage(client, guild, panelName);
                 if (sentResult) {
                     try {
                         await sentResult.message.edit({ embeds: [buildPanelEmbed(panel)], components: buildButtonRows(panel) });
-                        statusStr = `✅ Pesan terkirim langsung diperbarui!\n🔗 https://discord.com/channels/${guild.id}/${sentResult.sent.channelId}/${sentResult.sent.messageId}`;
+                        statusStr = `✅ Sent message updated immediately!\n🔗 https://discord.com/channels/${guild.id}/${sentResult.sent.channelId}/${sentResult.sent.messageId}`;
                     } catch {
-                        statusStr = `⚠️ Gagal memperbarui pesan. Kirim ulang: \`/autorole-button kirim ${panelName}\``;
+                        statusStr = `⚠️ Failed to update message. Resend with: \`/autorole-button send ${panelName}\``;
                     }
                 }
             }
@@ -926,15 +926,15 @@ module.exports = new ApplicationCommand({
             const failLines    = results.filter(r => r.status === '❌');
             const summaryParts = [];
             if (successLines.length) summaryParts.push(
-                `**✅ Berhasil ditambahkan (${successLines.length}):**\n` +
+                `**✅ Successfully added (${successLines.length}):**\n` +
                 successLines.map(r => `> ${r.role} — \`${r.label}\` ${r.warna}`).join('\n')
             );
             if (warnLines.length) summaryParts.push(
-                `**⚠️ Dilewati (${warnLines.length}):**\n` +
+                `**⚠️ Skipped (${warnLines.length}):**\n` +
                 warnLines.map(r => `> ${r.role ?? r.label} — ${r.reason}`).join('\n')
             );
             if (failLines.length) summaryParts.push(
-                `**❌ Gagal (${failLines.length}):**\n` +
+                `**❌ Failed (${failLines.length}):**\n` +
                 failLines.map(r => `> \`${r.label}\` — ${r.reason}`).join('\n')
             );
 
@@ -944,10 +944,10 @@ module.exports = new ApplicationCommand({
                 embeds: [
                     new EmbedBuilder()
                         .setColor(color)
-                        .setTitle(`📦 Hasil Tambah Bulk — Panel \`${panelName}\``)
+                        .setTitle(`📦 Bulk Add Result — Panel \`${panelName}\``)
                         .setDescription(summaryParts.join('\n\n') || '_Tidak ada yang diproses._')
                         .addFields(
-                            { name: '📊 Total Tombol', value: `${panel.buttons.length}/25`, inline: true },
+                            { name: '📊 Total Buttons', value: `${panel.buttons.length}/25`, inline: true },
                             { name: '📤 Status',        value: statusStr, inline: false }
                         )
                         .setTimestamp()
@@ -961,18 +961,18 @@ module.exports = new ApplicationCommand({
             const panelName = options.getString('panel');
             const roleStr   = options.getString('role');
             const labelBaru = options.getString('label');
-            const warnaBaru = options.getString('warna');
+            const warnaBaru = options.getString('color');
 
             if (!labelBaru && !warnaBaru) {
                 return interaction.reply({
-                    content: '⚠️ Isi minimal satu field: `label` atau `warna`.',
+                    content: '⚠️ Fill in at least one field: `label` or `color`.',
                     flags: MessageFlags.Ephemeral
                 });
             }
 
             const panel = getPanel(client, guild.id, panelName);
             if (!panel) {
-                return interaction.reply({ content: `❌ Panel \`${panelName}\` tidak ditemukan.`, flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: `❌ Panel \`${panelName}\` not found.`, flags: MessageFlags.Ephemeral });
             }
 
             const sentResult = await resolveSentMessage(client, guild, panelName);
@@ -981,16 +981,16 @@ module.exports = new ApplicationCommand({
                 if (!sentRaw) {
                     return interaction.reply({
                         content: [
-                            `❌ Panel \`${panelName}\` belum dikirim ke channel manapun.`,
-                            `Kirim dulu dengan \`/autorole-button kirim ${panelName}\`, kemudian gunakan \`edit-button\`.`
+                            `❌ Panel \`${panelName}\` has not been sent to any channel.`,
+                            `Send it first with \`/autorole-button send ${panelName}\`, then use \`edit-button\`.`
                         ].join('\n'),
                         flags: MessageFlags.Ephemeral
                     });
                 }
                 return interaction.reply({
                     content: [
-                        `❌ Pesan panel \`${panelName}\` sudah dihapus dari channel.`,
-                        `Kirim ulang panel dengan \`/autorole-button kirim ${panelName}\`, kemudian gunakan \`edit-button\`.`
+                        `❌ Panel \`${panelName}\` message was deleted from the channel.`,
+                        `Resend the panel with \`/autorole-button send ${panelName}\`, then use \`edit-button\`.`
                     ].join('\n'),
                     flags: MessageFlags.Ephemeral
                 });
@@ -998,13 +998,13 @@ module.exports = new ApplicationCommand({
 
             const role = resolveRole(guild, roleStr);
             if (!role) {
-                return interaction.reply({ content: '❌ Role tidak ditemukan.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: '❌ Role not found.', flags: MessageFlags.Ephemeral });
             }
 
             const btnIndex = panel.buttons.findIndex(b => b.roleId === role.id);
             if (btnIndex === -1) {
                 return interaction.reply({
-                    content: `⚠️ Tidak ada tombol dengan role ${role} di panel \`${panelName}\`.\nTambah dulu dengan \`/autorole-button tambah-button\`.`,
+                    content: `⚠️ No button with role ${role} in panel \`${panelName}\`.\nAdd one first with \`/autorole-button add-button\`.`,
                     flags: MessageFlags.Ephemeral
                 });
             }
@@ -1023,20 +1023,20 @@ module.exports = new ApplicationCommand({
             let statusStr = '';
             try {
                 await sentResult.message.edit({ embeds: [buildPanelEmbed(panel)], components: buildButtonRows(panel) });
-                statusStr = `✅ Pesan terkirim langsung diperbarui!\n🔗 https://discord.com/channels/${guild.id}/${sentResult.sent.channelId}/${sentResult.sent.messageId}`;
+                statusStr = `✅ Sent message updated immediately!\n🔗 https://discord.com/channels/${guild.id}/${sentResult.sent.channelId}/${sentResult.sent.messageId}`;
             } catch {
-                statusStr = `⚠️ Gagal memperbarui pesan. Kirim ulang: \`/autorole-button kirim ${panelName}\``;
+                statusStr = `⚠️ Failed to update message. Resend with: \`/autorole-button send ${panelName}\``;
             }
 
             const changeFields = [];
             if (labelBaru) changeFields.push({ name: '🏷️ Label', value: `\`${labelLama}\` → \`${btn.label}\``, inline: true });
-            if (warnaBaru) changeFields.push({ name: '🎨 Warna',  value: `${warnaLama} → ${STYLE_LABEL[btn.style] ?? warnaBaru}`, inline: true });
+            if (warnaBaru) changeFields.push({ name: '🎨 Color',  value: `${warnaLama} → ${STYLE_LABEL[btn.style] ?? warnaBaru}`, inline: true });
 
             return interaction.reply({
                 embeds: [
                     new EmbedBuilder()
                         .setColor('#FEE75C')
-                        .setTitle(`✏️ Tombol Diedit di Panel \`${panelName}\``)
+                        .setTitle(`✏️ Button Edited in Panel \`${panelName}\``)
                         .addFields(
                             { name: '🎭 Role', value: `${role}`, inline: false },
                             ...changeFields,
@@ -1055,7 +1055,7 @@ module.exports = new ApplicationCommand({
 
             const panel = getPanel(client, guild.id, panelName);
             if (!panel) {
-                return interaction.reply({ content: `❌ Panel \`${panelName}\` tidak ditemukan.`, flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: `❌ Panel \`${panelName}\` not found.`, flags: MessageFlags.Ephemeral });
             }
 
             const sentResult = await resolveSentMessage(client, guild, panelName);
@@ -1064,16 +1064,16 @@ module.exports = new ApplicationCommand({
                 if (!sentRaw) {
                     return interaction.reply({
                         content: [
-                            `❌ Panel \`${panelName}\` belum dikirim ke channel manapun.`,
-                            `Kirim dulu dengan \`/autorole-button kirim ${panelName}\`, kemudian gunakan \`edit-bulk\`.`
+                            `❌ Panel \`${panelName}\` has not been sent to any channel.`,
+                            `Send it first with \`/autorole-button send ${panelName}\`, then use \`edit-bulk\`.`
                         ].join('\n'),
                         flags: MessageFlags.Ephemeral
                     });
                 }
                 return interaction.reply({
                     content: [
-                        `❌ Pesan panel \`${panelName}\` sudah dihapus dari channel.`,
-                        `Kirim ulang panel dengan \`/autorole-button kirim ${panelName}\`, kemudian gunakan \`edit-bulk\`.`
+                        `❌ Panel \`${panelName}\` message was deleted from the channel.`,
+                        `Resend the panel with \`/autorole-button send ${panelName}\`, then use \`edit-bulk\`.`
                     ].join('\n'),
                     flags: MessageFlags.Ephemeral
                 });
@@ -1081,7 +1081,7 @@ module.exports = new ApplicationCommand({
 
             const lines = rawData.split(/[\n;]/g).map(l => l.trim()).filter(Boolean);
             if (lines.length === 0) {
-                return interaction.reply({ content: '❌ Input kosong.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: '❌ Empty input.', flags: MessageFlags.Ephemeral });
             }
 
             const results   = [];
@@ -1092,28 +1092,28 @@ module.exports = new ApplicationCommand({
                 const [roleStr, labelBaru, warnaBaru] = parts;
 
                 if (!labelBaru && !warnaBaru) {
-                    results.push({ status: '❌', label: line, reason: 'Isi minimal label atau warna' });
+                    results.push({ status: '❌', label: line, reason: 'Fill in at least a label or color' });
                     continue;
                 }
                 if (labelBaru && labelBaru.length > 80) {
-                    results.push({ status: '❌', label: labelBaru, reason: 'Label melebihi 80 karakter' });
+                    results.push({ status: '❌', label: labelBaru, reason: 'Label exceeds 80 characters' });
                     continue;
                 }
                 const warnaKey = warnaBaru?.toLowerCase();
                 if (warnaKey && !['primary','success','danger','secondary'].includes(warnaKey)) {
-                    results.push({ status: '❌', label: roleStr, reason: `Warna tidak valid: \`${warnaKey}\`` });
+                    results.push({ status: '❌', label: roleStr, reason: `Invalid color: \`${warnaKey}\`` });
                     continue;
                 }
 
                 const role = resolveRole(guild, roleStr);
                 if (!role) {
-                    results.push({ status: '❌', label: roleStr, reason: `Role \`${roleStr}\` tidak ditemukan` });
+                    results.push({ status: '❌', label: roleStr, reason: `Role \`${roleStr}\` not found` });
                     continue;
                 }
 
                 const btnIndex = panel.buttons.findIndex(b => b.roleId === role.id);
                 if (btnIndex === -1) {
-                    results.push({ status: '⚠️', label: roleStr, role: role.toString(), reason: 'Tidak punya tombol di panel ini' });
+                    results.push({ status: '⚠️', label: roleStr, role: role.toString(), reason: 'Does not have a button in this panel' });
                     continue;
                 }
 
@@ -1127,19 +1127,19 @@ module.exports = new ApplicationCommand({
 
                 const changes = [];
                 if (labelBaru) changes.push(`label: \`${labelLama}\` → \`${btn.label}\``);
-                if (warnaKey)  changes.push(`warna: ${warnaLama} → ${STYLE_LABEL[btn.style]}`);
+                if (warnaKey)  changes.push(`color: ${warnaLama} → ${STYLE_LABEL[btn.style]}`);
                 results.push({ status: '✅', role: role.toString(), changes: changes.join(', ') });
             }
 
             if (editedCount > 0) { panel.updatedAt = Date.now(); savePanel(client, guild.id, panelName, panel); }
 
-            let statusStr = editedCount > 0 ? '' : 'Tidak ada perubahan.';
+            let statusStr = editedCount > 0 ? '' : 'No changes.';
             if (editedCount > 0) {
                 try {
                     await sentResult.message.edit({ embeds: [buildPanelEmbed(panel)], components: buildButtonRows(panel) });
-                    statusStr = `✅ Pesan terkirim langsung diperbarui!\n🔗 https://discord.com/channels/${guild.id}/${sentResult.sent.channelId}/${sentResult.sent.messageId}`;
+                    statusStr = `✅ Sent message updated immediately!\n🔗 https://discord.com/channels/${guild.id}/${sentResult.sent.channelId}/${sentResult.sent.messageId}`;
                 } catch {
-                    statusStr = `⚠️ Gagal memperbarui pesan. Kirim ulang: \`/autorole-button kirim ${panelName}\``;
+                    statusStr = `⚠️ Failed to update message. Resend with: \`/autorole-button send ${panelName}\``;
                 }
             }
 
@@ -1148,15 +1148,15 @@ module.exports = new ApplicationCommand({
             const failLines    = results.filter(r => r.status === '❌');
             const summaryParts = [];
             if (successLines.length) summaryParts.push(
-                `**✅ Berhasil diedit (${successLines.length}):**\n` +
+                `**✅ Successfully edited (${successLines.length}):**\n` +
                 successLines.map(r => `> ${r.role} — ${r.changes}`).join('\n')
             );
             if (warnLines.length) summaryParts.push(
-                `**⚠️ Dilewati (${warnLines.length}):**\n` +
+                `**⚠️ Skipped (${warnLines.length}):**\n` +
                 warnLines.map(r => `> ${r.role ?? r.label} — ${r.reason}`).join('\n')
             );
             if (failLines.length) summaryParts.push(
-                `**❌ Gagal (${failLines.length}):**\n` +
+                `**❌ Failed (${failLines.length}):**\n` +
                 failLines.map(r => `> \`${r.label}\` — ${r.reason}`).join('\n')
             );
 
@@ -1164,11 +1164,11 @@ module.exports = new ApplicationCommand({
                 embeds: [
                     new EmbedBuilder()
                         .setColor(editedCount === lines.length ? '#FEE75C' : editedCount > 0 ? '#FEE75C' : '#ED4245')
-                        .setTitle(`✏️ Hasil Edit Bulk — Panel \`${panelName}\``)
-                        .setDescription(summaryParts.join('\n\n') || '_Tidak ada yang diproses._')
+                        .setTitle(`✏️ Bulk Edit Result — Panel \`${panelName}\``)
+                        .setDescription(summaryParts.join('\n\n') || '_Nothing was processed._')
                         .addFields(
-                            { name: '📊 Total Tombol', value: `${panel.buttons.length}/25`, inline: true },
-                            { name: '📤 Status',        value: statusStr || 'Tidak ada perubahan.', inline: false }
+                            { name: '📊 Total Buttons', value: `${panel.buttons.length}/25`, inline: true },
+                            { name: '📤 Status',        value: statusStr || 'No changes.', inline: false }
                         )
                         .setTimestamp()
                 ],
@@ -1177,13 +1177,13 @@ module.exports = new ApplicationCommand({
         }
 
         // ── /autorole-button hapus-button ──────────────────────────────────
-        if (sub === 'hapus-button') {
+        if (sub === 'delete-button') {
             const panelName = options.getString('panel');
             const roleStr   = options.getString('role');
 
             const panel = getPanel(client, guild.id, panelName);
             if (!panel) {
-                return interaction.reply({ content: `❌ Panel \`${panelName}\` tidak ditemukan.`, flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: `❌ Panel \`${panelName}\` not found.`, flags: MessageFlags.Ephemeral });
             }
 
             const sentResult = await resolveSentMessage(client, guild, panelName);
@@ -1192,16 +1192,16 @@ module.exports = new ApplicationCommand({
                 if (!sentRaw) {
                     return interaction.reply({
                         content: [
-                            `❌ Panel \`${panelName}\` belum dikirim ke channel manapun.`,
-                            `Kirim dulu dengan \`/autorole-button kirim ${panelName}\`, kemudian gunakan \`hapus-button\`.`
+                            `❌ Panel \`${panelName}\` has not been sent to any channel.`,
+                            `Send it first with \`/autorole-button send ${panelName}\`, then use \`delete-button\`.`
                         ].join('\n'),
                         flags: MessageFlags.Ephemeral
                     });
                 }
                 return interaction.reply({
                     content: [
-                        `❌ Pesan panel \`${panelName}\` sudah dihapus dari channel.`,
-                        `Kirim ulang panel dengan \`/autorole-button kirim ${panelName}\`, kemudian gunakan \`hapus-button\`.`
+                        `❌ Panel \`${panelName}\` message was deleted from the channel.`,
+                        `Resend the panel with \`/autorole-button send ${panelName}\`, then use \`delete-button\`.`
                     ].join('\n'),
                     flags: MessageFlags.Ephemeral
                 });
@@ -1209,7 +1209,7 @@ module.exports = new ApplicationCommand({
 
             const role = resolveRole(guild, roleStr);
             if (!role) {
-                return interaction.reply({ content: '❌ Role tidak ditemukan.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: '❌ Role not found.', flags: MessageFlags.Ephemeral });
             }
 
             const before = panel.buttons.length;
@@ -1217,7 +1217,7 @@ module.exports = new ApplicationCommand({
 
             if (panel.buttons.length === before) {
                 return interaction.reply({
-                    content: `⚠️ Tidak ada tombol dengan role ${role} di panel \`${panelName}\`.`,
+                    content: `⚠️ No button with role ${role} in panel \`${panelName}\`.`,
                     flags: MessageFlags.Ephemeral
                 });
             }
@@ -1231,17 +1231,17 @@ module.exports = new ApplicationCommand({
                     embeds:     [buildPanelEmbed(panel)],
                     components: panel.buttons.length > 0 ? buildButtonRows(panel) : []
                 });
-                statusStr = `✅ Pesan terkirim langsung diperbarui!\n🔗 https://discord.com/channels/${guild.id}/${sentResult.sent.channelId}/${sentResult.sent.messageId}`;
+                statusStr = `✅ Sent message updated immediately!\n🔗 https://discord.com/channels/${guild.id}/${sentResult.sent.channelId}/${sentResult.sent.messageId}`;
             } catch {
-                statusStr = `⚠️ Gagal memperbarui pesan. Kirim ulang: \`/autorole-button kirim ${panelName}\``;
+                statusStr = `⚠️ Failed to update message. Resend with: \`/autorole-button send ${panelName}\``;
             }
 
             return interaction.reply({
                 embeds: [
                     new EmbedBuilder()
                         .setColor('#ED4245')
-                        .setTitle(`🗑️ Tombol Dihapus dari Panel \`${panelName}\``)
-                        .setDescription(`Tombol untuk role ${role} telah dihapus.\nSisa: **${panel.buttons.length}** tombol.`)
+                        .setTitle(`🗑️ Button Removed from Panel \`${panelName}\``)
+                        .setDescription(`The button for role ${role} has been removed.\nRemaining: **${panel.buttons.length}** buttons.`)
                         .addFields({ name: '📤 Status', value: statusStr, inline: false })
                         .setTimestamp()
                 ],
@@ -1250,13 +1250,13 @@ module.exports = new ApplicationCommand({
         }
 
         // ── /autorole-button hapus-bulk ────────────────────────────────────
-        if (sub === 'hapus-bulk') {
+        if (sub === 'delete-bulk') {
             const panelName = options.getString('panel');
             const rawData   = options.getString('data');
 
             const panel = getPanel(client, guild.id, panelName);
             if (!panel) {
-                return interaction.reply({ content: `❌ Panel \`${panelName}\` tidak ditemukan.`, flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: `❌ Panel \`${panelName}\` not found.`, flags: MessageFlags.Ephemeral });
             }
 
             const sentResult = await resolveSentMessage(client, guild, panelName);
@@ -1265,16 +1265,16 @@ module.exports = new ApplicationCommand({
                 if (!sentRaw) {
                     return interaction.reply({
                         content: [
-                            `❌ Panel \`${panelName}\` belum dikirim ke channel manapun.`,
-                            `Kirim dulu dengan \`/autorole-button kirim ${panelName}\`, kemudian gunakan \`hapus-bulk\`.`
+                            `❌ Panel \`${panelName}\` has not been sent to any channel.`,
+                            `Send it first with \`/autorole-button send ${panelName}\`, then use \`delete-bulk\`.`
                         ].join('\n'),
                         flags: MessageFlags.Ephemeral
                     });
                 }
                 return interaction.reply({
                     content: [
-                        `❌ Pesan panel \`${panelName}\` sudah dihapus dari channel.`,
-                        `Kirim ulang panel dengan \`/autorole-button kirim ${panelName}\`, kemudian gunakan \`hapus-bulk\`.`
+                        `❌ Panel \`${panelName}\` message was deleted from the channel.`,
+                        `Resend the panel with \`/autorole-button send ${panelName}\`, then use \`delete-bulk\`.`
                     ].join('\n'),
                     flags: MessageFlags.Ephemeral
                 });
@@ -1282,7 +1282,7 @@ module.exports = new ApplicationCommand({
 
             const lines = rawData.split(/[\n;,\s]+/g).map(l => l.trim()).filter(Boolean);
             if (lines.length === 0) {
-                return interaction.reply({ content: '❌ Input kosong. Masukkan satu @Role per baris.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: '❌ Empty input. Enter one @Role per line.', flags: MessageFlags.Ephemeral });
             }
 
             const results    = [];
@@ -1291,13 +1291,13 @@ module.exports = new ApplicationCommand({
             for (const line of lines) {
                 const role = resolveRole(guild, line);
                 if (!role) {
-                    results.push({ status: '❌', label: line, reason: `Role \`${line}\` tidak ditemukan` });
+                    results.push({ status: '❌', label: line, reason: `Role \`${line}\` not found` });
                     continue;
                 }
                 const before = panel.buttons.length;
                 panel.buttons = panel.buttons.filter(b => b.roleId !== role.id);
                 if (panel.buttons.length === before) {
-                    results.push({ status: '⚠️', role: role.toString(), reason: 'Tidak punya tombol di panel ini' });
+                    results.push({ status: '⚠️', role: role.toString(), reason: 'Does not have a button in this panel' });
                     continue;
                 }
                 deletedCount++;
@@ -1306,16 +1306,16 @@ module.exports = new ApplicationCommand({
 
             if (deletedCount > 0) { panel.updatedAt = Date.now(); savePanel(client, guild.id, panelName, panel); }
 
-            let statusStr = deletedCount > 0 ? '' : 'Tidak ada perubahan.';
+            let statusStr = deletedCount > 0 ? '' : 'No changes.';
             if (deletedCount > 0) {
                 try {
                     await sentResult.message.edit({
                         embeds:     [buildPanelEmbed(panel)],
                         components: panel.buttons.length > 0 ? buildButtonRows(panel) : []
                     });
-                    statusStr = `✅ Pesan terkirim langsung diperbarui!\n🔗 https://discord.com/channels/${guild.id}/${sentResult.sent.channelId}/${sentResult.sent.messageId}`;
+                    statusStr = `✅ Sent message updated immediately!\n🔗 https://discord.com/channels/${guild.id}/${sentResult.sent.channelId}/${sentResult.sent.messageId}`;
                 } catch {
-                    statusStr = `⚠️ Gagal memperbarui pesan. Kirim ulang: \`/autorole-button kirim ${panelName}\``;
+                    statusStr = `⚠️ Failed to update message. Resend with: \`/autorole-button send ${panelName}\``;
                 }
             }
 
@@ -1323,19 +1323,19 @@ module.exports = new ApplicationCommand({
             const warnLines    = results.filter(r => r.status === '⚠️');
             const failLines    = results.filter(r => r.status === '❌');
             const summaryParts = [];
-            if (successLines.length) summaryParts.push(`**✅ Berhasil dihapus (${successLines.length}):**\n` + successLines.map(r => `> ${r.role}`).join('\n'));
-            if (warnLines.length)    summaryParts.push(`**⚠️ Dilewati (${warnLines.length}):**\n`           + warnLines.map(r => `> ${r.role} — ${r.reason}`).join('\n'));
-            if (failLines.length)    summaryParts.push(`**❌ Gagal (${failLines.length}):**\n`               + failLines.map(r => `> \`${r.label}\` — ${r.reason}`).join('\n'));
+            if (successLines.length) summaryParts.push(`**✅ Successfully removed (${successLines.length}):**\n` + successLines.map(r => `> ${r.role}`).join('\n'));
+            if (warnLines.length)    summaryParts.push(`**⚠️ Skipped (${warnLines.length}):**\n`             + warnLines.map(r => `> ${r.role} — ${r.reason}`).join('\n'));
+            if (failLines.length)    summaryParts.push(`**❌ Failed (${failLines.length}):**\n`               + failLines.map(r => `> \`${r.label}\` — ${r.reason}`).join('\n'));
 
             return interaction.reply({
                 embeds: [
                     new EmbedBuilder()
                         .setColor(deletedCount > 0 ? '#ED4245' : '#FEE75C')
-                        .setTitle(`🗑️ Hasil Hapus Bulk — Panel \`${panelName}\``)
-                        .setDescription(summaryParts.join('\n\n') || '_Tidak ada yang diproses._')
+                        .setTitle(`🗑️ Bulk Delete Result — Panel \`${panelName}\``)
+                        .setDescription(summaryParts.join('\n\n') || '_Nothing was processed._')
                         .addFields(
-                            { name: '📊 Sisa Tombol', value: `${panel.buttons.length}/25`, inline: true },
-                            { name: '📤 Status',       value: statusStr || 'Tidak ada perubahan.', inline: false }
+                            { name: '📊 Remaining Buttons', value: `${panel.buttons.length}/25`, inline: true },
+                            { name: '📤 Status',             value: statusStr || 'No changes.', inline: false }
                         )
                         .setTimestamp()
                 ],
@@ -1346,14 +1346,14 @@ module.exports = new ApplicationCommand({
         // ── /autorole-button color-button ──────────────────────────────────
         if (sub === 'color-button') {
             const panelName = options.getString('panel');
-            const warnaKey  = options.getString('warna');
+            const warnaKey  = options.getString('color');
 
             const panel = getPanel(client, guild.id, panelName);
             if (!panel) {
-                return interaction.reply({ content: `❌ Panel \`${panelName}\` tidak ditemukan.`, flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: `❌ Panel \`${panelName}\` not found.`, flags: MessageFlags.Ephemeral });
             }
 
-            const warnaLama    = panel.defaultStyle ? (STYLE_LABEL[panel.defaultStyle] ?? '🔵 Biru (Primary)') : '🔵 Biru (Primary)';
+            const warnaLama    = panel.defaultStyle ? (STYLE_LABEL[panel.defaultStyle] ?? '🔵 Blue (Primary)') : '🔵 Blue (Primary)';
             panel.defaultStyle = STYLE_MAP[warnaKey] ?? ButtonStyle.Primary;
             panel.updatedAt    = Date.now();
             savePanel(client, guild.id, panelName, panel);
@@ -1362,15 +1362,15 @@ module.exports = new ApplicationCommand({
                 embeds: [
                     new EmbedBuilder()
                         .setColor('#5865F2')
-                        .setTitle(`🎨 Warna Default Tombol Diubah — Panel \`${panelName}\``)
+                        .setTitle(`🎨 Default Button Color Changed — Panel \`${panelName}\``)
                         .setDescription(
-                            `Warna default untuk **tombol baru** di panel \`${panelName}\` berhasil diperbarui.\n\n` +
-                            `Warna ini hanya berlaku untuk tombol yang **baru ditambahkan**. ` +
-                            `Tombol lama tidak berubah — gunakan \`/autorole-button edit-button\` untuk mengubahnya.`
+                            `The default color for **new buttons** in panel \`${panelName}\` has been updated.\n\n` +
+                            `This color only applies to buttons that are **newly added**. ` +
+                            `Existing buttons are not affected — use \`/autorole-button edit-button\` to change them.`
                         )
                         .addFields(
-                            { name: '🎨 Warna Lama', value: warnaLama, inline: true },
-                            { name: '🎨 Warna Baru', value: STYLE_LABEL[panel.defaultStyle] ?? warnaKey, inline: true }
+                            { name: '🎨 Old Color', value: warnaLama, inline: true },
+                            { name: '🎨 New Color', value: STYLE_LABEL[panel.defaultStyle] ?? warnaKey, inline: true }
                         )
                         .setTimestamp()
                 ],
@@ -1384,34 +1384,34 @@ module.exports = new ApplicationCommand({
             const panel     = getPanel(client, guild.id, panelName);
 
             if (!panel) {
-                return interaction.reply({ content: `❌ Panel \`${panelName}\` tidak ditemukan.`, flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: `❌ Panel \`${panelName}\` not found.`, flags: MessageFlags.Ephemeral });
             }
             if (panel.buttons.length === 0) {
                 return interaction.reply({
-                    content: `⚠️ Panel \`${panelName}\` belum punya tombol. Tambah dengan \`/autorole-button tambah-button\`.`,
+                    content: `⚠️ Panel \`${panelName}\` has no buttons yet. Add one with \`/autorole-button add-button\`.`,
                     flags: MessageFlags.Ephemeral
                 });
             }
 
             const modeLabel = panel.mode === 'single'
-                ? '🔘 **Single** – hanya 1 role aktif'
-                : '✅ **Multi** – bisa pilih banyak role';
+                ? '🔘 **Single** – only 1 role active'
+                : '✅ **Multi** – can pick multiple roles';
 
             const sent    = getSentPanel(client, guild.id, panelName);
             const sentStr = sent
-                ? `\n📤 Sudah terkirim — [Lihat Pesan](https://discord.com/channels/${guild.id}/${sent.channelId}/${sent.messageId})`
-                : '\n📭 Belum dikirim';
+                ? `\n📤 Already sent — [View Message](https://discord.com/channels/${guild.id}/${sent.channelId}/${sent.messageId})`
+                : '\n📭 Not sent yet';
 
             if (panel.messageType === 'plain') {
                 return interaction.reply({
-                    content: `**Preview Panel \`${panelName}\` (Teks Biasa)**\n\n${panel.plainText || '*(teks kosong)*'}`,
+                    content: `**Preview Panel \`${panelName}\` (Plain Text)**\n\n${panel.plainText || '*(empty text)*'}`,
                     components: buildButtonRows(panel),
                     flags: MessageFlags.Ephemeral
                 });
             }
 
             return interaction.reply({
-                content: `👁️ **Pratinjau Panel \`${panelName}\`** — ${modeLabel}${sentStr}`,
+                content: `👁️ **Panel Preview \`${panelName}\`** — ${modeLabel}${sentStr}`,
                 embeds:     [buildPanelEmbed(panel)],
                 components: buildButtonRows(panel),
                 flags: MessageFlags.Ephemeral
@@ -1419,17 +1419,17 @@ module.exports = new ApplicationCommand({
         }
 
         // ── /autorole-button kirim ──────────────────────────────────────────
-        if (sub === 'kirim') {
+        if (sub === 'send') {
             const panelName  = options.getString('panel');
             const channelStr = options.getString('channel');
 
             const panel = getPanel(client, guild.id, panelName);
             if (!panel) {
-                return interaction.reply({ content: `❌ Panel \`${panelName}\` tidak ditemukan.`, flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: `❌ Panel \`${panelName}\` not found.`, flags: MessageFlags.Ephemeral });
             }
             if (panel.buttons.length === 0) {
                 return interaction.reply({
-                    content: `⚠️ Panel \`${panelName}\` belum punya tombol. Tambah dulu dengan \`/autorole-button tambah-button\`.`,
+                    content: `⚠️ Panel \`${panelName}\` has no buttons yet. Add one first with \`/autorole-button add-button\`.`,
                     flags: MessageFlags.Ephemeral
                 });
             }
@@ -1438,15 +1438,15 @@ module.exports = new ApplicationCommand({
             if (existingSent) {
                 return interaction.reply({
                     content: [
-                        `❌ Panel \`${panelName}\` sudah pernah dikirim dan masih aktif.`,
-                        `Panel autorole-button bersifat **unik** — hanya bisa dikirim 1 kali.`,
+                        `❌ Panel \`${panelName}\` has already been sent and is still active.`,
+                        `The autorole-button panel is **unique** — it can only be sent once.`,
                         ``,
-                        `Untuk mengubah tampilan atau tombol, gunakan:`,
-                        `• \`/autorole-button buat ${panelName}\` — edit judul/deskripsi embed`,
-                        `• \`/autorole-button set-warna\` — ubah warna embed`,
-                        `• \`/autorole-button edit-button\` — edit label/warna tombol`,
-                        `• \`/autorole-button tambah-button\` — tambah tombol baru`,
-                        `• \`/autorole-button hapus-button\` — hapus tombol`,
+                        `To change the appearance or buttons, use:`,
+                        `• \`/autorole-button create ${panelName}\` — edit embed title/description`,
+                        `• \`/autorole-button set-color\` — change embed color`,
+                        `• \`/autorole-button edit-button\` — edit button label/color`,
+                        `• \`/autorole-button add-button\` — add a new button`,
+                        `• \`/autorole-button delete-button\` — remove a button`,
                         ``,
                         `🔗 https://discord.com/channels/${guild.id}/${existingSent.sent.channelId}/${existingSent.sent.messageId}`
                     ].join('\n'),
@@ -1458,7 +1458,7 @@ module.exports = new ApplicationCommand({
             if (channelStr) {
                 const resolved = resolveChannel(guild, channelStr);
                 if (!resolved) {
-                    return interaction.reply({ content: '❌ Channel tidak ditemukan.', flags: MessageFlags.Ephemeral });
+                    return interaction.reply({ content: '❌ Channel not found.', flags: MessageFlags.Ephemeral });
                 }
                 targetChannel = resolved;
             }
@@ -1473,7 +1473,7 @@ module.exports = new ApplicationCommand({
 
             if (isPlain && !panel.plainText) {
                 return interaction.reply({
-                    content: `❌ Panel \`${panelName}\` belum punya teks. Gunakan \`/autorole-button tipe plain ${panelName}\` untuk mengatur teksnya.`,
+                    content: `❌ Panel \`${panelName}\` has no text. Use \`/autorole-button type plain ${panelName}\` to set the text.`,
                     flags: MessageFlags.Ephemeral
                 });
             }
@@ -1488,12 +1488,12 @@ module.exports = new ApplicationCommand({
                 embeds: [
                     new EmbedBuilder()
                         .setColor('#57F287')
-                        .setTitle('📤 Panel Terkirim!')
-                        .setDescription(`Panel \`${panelName}\` berhasil dikirim ke ${targetChannel}.`)
+                        .setTitle('📤 Panel Sent!')
+                        .setDescription(`Panel \`${panelName}\` successfully sent to ${targetChannel}.`)
                         .addFields(
                             { name: '🔧 Mode',   value: panel.mode === 'single' ? '🔘 Single (radio)' : '✅ Multi', inline: true },
-                            { name: '🎭 Tombol', value: `${panel.buttons.length} tombol`, inline: true },
-                            { name: '🔒 Catatan', value: 'Panel bersifat **unik** — tidak bisa dikirim ulang.\nGunakan perintah edit/tambah/hapus-button untuk memperbarui tombol.', inline: false }
+                            { name: '🎭 Buttons', value: `${panel.buttons.length} buttons`, inline: true },
+                            { name: '🔒 Note', value: 'Panel is **unique** — cannot be resent.\nUse edit/add/delete-button commands to update buttons.', inline: false }
                         )
                         .setTimestamp()
                 ],
@@ -1502,23 +1502,23 @@ module.exports = new ApplicationCommand({
         }
 
         // ── /autorole-button hapus-panel ────────────────────────────────────
-        if (sub === 'hapus-panel') {
+        if (sub === 'delete-panel') {
             const panelName = options.getString('panel');
             const panel     = getPanel(client, guild.id, panelName);
 
             if (!panel) {
-                return interaction.reply({ content: `❌ Panel \`${panelName}\` tidak ditemukan.`, flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: `❌ Panel \`${panelName}\` not found.`, flags: MessageFlags.Ephemeral });
             }
 
-            // Coba hapus pesan Discord yang sudah terkirim (jika ada)
+            // Try to delete the sent Discord message (if any)
             let sentNote = '';
             const sentResult = await resolveSentMessage(client, guild, panelName);
             if (sentResult) {
                 try {
                     await sentResult.message.delete();
-                    sentNote = `\n\n✅ Pesan panel di <#${sentResult.sent.channelId}> berhasil dihapus.`;
+                    sentNote = `\n\n✅ Panel message in <#${sentResult.sent.channelId}> successfully deleted.`;
                 } catch {
-                    sentNote = `\n\n⚠️ Gagal menghapus pesan panel di channel. Mungkin sudah dihapus atau bot tidak punya permission.\n🔗 https://discord.com/channels/${guild.id}/${sentResult.sent.channelId}/${sentResult.sent.messageId}`;
+                    sentNote = `\n\n⚠️ Failed to delete panel message in channel. It may have already been deleted or the bot lacks permission.\n🔗 https://discord.com/channels/${guild.id}/${sentResult.sent.channelId}/${sentResult.sent.messageId}`;
                 }
             }
 
@@ -1529,9 +1529,9 @@ module.exports = new ApplicationCommand({
                 embeds: [
                     new EmbedBuilder()
                         .setColor('#ED4245')
-                        .setTitle('🗑️ Panel Dihapus')
+                        .setTitle('🗑️ Panel Deleted')
                         .setDescription(
-                            `Panel \`${panelName}\` beserta semua konfigurasinya telah dihapus dari database.` +
+                            `Panel \`${panelName}\` and all its configurations have been deleted from the database.` +
                             sentNote
                         )
                         .setTimestamp()

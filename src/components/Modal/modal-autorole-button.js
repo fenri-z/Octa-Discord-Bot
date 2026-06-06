@@ -76,11 +76,11 @@ module.exports = new Component({
         const guildId = interaction.guild.id;
         const userId  = interaction.user.id;
 
-        // Baca pending data { nama, mode, isNew }
+        // Read pending data { nama, mode, isNew }
         const rawPending = client.database.get(`autobtn-pending-${guildId}-${userId}`);
         if (!rawPending) {
             return interaction.reply({
-                content: '❌ Sesi expired. Jalankan `/autorole-button buat` lagi.',
+                content: '❌ Session expired. Run `/autorole-button create` again.',
                 flags: MessageFlags.Ephemeral
             });
         }
@@ -89,24 +89,24 @@ module.exports = new Component({
 
         let pending;
         try { pending = JSON.parse(rawPending); } catch {
-            return interaction.reply({ content: '❌ Data sesi rusak. Coba lagi.', flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: '❌ Session data corrupted. Please try again.', flags: MessageFlags.Ephemeral });
         }
 
         const { nama, mode, isNew, pendingType } = pending;
 
-        // Baca data panel lama (agar tombol, warna, gambar, dll tidak hilang)
+        // Read existing panel data (to preserve buttons, color, image, etc.)
         const existing = getPanel(client, guildId, nama);
         const now      = Date.now();
 
-        // ── TIPE PLAIN: ganti tipe pesan ke teks biasa ──────────────────────────────
+        // ── PLAIN TYPE: switch message type to plain text ───────────────────────────
         if (pendingType === 'plain') {
             let plainText = '';
             try { plainText = interaction.fields.getTextInputValue('autobtn-field-plaintext').trim(); } catch {}
-            if (!existing) return interaction.reply({ content: `❌ Panel \`${nama}\` tidak ditemukan.`, flags: MessageFlags.Ephemeral });
+            if (!existing) return interaction.reply({ content: `❌ Panel \`${nama}\` not found.`, flags: MessageFlags.Ephemeral });
             const panel = { ...existing, messageType: 'plain', plainText, updatedAt: Date.now() };
             savePanel(client, guildId, nama, panel);
 
-            // Jika sudah terkirim, update pesan Discord
+            // If already sent, update the Discord message
             const sent = getSentPanel(client, guildId, nama);
             let statusStr = '';
             if (sent) {
@@ -119,19 +119,19 @@ module.exports = new Component({
                     if (message) {
                         try {
                             await message.edit({ content: plainText.slice(0, 2000), embeds: [], components: rows });
-                            statusStr = `\n✅ Pesan Discord diperbarui langsung!`;
-                        } catch { statusStr = `\n⚠️ Gagal update pesan Discord.`; }
+                            statusStr = `\n✅ Discord message updated live!`;
+                        } catch { statusStr = `\n⚠️ Failed to update Discord message.`; }
                     }
                 }
             }
 
             return interaction.reply({
-                content: `✅ Panel \`${nama}\` diubah ke **Teks Biasa**.${statusStr}\nGunakan \`/autorole-button preview ${nama}\` untuk pratinjau.`,
+                content: `✅ Panel \`${nama}\` switched to **Plain Text**.${statusStr}\nUse \`/autorole-button preview ${nama}\` to preview.`,
                 flags: MessageFlags.Ephemeral
             });
         }
 
-        // Ambil nilai dari form (dengan try/catch agar tidak throw jika field tidak ada)
+        // Read form values (with try/catch so it won't throw if a field is missing)
         let embedTitle = '', embedDescription = '', embedFooter = '';
         try { embedTitle       = interaction.fields.getTextInputValue('autobtn-field-title').trim(); } catch {}
         try { embedDescription = interaction.fields.getTextInputValue('autobtn-field-description').trim(); } catch {}
@@ -156,7 +156,7 @@ module.exports = new Component({
 
         savePanel(client, guildId, nama, panel);
 
-        // Jika panel sudah terkirim, perbarui pesan Discord langsung
+        // If the panel was already sent, update the Discord message live
         const sent = getSentPanel(client, guildId, nama);
         let statusStr = '';
         let updatedLive = false;
@@ -185,18 +185,18 @@ module.exports = new Component({
                             });
                         }
                         updatedLive = true;
-                        statusStr = `✅ Pesan terkirim langsung diperbarui!\n🔗 https://discord.com/channels/${guildId}/${sent.channelId}/${sent.messageId}`;
+                        statusStr = `✅ Sent message updated live!\n🔗 https://discord.com/channels/${guildId}/${sent.channelId}/${sent.messageId}`;
                     } catch {
-                        statusStr = `⚠️ Gagal memperbarui pesan. Kirim ulang: \`/autorole-button kirim ${nama}\``;
+                        statusStr = `⚠️ Failed to update the message. Resend: \`/autorole-button send ${nama}\``;
                     }
                 } else {
-                    statusStr = `📭 Pesan sudah dihapus. Kirim ulang: \`/autorole-button kirim ${nama}\``;
+                    statusStr = `📭 Message was deleted. Resend: \`/autorole-button send ${nama}\``;
                 }
             } else {
-                statusStr = `📭 Channel tidak ditemukan. Kirim ulang: \`/autorole-button kirim ${nama}\``;
+                statusStr = `📭 Channel not found. Resend: \`/autorole-button send ${nama}\``;
             }
         } else {
-            statusStr = `📭 Panel belum dikirim. Gunakan \`/autorole-button kirim ${nama}\` setelah selesai mengatur tombol.`;
+            statusStr = `📭 Panel not sent yet. Use \`/autorole-button send ${nama}\` after finishing button setup.`;
         }
 
         const isEmpty  = !embedTitle && !embedDescription;
@@ -205,35 +205,35 @@ module.exports = new Component({
         // Build fields array
         const fields = [
             { name: '🔧 Mode',       value: modeIcon,                     inline: true },
-            { name: '🎭 Tombol',      value: `${panel.buttons.length}/25`, inline: true },
-            { name: '🎨 Warna Embed', value: panel.embedColor,             inline: true },
+            { name: '🎭 Buttons',     value: `${panel.buttons.length}/25`, inline: true },
+            { name: '🎨 Embed Color', value: panel.embedColor,             inline: true },
         ];
 
         if (isEmpty) {
             fields.push({
-                name: '⚠️ Perhatian',
-                value: 'Judul dan deskripsi masih kosong. Isi salah satunya agar embed terlihat.',
+                name: '⚠️ Notice',
+                value: 'Title and description are still empty. Fill in at least one so the embed is visible.',
                 inline: false
             });
         }
 
         if (!isNew) {
             fields.push({
-                name: '🛠️ Langkah Selanjutnya',
+                name: '🛠️ Next Steps',
                 value: [
-                    `• \`/autorole-button tambah-button\` — tambah tombol role`,
-                    `• \`/autorole-button set-warna\` — ubah warna embed`,
-                    `• \`/autorole-button set-gambar\` — tambah gambar`,
-                    `• \`/autorole-button set-thumbnail\` — tambah thumbnail`,
-                    `• \`/autorole-button preview ${nama}\` — pratinjau panel`,
-                    `• \`/autorole-button kirim ${nama}\` — kirim ke channel`
+                    `• \`/autorole-button add-button\` — add a role button`,
+                    `• \`/autorole-button set-color\` — change embed color`,
+                    `• \`/autorole-button set-image\` — add an image`,
+                    `• \`/autorole-button set-thumbnail\` — add a thumbnail`,
+                    `• \`/autorole-button preview ${nama}\` — preview the panel`,
+                    `• \`/autorole-button send ${nama}\` — send to a channel`
                 ].join('\n'),
                 inline: false
             });
         } else {
             fields.push({
-                name: '🛠️ Langkah Selanjutnya',
-                value: 'Klik **➕ Tambah Button Sekarang** di bawah untuk langsung menambahkan button pertama ke panel ini.',
+                name: '🛠️ Next Steps',
+                value: 'Click **➕ Add Button Now** below to immediately add the first button to this panel.',
                 inline: false
             });
         }
@@ -242,20 +242,20 @@ module.exports = new Component({
 
         const embed = new EmbedBuilder()
             .setColor(isNew ? '#57F287' : '#FEE75C')
-            .setTitle(isNew ? `✅ Panel \`${nama}\` Dibuat` : `✏️ Panel \`${nama}\` Diperbarui`)
+            .setTitle(isNew ? `✅ Panel \`${nama}\` Created` : `✏️ Panel \`${nama}\` Updated`)
             .addFields(...fields)
             .setTimestamp();
 
-        // Untuk panel baru: tampilkan tombol aksi cepat agar user bisa langsung tambah button
+        // For new panels: show quick action buttons so the user can add a button right away
         if (isNew) {
             const quickRow = new ActionRowBuilder().addComponents(
                 new ButtonBuilder()
                     .setCustomId(`autobtn-quickadd:${nama}`)
-                    .setLabel('➕ Tambah Button Sekarang')
+                    .setLabel('➕ Add Button Now')
                     .setStyle(ButtonStyle.Success),
                 new ButtonBuilder()
                     .setCustomId(`autobtn-quickskip:${nama}`)
-                    .setLabel('⏭️ Lewati')
+                    .setLabel('⏭️ Skip')
                     .setStyle(ButtonStyle.Secondary)
             );
             return interaction.reply({ embeds: [embed], components: [quickRow], flags: MessageFlags.Ephemeral });

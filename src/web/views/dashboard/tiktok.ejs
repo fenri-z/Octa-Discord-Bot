@@ -206,7 +206,7 @@
         <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
             <div>
                 <h1>TikTok Notification</h1>
-                <p>Pantau akun TikTok dan kirim notifikasi otomatis ke Discord saat ada Video baru atau mulai Live.</p>
+                <p>Monitor TikTok accounts and send automatic Discord notifications when a new Video is posted or a Live starts.</p>
             </div>
             <% if (ttAccounts.length > 0) { %>
             <button class="btn btn-secondary" onclick="forcePoll(this)" style="flex-shrink:0;margin-top:.25rem;" title="Paksa cek video baru sekarang">
@@ -238,14 +238,14 @@
                 <div class="stat-icon" style="color:#57F287;"><i data-lucide="video"></i></div>
                 <div class="stat-info">
                     <div class="stat-value"><%= ttAccounts.filter(a => a.videoEnabled).length %></div>
-                    <div class="stat-label">Video Aktif</div>
+                    <div class="stat-label">Active Videos</div>
                 </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon" style="color:#FE2C55;"><i data-lucide="radio"></i></div>
                 <div class="stat-info">
                     <div class="stat-value"><%= ttAccounts.filter(a => a.liveEnabled).length %></div>
-                    <div class="stat-label">Live Aktif</div>
+                    <div class="stat-label">Active Live</div>
                 </div>
             </div>
             <div class="stat-card">
@@ -257,12 +257,12 @@
             </div>
         </div>
 
-        <!-- Tambah Akun -->
+        <!-- Add Account -->
         <% if (ttAccounts.length < maxAccounts) { %>
         <div class="settings-card" style="margin-bottom:1.5rem;">
             <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:1rem;">
                 <i data-lucide="plus-circle" style="color:#FE2C55;width:18px;height:18px;flex-shrink:0;"></i>
-                <h2 style="margin:0;font-size:1rem;font-weight:600;">Tambah Akun TikTok</h2>
+                <h2 style="margin:0;font-size:1rem;font-weight:600;">Add TikTok Account</h2>
             </div>
             <p style="font-size:.85rem;color:var(--text-muted);margin:0 0 1rem 0;">
                 Masukkan username atau URL TikTok. Sisa slot: <strong><%= maxAccounts - ttAccounts.length %></strong> dari <%= maxAccounts %>.
@@ -288,7 +288,7 @@
                         <span id="ttStatusText" style="font-size:.83rem;color:#FE2C55;font-weight:600;"></span>
                         <span class="tt-dot-row"><span></span><span></span><span></span></span>
                     </div>
-                    <div style="font-size:.74rem;color:var(--text-muted);margin-top:.15rem;">Proses bisa memakan beberapa saat, mohon tunggu</div>
+                    <div style="font-size:.74rem;color:var(--text-muted);margin-top:.15rem;">This process may take a moment, please wait</div>
                 </div>
             </div>
 
@@ -317,7 +317,7 @@
                         <div id="ttLookupUsername" style="font-size:.78rem;color:var(--text-muted);"></div>
                     </div>
                     <button class="btn btn-success" onclick="addAccount()" style="flex-shrink:0;">
-                        <i data-lucide="plus" style="width:14px;height:14px;"></i> Tambah
+                        <i data-lucide="plus" style="width:14px;height:14px;"></i> Add
                     </button>
                 </div>
             </div>
@@ -334,7 +334,7 @@
         <% if (ttAccounts.length === 0) { %>
             <div class="settings-card" style="text-align:center;padding:3rem 1.5rem;">
                 <svg viewBox="0 0 24 24" fill="currentColor" style="width:48px;height:48px;color:var(--text-muted);opacity:.5;display:block;margin:0 auto .75rem;"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg>
-                <p style="color:var(--text-muted);margin:0;">Belum ada akun TikTok yang dipantau.</p>
+                <p style="color:var(--text-muted);margin:0;">No TikTok accounts being monitored yet.</p>
             </div>
         <% } else { %>
         <% ttAccounts.forEach(function(acc) {
@@ -377,7 +377,7 @@
                         data-username="<%= acc.username %>"
                         data-name="<%= (acc.name||acc.username).replace(/"/g,'&quot;') %>"
                         onclick="removeAccount(this.dataset.username, this.dataset.name)"
-                        style="flex-shrink:0;" title="Hapus akun">
+                        style="flex-shrink:0;" title="Delete account">
                     <i data-lucide="trash-2" style="width:13px;height:13px;"></i>
                 </button>
             </div>
@@ -388,7 +388,7 @@
                         onclick="switchTab('<%= key %>','video')">🎬 Video</button>
                 <button class="tt-tab-btn" id="tab-live-<%= key %>"
                         onclick="switchTab('<%= key %>','live')">
-                    🔴 Live<% if (!liveSupported) { %> <span style="font-size:.65rem;opacity:.5;">(nonaktif)</span><% } %>
+                    🔴 Live<% if (!liveSupported) { %> <span style="font-size:.65rem;opacity:.5;">(inactive)</span><% } %>
                 </button>
             </div>
 
@@ -405,13 +405,13 @@
                                        <%= acc.videoEnabled ? 'checked' : '' %>
                                        onchange="updatePreview('<%= key %>')">
                                 <span class="toggle-slider"></span>
-                                <span>Aktifkan notifikasi Video</span>
+                                <span>Enable Video notifications</span>
                             </label>
                         </div>
                         <div class="form-group">
                             <label class="label">Channel Discord</label>
                             <select class="select" id="vidChannel-<%= key %>" onchange="updatePreview('<%= key %>')">
-                                <option value="">— Pilih channel —</option>
+                                <option value="">— Select channel —</option>
                                 <% (locals.channels||[]).forEach(ch => { %>
                                 <option value="<%= ch.id %>" <%= acc.videoChannelId===ch.id?'selected':'' %>>#<%= ch.name %></option>
                                 <% }) %>
@@ -419,7 +419,7 @@
                         </div>
                         <div class="form-group" style="margin-bottom:0;">
                             <div class="label-with-picker">
-                                <label class="label" style="margin-bottom:0;">Pesan kustom <span style="font-weight:400;color:var(--text-muted);">(opsional)</span></label>
+                                <label class="label" style="margin-bottom:0;">Custom message <span style="font-weight:400;color:var(--text-muted);">(optional)</span></label>
                                 <div class="ph-picker-anchor">
                                     <button type="button" class="ph-toggle-btn" onclick="togglePicker('vidPicker-<%= key %>',event)">{…} Placeholder</button>
                                     <div class="ph-dropdown" id="vidPicker-<%= key %>" style="display:none;"></div>
@@ -447,13 +447,13 @@
                                        <%= !liveSupported?'disabled':'' %>
                                        onchange="updatePreview('<%= key %>')">
                                 <span class="toggle-slider"></span>
-                                <span>Aktifkan notifikasi Live</span>
+                                <span>Enable Live notifications</span>
                             </label>
                         </div>
                         <div class="form-group">
                             <label class="label">Channel Discord</label>
                             <select class="select" id="liveChannel-<%= key %>" <%= !liveSupported?'disabled':'' %> onchange="updatePreview('<%= key %>')">
-                                <option value="">— Pilih channel —</option>
+                                <option value="">— Select channel —</option>
                                 <% (locals.channels||[]).forEach(ch => { %>
                                 <option value="<%= ch.id %>" <%= acc.liveChannelId===ch.id?'selected':'' %>>#<%= ch.name %></option>
                                 <% }) %>
@@ -461,7 +461,7 @@
                         </div>
                         <div class="form-group" style="margin-bottom:0;">
                             <div class="label-with-picker">
-                                <label class="label" style="margin-bottom:0;">Pesan kustom <span style="font-weight:400;color:var(--text-muted);">(opsional)</span></label>
+                                <label class="label" style="margin-bottom:0;">Custom message <span style="font-weight:400;color:var(--text-muted);">(optional)</span></label>
                                 <% if (liveSupported) { %>
                                 <div class="ph-picker-anchor">
                                     <button type="button" class="ph-toggle-btn" onclick="togglePicker('livePicker-<%= key %>',event)">{…} Placeholder</button>
@@ -471,7 +471,7 @@
                             </div>
                             <textarea class="textarea" rows="3" id="liveMessage-<%= key %>"
                                       style="font-size:.82rem;"
-                                      placeholder="🔴 {account} lagi LIVE di TikTok! {url}"
+                                      placeholder="🔴 {account} is LIVE on TikTok! {url}"
                                       <%= !liveSupported?'disabled':'' %>
                                       oninput="updatePreview('<%= key %>')"
                             ><%= acc.liveMessage||'' %></textarea>
@@ -484,7 +484,7 @@
                             <i data-lucide="send" style="width:14px;height:14px;"></i> Test Notif
                         </button>
                         <button class="btn btn-primary" onclick="saveAccount('<%= acc.username %>')">
-                            <i data-lucide="save" style="width:14px;height:14px;"></i> Simpan
+                            <i data-lucide="save" style="width:14px;height:14px;"></i> Save
                         </button>
                     </div>
                     <div id="msg-<%= key %>" class="form-message" style="margin-top:.4rem;"></div>
@@ -507,22 +507,22 @@
                                     <span class="dc-username" style="color:<%- botUser ? botUser.roleColor : '#ffffff' %>">
                                         <%= botUser ? botUser.username : 'Bot' %>
                                     </span>
-                                    <span class="dc-timestamp">Hari ini pukul 12:00</span>
+                                    <span class="dc-timestamp">Today at 12:00 PM</span>
 
                                     <!-- Video preview -->
                                     <div id="prev-video-<%= key %>" class="dc-embed" style="max-width:100%;">
                                         <div style="width:4px;flex-shrink:0;background:#010101;"></div>
                                         <div class="dc-embed-inner" style="flex:1;min-width:0;">
 
-                                            <!-- Judul + profil kanan -->
+                                            <!-- Title + right profile -->
                                             <div style="display:flex;align-items:flex-start;gap:.5rem;">
                                                 <div style="flex:1;min-width:0;">
-                                                    <div class="dc-embed-title">🎵 <%= acc.name||acc.username %> — Video Baru!</div>
+                                                    <div class="dc-embed-title">🎵 <%= acc.name||acc.username %> — New Video!</div>
                                                     <div class="dc-embed-desc" id="prevVideoDesc-<%= key %>" style="margin-top:.2rem;">
-                                                        <strong><%= acc.name||acc.username %></strong> baru aja posting video baru di TikTok!<br>Jangan ketinggalan, tonton sekarang! 🎉
+                                                        <strong><%= acc.name||acc.username %></strong> just posted a new video on TikTok!<br>Don't miss it, watch now! 🎉
                                                     </div>
                                                     <div class="dc-embed-field">
-                                                        <div class="dc-field-name">🎬 Judul</div>
+                                                        <div class="dc-field-name">🎬 Title</div>
                                                         <div class="dc-field-value" style="color:#dbdee1;">(judul video TikTok)</div>
                                                     </div>
                                                     <div class="dc-embed-field">
@@ -717,7 +717,7 @@ function updatePreview(key) {
         if (videoMsg) {
             videoDescEl.innerHTML = ph(videoMsg).replace(/\n/g, '<br>');
         } else {
-            videoDescEl.innerHTML = `<strong>${accName}</strong> baru aja posting video baru di TikTok!<br>Jangan ketinggalan, tonton sekarang! 🎉`;
+            videoDescEl.innerHTML = `<strong>${accName}</strong> just posted a new video on TikTok!<br>Don't miss it, watch now! 🎉`;
         }
     }
 
@@ -728,7 +728,7 @@ function updatePreview(key) {
         if (liveMsg) {
             liveDescEl.innerHTML = ph(liveMsg).replace(/\n/g, '<br>');
         } else {
-            liveDescEl.innerHTML = `Hey, <strong>${accName}</strong> lagi <strong>LIVE</strong> di TikTok sekarang!<br>Yuk, join dan saksikan streamnya~ 🎉`;
+            liveDescEl.innerHTML = `Hey, <strong>${accName}</strong> is <strong>LIVE</strong> on TikTok right now!<br>Come join and watch the stream~ 🎉`;
         }
     }
 }
@@ -746,13 +746,13 @@ async function saveAccount(username) {
     // Validasi client-side
     if (videoEnabled && !videoChannelId) {
         switchTab(key, 'video');
-        showMsg(msgEl, 'Notifikasi Video diaktifkan tapi channel Discord belum dipilih.', 'error');
+        showMsg(msgEl, 'Video notification is enabled but no Discord channel has been selected.', 'error');
         document.getElementById(`vidChannel-${key}`)?.focus();
         return;
     }
     if (liveEnabled && !liveChannelId) {
         switchTab(key, 'live');
-        showMsg(msgEl, 'Notifikasi Live diaktifkan tapi channel Discord belum dipilih.', 'error');
+        showMsg(msgEl, 'Live notification is enabled but no Discord channel has been selected.', 'error');
         document.getElementById(`liveChannel-${key}`)?.focus();
         return;
     }
@@ -799,7 +799,7 @@ async function refreshThumbnail(username, btn) {
         const r    = await fetch(`/api/guild/${GUILD_ID}/tiktok/accounts/${encodeURIComponent(username)}/refresh-thumbnail`, { method: 'POST' });
         const data = await r.json();
         if (data.success) {
-            showMsg(msgEl, 'Thumbnail diperbarui.', 'success');
+            showMsg(msgEl, 'Thumbnail updated.', 'success');
             // Update semua gambar profil akun ini di halaman
             if (data.thumbnail) {
                 document.querySelectorAll(`img[data-tt-thumb="${username}"]`).forEach(img => {
@@ -830,7 +830,7 @@ async function resetLastVideo(username) {
 
 // ── Hapus akun ────────────────────────────────────────────────────────────────
 async function removeAccount(username, name) {
-    if (!confirm(`Hapus akun "${name}"?`)) return;
+    if (!confirm(`Delete account "${name}"?`)) return;
     const r    = await fetch(`/api/guild/${GUILD_ID}/tiktok/accounts/${encodeURIComponent(username)}`, { method: 'DELETE' });
     const data = await r.json();
     if (data.success) location.reload();
@@ -876,7 +876,7 @@ function showLookupMsg(text, type) {
 const PH_VIDEO = [
     ['{account}',  'Nama akun'],
     ['{username}', 'Username (@)'],
-    ['{title}',    'Judul video'],
+    ['{title}',    'Video title'],
     ['{url}',      'Link video'],
     ['{id}',       'ID video'],
 ];

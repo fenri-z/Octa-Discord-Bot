@@ -38,9 +38,9 @@ module.exports = new Event({
 
             const registered = await _deployToGuild(client.user.id, guild.id, cmdsToDeploy);
             const tag = isDevGuild ? ' [dev guild]' : '';
-            success(`[guildCreate] ${guild.name}${tag} — ${registered.length} commands terdaftar ✓`);
+            success(`[guildCreate] ${guild.name}${tag} — ${registered.length} command(s) registered ✓`);
         } catch (err) {
-            warn(`[guildCreate] ${guild.name} — gagal deploy: ${err.message}`);
+            warn(`[guildCreate] ${guild.name} — deploy failed: ${err.message}`);
         }
 
         success(`Joined new guild: ${guild.name} (${guild.id})`);

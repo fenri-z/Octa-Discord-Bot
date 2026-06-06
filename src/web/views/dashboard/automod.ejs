@@ -10,7 +10,7 @@
 
         <div class="page-header">
             <h1>🛡️ Automod</h1>
-            <p>Sistem moderasi otomatis untuk melindungi server dari spam, link berbahaya, kata kasar, dan pelanggaran lainnya.</p>
+            <p>Automatic moderation system to protect the server from spam, harmful links, profanity, and other violations.</p>
         </div>
 
         <!-- ── Stats Overview ──────────────────────────────────────────────────── -->
@@ -19,7 +19,7 @@
                 <div class="stat-icon" style="color:#5865F2;"><i data-lucide="shield-check"></i></div>
                 <div class="stat-info">
                     <div class="stat-value"><%= activeCount %></div>
-                    <div class="stat-label">Proteksi Aktif</div>
+                    <div class="stat-label">Active Protection</div>
                 </div>
             </div>
             <div class="stat-card">
@@ -45,52 +45,52 @@
             </div>
         </div>
 
-        <!-- ── Konfigurasi Umum ────────────────────────────────────────────────── -->
+        <!-- ── General Configuration ───────────────────────────────────────────── -->
         <div class="settings-card">
-            <h2>Konfigurasi Umum</h2>
-            <p class="section-desc" style="margin-bottom:1.25rem;">Atur tindakan bot saat pelanggaran terdeteksi, role mute, dan channel log aktivitas automod.</p>
+            <h2>General Configuration</h2>
+            <p class="section-desc" style="margin-bottom:1.25rem;">Configure bot actions when a violation is detected, mute role, and audit log channel.</p>
 
             <div class="form-row am-cfg-row" style="gap:1.5rem;flex-wrap:wrap;align-items:flex-start;">
 
                 <div class="form-group am-cfg-group">
-                    <label class="label">Tindakan Pelanggaran</label>
+                    <label class="label">Violation Action</label>
                     <select id="automodAction" class="select">
-                        <option value="delete" <%= automodData.action === 'delete' ? 'selected' : '' %>>🗑️ Delete — Hapus pesan saja</option>
-                        <option value="warn"   <%= automodData.action === 'warn'   ? 'selected' : '' %>>⚠️ Warn — Hapus + peringatkan via DM</option>
-                        <option value="mute"   <%= automodData.action === 'mute'   ? 'selected' : '' %>>🔇 Mute — Hapus + mute 10 menit</option>
-                        <option value="kick"   <%= automodData.action === 'kick'   ? 'selected' : '' %>>👢 Kick — Hapus + kick member</option>
-                        <option value="ban"    <%= automodData.action === 'ban'    ? 'selected' : '' %>>🔨 Ban — Hapus + ban member</option>
+                        <option value="delete" <%= automodData.action === 'delete' ? 'selected' : '' %>>🗑️ Delete — Delete message only</option>
+                        <option value="warn"   <%= automodData.action === 'warn'   ? 'selected' : '' %>>⚠️ Warn — Delete + warn via DM</option>
+                        <option value="mute"   <%= automodData.action === 'mute'   ? 'selected' : '' %>>🔇 Mute — Delete + mute 10 minutes</option>
+                        <option value="kick"   <%= automodData.action === 'kick'   ? 'selected' : '' %>>👢 Kick — Delete + kick member</option>
+                        <option value="ban"    <%= automodData.action === 'ban'    ? 'selected' : '' %>>🔨 Ban — Delete + ban member</option>
                     </select>
                     <div style="font-size:.78rem;color:var(--text-muted);margin-top:.35rem;">
-                        Pilih apa yang dilakukan bot saat mendeteksi pelanggaran.
+                        Choose what the bot does when a violation is detected.
                     </div>
                 </div>
 
                 <div class="form-group am-cfg-group">
-                    <label class="label">Durasi Timeout <span style="font-weight:400;color:var(--text-muted);">(untuk tindakan Mute)</span></label>
+                    <label class="label">Timeout Duration <span style="font-weight:400;color:var(--text-muted);">(for Mute action)</span></label>
                     <select id="automodMuteDuration" class="select">
-                        <option value="60000"    <%= automodData.muteDuration === '60000'    ? 'selected' : '' %>>⏱️ 1 menit</option>
-                        <option value="300000"   <%= automodData.muteDuration === '300000'   ? 'selected' : '' %>>⏱️ 5 menit</option>
-                        <option value="600000"   <%= automodData.muteDuration === '600000'   || !automodData.muteDuration ? 'selected' : '' %>>⏱️ 10 menit (default)</option>
-                        <option value="1800000"  <%= automodData.muteDuration === '1800000'  ? 'selected' : '' %>>⏱️ 30 menit</option>
-                        <option value="3600000"  <%= automodData.muteDuration === '3600000'  ? 'selected' : '' %>>⏱️ 1 jam</option>
-                        <option value="86400000" <%= automodData.muteDuration === '86400000' ? 'selected' : '' %>>⏱️ 1 hari</option>
+                        <option value="60000"    <%= automodData.muteDuration === '60000'    ? 'selected' : '' %>>⏱️ 1 minute</option>
+                        <option value="300000"   <%= automodData.muteDuration === '300000'   ? 'selected' : '' %>>⏱️ 5 minutes</option>
+                        <option value="600000"   <%= automodData.muteDuration === '600000'   || !automodData.muteDuration ? 'selected' : '' %>>⏱️ 10 minutes (default)</option>
+                        <option value="1800000"  <%= automodData.muteDuration === '1800000'  ? 'selected' : '' %>>⏱️ 30 minutes</option>
+                        <option value="3600000"  <%= automodData.muteDuration === '3600000'  ? 'selected' : '' %>>⏱️ 1 hour</option>
+                        <option value="86400000" <%= automodData.muteDuration === '86400000' ? 'selected' : '' %>>⏱️ 1 day</option>
                     </select>
                     <div style="font-size:.78rem;color:var(--text-muted);margin-top:.35rem;">
-                        Menggunakan Discord Timeout bawaan. Bot butuh permission <strong>Moderate Members</strong>.
+                        Uses Discord's built-in timeout. Bot requires the <strong>Moderate Members</strong> permission.
                     </div>
                 </div>
 
                 <div class="form-group am-cfg-group">
-                    <label class="label">Channel Audit Log <span style="font-weight:400;color:var(--text-muted);">(opsional)</span></label>
+                    <label class="label">Audit Log Channel <span style="font-weight:400;color:var(--text-muted);">(optional)</span></label>
                     <select id="automodAuditLog" class="select">
-                        <option value="">— Tidak ada —</option>
+                        <option value="">— None —</option>
                         <% textChannels.forEach(function(c) { %>
                             <option value="<%= c.id %>" <%= automodData.auditLogId === c.id ? 'selected' : '' %>>#<%= c.name %></option>
                         <% }); %>
                     </select>
                     <div style="font-size:.78rem;color:var(--text-muted);margin-top:.35rem;">
-                        Semua aktivitas automod akan dicatat di sini.
+                        All automod activity will be logged here.
                     </div>
                 </div>
 
@@ -98,36 +98,36 @@
 
             <div class="form-row" style="margin-top:.5rem;">
                 <button class="btn btn-primary" onclick="saveGeneral()">
-                    <i data-lucide="save"></i> Simpan Konfigurasi
+                    <i data-lucide="save"></i> Save Configuration
                 </button>
             </div>
             <div id="generalMsg" class="form-message"></div>
         </div>
 
-        <!-- ── Proteksi Link & Attachment ──────────────────────────────────────── -->
+        <!-- ── Link & Attachment Protection ────────────────────────────────────── -->
         <div class="settings-card">
-            <h2>Proteksi Link &amp; Attachment</h2>
-            <p class="section-desc" style="margin-bottom:1.25rem;">Blokir otomatis pesan yang mengandung URL, invite Discord, atau file attachment. Perubahan langsung tersimpan.</p>
+            <h2>Link &amp; Attachment Protection</h2>
+            <p class="section-desc" style="margin-bottom:1.25rem;">Automatically block messages containing URLs, Discord invites, or file attachments. Changes are saved immediately.</p>
 
             <div class="form-group">
                 <label class="toggle-label">
                     <input type="checkbox" id="toggleAntilink" class="toggle-input" <%= automodData.antilink ? 'checked' : '' %>>
                     <span class="toggle-slider"></span>
-                    <span><strong>Anti-Link</strong> — Blokir semua URL (http, https, www)</span>
+                    <span><strong>Anti-Link</strong> — Block all URLs (http, https, www)</span>
                 </label>
             </div>
             <div class="form-group">
                 <label class="toggle-label">
                     <input type="checkbox" id="toggleAntiinvite" class="toggle-input" <%= automodData.antiinvite ? 'checked' : '' %>>
                     <span class="toggle-slider"></span>
-                    <span><strong>Anti-Invite</strong> — Blokir link invite Discord (discord.gg/...)</span>
+                    <span><strong>Anti-Invite</strong> — Block Discord invite links (discord.gg/...)</span>
                 </label>
             </div>
             <div class="form-group">
                 <label class="toggle-label">
                     <input type="checkbox" id="toggleAttachments" class="toggle-input" <%= automodData.attachments ? 'checked' : '' %>>
                     <span class="toggle-slider"></span>
-                    <span><strong>Anti-Attachment</strong> — Blokir pesan yang mengandung file atau gambar</span>
+                    <span><strong>Anti-Attachment</strong> — Block messages containing files or images</span>
                 </label>
             </div>
             <div id="toggleMsg" class="form-message"></div>
@@ -136,34 +136,34 @@
         <!-- ── Anti-Spam ───────────────────────────────────────────────────────── -->
         <div class="settings-card">
             <h2>Anti-Spam</h2>
-            <p class="section-desc" style="margin-bottom:1.25rem;">Beri tindakan pada member yang mengirim pesan terlalu cepat dalam waktu singkat.</p>
+            <p class="section-desc" style="margin-bottom:1.25rem;">Take action against members who send messages too quickly in a short time.</p>
 
             <div class="form-group">
                 <label class="toggle-label">
                     <input type="checkbox" id="spamEnabled" class="toggle-input" <%= automodData.spam.enabled ? 'checked' : '' %>>
                     <span class="toggle-slider"></span>
-                    <span>Aktifkan Anti-Spam</span>
+                    <span>Enable Anti-Spam</span>
                 </label>
             </div>
 
             <div id="spamConfig" class="am-num-row" style="display:<%= automodData.spam.enabled ? 'flex' : 'none' %>;">
                 <div class="form-group am-num-group">
-                    <label class="label">Batas Pesan</label>
+                    <label class="label">Message Limit</label>
                     <input type="number" id="spamLimit" class="input am-num-input" min="2" max="20"
                            value="<%= automodData.spam.limit %>" placeholder="5">
-                    <div style="font-size:.78rem;color:var(--text-muted);margin-top:.3rem;">Maks. pesan per interval (2–20)</div>
+                    <div style="font-size:.78rem;color:var(--text-muted);margin-top:.3rem;">Max. messages per interval (2–20)</div>
                 </div>
                 <div class="form-group am-num-group">
-                    <label class="label">Interval (detik)</label>
+                    <label class="label">Interval (seconds)</label>
                     <input type="number" id="spamInterval" class="input am-num-input" min="1" max="30"
                            value="<%= automodData.spam.interval %>" placeholder="5">
-                    <div style="font-size:.78rem;color:var(--text-muted);margin-top:.3rem;">Jendela waktu pengecekan (1–30 detik)</div>
+                    <div style="font-size:.78rem;color:var(--text-muted);margin-top:.3rem;">Check time window (1–30 seconds)</div>
                 </div>
             </div>
 
             <div class="form-row" style="margin-top:.75rem;">
                 <button class="btn btn-primary" onclick="saveSpam()">
-                    <i data-lucide="save"></i> Simpan
+                    <i data-lucide="save"></i> Save
                 </button>
             </div>
             <div id="spamMsg" class="form-message"></div>
@@ -172,28 +172,28 @@
         <!-- ── Anti Mass-Mention ───────────────────────────────────────────────── -->
         <div class="settings-card">
             <h2>Anti Mass-Mention</h2>
-            <p class="section-desc" style="margin-bottom:1.25rem;">Beri tindakan pada member yang menyebut banyak orang atau role dalam satu pesan.</p>
+            <p class="section-desc" style="margin-bottom:1.25rem;">Take action against members who mention many people or roles in a single message.</p>
 
             <div class="form-group">
                 <label class="toggle-label">
                     <input type="checkbox" id="mentionEnabled" class="toggle-input" <%= automodData.massmention.enabled ? 'checked' : '' %>>
                     <span class="toggle-slider"></span>
-                    <span>Aktifkan Anti Mass-Mention</span>
+                    <span>Enable Anti Mass-Mention</span>
                 </label>
             </div>
 
             <div id="mentionConfig" style="display:<%= automodData.massmention.enabled ? 'block' : 'none' %>;margin-top:.75rem;">
                 <div class="form-group am-num-group">
-                    <label class="label">Batas Mention per Pesan</label>
+                    <label class="label">Mention Limit per Message</label>
                     <input type="number" id="mentionLimit" class="input am-num-input" min="2" max="20"
                            value="<%= automodData.massmention.limit %>" placeholder="5">
-                    <div style="font-size:.78rem;color:var(--text-muted);margin-top:.3rem;">Jumlah mention (@user + @role) maksimal (2–20)</div>
+                    <div style="font-size:.78rem;color:var(--text-muted);margin-top:.3rem;">Max. mention count (@user + @role) per message (2–20)</div>
                 </div>
             </div>
 
             <div class="form-row" style="margin-top:.75rem;">
                 <button class="btn btn-primary" onclick="saveMassMention()">
-                    <i data-lucide="save"></i> Simpan
+                    <i data-lucide="save"></i> Save
                 </button>
             </div>
             <div id="mentionMsg" class="form-message"></div>
@@ -202,52 +202,52 @@
         <!-- ── Anti-Raid ───────────────────────────────────────────────────────── -->
         <div class="settings-card">
             <h2>Anti-Raid</h2>
-            <p class="section-desc" style="margin-bottom:1.25rem;">Deteksi join massal dalam waktu singkat. Bot akan meningkatkan level verifikasi server secara otomatis selama 5 menit.</p>
+            <p class="section-desc" style="margin-bottom:1.25rem;">Detect mass joins in a short time. Bot will automatically raise the server verification level.</p>
 
             <div class="form-group">
                 <label class="toggle-label">
                     <input type="checkbox" id="raidEnabled" class="toggle-input" <%= automodData.antiraid.enabled ? 'checked' : '' %>>
                     <span class="toggle-slider"></span>
-                    <span>Aktifkan Anti-Raid</span>
+                    <span>Enable Anti-Raid</span>
                 </label>
             </div>
 
             <div id="raidConfig" class="am-num-row" style="display:<%= automodData.antiraid.enabled ? 'flex' : 'none' %>;">
                 <div class="form-group am-num-group">
-                    <label class="label">Batas Join</label>
+                    <label class="label">Join Limit</label>
                     <input type="number" id="raidJoinLimit" class="input am-num-input" min="2" max="50"
                            value="<%= automodData.antiraid.joinLimit %>" placeholder="10">
-                    <div style="font-size:.78rem;color:var(--text-muted);margin-top:.3rem;">Join yang dianggap raid dalam 1 interval (2–50)</div>
+                    <div style="font-size:.78rem;color:var(--text-muted);margin-top:.3rem;">Joins considered a raid within 1 interval (2–50)</div>
                 </div>
                 <div class="form-group am-num-group">
-                    <label class="label">Interval (detik)</label>
+                    <label class="label">Interval (seconds)</label>
                     <input type="number" id="raidInterval" class="input am-num-input" min="5" max="60"
                            value="<%= automodData.antiraid.interval %>" placeholder="10">
-                    <div style="font-size:.78rem;color:var(--text-muted);margin-top:.3rem;">Jendela waktu pemantauan (5–60 detik)</div>
+                    <div style="font-size:.78rem;color:var(--text-muted);margin-top:.3rem;">Monitoring time window (5–60 seconds)</div>
                 </div>
             </div>
 
             <div class="form-row" style="margin-top:.75rem;">
                 <button class="btn btn-primary" onclick="saveAntiRaid()">
-                    <i data-lucide="save"></i> Simpan
+                    <i data-lucide="save"></i> Save
                 </button>
             </div>
             <div id="raidMsg" class="form-message"></div>
         </div>
 
-        <!-- ── Kata Terlarang ──────────────────────────────────────────────────── -->
+        <!-- ── Banned Words ────────────────────────────────────────────────────── -->
         <div class="settings-card">
             <h2>Kata Terlarang <span id="wordCountBadge" style="font-size:.8rem;font-weight:500;color:var(--text-muted);margin-left:.4rem;"><%= automodData.words.length %> / 100</span></h2>
-            <p class="section-desc" style="margin-bottom:1.25rem;">Pesan yang mengandung kata-kata berikut akan dihapus secara otomatis (tidak case-sensitive).</p>
+            <p class="section-desc" style="margin-bottom:1.25rem;">Messages containing the following words will be automatically deleted (case-insensitive).</p>
 
             <div id="wordsList" style="display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1.25rem;min-height:2rem;">
                 <% if (automodData.words.length === 0) { %>
-                    <span id="wordsEmpty" style="color:var(--text-muted);font-size:.875rem;">Belum ada kata terlarang.</span>
+                    <span id="wordsEmpty" style="color:var(--text-muted);font-size:.875rem;">No banned words yet.</span>
                 <% } %>
                 <% automodData.words.forEach(function(w) { %>
                     <span class="am-word-chip" data-word="<%= w %>">
                         <code style="font-size:.8rem;"><%= w %></code>
-                        <button class="am-chip-del" onclick="deleteWord('<%= w %>')" title="Hapus">×</button>
+                        <button class="am-chip-del" onclick="deleteWord('<%= w %>')" title="Delete">×</button>
                     </span>
                 <% }); %>
             </div>
@@ -257,7 +257,7 @@
                        maxlength="50"
                        onkeydown="if(event.key==='Enter')addWord()">
                 <button class="btn btn-primary am-words-btn" onclick="addWord()">
-                    <i data-lucide="plus"></i> Tambah
+                    <i data-lucide="plus"></i> Add
                 </button>
             </div>
             <div id="wordsMsg" class="form-message"></div>
@@ -266,7 +266,7 @@
         <!-- ── Whitelist ───────────────────────────────────────────────────────── -->
         <div class="settings-card">
             <h2>Whitelist</h2>
-            <p class="section-desc" style="margin-bottom:1.5rem;">Channel dan role berikut akan <strong>dikecualikan</strong> dari semua pemeriksaan automod. Administrator server selalu dikecualikan secara otomatis.</p>
+            <p class="section-desc" style="margin-bottom:1.5rem;">The following channels and roles will be <strong>excluded</strong> from all Automod checks.</p>
 
             <div class="form-row am-wl-row" style="gap:2rem;flex-wrap:wrap;align-items:flex-start;">
 
@@ -275,7 +275,7 @@
                     <h3 style="font-size:.9rem;font-weight:600;margin:0 0 .75rem;color:var(--text-secondary);">📌 Channel</h3>
                     <div id="wlChannelList" style="display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:.9rem;min-height:1.5rem;">
                         <% if (automodData.wlChannels.length === 0) { %>
-                            <span id="wlChEmpty" style="color:var(--text-muted);font-size:.875rem;">Tidak ada.</span>
+                            <span id="wlChEmpty" style="color:var(--text-muted);font-size:.875rem;">None.</span>
                         <% } %>
                         <% automodData.wlChannels.forEach(function(id) {
                             var ch = textChannels.find(function(c){ return c.id === id; });
@@ -283,19 +283,19 @@
                         %>
                             <span class="am-word-chip" data-id="<%= id %>">
                                 <span style="font-size:.8rem;">#<%= ch.name %></span>
-                                <button class="am-chip-del" onclick="removeWhitelist('channel','<%= id %>')" title="Hapus">×</button>
+                                <button class="am-chip-del" onclick="removeWhitelist('channel','<%= id %>')" title="Delete">×</button>
                             </span>
                         <% }); %>
                     </div>
                     <div class="am-wl-add-row">
                         <select id="wlAddChannel" class="select am-wl-select">
-                            <option value="">— Pilih channel —</option>
+                            <option value="">— Select channel —</option>
                             <% textChannels.forEach(function(c) { %>
                                 <option value="<%= c.id %>">#<%= c.name %></option>
                             <% }); %>
                         </select>
                         <button class="btn btn-primary" onclick="addWhitelistChannel()">
-                            <i data-lucide="plus"></i> Tambah
+                            <i data-lucide="plus"></i> Add
                         </button>
                     </div>
                     <div id="wlChMsg" class="form-message"></div>
@@ -306,7 +306,7 @@
                     <h3 style="font-size:.9rem;font-weight:600;margin:0 0 .75rem;color:var(--text-secondary);">🎭 Role</h3>
                     <div id="wlRoleList" style="display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:.9rem;min-height:1.5rem;">
                         <% if (automodData.wlRoles.length === 0) { %>
-                            <span id="wlRlEmpty" style="color:var(--text-muted);font-size:.875rem;">Tidak ada.</span>
+                            <span id="wlRlEmpty" style="color:var(--text-muted);font-size:.875rem;">None.</span>
                         <% } %>
                         <% automodData.wlRoles.forEach(function(id) {
                             var r = roles.find(function(x){ return x.id === id; });
@@ -314,19 +314,19 @@
                         %>
                             <span class="am-word-chip" data-id="<%= id %>" style="border-color:<%= r.color || 'var(--border)' %>;">
                                 <span style="font-size:.8rem;color:<%= r.color || 'inherit' %>;">@<%= r.name %></span>
-                                <button class="am-chip-del" onclick="removeWhitelist('role','<%= id %>')" title="Hapus">×</button>
+                                <button class="am-chip-del" onclick="removeWhitelist('role','<%= id %>')" title="Delete">×</button>
                             </span>
                         <% }); %>
                     </div>
                     <div class="am-wl-add-row">
                         <select id="wlAddRole" class="select am-wl-select">
-                            <option value="">— Pilih role —</option>
+                            <option value="">— Select role —</option>
                             <% roles.forEach(function(r) { %>
                                 <option value="<%= r.id %>" style="color:<%= r.color || 'inherit' %>;">@<%= r.name %></option>
                             <% }); %>
                         </select>
                         <button class="btn btn-primary" onclick="addWhitelistRole()">
-                            <i data-lucide="plus"></i> Tambah
+                            <i data-lucide="plus"></i> Add
                         </button>
                     </div>
                     <div id="wlRlMsg" class="form-message"></div>
@@ -372,7 +372,7 @@
     background: rgba(237,66,69,.1);
 }
 
-/* ── Konfigurasi Umum ───────────────────────────────────────────────────── */
+/* ── General Configuration ──────────────────────────────────────────────── */
 .am-cfg-group {
     flex: 1;
     min-width: 200px;
@@ -621,7 +621,7 @@ function renderWordChip(word) {
     span.className    = 'am-word-chip';
     span.dataset.word = word;
     span.innerHTML    = `<code style="font-size:.8rem;">${escHtml(word)}</code>
-        <button class="am-chip-del" onclick="deleteWord('${escHtml(word)}')" title="Hapus">×</button>`;
+        <button class="am-chip-del" onclick="deleteWord('${escHtml(word)}')" title="Delete">×</button>`;
     return span;
 }
 
@@ -666,7 +666,7 @@ async function deleteWord(word) {
         const empty = document.createElement('span');
         empty.id        = 'wordsEmpty';
         empty.style.cssText = 'color:var(--text-muted);font-size:.875rem;';
-        empty.textContent   = 'Belum ada kata terlarang.';
+        empty.textContent   = 'No banned words yet.';
         list.appendChild(empty);
     }
 }
@@ -677,7 +677,7 @@ function renderWlChannelChip(id, name) {
     span.className  = 'am-word-chip';
     span.dataset.id = id;
     span.innerHTML  = `<span style="font-size:.8rem;">#${escHtml(name)}</span>
-        <button class="am-chip-del" onclick="removeWhitelist('channel','${id}')" title="Hapus">×</button>`;
+        <button class="am-chip-del" onclick="removeWhitelist('channel','${id}')" title="Delete">×</button>`;
     return span;
 }
 
@@ -687,7 +687,7 @@ function renderWlRoleChip(id, name, color) {
     span.dataset.id = id;
     if (color) span.style.borderColor = color;
     span.innerHTML  = `<span style="font-size:.8rem;${color ? `color:${color};` : ''}"">@${escHtml(name)}</span>
-        <button class="am-chip-del" onclick="removeWhitelist('role','${id}')" title="Hapus">×</button>`;
+        <button class="am-chip-del" onclick="removeWhitelist('role','${id}')" title="Delete">×</button>`;
     return span;
 }
 
@@ -695,7 +695,7 @@ async function addWhitelistChannel() {
     const sel  = document.getElementById('wlAddChannel');
     const msg  = document.getElementById('wlChMsg');
     const id   = sel.value;
-    if (!id) { showMsg(msg, 'Pilih channel terlebih dahulu.', 'error'); return; }
+    if (!id) { showMsg(msg, 'Please select a channel first.', 'error'); return; }
 
     const data = await apiFetch('/automod/whitelist', 'POST', { type: 'channel', id });
     showMsg(msg, data.message, data.success ? 'success' : 'error');
@@ -712,7 +712,7 @@ async function addWhitelistRole() {
     const sel  = document.getElementById('wlAddRole');
     const msg  = document.getElementById('wlRlMsg');
     const id   = sel.value;
-    if (!id) { showMsg(msg, 'Pilih role terlebih dahulu.', 'error'); return; }
+    if (!id) { showMsg(msg, 'Please select a role first.', 'error'); return; }
 
     const data = await apiFetch('/automod/whitelist', 'POST', { type: 'role', id });
     showMsg(msg, data.message, data.success ? 'success' : 'error');
@@ -744,7 +744,7 @@ async function removeWhitelist(type, id) {
         const empty = document.createElement('span');
         empty.id        = emptyId;
         empty.style.cssText = 'color:var(--text-muted);font-size:.875rem;';
-        empty.textContent   = 'Tidak ada.';
+        empty.textContent   = 'None.';
         list.appendChild(empty);
     }
 }

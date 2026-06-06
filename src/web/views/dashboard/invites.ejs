@@ -82,7 +82,7 @@
             <% if (invites.length === 0 && !fetchError) { %>
             <div style="padding:2.5rem;text-align:center;color:var(--text-muted);">
                 <i data-lucide="inbox" style="width:40px;height:40px;opacity:.4;display:block;margin:0 auto .75rem;"></i>
-                Tidak ada invite link aktif di server ini.
+                No active invite links on this server.
             </div>
             <% } else { %>
             <div class="inv-table-wrap">
@@ -103,14 +103,14 @@
                 </table>
             </div>
             <div id="noResultMsg" style="display:none;padding:2rem;text-align:center;color:var(--text-muted);">
-                Tidak ada invite yang cocok dengan filter saat ini.
+                No invites match the current filter.
             </div>
             <% } %>
 
             <div id="paginationBar" style="display:flex;justify-content:center;align-items:center;gap:.3rem;padding:.65rem 1.25rem;border-top:1px solid var(--border,rgba(255,255,255,.06));flex-wrap:wrap;min-height:0;"></div>
             <div style="padding:.6rem 1.25rem;border-top:1px solid var(--border,rgba(255,255,255,.06));font-size:.8rem;color:var(--text-muted);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;">
                 <span id="tableFooterCount"></span>
-                <span id="lastRefreshed">Data diambil saat halaman dimuat</span>
+                <span id="lastRefreshed">Data fetched when page loaded</span>
             </div>
         </div>
 

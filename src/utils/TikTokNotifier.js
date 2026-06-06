@@ -39,7 +39,7 @@ class TikTokNotifier {
             info('[TikTok] Live polling aktif (interval 3 menit) via tiktok-live-connector.');
             this._liveTimer = setInterval(() => this._pollLive(), LIVE_POLL_INTERVAL_MS);
         } else {
-            warn('[TikTok] tiktok-live-connector tidak ditemukan — live detection dinonaktifkan.');
+            warn('[TikTok] tiktok-live-connector not found — live detection disabled.');
             warn('[TikTok] Jalankan: npm install tiktok-live-connector');
         }
 
@@ -90,7 +90,7 @@ class TikTokNotifier {
 
         const xml = await res.text();
         if (!xml.includes('<item>') && !xml.includes('<entry>')) {
-            throw new Error(`Akun "${username}" tidak memiliki video publik atau tidak dikenali RSSHub.`);
+            throw new Error(`Account "${username}" has no public videos or is not recognized by RSSHub.`);
         }
 
         const name      = this._parseChannelTitle(xml) || username;
@@ -119,36 +119,36 @@ class TikTokNotifier {
             });
 
             if (res.status === 404) {
-                return `Akun TikTok "${username}" tidak ditemukan. Pastikan username sudah benar.`;
+                return `TikTok account "${username}" not found. Make sure the username is correct.`;
             }
 
             if (!res.ok) {
-                return `Akun "${username}" tidak dapat diakses (HTTP ${res.status}). Coba lagi nanti.`;
+                return `Account "${username}" is not accessible (HTTP ${res.status}). Please try again later.`;
             }
 
             const html = await res.text();
 
             // Cek akun private
             if (html.includes('"privateAccount":true') || html.includes('"isPrivateAccount":true')) {
-                return `Akun "${username}" adalah akun private 🔒. RSSHub tidak dapat mengambil feed dari akun private.`;
+                return `Account "${username}" is private 🔒. RSSHub cannot fetch the feed from a private account.`;
             }
 
             // Cek akun tidak ada / dinonaktifkan
             if (html.includes('user-not-found') || html.includes('Couldn\'t find this account')) {
-                return `Akun TikTok "${username}" tidak ditemukan atau telah dinonaktifkan.`;
+                return `TikTok account "${username}" not found or has been deactivated.`;
             }
 
             // Cek tidak ada video
             if (html.includes('"videoCount":0') || html.includes('"itemCount":0')) {
-                return `Akun "${username}" tidak memiliki video publik. Tambahkan minimal 1 video publik agar bisa dipantau.`;
+                return `Account "${username}" has no public videos. Add at least 1 public video to enable monitoring.`;
             }
 
             // Akun ada tapi RSSHub masih gagal → kemungkinan rate limit atau TikTok block
-            return `RSSHub gagal mengambil feed "${username}". Kemungkinan: akun private, tidak ada video, atau TikTok sedang membatasi akses. Coba lagi dalam beberapa menit.`;
+            return `RSSHub failed to fetch the feed for "${username}". Possible reasons: private account, no videos, or TikTok is throttling access. Try again in a few minutes.`;
 
         } catch {
             // Jika TikTok juga tidak bisa diakses dari VPS
-            return `RSSHub tidak dapat mengambil feed "${username}" (HTTP 503). Kemungkinan akun private, tidak ada video publik, atau TikTok memblokir akses. Pastikan akun bersifat publik dan memiliki video.`;
+            return `RSSHub cannot fetch the feed for "${username}" (HTTP 503). Possible reasons: private account, no public videos, or TikTok is blocking access. Make sure the account is public and has videos.`;
         }
     }
 
@@ -310,7 +310,7 @@ class TikTokNotifier {
             db.set(liveKey, String(Date.now()));
             info(`[TikTok/Live] LIVE terdeteksi: ${account.username} → ${guild.name}`);
             await this._sendLiveNotification(guild, account).catch(err =>
-                warn(`[TikTok/Live] Kirim notif gagal: ${err.message}`)
+                warn(`[TikTok/Live] Failed to send notification: ${err.message}`)
             );
         } else if (!isLive && wasLive) {
             db.delete(liveKey);
@@ -357,7 +357,7 @@ class TikTokNotifier {
 
         const customMsg   = fill(account.videoMessage || '').trim();
         const description = customMsg
-            || `**${displayName}** baru aja posting video baru di TikTok!\nJangan ketinggalan, tonton sekarang! 🎉`;
+            || `**${displayName}** just posted a new video on TikTok!\nDon't miss it, watch now! 🎉`;
 
         const embed = new EmbedBuilder()
             .setColor(0x010101)
@@ -376,7 +376,7 @@ class TikTokNotifier {
 
         info(`[TikTok] Video notif: "${entry.title}" | ${account.username} → ${guild.name}`);
         await discordCh.send({ embeds: [embed] }).catch(err =>
-            warn(`[TikTok] Kirim embed gagal: ${err.message}`)
+            warn(`[TikTok] Failed to send embed: ${err.message}`)
         );
     }
 
@@ -396,7 +396,7 @@ class TikTokNotifier {
 
         const customMsg   = fill(account.liveMessage || '').trim();
         const description = customMsg
-            || `Hey, **${displayName}** lagi **LIVE** di TikTok sekarang!\nYuk, join dan saksikan streamnya~ 🎉`;
+            || `Hey, **${displayName}** is **LIVE** on TikTok right now!\nCome join and watch the stream~ 🎉`;
 
         const embed = new EmbedBuilder()
             .setColor(0xFE2C55)
@@ -414,7 +414,7 @@ class TikTokNotifier {
 
         info(`[TikTok/Live] Live notif: ${account.username} → ${guild.name}`);
         await discordCh.send({ embeds: [embed] }).catch(err =>
-            warn(`[TikTok/Live] Kirim embed gagal: ${err.message}`)
+            warn(`[TikTok/Live] Failed to send embed: ${err.message}`)
         );
     }
 
@@ -440,7 +440,7 @@ class TikTokNotifier {
                 if (accounts.length > 0) { testUsername = accounts[0].username; break; }
             } catch { /* noop */ }
         }
-        if (!testUsername) return; // Belum ada akun dipantau — skip
+        if (!testUsername) return; // No accounts being monitored — skip
 
         const feedUrl = `${RSSHUB_BASE}/tiktok/user/${encodeURIComponent(testUsername)}`;
         let healthy = false;
@@ -466,7 +466,7 @@ class TikTokNotifier {
         } else {
             const failures = parseInt(db.get(failKey) || '0') + 1;
             db.set(failKey, String(failures));
-            warn(`[TikTok/Health] Health check gagal (${failures}/${HEALTH_FAIL_THRESHOLD})`);
+            warn(`[TikTok/Health] Health check failed (${failures}/${HEALTH_FAIL_THRESHOLD})`);
 
             if (failures >= HEALTH_FAIL_THRESHOLD && db.get(alertedKey) !== 'true') {
                 db.set(alertedKey, 'true');
@@ -483,7 +483,7 @@ class TikTokNotifier {
 
         let owner;
         try { owner = await this.client.users.fetch(ownerId); }
-        catch { warn('[TikTok/Health] Gagal fetch owner user dari Discord.'); return; }
+        catch { warn('[TikTok/Health] Failed to fetch owner user from Discord.'); return; }
 
         const embed = new EmbedBuilder()
             .setColor(isRecovery ? 0x57F287 : 0xED4245)
@@ -493,11 +493,11 @@ class TikTokNotifier {
             .setTimestamp();
 
         if (isRecovery) {
-            embed.setDescription('RSSHub berhasil mengambil feed TikTok kembali. Semua notifikasi berjalan normal.');
+            embed.setDescription('RSSHub successfully resumed fetching TikTok feeds. All notifications are running normally.');
         } else {
             embed.setDescription(
-                `RSSHub gagal merespons **${HEALTH_FAIL_THRESHOLD}x berturut-turut**.\n` +
-                'Kemungkinan besar cookie TikTok sudah expired.'
+                `RSSHub failed to respond **${HEALTH_FAIL_THRESHOLD} times in a row**.\n` +
+                'TikTok cookies may have expired.'
             );
             embed.addFields({
                 name: '📋 Cara Memperbarui Cookie',
@@ -511,7 +511,7 @@ class TikTokNotifier {
             });
             embed.addFields({
                 name: '🔍 Verifikasi',
-                value: '```bash\ncurl http://localhost:1200/tiktok/user/@username\n```\nJika return XML feed → sudah normal.',
+                value: '```bash\ncurl http://localhost:1200/tiktok/user/@username\n```\nIf it returns an XML feed → back to normal.',
                 inline: false,
             });
         }
@@ -520,7 +520,7 @@ class TikTokNotifier {
             await owner.send({ embeds: [embed] });
             info(`[TikTok/Health] DM terkirim ke owner: ${isRecovery ? 'recovery' : 'alert'}`);
         } catch (err) {
-            warn(`[TikTok/Health] Gagal kirim DM ke owner: ${err.message}`);
+            warn(`[TikTok/Health] Failed to send DM to owner: ${err.message}`);
         }
     }
 

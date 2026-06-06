@@ -42,51 +42,51 @@ function buildPanelRow(client, guildId) {
 module.exports = new ApplicationCommand({
     command: {
         name: 'ticket',
-        description: 'Kelola sistem tiket server.',
+        description: 'Manage the server ticket system.',
         type: 1,
         default_member_permissions: String(PermissionFlagsBits.ManageGuild),
         options: [
-            // ── kirim-panel ───────────────────────────────────────────────
+            // ── send-panel ────────────────────────────────────────────────
             {
-                name: 'kirim-panel',
-                description: 'Kirim panel tiket ke channel tertentu.',
+                name: 'send-panel',
+                description: 'Send the ticket panel to a specific channel.',
                 type: 1,
                 options: [
                     {
                         name: 'channel',
-                        description: 'Channel tujuan pengiriman panel (kosong = channel saat ini)',
+                        description: 'Target channel for the panel (empty = current channel)',
                         type: 3, required: false, autocomplete: true
                     }
                 ]
             },
-            // ── tutup ─────────────────────────────────────────────────────
+            // ── close ─────────────────────────────────────────────────────
             {
-                name: 'tutup',
-                description: 'Tutup tiket di channel ini (hanya bisa dipakai di dalam channel tiket).',
+                name: 'close',
+                description: 'Close the ticket in this channel (only usable inside a ticket channel).',
                 type: 1
             },
-            // ── tambah ───────────────────────────────────────────────────
+            // ── add ───────────────────────────────────────────────────────
             {
-                name: 'tambah',
-                description: 'Tambahkan user ke tiket saat ini.',
+                name: 'add',
+                description: 'Add a user to the current ticket.',
                 type: 1,
                 options: [
-                    { name: 'user', description: 'User yang ingin ditambahkan', type: 6, required: true }
+                    { name: 'user', description: 'User to add to the ticket', type: 6, required: true }
                 ]
             },
-            // ── hapus ────────────────────────────────────────────────────
+            // ── remove ───────────────────────────────────────────────────
             {
-                name: 'hapus',
-                description: 'Hapus akses user dari tiket saat ini.',
+                name: 'remove',
+                description: 'Remove a user\'s access from the current ticket.',
                 type: 1,
                 options: [
-                    { name: 'user', description: 'User yang ingin dihapus aksesnya', type: 6, required: true }
+                    { name: 'user', description: 'User to remove from the ticket', type: 6, required: true }
                 ]
             },
             // ── list ─────────────────────────────────────────────────────
             {
                 name: 'list',
-                description: 'Lihat daftar tiket yang sedang terbuka.',
+                description: 'View the list of currently open tickets.',
                 type: 1
             },
         ]
@@ -111,11 +111,11 @@ module.exports = new ApplicationCommand({
         ]);
         if (!ok) return;
 
-        // ── /ticket kirim-panel ───────────────────────────────────────────
-        if (sub === 'kirim-panel') {
+        // ── /ticket send-panel ───────────────────────────────────────────
+        if (sub === 'send-panel') {
             if (!client.database.get(`ticket-enabled-${guildId}`)) {
                 return interaction.reply({
-                    content: '❌ Sistem tiket belum diaktifkan. Aktifkan dulu di **Dashboard → Ticket**.',
+                    content: '❌ The ticket system has not been enabled. Enable it first in **Dashboard → Ticket**.',
                     flags: MessageFlags.Ephemeral
                 });
             }
@@ -125,13 +125,13 @@ module.exports = new ApplicationCommand({
 
             if (channelStr) {
                 const resolved = resolveChannel(guild, channelStr);
-                if (!resolved) return interaction.reply({ content: '❌ Channel tidak ditemukan.', flags: MessageFlags.Ephemeral });
+                if (!resolved) return interaction.reply({ content: '❌ Channel not found.', flags: MessageFlags.Ephemeral });
                 targetChannel = resolved;
             }
 
             await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
-            // Hapus panel lama jika ada
+            // Delete old panel if it exists
             const oldPanelRaw = client.database.get(`ticket-panel-msg-${guildId}`);
             if (oldPanelRaw) {
                 try {
@@ -154,32 +154,32 @@ module.exports = new ApplicationCommand({
             }));
             client.database.set(`ticket-panel-channel-${guildId}`, targetChannel.id);
 
-            return interaction.editReply({ content: `✅ Panel tiket berhasil dikirim ke ${targetChannel}!` });
+            return interaction.editReply({ content: `✅ Ticket panel successfully sent to ${targetChannel}!` });
         }
 
-        // ── /ticket tutup ─────────────────────────────────────────────────
-        if (sub === 'tutup') {
+        // ── /ticket close ─────────────────────────────────────────────────
+        if (sub === 'close') {
             const raw = client.database.get(`ticket-info-${guildId}-${interaction.channel.id}`);
             if (!raw) {
-                return interaction.reply({ content: '❌ Perintah ini hanya bisa dipakai di dalam channel tiket.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: '❌ This command can only be used inside a ticket channel.', flags: MessageFlags.Ephemeral });
             }
 
-            // Trigger tombol close secara programatik
+            // Trigger close button programmatically
             const fakeInteraction = { ...interaction, customId: 'ticket-close' };
             const closeHandler = require('../Button/button-ticket-close');
             return closeHandler.run(client, interaction);
         }
 
-        // ── /ticket tambah ────────────────────────────────────────────────
-        if (sub === 'tambah') {
+        // ── /ticket add ───────────────────────────────────────────────────
+        if (sub === 'add') {
             const raw = client.database.get(`ticket-info-${guildId}-${interaction.channel.id}`);
             if (!raw) {
-                return interaction.reply({ content: '❌ Perintah ini hanya bisa dipakai di dalam channel tiket.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: '❌ This command can only be used inside a ticket channel.', flags: MessageFlags.Ephemeral });
             }
 
             const target = options.getUser('user');
             const member = await guild.members.fetch(target.id).catch(() => null);
-            if (!member) return interaction.reply({ content: '❌ User tidak ditemukan di server.', flags: MessageFlags.Ephemeral });
+            if (!member) return interaction.reply({ content: '❌ User not found in this server.', flags: MessageFlags.Ephemeral });
 
             await interaction.channel.permissionOverwrites.edit(member.id, {
                 [PermissionFlagsBits.ViewChannel]:     true,
@@ -191,17 +191,17 @@ module.exports = new ApplicationCommand({
                 embeds: [
                     new EmbedBuilder()
                         .setColor('#57F287')
-                        .setDescription(`✅ ${member} berhasil ditambahkan ke tiket ini.`)
+                        .setDescription(`✅ ${member} has been successfully added to this ticket.`)
                 ],
                 flags: MessageFlags.Ephemeral
             });
         }
 
-        // ── /ticket hapus ─────────────────────────────────────────────────
-        if (sub === 'hapus') {
+        // ── /ticket remove ────────────────────────────────────────────────
+        if (sub === 'remove') {
             const raw = client.database.get(`ticket-info-${guildId}-${interaction.channel.id}`);
             if (!raw) {
-                return interaction.reply({ content: '❌ Perintah ini hanya bisa dipakai di dalam channel tiket.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: '❌ This command can only be used inside a ticket channel.', flags: MessageFlags.Ephemeral });
             }
 
             const target = options.getUser('user');
@@ -213,7 +213,7 @@ module.exports = new ApplicationCommand({
                 embeds: [
                     new EmbedBuilder()
                         .setColor('#ED4245')
-                        .setDescription(`✅ Akses <@${target.id}> dari tiket ini berhasil dihapus.`)
+                        .setDescription(`✅ <@${target.id}>'s access to this ticket has been successfully removed.`)
                 ],
                 flags: MessageFlags.Ephemeral
             });
@@ -225,7 +225,7 @@ module.exports = new ApplicationCommand({
 
             if (openList.length === 0) {
                 return interaction.reply({
-                    embeds: [new EmbedBuilder().setColor('#5865F2').setDescription('📭 Tidak ada tiket yang sedang terbuka.')],
+                    embeds: [new EmbedBuilder().setColor('#5865F2').setDescription('📭 There are no open tickets at the moment.')],
                     flags: MessageFlags.Ephemeral
                 });
             }
@@ -235,17 +235,17 @@ module.exports = new ApplicationCommand({
                 const info = (() => {
                     try { return JSON.parse(client.database.get(`ticket-info-${guildId}-${channelId}`) || '{}'); } catch { return {}; }
                 })();
-                const chName  = ch ? `<#${channelId}>` : `#${channelId} (dihapus)`;
+                const chName  = ch ? `<#${channelId}>` : `#${channelId} (deleted)`;
                 const openAt  = info.openedAt ? `<t:${Math.floor(info.openedAt/1000)}:R>` : '-';
                 const creator = info.userId ? `<@${info.userId}>` : '-';
-                return { name: `🎫 Tiket #${String(info.ticketNumber||0).padStart(4,'0')}`, value: `${chName}\nDibuat: ${creator} ${openAt}`, inline: true };
+                return { name: `🎫 Ticket #${String(info.ticketNumber||0).padStart(4,'0')}`, value: `${chName}\nCreated by: ${creator} ${openAt}`, inline: true };
             });
 
             return interaction.reply({
                 embeds: [
                     new EmbedBuilder()
                         .setColor('#5865F2')
-                        .setTitle(`🎫 Tiket Aktif — ${openList.length} terbuka`)
+                        .setTitle(`🎫 Active Tickets — ${openList.length} open`)
                         .addFields(fields)
                         .setTimestamp()
                 ],

@@ -83,7 +83,7 @@ async function handleReaction(client, reaction, user, isAdd) {
             // Lepas semua role panel lain yang aktif
             const currentPanelRoles = member.roles.cache.filter(r => allPanelRoleIds.includes(r.id));
             for (const [, oldRole] of currentPanelRoles) {
-                await member.roles.remove(oldRole, `Autorole Reaction (single) – diganti – panel: ${panelName}`).catch(() => null);
+                await member.roles.remove(oldRole, `Autorole Reaction (single) – replaced – panel: ${panelName}`).catch(() => null);
                 // Hapus reaction lama di pesan supaya UI sinkron
                 try {
                     const oldEntry = panel.reactions.find(r => r.roleId === oldRole.id);

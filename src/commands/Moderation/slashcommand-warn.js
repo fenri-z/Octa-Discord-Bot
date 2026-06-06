@@ -34,9 +34,9 @@ function pushWarnLog(client, guildId, entry) {
 }
 
 function formatDuration(ms) {
-    if (ms >= 3_600_000) return `${ms / 3_600_000} jam`;
-    if (ms >= 60_000)    return `${ms / 60_000} menit`;
-    return `${ms / 1_000} detik`;
+    if (ms >= 3_600_000) return `${ms / 3_600_000} hour(s)`;
+    if (ms >= 60_000)    return `${ms / 60_000} minute(s)`;
+    return `${ms / 1_000} second(s)`;
 }
 
 async function applyThresholdAction(guild, member, warnCount, config) {
@@ -49,14 +49,14 @@ async function applyThresholdAction(guild, member, warnCount, config) {
         case 'mute': {
             if (!botMember?.permissions.has(PermissionFlagsBits.ModerateMembers)) return null;
             const dur = matched.duration ?? 600_000;
-            await member.timeout(dur, `Warn threshold: ${warnCount} peringatan`).catch(() => null);
+            await member.timeout(dur, `Warn threshold: ${warnCount} warnings`).catch(() => null);
             await member.user.send({
                 embeds: [new EmbedBuilder()
                     .setColor('#ED4245')
-                    .setTitle('🔇 Kamu di-Timeout')
+                    .setTitle('🔇 You have been Timed Out')
                     .setDescription(
-                        `Kamu di-timeout di **${guild.name}** selama **${formatDuration(dur)}**\n` +
-                        `karena telah mencapai **${warnCount} peringatan**.`
+                        `You were timed out in **${guild.name}** for **${formatDuration(dur)}**\n` +
+                        `for reaching **${warnCount} warnings**.`
                     )
                     .setTimestamp()]
             }).catch(() => null);
@@ -67,11 +67,11 @@ async function applyThresholdAction(guild, member, warnCount, config) {
             await member.user.send({
                 embeds: [new EmbedBuilder()
                     .setColor('#ED4245')
-                    .setTitle('👢 Kamu di-Kick')
-                    .setDescription(`Kamu di-kick dari **${guild.name}** karena telah mencapai **${warnCount} peringatan**.`)
+                    .setTitle('👢 You have been Kicked')
+                    .setDescription(`You were kicked from **${guild.name}** for reaching **${warnCount} warnings**.`)
                     .setTimestamp()]
             }).catch(() => null);
-            await member.kick(`Warn threshold: ${warnCount} peringatan`).catch(() => null);
+            await member.kick(`Warn threshold: ${warnCount} warnings`).catch(() => null);
             return '👢 Kick';
         }
         case 'ban': {
@@ -79,11 +79,11 @@ async function applyThresholdAction(guild, member, warnCount, config) {
             await member.user.send({
                 embeds: [new EmbedBuilder()
                     .setColor('#ED4245')
-                    .setTitle('🔨 Kamu di-Ban')
-                    .setDescription(`Kamu di-ban dari **${guild.name}** karena telah mencapai **${warnCount} peringatan**.`)
+                    .setTitle('🔨 You have been Banned')
+                    .setDescription(`You were banned from **${guild.name}** for reaching **${warnCount} warnings**.`)
                     .setTimestamp()]
             }).catch(() => null);
-            await member.ban({ reason: `Warn threshold: ${warnCount} peringatan` }).catch(() => null);
+            await member.ban({ reason: `Warn threshold: ${warnCount} warnings` }).catch(() => null);
             return '🔨 Ban';
         }
     }
@@ -93,42 +93,42 @@ async function applyThresholdAction(guild, member, warnCount, config) {
 module.exports = new ApplicationCommand({
     command: {
         name: 'warn',
-        description: 'Sistem peringatan member server',
+        description: 'Member warning system',
         type: 1,
         default_member_permissions: String(PermissionFlagsBits.ModerateMembers),
         options: [
             {
                 type: 1,
                 name: 'add',
-                description: 'Tambahkan peringatan ke member',
+                description: 'Add a warning to a member',
                 options: [
-                    { type: 6, name: 'member', description: 'Member yang akan diberi peringatan', required: true },
-                    { type: 3, name: 'alasan',  description: 'Alasan peringatan', required: false },
+                    { type: 6, name: 'member', description: 'Member to warn',            required: true },
+                    { type: 3, name: 'reason', description: 'Reason for the warning',    required: false },
                 ],
             },
             {
                 type: 1,
                 name: 'remove',
-                description: 'Hapus satu peringatan berdasarkan ID',
+                description: 'Remove a single warning by ID',
                 options: [
-                    { type: 6, name: 'member', description: 'Member target', required: true },
-                    { type: 3, name: 'id',     description: 'ID peringatan (lihat dari /warn list)', required: true },
+                    { type: 6, name: 'member', description: 'Target member',             required: true },
+                    { type: 3, name: 'id',     description: 'Warning ID (see /warn list)', required: true },
                 ],
             },
             {
                 type: 1,
                 name: 'clear',
-                description: 'Hapus semua peringatan member',
+                description: 'Clear all warnings from a member',
                 options: [
-                    { type: 6, name: 'member', description: 'Member target', required: true },
+                    { type: 6, name: 'member', description: 'Target member', required: true },
                 ],
             },
             {
                 type: 1,
                 name: 'list',
-                description: 'Lihat daftar peringatan member',
+                description: 'View the warning list of a member',
                 options: [
-                    { type: 6, name: 'member', description: 'Member target', required: true },
+                    { type: 6, name: 'member', description: 'Target member', required: true },
                 ],
             },
         ],
@@ -141,14 +141,14 @@ module.exports = new ApplicationCommand({
         // ── /warn add ──────────────────────────────────────────────────────────
         if (sub === 'add') {
             const target = interaction.options.getMember('member');
-            const alasan = interaction.options.getString('alasan') || 'Tidak ada alasan';
+            const alasan = interaction.options.getString('reason') || 'No reason provided';
 
             if (!target)
-                return interaction.reply({ content: '❌ Member tidak ditemukan.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: '❌ Member not found.', flags: MessageFlags.Ephemeral });
             if (target.id === interaction.user.id)
-                return interaction.reply({ content: '❌ Kamu tidak bisa warn diri sendiri.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: '❌ You cannot warn yourself.', flags: MessageFlags.Ephemeral });
             if (target.permissions.has(PermissionFlagsBits.Administrator))
-                return interaction.reply({ content: '❌ Tidak bisa warn Administrator.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: '❌ Cannot warn an Administrator.', flags: MessageFlags.Ephemeral });
 
             const warns  = getWarns(client, guildId, target.id);
             const warnId = Date.now().toString(36).toUpperCase();
@@ -165,35 +165,35 @@ module.exports = new ApplicationCommand({
             setWarns(client, guildId, target.id, warns);
             pushWarnLog(client, guildId, entry);
 
-            // DM ke member
+            // DM member
             await target.user.send({
                 embeds: [new EmbedBuilder()
                     .setColor('#FEE75C')
-                    .setTitle('⚠️ Kamu Mendapat Peringatan')
+                    .setTitle('⚠️ You Have Received a Warning')
                     .setDescription(
-                        `Kamu mendapat peringatan di **${interaction.guild.name}**.\n` +
-                        `**Alasan:** ${alasan}\n**Total peringatan:** ${warns.length}`
+                        `You received a warning in **${interaction.guild.name}**.\n` +
+                        `**Reason:** ${alasan}\n**Total warnings:** ${warns.length}`
                     )
                     .setTimestamp()]
             }).catch(() => null);
 
-            // Cek threshold otomatis
+            // Check automatic threshold
             const config     = getWarnConfig(client, guildId);
             const actionDone = await applyThresholdAction(interaction.guild, target, warns.length, config);
 
             const embed = new EmbedBuilder()
                 .setColor('#FEE75C')
-                .setTitle('⚠️ Peringatan Diberikan')
+                .setTitle('⚠️ Warning Issued')
                 .addFields(
                     { name: '👤 Member',     value: `${target} (${target.user.tag})`, inline: true },
                     { name: '🛡️ Moderator', value: `${interaction.user}`,            inline: true },
-                    { name: '📊 Total',      value: `${warns.length} warn`,           inline: true },
-                    { name: '📝 Alasan',     value: alasan },
-                    { name: '🔖 ID Warn',    value: `\`${warnId}\`` },
+                    { name: '📊 Total',      value: `${warns.length} warning(s)`,     inline: true },
+                    { name: '📝 Reason',     value: alasan },
+                    { name: '🔖 Warn ID',    value: `\`${warnId}\`` },
                 )
                 .setTimestamp();
 
-            if (actionDone) embed.addFields({ name: '⚡ Tindakan Otomatis', value: actionDone });
+            if (actionDone) embed.addFields({ name: '⚡ Automatic Action', value: actionDone });
 
             // Kirim ke mod log channel jika dikonfigurasi
             const logChId = client.database.get(`modlog-channel-${guildId}`);
@@ -211,12 +211,12 @@ module.exports = new ApplicationCommand({
             const warnId = interaction.options.getString('id').toUpperCase();
 
             if (!target)
-                return interaction.reply({ content: '❌ Member tidak ditemukan.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: '❌ Member not found.', flags: MessageFlags.Ephemeral });
 
             const warns = getWarns(client, guildId, target.id);
             const idx   = warns.findIndex(w => w.id === warnId);
             if (idx === -1)
-                return interaction.reply({ content: `❌ Peringatan \`${warnId}\` tidak ditemukan.`, flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: `❌ Warning \`${warnId}\` not found.`, flags: MessageFlags.Ephemeral });
 
             warns.splice(idx, 1);
             setWarns(client, guildId, target.id, warns);
@@ -224,8 +224,8 @@ module.exports = new ApplicationCommand({
             return interaction.reply({
                 embeds: [new EmbedBuilder()
                     .setColor('#57F287')
-                    .setTitle('✅ Peringatan Dihapus')
-                    .setDescription(`Peringatan \`${warnId}\` dari ${target} dihapus.\nSisa peringatan: **${warns.length}**`)
+                    .setTitle('✅ Warning Removed')
+                    .setDescription(`Warning \`${warnId}\` from ${target} has been removed.\nRemaining warnings: **${warns.length}**`)
                     .setTimestamp()]
             });
         }
@@ -234,19 +234,19 @@ module.exports = new ApplicationCommand({
         if (sub === 'clear') {
             const target = interaction.options.getMember('member');
             if (!target)
-                return interaction.reply({ content: '❌ Member tidak ditemukan.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: '❌ Member not found.', flags: MessageFlags.Ephemeral });
 
             const warns = getWarns(client, guildId, target.id);
             if (warns.length === 0)
-                return interaction.reply({ content: `${target} tidak memiliki peringatan.`, flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: `${target} has no warnings.`, flags: MessageFlags.Ephemeral });
 
             client.database.delete(`warn-${guildId}-${target.id}`);
 
             return interaction.reply({
                 embeds: [new EmbedBuilder()
                     .setColor('#57F287')
-                    .setTitle('✅ Semua Peringatan Dihapus')
-                    .setDescription(`Semua **${warns.length}** peringatan dari ${target} telah dihapus.`)
+                    .setTitle('✅ All Warnings Cleared')
+                    .setDescription(`All **${warns.length}** warning(s) from ${target} have been cleared.`)
                     .setTimestamp()]
             });
         }
@@ -255,7 +255,7 @@ module.exports = new ApplicationCommand({
         if (sub === 'list') {
             const target = interaction.options.getMember('member');
             if (!target)
-                return interaction.reply({ content: '❌ Member tidak ditemukan.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: '❌ Member not found.', flags: MessageFlags.Ephemeral });
 
             const warns = getWarns(client, guildId, target.id);
 
@@ -263,26 +263,26 @@ module.exports = new ApplicationCommand({
                 return interaction.reply({
                     embeds: [new EmbedBuilder()
                         .setColor('#57F287')
-                        .setTitle('📋 Daftar Peringatan')
-                        .setDescription(`${target} tidak memiliki peringatan. ✅`)
+                        .setTitle('📋 Warning List')
+                        .setDescription(`${target} has no warnings. ✅`)
                         .setTimestamp()],
                     flags: MessageFlags.Ephemeral,
                 });
             }
 
             const list = warns.slice(-10).reverse().map((w, i) => {
-                const date = new Date(w.timestamp).toLocaleDateString('id-ID', {
+                const date = new Date(w.timestamp).toLocaleDateString('en-US', {
                     day: '2-digit', month: 'short', year: 'numeric',
                 });
-                return `**${i + 1}.** \`${w.id}\` — ${w.reason}\n↳ oleh <@${w.moderatorId}> • ${date}`;
+                return `**${i + 1}.** \`${w.id}\` — ${w.reason}\n↳ by <@${w.moderatorId}> • ${date}`;
             }).join('\n\n');
 
             return interaction.reply({
                 embeds: [new EmbedBuilder()
                     .setColor('#FEE75C')
-                    .setTitle(`⚠️ Peringatan — ${target.user.tag}`)
+                    .setTitle(`⚠️ Warnings — ${target.user.tag}`)
                     .setDescription(list)
-                    .setFooter({ text: `Total: ${warns.length} peringatan${warns.length > 10 ? ' (10 terbaru)' : ''}` })
+                    .setFooter({ text: `Total: ${warns.length} warning(s)${warns.length > 10 ? ' (10 most recent)' : ''}` })
                     .setTimestamp()],
                 flags: MessageFlags.Ephemeral,
             });

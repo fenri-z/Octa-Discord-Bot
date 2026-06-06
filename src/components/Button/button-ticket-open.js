@@ -31,18 +31,18 @@ module.exports = new Component({
         const { guild, member } = interaction;
         const guildId = guild.id;
 
-        // Cek apakah tiket aktif
+        // Check if the ticket system is active
         if (!client.database.get(`ticket-enabled-${guildId}`)) {
-            return interaction.reply({ content: '❌ Sistem tiket tidak aktif di server ini.', flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: '❌ The ticket system is not active in this server.', flags: MessageFlags.Ephemeral });
         }
 
-        // Cek apakah user sudah punya tiket terbuka
+        // Check if the user already has an open ticket
         const existingId = client.database.get(`ticket-user-${guildId}-${member.id}`);
         if (existingId) {
             const existingCh = guild.channels.cache.get(existingId);
             if (existingCh) {
                 return interaction.reply({
-                    content: `❌ Kamu sudah punya tiket yang aktif: ${existingCh}\nSelesaikan tiket itu terlebih dahulu.`,
+                    content: `❌ You already have an active ticket: ${existingCh}\nPlease resolve that ticket first.`,
                     flags: MessageFlags.Ephemeral
                 });
             }
@@ -111,13 +111,13 @@ module.exports = new Component({
                 }
             }
 
-            // ── Buat channel tiket ────────────────────────────────────────
+            // ── Create ticket channel ─────────────────────────────────────
             const createOpts = {
                 name: channelName,
                 type: ChannelType.GuildText,
                 permissionOverwrites: overwrites,
-                topic: `Tiket #${String(count).padStart(4,'0')} — ${member.user.tag}`,
-                reason: `Tiket dibuat oleh ${member.user.tag}`,
+                topic: `Ticket #${String(count).padStart(4,'0')} — ${member.user.tag}`,
+                reason: `Ticket created by ${member.user.tag}`,
             };
             if (categoryId && guild.channels.cache.has(categoryId)) {
                 createOpts.parent = categoryId;
@@ -125,7 +125,7 @@ module.exports = new Component({
 
             const ticketChannel = await guild.channels.create(createOpts);
 
-            // ── Simpan data tiket ─────────────────────────────────────────
+            // ── Save ticket data ──────────────────────────────────────────
             client.database.set(`ticket-user-${guildId}-${member.id}`, ticketChannel.id);
             client.database.set(`ticket-info-${guildId}-${ticketChannel.id}`, JSON.stringify({
                 ticketNumber: count,
@@ -139,19 +139,19 @@ module.exports = new Component({
             openList.push(ticketChannel.id);
             client.database.set(`ticket-open-list-${guildId}`, JSON.stringify(openList));
 
-            // ── Pesan selamat datang di channel tiket ────────────────────
+            // ── Welcome message in the ticket channel ─────────────────────
             const colorHex = embedColor.startsWith('#') ? embedColor : `#${embedColor}`;
             const welcomeEmbed = new EmbedBuilder()
                 .setColor(colorHex)
-                .setTitle(`🎫 Tiket #${String(count).padStart(4, '0')}`)
+                .setTitle(`🎫 Ticket #${String(count).padStart(4, '0')}`)
                 .setDescription(
-                    `Halo ${member}! Tiket kamu sudah dibuat.\n\n` +
-                    `Silakan jelaskan keperluan kamu dan tim staff akan segera membantu.\n\n` +
-                    `> Klik **🔒 Tutup Tiket** untuk menutup tiket ini.`
+                    `Hello ${member}! Your ticket has been created.\n\n` +
+                    `Please describe your issue and the staff team will assist you shortly.\n\n` +
+                    `> Click **🔒 Close Ticket** to close this ticket.`
                 )
                 .addFields(
-                    { name: '👤 Dibuat oleh', value: `${member} (${member.user.tag})`, inline: true },
-                    { name: '🕐 Waktu buka', value: `<t:${Math.floor(Date.now() / 1000)}:F>`, inline: true },
+                    { name: '👤 Created by', value: `${member} (${member.user.tag})`, inline: true },
+                    { name: '🕐 Opened at', value: `<t:${Math.floor(Date.now() / 1000)}:F>`, inline: true },
                 )
                 .setTimestamp();
 
@@ -159,7 +159,7 @@ module.exports = new Component({
             const actionRow = new ActionRowBuilder().addComponents(
                 new ButtonBuilder()
                     .setCustomId('ticket-close')
-                    .setLabel('🔒 Tutup Tiket')
+                    .setLabel('🔒 Close Ticket')
                     .setStyle(ButtonStyle.Danger),
             );
 
@@ -169,11 +169,11 @@ module.exports = new Component({
                 components: [actionRow],
             });
 
-            await interaction.editReply({ content: `✅ Tiket berhasil dibuat! ${ticketChannel}` });
+            await interaction.editReply({ content: `✅ Ticket successfully created! ${ticketChannel}` });
 
         } catch (err) {
             console.error('[ticket-open]', err);
-            await interaction.editReply({ content: '❌ Gagal membuat tiket. Pastikan bot punya permission Manage Channels.' }).catch(() => null);
+            await interaction.editReply({ content: '❌ Failed to create ticket. Make sure the bot has the Manage Channels permission.' }).catch(() => null);
         }
     }
 }).toJSON();

@@ -2,7 +2,7 @@ const { ButtonInteraction, MessageFlags, ActionRowBuilder, ButtonBuilder, Button
 const DiscordBot = require("../../client/DiscordBot");
 const Component  = require("../../structure/Component");
 
-// ── Handler: ➕ Tambah Button Sekarang ────────────────────────────────────────
+// ── Handler: ➕ Add Button Now ────────────────────────────────────────────────
 // customId format: autobtn-quickadd:<panelName>
 
 module.exports = new Component({
@@ -16,25 +16,25 @@ module.exports = new Component({
     run: async (client, interaction) => {
         const panelName = interaction.customId.split(':').slice(1).join(':');
 
-        // Simpan pending quickadd agar modal handler tahu panel mana yang dituju
+        // Save pending quickadd so the modal handler knows which panel is targeted
         client.database.set(
             `autobtn-quickadd-${interaction.guild.id}-${interaction.user.id}`,
             panelName
         );
 
-        // Buka modal isi data button pertama
+        // Open modal to fill in first button data
         await interaction.showModal({
             custom_id: `autobtn-quickadd-modal:${panelName}`,
-            title: `Tambah Button — ${panelName}`.slice(0, 45),
+            title: `Add Button — ${panelName}`.slice(0, 45),
             components: [
                 {
                     type: 1,
                     components: [{
                         type: 4,
                         custom_id: 'quickadd-role',
-                        label: 'Role (mention atau ID, contoh: @Gaming)',
+                        label: 'Role (mention or ID, e.g.: @Gaming)',
                         style: 1,
-                        placeholder: '@NamaRole atau 123456789012345678',
+                        placeholder: '@RoleName or 123456789012345678',
                         required: true,
                         max_length: 100
                     }]
@@ -44,9 +44,9 @@ module.exports = new Component({
                     components: [{
                         type: 4,
                         custom_id: 'quickadd-label',
-                        label: 'Label Tombol (maks 80 karakter)',
+                        label: 'Button Label (max 80 characters)',
                         style: 1,
-                        placeholder: 'Contoh: 🎮 Gaming',
+                        placeholder: 'Example: 🎮 Gaming',
                         required: true,
                         max_length: 80
                     }]
@@ -56,7 +56,7 @@ module.exports = new Component({
                     components: [{
                         type: 4,
                         custom_id: 'quickadd-warna',
-                        label: 'Warna Tombol (opsional)',
+                        label: 'Button Color (optional)',
                         style: 1,
                         placeholder: 'primary / success / danger / secondary  (default: primary)',
                         required: false,

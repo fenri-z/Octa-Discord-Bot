@@ -3,7 +3,7 @@
  * Express web server yang berjalan berdampingan dengan Discord bot.
  *
  * Cara pakai: file ini di-require dari src/index.js SETELAH bot connect.
- * Sehingga object `client` (DiscordBot) bisa di-pass ke sini dan dipakai
+ * So that the `client` (DiscordBot) object can be passed here and used
  * di semua route untuk baca data guild, member, dll.
  */
 
@@ -142,7 +142,7 @@ app.post('/report-bug', (req, res) => {
     _bugUpload(req, res, async (uploadErr) => {
         const webhookUrl = process.env.REPORT_WEBHOOK_URL;
         if (!webhookUrl) {
-            return res.json({ success: false, message: 'Webhook belum dikonfigurasi.' });
+            return res.json({ success: false, message: 'Webhook is not configured.' });
         }
 
         const { firstName, lastName, discordUsername, discordId, message } = req.body;
@@ -160,7 +160,7 @@ app.post('/report-bug', (req, res) => {
                 { name: '👤 Nama',      value: `${firstName} ${lastName}`, inline: true  },
                 { name: '🏷️ Discord',   value: `${discordUsername}`,        inline: true  },
                 { name: '🆔 Discord ID', value: `\`${discordId}\``,          inline: true  },
-                { name: '📝 Pesan',      value: message.slice(0, 1024),      inline: false },
+                { name: '📝 Message',    value: message.slice(0, 1024),      inline: false },
             ],
             timestamp: new Date().toISOString(),
         };
@@ -199,19 +199,19 @@ app.post('/report-bug', (req, res) => {
             if (!r.ok) {
                 const err = await r.text();
                 console.error('[Report Bug] Webhook error:', r.status, err);
-                return res.json({ success: false, message: 'Gagal mengirim laporan. Coba lagi nanti.' });
+                return res.json({ success: false, message: 'Failed to send report. Please try again later.' });
             }
 
-            res.json({ success: true, message: 'Laporan berhasil dikirim! Terima kasih.' });
+            res.json({ success: true, message: 'Report sent successfully! Thank you.' });
         } catch (err) {
             console.error('[Report Bug] Error:', err.message);
-            res.json({ success: false, message: 'Gagal terhubung ke server. Coba lagi nanti.' });
+            res.json({ success: false, message: 'Failed to connect to server. Please try again later.' });
         }
     });
 });
 
 app.use((req, res) => {
-    res.status(404).render('error', { hasSidebar: false, title: '404 Not Found', message: 'Halaman tidak ditemukan.' });
+    res.status(404).render('error', { hasSidebar: false, title: '404 Not Found', message: 'Page not found.' });
 });
 
 app.use((err, req, res, next) => {

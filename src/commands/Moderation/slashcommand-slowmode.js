@@ -20,10 +20,10 @@ function parseDuration(str) {
 }
 
 function formatSlowmode(seconds) {
-    if (seconds === 0)    return 'Nonaktif';
-    if (seconds < 60)     return `${seconds} detik`;
-    if (seconds < 3600)   return `${seconds / 60} menit`;
-    return `${seconds / 3600} jam`;
+    if (seconds === 0)    return 'Disabled';
+    if (seconds < 60)     return `${seconds} second(s)`;
+    if (seconds < 3600)   return `${seconds / 60} minute(s)`;
+    return `${seconds / 3600} hour(s)`;
 }
 
 async function sendModLog(client, guild, embed) {
@@ -36,33 +36,33 @@ async function sendModLog(client, guild, embed) {
 module.exports = new ApplicationCommand({
     command: {
         name: 'slowmode',
-        description: 'Atur cooldown pengiriman pesan di channel',
+        description: 'Set the message cooldown in a channel',
         type: 1,
         default_member_permissions: String(PermissionFlagsBits.ManageChannels),
         options: [
             {
                 type: 1,
                 name: 'set',
-                description: 'Aktifkan slowmode di channel',
+                description: 'Enable slowmode in a channel',
                 options: [
-                    { type: 3, name: 'durasi',  description: 'Durasi cooldown, contoh: 10s, 1m, 1h (maks 6h)', required: true },
-                    { type: 7, name: 'channel', description: 'Channel target (default: channel ini)',            required: false },
+                    { type: 3, name: 'duration', description: 'Cooldown duration, e.g. 10s, 1m, 1h (max 6h)', required: true },
+                    { type: 7, name: 'channel',  description: 'Target channel (default: current channel)',      required: false },
                 ],
             },
             {
                 type: 1,
                 name: 'off',
-                description: 'Matikan slowmode di channel',
+                description: 'Disable slowmode in a channel',
                 options: [
-                    { type: 7, name: 'channel', description: 'Channel target (default: channel ini)', required: false },
+                    { type: 7, name: 'channel', description: 'Target channel (default: current channel)', required: false },
                 ],
             },
             {
                 type: 1,
                 name: 'status',
-                description: 'Lihat slowmode saat ini di channel',
+                description: 'Check the current slowmode in a channel',
                 options: [
-                    { type: 7, name: 'channel', description: 'Channel target (default: channel ini)', required: false },
+                    { type: 7, name: 'channel', description: 'Target channel (default: current channel)', required: false },
                 ],
             },
         ],
@@ -74,11 +74,11 @@ module.exports = new ApplicationCommand({
         const guild  = interaction.guild;
 
         if (target.type !== 0 && target.type !== 5)
-            return interaction.reply({ content: '❌ Hanya bisa mengatur slowmode di channel teks.', flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: '❌ Slowmode can only be set in text channels.', flags: MessageFlags.Ephemeral });
 
         const botPerms = target.permissionsFor(guild.members.me);
         if (!botPerms.has(PermissionFlagsBits.ManageChannels))
-            return interaction.reply({ content: `❌ Bot tidak punya permission **Manage Channels** di ${target}.`, flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: `❌ Bot does not have **Manage Channels** permission in ${target}.`, flags: MessageFlags.Ephemeral });
 
         // ── Status ───────────────────────────────────────────────────────────────
         if (sub === 'status') {
@@ -86,7 +86,7 @@ module.exports = new ApplicationCommand({
             return interaction.reply({
                 embeds: [new EmbedBuilder()
                     .setColor(current > 0 ? '#FEE75C' : '#57F287')
-                    .setTitle('⏱️ Status Slowmode')
+                    .setTitle('⏱️ Slowmode Status')
                     .addFields(
                         { name: '📌 Channel',  value: `${target}`,                    inline: true },
                         { name: '⏱️ Cooldown', value: formatSlowmode(current),        inline: true },
@@ -99,13 +99,13 @@ module.exports = new ApplicationCommand({
         // ── Off ──────────────────────────────────────────────────────────────────
         if (sub === 'off') {
             if ((target.rateLimitPerUser ?? 0) === 0)
-                return interaction.reply({ content: `❌ ${target} tidak sedang dalam mode slowmode.`, flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: `❌ ${target} does not currently have slowmode enabled.`, flags: MessageFlags.Ephemeral });
 
-            await target.setRateLimitPerUser(0, `Slowmode dimatikan oleh ${interaction.user.tag}`);
+            await target.setRateLimitPerUser(0, `Slowmode disabled by ${interaction.user.tag}`);
 
             const embed = new EmbedBuilder()
                 .setColor('#57F287')
-                .setTitle('⏱️ Slowmode Dimatikan')
+                .setTitle('⏱️ Slowmode Disabled')
                 .addFields(
                     { name: '📌 Channel',    value: `${target}`,           inline: true },
                     { name: '🛡️ Moderator', value: `${interaction.user}`, inline: true },
@@ -117,30 +117,30 @@ module.exports = new ApplicationCommand({
             return interaction.reply({
                 embeds: [new EmbedBuilder()
                     .setColor('#57F287')
-                    .setDescription(`✅ Slowmode di ${target} berhasil **dimatikan**.`)],
+                    .setDescription(`✅ Slowmode in ${target} has been **disabled**.`)],
                 flags: MessageFlags.Ephemeral,
             });
         }
 
         // ── Set ──────────────────────────────────────────────────────────────────
         if (sub === 'set') {
-            const durStr  = interaction.options.getString('durasi');
+            const durStr  = interaction.options.getString('duration');
             const seconds = parseDuration(durStr);
 
             if (seconds === null || seconds < 1)
                 return interaction.reply({
-                    content: '❌ Format durasi tidak valid. Contoh: `10s`, `1m`, `2h`.',
+                    content: '❌ Invalid duration format. Examples: `10s`, `1m`, `2h`.',
                     flags: MessageFlags.Ephemeral,
                 });
 
             if (seconds > MAX_SLOWMODE)
-                return interaction.reply({ content: '❌ Durasi maksimal slowmode adalah **6 jam** (21600 detik).', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: '❌ Maximum slowmode duration is **6 hours** (21600 seconds).', flags: MessageFlags.Ephemeral });
 
-            await target.setRateLimitPerUser(seconds, `Slowmode diatur oleh ${interaction.user.tag}`);
+            await target.setRateLimitPerUser(seconds, `Slowmode set by ${interaction.user.tag}`);
 
             const embed = new EmbedBuilder()
                 .setColor('#FEE75C')
-                .setTitle('⏱️ Slowmode Diaktifkan')
+                .setTitle('⏱️ Slowmode Enabled')
                 .addFields(
                     { name: '📌 Channel',    value: `${target}`,              inline: true },
                     { name: '⏱️ Cooldown',  value: formatSlowmode(seconds),  inline: true },
@@ -153,7 +153,7 @@ module.exports = new ApplicationCommand({
             return interaction.reply({
                 embeds: [new EmbedBuilder()
                     .setColor('#FEE75C')
-                    .setDescription(`✅ Slowmode di ${target} diatur ke **${formatSlowmode(seconds)}**.`)],
+                    .setDescription(`✅ Slowmode in ${target} set to **${formatSlowmode(seconds)}**.`)],
                 flags: MessageFlags.Ephemeral,
             });
         }

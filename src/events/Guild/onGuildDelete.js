@@ -8,7 +8,7 @@ module.exports = new Event({
     run: async (client, guild) => {
         const guildId = guild.id;
 
-        warn(`[guildDelete] Bot keluar dari server: ${guild.name} (${guildId}). Data pengaturan dipertahankan.`);
+        warn(`[guildDelete] Bot left server: ${guild.name} (${guildId}). Settings data preserved.`);
 
         try {
             // Bersihkan invite cache di memori (bukan database)
@@ -16,7 +16,7 @@ module.exports = new Event({
                 client.inviteCache.delete(guildId);
             }
 
-            success(`[guildDelete] ${guild.name} — invite cache dibersihkan. Semua pengaturan database dipertahankan ✓`);
+            success(`[guildDelete] ${guild.name} — invite cache cleared. All database settings preserved ✓`);
         } catch (err) {
             warn(`[guildDelete] ${guild.name} — error saat guildDelete: ${err.message}`);
         }

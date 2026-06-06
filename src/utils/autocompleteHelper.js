@@ -155,7 +155,7 @@ async function autocompleteTemplate(interaction, client) {
 
     if (!Array.isArray(list) || list.length === 0) {
         return interaction.respond([
-            { name: '📭 Belum ada template — buat dulu dengan /pesan buat', value: '__none__' }
+            { name: '📭 No templates yet — create one with /message create', value: '__none__' }
         ]).catch(() => null);
     }
 
@@ -194,7 +194,7 @@ async function autocompletePanel(interaction, client) {
 
     if (!Array.isArray(list) || list.length === 0) {
         return interaction.respond([
-            { name: '📭 Belum ada panel — buat dulu dengan /autorole-button buat', value: '__none__' }
+            { name: '📭 No panels yet — create one with /autorole-button create', value: '__none__' }
         ]).catch(() => null);
     }
 
@@ -212,7 +212,7 @@ async function autocompletePanel(interaction, client) {
                     : false;
                 const tmplIcon = tmplOk ? '📄' : '⚠️';
                 return {
-                    name:  `${modeIcon} ${name} ${tmplIcon} (${btnCount} tombol)`.slice(0, 100),
+                    name:  `${modeIcon} ${name} ${tmplIcon} (${btnCount} buttons)`.slice(0, 100),
                     value: name
                 };
             } catch {
@@ -231,7 +231,7 @@ async function autocompletePanel(interaction, client) {
 // ─────────────────────────────────────────────────────────────────────────
 /**
  * Autocomplete untuk field `nama` di `/autorole-button buat`.
- * Hanya menampilkan template pesan berkategori 'unik'.
+ * Only shows message templates with category 'unik'.
  * Beri tanda ✅ jika sudah ada panel, 🆕 jika belum.
  * Value = nama template.
  */
@@ -259,7 +259,7 @@ async function autocompletePesanForPanel(interaction, client) {
 
     if (!Array.isArray(pesanList) || pesanList.length === 0) {
         return interaction.respond([
-            { name: '📭 Belum ada template — buat dulu dengan /pesan buat', value: '__none__' }
+            { name: '📭 No templates yet — create one with /message create', value: '__none__' }
         ]).catch(() => null);
     }
 
@@ -274,7 +274,7 @@ async function autocompletePesanForPanel(interaction, client) {
 
     if (unikList.length === 0) {
         return interaction.respond([
-            { name: '📭 Belum ada template 🔒 Unik — buat dulu dengan /pesan buat (pilih kategori: unik)', value: '__none__' }
+            { name: '📭 No Unique templates — create one with /message create (select category: unique)', value: '__none__' }
         ]).catch(() => null);
     }
 
@@ -290,7 +290,7 @@ async function autocompletePesanForPanel(interaction, client) {
 
             const sudahPanel = panelSet.has(name);
             const icon   = sudahPanel ? '✅' : '🆕';
-            const suffix = sudahPanel ? ' (panel sudah ada)' : ' (belum jadi panel)';
+            const suffix = sudahPanel ? ' (panel exists)' : ' (not yet a panel)';
             return {
                 name:  `🔒 ${icon} ${name}${judul}${suffix}`.slice(0, 100),
                 value: name
@@ -312,7 +312,7 @@ async function autocompletePesanForPanel(interaction, client) {
 // ─────────────────────────────────────────────────────────────────────────
 
 /**
- * Autocomplete field `sumber` di `/pesan salin`.
+ * Autocomplete field `sumber` in `/pesan salin`.
  * Tampilkan semua template dengan badge kategori dan judul.
  */
 async function autocompleteSumberSalin(interaction, client) {
@@ -329,7 +329,7 @@ async function autocompleteSumberSalin(interaction, client) {
 
     if (!Array.isArray(list) || list.length === 0) {
         return interaction.respond([
-            { name: '📭 Belum ada template — buat dulu dengan /pesan buat', value: '__none__' }
+            { name: '📭 No templates yet — create one with /message create', value: '__none__' }
         ]).catch(() => null);
     }
 
@@ -352,8 +352,8 @@ async function autocompleteSumberSalin(interaction, client) {
 }
 
 /**
- * Autocomplete field `tujuan` di `/pesan salin`.
- * Tampilkan template yang SUDAH ADA dengan label "⚠️ sudah dipakai"
+ * Autocomplete field `tujuan` in `/pesan salin`.
+ * Show templates that ALREADY EXIST with label "⚠️ already used"
  * agar user tahu nama itu tidak bisa dipakai — tapi tetap bisa ketik nama baru.
  */
 async function autocompleteTujuanSalin(interaction, client) {
@@ -372,13 +372,13 @@ async function autocompleteTujuanSalin(interaction, client) {
     const suggestions = [];
 
     if (focused && !list.includes(focused)) {
-        suggestions.push({ name: `✅ "${focused}" — nama baru (belum dipakai)`, value: focused });
+        suggestions.push({ name: `✅ "${focused}" — new name (not yet used)`, value: focused });
     }
 
     // Tambahkan nama yang sudah ada sebagai peringatan
     const existing = list
         .filter(name => !focused || name.toLowerCase().includes(focused))
-        .map(name => ({ name: `⚠️ "${name}" — sudah dipakai, akan ditolak`, value: name }))
+        .map(name => ({ name: `⚠️ "${name}" — already in use, will be rejected`, value: name }))
         .slice(0, 24 - suggestions.length);
 
     await interaction.respond([...suggestions, ...existing]).catch(() => null);
@@ -417,7 +417,7 @@ async function autocompleteAutobtnNama(interaction, client) {
                 const panel = raw ? JSON.parse(raw) : null;
                 const mode  = panel?.mode === 'single' ? '🔘' : '✅';
                 const btns  = panel?.buttons?.length ?? 0;
-                return { name: `✏️ ${mode} ${name} — ${btns} tombol`.slice(0, 100), value: name };
+                return { name: `✏️ ${mode} ${name} — ${btns} buttons`.slice(0, 100), value: name };
             } catch {
                 return { name: `✏️ ${name}`, value: name };
             }
@@ -445,7 +445,7 @@ async function autocompleteReactPanel(interaction, client) {
 
     if (!Array.isArray(list) || list.length === 0) {
         return interaction.respond([
-            { name: '📭 Belum ada panel — buat dulu dengan /autorole-reaction buat', value: '__none__' }
+            { name: '📭 No panels yet — create one with /autorole-reaction create', value: '__none__' }
         ]).catch(() => null);
     }
 

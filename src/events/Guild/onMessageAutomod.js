@@ -33,17 +33,17 @@ async function applyAction(client, message, member, action, reason, muteDuration
         : false;
 
     if (!canDelete) {
-        console.warn(`[Automod] Bot tidak punya ManageMessages di #${message.channel.name} (${message.guild.name}). Pesan tidak bisa dihapus.`);
+        console.warn(`[Automod] Bot lacks ManageMessages in #${message.channel.name} (${message.guild.name}). Message cannot be deleted.`);
         if (logChannel?.isTextBased()) {
             await logChannel.send({
                 embeds: [
                     new EmbedBuilder()
                         .setColor('#FEE75C')
-                        .setTitle('⚠️ Automod — Gagal Hapus Pesan')
+                        .setTitle('⚠️ Automod — Failed to Delete Message')
                         .setDescription(
-                            `Bot tidak punya izin **Manage Messages** di ${message.channel}.\n` +
-                            `Pelanggaran terdeteksi tapi pesan tidak bisa dihapus.\n` +
-                            `**Alasan:** ${reason}\n**Member:** ${member}`
+                            `Bot lacks the **Manage Messages** permission in ${message.channel}.\n` +
+                            `Violation detected but message could not be deleted.\n` +
+                            `**Reason:** ${reason}\n**Member:** ${member}`
                         )
                         .setTimestamp()
                 ]
@@ -55,18 +55,18 @@ async function applyAction(client, message, member, action, reason, muteDuration
     const logEmbed = new EmbedBuilder()
         .setColor('#ED4245')
         .setAuthor({ name: member.user.tag, iconURL: member.user.displayAvatarURL({ dynamic: true }) })
-        .setDescription(`**Alasan:** ${reason}`)
+        .setDescription(`**Reason:** ${reason}`)
         .addFields(
             { name: '👤 Member',    value: `${member} (${member.user.tag})`, inline: true },
             { name: '📌 Channel',   value: `${message.channel}`,             inline: true },
-            { name: '⚔️ Tindakan', value: action.toUpperCase(),             inline: true },
-            { name: '📝 Pesan',     value: message.content
+            { name: '⚔️ Action',   value: action.toUpperCase(),             inline: true },
+            { name: '📝 Message',   value: message.content
                 ? `\`\`\`${message.content.slice(0, 300)}\`\`\``
-                : '*[Tidak ada teks]*' }
+                : '*[No text]*' }
         )
         .setTimestamp();
 
-    // Hapus pesan terlebih dahulu
+    // Delete the message first
     await message.delete().catch(() => null);
 
     switch (action) {
@@ -75,8 +75,8 @@ async function applyAction(client, message, member, action, reason, muteDuration
                 embeds: [
                     new EmbedBuilder()
                         .setColor('#FEE75C')
-                        .setTitle('⚠️ Peringatan Automod')
-                        .setDescription(`Pesanmu di **${message.guild.name}** telah dihapus.\n**Alasan:** ${reason}`)
+                        .setTitle('⚠️ Automod Warning')
+                        .setDescription(`Your message in **${message.guild.name}** has been deleted.\n**Reason:** ${reason}`)
                         .setTimestamp()
                 ]
             }).catch(() => null);
@@ -86,24 +86,24 @@ async function applyAction(client, message, member, action, reason, muteDuration
         case 'mute': {
             const canTimeout = botMember?.permissions.has(PermissionFlagsBits.ModerateMembers) ?? false;
             if (canTimeout) {
-                const durationMs = muteDuration ?? 600_000; // default 10 menit
+                const durationMs = muteDuration ?? 600_000; // default 10 minutes
                 await member.timeout(durationMs, `Automod: ${reason}`).catch(() => null);
                 await member.user.send({
                     embeds: [
                         new EmbedBuilder()
                             .setColor('#ED4245')
-                            .setTitle('🔇 Kamu di-Timeout (Automod)')
+                            .setTitle('🔇 You Have Been Timed Out (Automod)')
                             .setDescription(
-                                `Kamu di-timeout di **${message.guild.name}** selama **${formatDuration(durationMs)}**.\n` +
-                                `**Alasan:** ${reason}`
+                                `You have been timed out in **${message.guild.name}** for **${formatDuration(durationMs)}**.\n` +
+                                `**Reason:** ${reason}`
                             )
                             .setTimestamp()
                     ]
                 }).catch(() => null);
                 logEmbed.setTitle(`🔇 Automod — Timeout (${formatDuration(durationMs)})`);
             } else {
-                console.warn(`[Automod] Bot tidak punya ModerateMembers di ${message.guild.name}. Timeout tidak bisa dilakukan.`);
-                logEmbed.setTitle('🔇 Automod — Timeout Gagal (Kurang Permission)');
+                console.warn(`[Automod] Bot lacks ModerateMembers in ${message.guild.name}. Timeout cannot be applied.`);
+                logEmbed.setTitle('🔇 Automod — Timeout Failed (Insufficient Permission)');
                 logEmbed.setColor('#FEE75C');
             }
             break;
@@ -114,8 +114,8 @@ async function applyAction(client, message, member, action, reason, muteDuration
                 embeds: [
                     new EmbedBuilder()
                         .setColor('#ED4245')
-                        .setTitle('👢 Kamu di-Kick (Automod)')
-                        .setDescription(`Kamu di-kick dari **${message.guild.name}**.\n**Alasan:** ${reason}`)
+                        .setTitle('👢 You Have Been Kicked (Automod)')
+                        .setDescription(`You have been kicked from **${message.guild.name}**.\n**Reason:** ${reason}`)
                         .setTimestamp()
                 ]
             }).catch(() => null);
@@ -128,8 +128,8 @@ async function applyAction(client, message, member, action, reason, muteDuration
                 embeds: [
                     new EmbedBuilder()
                         .setColor('#ED4245')
-                        .setTitle('🔨 Kamu di-Ban (Automod)')
-                        .setDescription(`Kamu di-ban dari **${message.guild.name}**.\n**Alasan:** ${reason}`)
+                        .setTitle('🔨 You Have Been Banned (Automod)')
+                        .setDescription(`You have been banned from **${message.guild.name}**.\n**Reason:** ${reason}`)
                         .setTimestamp()
                 ]
             }).catch(() => null);
@@ -138,7 +138,7 @@ async function applyAction(client, message, member, action, reason, muteDuration
             break;
 
         default: // 'delete'
-            logEmbed.setTitle('🗑️ Automod — Pesan Dihapus');
+            logEmbed.setTitle('🗑️ Automod — Message Deleted');
             break;
     }
 
@@ -196,7 +196,7 @@ module.exports = new Event({
                 existing.count++;
                 if (existing.count >= spamCfg.limit) {
                     guildMap.delete(userId);
-                    return applyAction(__client__, message, member, action, 'Spam pesan terdeteksi', muteDuration, logChannel);
+                    return applyAction(__client__, message, member, action, 'Message spam detected', muteDuration, logChannel);
                 }
             }
         }
@@ -205,7 +205,7 @@ module.exports = new Event({
         if (getBool(__client__, `automod-antilink-${guildId}`)) {
             URL_REGEX.lastIndex = 0;
             if (URL_REGEX.test(content)) {
-                return applyAction(__client__, message, member, action, 'Pesan mengandung link', muteDuration, logChannel);
+                return applyAction(__client__, message, member, action, 'Message contains a link', muteDuration, logChannel);
             }
         }
 
@@ -213,7 +213,7 @@ module.exports = new Event({
         if (getBool(__client__, `automod-antiinvite-${guildId}`)) {
             INVITE_REGEX.lastIndex = 0;
             if (INVITE_REGEX.test(content)) {
-                return applyAction(__client__, message, member, action, 'Pesan mengandung invite Discord', muteDuration, logChannel);
+                return applyAction(__client__, message, member, action, 'Message contains a Discord invite', muteDuration, logChannel);
             }
         }
 
@@ -223,14 +223,14 @@ module.exports = new Event({
             const mentionCount = message.mentions.users.size + message.mentions.roles.size;
             if (mentionCount >= mentionCfg.limit) {
                 return applyAction(__client__, message, member, action,
-                    `Mass mention terdeteksi (${mentionCount} mention)`, muteDuration, logChannel);
+                    `Mass mention detected (${mentionCount} mentions)`, muteDuration, logChannel);
             }
         }
 
         // ── Anti-Attachment ─────────────────────────────────────────────────
         if (getBool(__client__, `automod-attachments-${guildId}`)) {
             if (message.attachments.size > 0) {
-                return applyAction(__client__, message, member, action, 'Pesan mengandung file/attachment', muteDuration, logChannel);
+                return applyAction(__client__, message, member, action, 'Message contains a file/attachment', muteDuration, logChannel);
             }
         }
 
@@ -241,7 +241,7 @@ module.exports = new Event({
             const found = words.find(w => lower.includes(w));
             if (found) {
                 return applyAction(__client__, message, member, action,
-                    `Pesan mengandung kata terlarang: \`${found}\``, muteDuration, logChannel);
+                    `Message contains a banned word: \`${found}\``, muteDuration, logChannel);
             }
         }
     }

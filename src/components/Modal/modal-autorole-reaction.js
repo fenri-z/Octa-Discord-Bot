@@ -60,7 +60,7 @@ module.exports = new Component({
         const rawPending = client.database.get(`autoreact-pending-${guildId}-${userId}`);
         if (!rawPending) {
             return interaction.reply({
-                content: '❌ Sesi expired. Jalankan `/autorole-reaction buat` lagi.',
+                content: '❌ Session expired. Run `/autorole-reaction create` again.',
                 flags: MessageFlags.Ephemeral
             });
         }
@@ -69,17 +69,17 @@ module.exports = new Component({
 
         let pending;
         try { pending = JSON.parse(rawPending); }
-        catch { return interaction.reply({ content: '❌ Data sesi rusak. Coba lagi.', flags: MessageFlags.Ephemeral }); }
+        catch { return interaction.reply({ content: '❌ Session data corrupted. Please try again.', flags: MessageFlags.Ephemeral }); }
 
         const { nama, mode, isNew, pendingType } = pending;
         const existing = getPanel(client, guildId, nama);
         const now      = Date.now();
 
-        // ── TIPE PLAIN ────────────────────────────────────────────────────────
+        // ── PLAIN TYPE ────────────────────────────────────────────────────────
         if (pendingType === 'plain') {
             let plainText = '';
             try { plainText = interaction.fields.getTextInputValue('autoreact-field-plaintext').trim(); } catch {}
-            if (!existing) return interaction.reply({ content: `❌ Panel \`${nama}\` tidak ditemukan.`, flags: MessageFlags.Ephemeral });
+            if (!existing) return interaction.reply({ content: `❌ Panel \`${nama}\` not found.`, flags: MessageFlags.Ephemeral });
 
             const panel = { ...existing, messageType: 'plain', plainText, updatedAt: now };
             savePanel(client, guildId, nama, panel);
@@ -95,19 +95,19 @@ module.exports = new Component({
                     if (message) {
                         try {
                             await message.edit({ content: plainText.slice(0, 2000), embeds: [] });
-                            statusStr = `\n✅ Pesan Discord diperbarui langsung!`;
-                        } catch { statusStr = `\n⚠️ Gagal update pesan Discord.`; }
+                            statusStr = `\n✅ Discord message updated live!`;
+                        } catch { statusStr = `\n⚠️ Failed to update Discord message.`; }
                     }
                 }
             }
 
             return interaction.reply({
-                content: `✅ Panel \`${nama}\` diubah ke **Teks Biasa**.${statusStr}`,
+                content: `✅ Panel \`${nama}\` switched to **Plain Text**.${statusStr}`,
                 flags: MessageFlags.Ephemeral
             });
         }
 
-        // ── TIPE EMBED ────────────────────────────────────────────────────────
+        // ── EMBED TYPE ────────────────────────────────────────────────────────
         let embedTitle = '', embedDescription = '', embedFooter = '';
         try { embedTitle       = interaction.fields.getTextInputValue('autoreact-field-title').trim(); } catch {}
         try { embedDescription = interaction.fields.getTextInputValue('autoreact-field-description').trim(); } catch {}
@@ -147,18 +147,18 @@ module.exports = new Component({
                         } else {
                             await message.edit({ embeds: [buildPanelEmbed(panel)], content: null });
                         }
-                        statusStr = `✅ Pesan terkirim langsung diperbarui!\n🔗 https://discord.com/channels/${guildId}/${sent.channelId}/${sent.messageId}`;
+                        statusStr = `✅ Sent message updated live!\n🔗 https://discord.com/channels/${guildId}/${sent.channelId}/${sent.messageId}`;
                     } catch {
-                        statusStr = `⚠️ Gagal memperbarui pesan.`;
+                        statusStr = `⚠️ Failed to update the message.`;
                     }
                 } else {
-                    statusStr = `📭 Pesan sudah dihapus.`;
+                    statusStr = `📭 Message was deleted.`;
                 }
             } else {
-                statusStr = `📭 Channel tidak ditemukan.`;
+                statusStr = `📭 Channel not found.`;
             }
         } else {
-            statusStr = `📭 Panel belum dikirim. Gunakan \`/autorole-reaction kirim ${nama}\` setelah menambahkan reaction.`;
+            statusStr = `📭 Panel not sent yet. Use \`/autorole-reaction send ${nama}\` after adding reactions.`;
         }
 
         const isEmpty  = !embedTitle && !embedDescription;
@@ -167,25 +167,25 @@ module.exports = new Component({
         const fields = [
             { name: '🔧 Mode',          value: modeIcon,                         inline: true },
             { name: '✨ Reactions',      value: `${panel.reactions.length}/20`,   inline: true },
-            { name: '🎨 Warna Embed',   value: panel.embedColor,                  inline: true },
+            { name: '🎨 Embed Color',    value: panel.embedColor,                  inline: true },
         ];
 
         if (isEmpty) {
             fields.push({
-                name: '⚠️ Perhatian',
-                value: 'Judul dan deskripsi masih kosong. Isi salah satunya agar embed terlihat.',
+                name: '⚠️ Notice',
+                value: 'Title and description are still empty. Fill in at least one so the embed is visible.',
                 inline: false
             });
         }
 
         fields.push({
-            name: '🛠️ Langkah Selanjutnya',
+            name: '🛠️ Next Steps',
             value: [
-                `• \`/autorole-reaction tambah-reaction\` — tambah emoji + role`,
-                `• \`/autorole-reaction set-warna\` — ubah warna embed`,
-                `• \`/autorole-reaction set-gambar\` — tambah gambar`,
-                `• \`/autorole-reaction preview ${nama}\` — pratinjau panel`,
-                `• \`/autorole-reaction kirim ${nama}\` — kirim ke channel`
+                `• \`/autorole-reaction add-reaction\` — add emoji + role`,
+                `• \`/autorole-reaction set-color\` — change embed color`,
+                `• \`/autorole-reaction set-image\` — add an image`,
+                `• \`/autorole-reaction preview ${nama}\` — preview the panel`,
+                `• \`/autorole-reaction send ${nama}\` — send to a channel`
             ].join('\n'),
             inline: false
         });
@@ -196,7 +196,7 @@ module.exports = new Component({
             embeds: [
                 new EmbedBuilder()
                     .setColor(isNew ? '#57F287' : '#FEE75C')
-                    .setTitle(isNew ? `✅ Panel \`${nama}\` Dibuat` : `✏️ Panel \`${nama}\` Diperbarui`)
+                    .setTitle(isNew ? `✅ Panel \`${nama}\` Created` : `✏️ Panel \`${nama}\` Updated`)
                     .addFields(...fields)
                     .setTimestamp()
             ],

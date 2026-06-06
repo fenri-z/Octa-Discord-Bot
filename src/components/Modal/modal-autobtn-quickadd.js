@@ -39,10 +39,10 @@ const STYLE_MAP = {
 };
 
 const STYLE_LABEL = {
-    [ButtonStyle.Primary]:   '🔵 Biru (Primary)',
-    [ButtonStyle.Success]:   '🟢 Hijau (Success)',
-    [ButtonStyle.Danger]:    '🔴 Merah (Danger)',
-    [ButtonStyle.Secondary]: '⚪ Abu-abu (Secondary)'
+    [ButtonStyle.Primary]:   '🔵 Blue (Primary)',
+    [ButtonStyle.Success]:   '🟢 Green (Success)',
+    [ButtonStyle.Danger]:    '🔴 Red (Danger)',
+    [ButtonStyle.Secondary]: '⚪ Gray (Secondary)'
 };
 
 // ── Modal Handler ─────────────────────────────────────────────────────────────
@@ -60,13 +60,13 @@ module.exports = new Component({
         const userId    = interaction.user.id;
         const panelName = interaction.customId.split(':').slice(1).join(':');
 
-        // Bersihkan pending key
+        // Clean up pending key
         client.database.delete(`autobtn-quickadd-${guildId}-${userId}`);
 
         const panel = getPanel(client, guildId, panelName);
         if (!panel) {
             return interaction.reply({
-                content: `❌ Panel \`${panelName}\` tidak ditemukan. Mungkin sudah terhapus.`,
+                content: `❌ Panel \`${panelName}\` not found. It may have been deleted.`,
                 flags: MessageFlags.Ephemeral
             });
         }
@@ -75,7 +75,7 @@ module.exports = new Component({
         const label    = interaction.fields.getTextInputValue('quickadd-label').trim();
         const warnaRaw = interaction.fields.getTextInputValue('quickadd-warna').trim().toLowerCase();
 
-        // Resolusi warna
+        // Resolve color
         const panelDefaultKey = panel.defaultStyle
             ? Object.keys(STYLE_MAP).find(k => STYLE_MAP[k] === panel.defaultStyle) || 'primary'
             : 'primary';
@@ -83,32 +83,32 @@ module.exports = new Component({
 
         if (warnaRaw && !STYLE_MAP[warnaRaw]) {
             return interaction.reply({
-                content: `❌ Warna \`${warnaRaw}\` tidak valid. Gunakan: \`primary\`, \`success\`, \`danger\`, atau \`secondary\`.`,
+                content: `❌ Color \`${warnaRaw}\` is not valid. Use: \`primary\`, \`success\`, \`danger\`, or \`secondary\`.`,
                 flags: MessageFlags.Ephemeral
             });
         }
 
         const role = resolveRole(interaction.guild, roleStr);
         if (!role) {
-            return interaction.reply({ content: '❌ Role tidak ditemukan. Coba lagi dengan mention atau ID role.', flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: '❌ Role not found. Try again with a role mention or ID.', flags: MessageFlags.Ephemeral });
         }
         if (role.managed || role.id === interaction.guild.id) {
-            return interaction.reply({ content: '❌ Role ini tidak bisa digunakan (managed atau @everyone).', flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: '❌ This role cannot be used (managed or @everyone).', flags: MessageFlags.Ephemeral });
         }
         if (panel.buttons.some(b => b.roleId === role.id)) {
             return interaction.reply({
-                content: `⚠️ Role ${role} sudah punya tombol di panel \`${panelName}\`.`,
+                content: `⚠️ Role ${role} already has a button in panel \`${panelName}\`.`,
                 flags: MessageFlags.Ephemeral
             });
         }
         if (panel.buttons.length >= 25) {
             return interaction.reply({
-                content: '❌ Satu panel maksimal 25 tombol.',
+                content: '❌ A panel can have a maximum of 25 buttons.',
                 flags: MessageFlags.Ephemeral
             });
         }
 
-        // Tambah button
+        // Add button
         panel.buttons.push({
             roleId: role.id,
             label,
@@ -117,15 +117,15 @@ module.exports = new Component({
         panel.updatedAt = Date.now();
         savePanel(client, guildId, panelName, panel);
 
-        // Tampilkan hasil + tombol lanjutan (tambah lagi / selesai)
+        // Show result + follow-up buttons (add another / done)
         const actionRow = new ActionRowBuilder().addComponents(
             new ButtonBuilder()
                 .setCustomId(`autobtn-quickadd:${panelName}`)
-                .setLabel('➕ Tambah Button Lagi')
+                .setLabel('➕ Add Another Button')
                 .setStyle(ButtonStyle.Success),
             new ButtonBuilder()
                 .setCustomId(`autobtn-quickskip:${panelName}`)
-                .setLabel('✅ Selesai')
+                .setLabel('✅ Done')
                 .setStyle(ButtonStyle.Primary)
         );
 
@@ -133,15 +133,15 @@ module.exports = new Component({
             embeds: [
                 new EmbedBuilder()
                     .setColor('#57F287')
-                    .setTitle(`✅ Button Ditambahkan ke Panel \`${panelName}\``)
+                    .setTitle(`✅ Button Added to Panel \`${panelName}\``)
                     .addFields(
                         { name: '🎭 Role',  value: `${role}`,  inline: true },
                         { name: '🏷️ Label', value: label,      inline: true },
-                        { name: '🎨 Warna', value: STYLE_LABEL[STYLE_MAP[warnaKey]] ?? warnaKey, inline: true },
-                        { name: '📊 Total', value: `${panel.buttons.length}/25 tombol`, inline: true },
+                        { name: '🎨 Color', value: STYLE_LABEL[STYLE_MAP[warnaKey]] ?? warnaKey, inline: true },
+                        { name: '📊 Total', value: `${panel.buttons.length}/25 buttons`, inline: true },
                         {
-                            name: '📤 Langkah Selanjutnya',
-                            value: `Klik **➕ Tambah Button Lagi** untuk menambah tombol berikutnya, atau **✅ Selesai** lalu kirim panel dengan \`/autorole-button kirim ${panelName}\`.`,
+                            name: '📤 Next Steps',
+                            value: `Click **➕ Add Another Button** to add more buttons, or **✅ Done** then send the panel with \`/autorole-button send ${panelName}\`.`,
                             inline: false
                         }
                     )

@@ -57,7 +57,7 @@ router.post('/youtube',
         // Verifikasi HMAC (jika YOUTUBE_WEBSUB_SECRET di-set)
         const signature = req.headers['x-hub-signature'];
         if (!notifier.verifySignature(body, signature)) {
-            console.warn('[WebSub] Signature tidak valid, payload diabaikan.');
+            console.warn('[WebSub] Invalid signature, payload ignored.');
             return;
         }
 

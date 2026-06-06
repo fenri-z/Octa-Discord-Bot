@@ -26,7 +26,7 @@
                 <div class="stat-icon" style="color:#57F287;"><i data-lucide="check-circle"></i></div>
                 <div class="stat-info">
                     <div class="stat-value"><%= enabledCount %> / 5</div>
-                    <div class="stat-label">Event Aktif</div>
+                    <div class="stat-label">Active Events</div>
                 </div>
             </div>
             <div class="stat-card">
@@ -35,7 +35,7 @@
                     <div class="stat-value">
                         <% if (logChannelId) { %>
                             <% var logCh = guild.channels.cache.get(logChannelId); %>
-                            <%= logCh ? '#' + logCh.name : 'Channel dihapus' %>
+                            <%= logCh ? '#' + logCh.name : 'Channel deleted' %>
                         <% } else { %>
                             —
                         <% } %>
@@ -45,24 +45,24 @@
             </div>
         </div>
 
-        <!-- ── Konfigurasi ────────────────────────────────────────────────────── -->
+        <!-- ── Configuration ───────────────────────────────────────────────────── -->
         <div class="settings-card">
-            <h2>Konfigurasi Channel</h2>
+            <h2>Channel Configuration</h2>
             <p class="section-desc" style="margin-bottom:1.25rem;">
-                Pilih channel teks tempat semua log moderasi akan dikirim. Kosongkan untuk menonaktifkan mod log.
+                Select the text channel where all moderation logs will be sent. Leave blank to disable mod log.
             </p>
 
             <div class="form-group">
-                <label class="label">Channel Log</label>
+                <label class="label">Log Channel</label>
                 <div class="ml-channel-row">
                     <select id="mlChannel" class="select ml-channel-select">
-                        <option value="">— Nonaktifkan Mod Log —</option>
+                        <option value="">— Disable Mod Log —</option>
                         <% textChannels.forEach(function(ch) { %>
                             <option value="<%= ch.id %>" <%= logChannelId === ch.id ? 'selected' : '' %>>#<%= ch.name %></option>
                         <% }); %>
                     </select>
                     <button class="btn btn-primary ml-channel-btn" onclick="saveConfig()">
-                        <i data-lucide="save"></i> Simpan
+                        <i data-lucide="save"></i> Save
                     </button>
                 </div>
             </div>
@@ -73,7 +73,7 @@
         <div class="settings-card">
             <h2>Event yang Dicatat</h2>
             <p class="section-desc" style="margin-bottom:1.25rem;">
-                Pilih jenis aksi moderasi mana saja yang ingin dicatat. Perubahan langsung tersimpan saat toggle diubah.
+                Select which moderation action types to log. Changes are saved immediately when a toggle is changed.
             </p>
 
             <div class="form-group">

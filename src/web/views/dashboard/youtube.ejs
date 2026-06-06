@@ -188,7 +188,7 @@
     }
 }
 
-/* ── Lookup result: tombol Tambah wrap di layar sangat sempit ─────────── */
+/* ── Lookup result: Add button wraps on very narrow screens ─────────── */
 @media (max-width: 380px) {
     .yt-lookup-result-inner {
         flex-wrap: wrap !important;
@@ -213,7 +213,7 @@
         <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
             <div>
                 <h1>YouTube Notification</h1>
-                <p>Pantau channel YouTube dan kirim notifikasi otomatis ke Discord saat ada Video, Short, atau Live baru.</p>
+                <p>Monitor YouTube channels and send automatic Discord notifications for new Videos, Shorts, or Live baru.</p>
             </div>
             <% if (ytChannels.length > 0) { %>
             <button class="btn btn-secondary" onclick="forcePoll(this)" style="flex-shrink:0;margin-top:.25rem;" title="Paksa cek video baru sekarang (tanpa menunggu 5 menit)">
@@ -255,12 +255,12 @@
             </div>
         </div>
 
-        <!-- ── Tambah Channel ────────────────────────────────────────────── -->
+        <!-- ── Add Channel ─────────────────────────────────────────────────── -->
         <% if (ytChannels.length < maxChannels) { %>
         <div class="settings-card" style="margin-bottom:1.5rem;">
             <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:1rem;">
                 <i data-lucide="plus-circle" style="color:#FF0000;width:18px;height:18px;flex-shrink:0;"></i>
-                <h2 style="margin:0;font-size:1rem;font-weight:600;">Tambah Channel YouTube</h2>
+                <h2 style="margin:0;font-size:1rem;font-weight:600;">Add YouTube Channel</h2>
             </div>
             <p style="font-size:.85rem;color:var(--text-muted);margin:0 0 1rem 0;">
                 Masukkan Channel ID, handle, atau URL YouTube. Sisa slot: <strong><%= maxChannels - ytChannels.length %></strong> dari <%= maxChannels %>.
@@ -287,7 +287,7 @@
                         <div id="ytLookupId" style="display:none;"></div>
                     </div>
                     <button class="btn btn-success" onclick="addYtChannel()" style="flex-shrink:0;">
-                        <i data-lucide="plus" style="width:14px;height:14px;"></i> Tambah
+                        <i data-lucide="plus" style="width:14px;height:14px;"></i> Add
                     </button>
                 </div>
             </div>
@@ -305,7 +305,7 @@
         <% if (ytChannels.length === 0) { %>
             <div class="settings-card" style="text-align:center;padding:3rem 1.5rem;">
                 <svg viewBox="0 0 24 24" fill="currentColor" style="width:48px;height:48px;color:#FF0000;opacity:.4;display:block;margin:0 auto .75rem;"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
-                <p style="color:var(--text-muted);margin:0;">Belum ada channel YouTube yang dipantau.</p>
+                <p style="color:var(--text-muted);margin:0;">No YouTube channels being monitored yet.</p>
             </div>
         <% } else { %>
         <% ytChannels.forEach(function(ytCh) { %>
@@ -335,7 +335,7 @@
                 <a href="https://www.youtube.com/channel/<%= ytCh.id %>" target="_blank" class="btn btn-sm" style="flex-shrink:0;" title="Buka di YouTube">
                     <i data-lucide="external-link" style="width:13px;height:13px;"></i>
                 </a>
-                <button class="btn btn-sm" onclick="resetLastVideo('<%= ytCh.id %>')" style="flex-shrink:0;" title="Reset posisi video terakhir (gunakan jika bot tidak mendeteksi video baru)">
+                <button class="btn btn-sm" onclick="resetLastVideo('<%= ytCh.id %>')" style="flex-shrink:0;" title="Reset last video position (usekan jika bot tidak mendeteksi video baru)">
                     <i data-lucide="rotate-ccw" style="width:13px;height:13px;"></i>
                 </button>
                 <button class="btn btn-sm btn-danger" data-id="<%= ytCh.id %>" data-name="<%= ytCh.name.replace(/"/g, '&quot;') %>" onclick="deleteYtChannel(this.dataset.id, this.dataset.name)" style="flex-shrink:0;" title="Hapus channel">
@@ -369,14 +369,14 @@
                             <input type="checkbox" class="toggle-input" id="videoEnabled-<%= ytCh.id %>"
                                    <%= ytCh.videoEnabled ? 'checked' : '' %>>
                             <span class="toggle-slider"></span>
-                            <span>Aktifkan notifikasi Video</span>
+                            <span>Enable Video notifications</span>
                         </label>
                     </div>
                     <div class="form-group">
                         <label class="label">Channel Discord</label>
                         <select class="select" id="videoChannel-<%= ytCh.id %>"
                                 onchange="updateYtPreview('<%= ytCh.id %>','video')">
-                            <option value="">— Pilih channel —</option>
+                            <option value="">— Select channel —</option>
                             <% channels.forEach(ch => { %>
                             <option value="<%= ch.id %>" <%= ytCh.videoChannelId === ch.id ? 'selected' : '' %>>#<%= ch.name %></option>
                             <% }) %>
@@ -384,7 +384,7 @@
                     </div>
                     <div class="form-group">
                         <div class="label-with-picker">
-                            <label class="label" style="margin-bottom:0;">Pesan tambahan <span style="font-weight:400;color:var(--text-muted);">(opsional)</span></label>
+                            <label class="label" style="margin-bottom:0;">Additional message <span style="font-weight:400;color:var(--text-muted);">(optional)</span></label>
                             <div class="ph-picker-anchor">
                                 <button type="button" class="ph-toggle-btn" onclick="togglePicker('ytVideoPicker-<%= ytCh.id %>',event)">{…} Placeholder</button>
                                 <div class="ph-dropdown" id="ytVideoPicker-<%= ytCh.id %>" style="display:none;"></div>
@@ -399,7 +399,7 @@
                             <i data-lucide="send" style="width:14px;height:14px;"></i> Test Notif
                         </button>
                         <button class="btn btn-primary" onclick="saveYtSettings('<%= ytCh.id %>')">
-                            <i data-lucide="save" style="width:14px;height:14px;"></i> Simpan
+                            <i data-lucide="save" style="width:14px;height:14px;"></i> Save
                         </button>
                     </div>
                 </div>
@@ -420,14 +420,14 @@
                             <input type="checkbox" class="toggle-input" id="shortEnabled-<%= ytCh.id %>"
                                    <%= ytCh.shortEnabled ? 'checked' : '' %>>
                             <span class="toggle-slider"></span>
-                            <span>Aktifkan notifikasi Short</span>
+                            <span>Enable Short notifications</span>
                         </label>
                     </div>
                     <div class="form-group">
                         <label class="label">Channel Discord</label>
                         <select class="select" id="shortChannel-<%= ytCh.id %>"
                                 onchange="updateYtPreview('<%= ytCh.id %>','short')">
-                            <option value="">— Pilih channel —</option>
+                            <option value="">— Select channel —</option>
                             <% channels.forEach(ch => { %>
                             <option value="<%= ch.id %>" <%= ytCh.shortChannelId === ch.id ? 'selected' : '' %>>#<%= ch.name %></option>
                             <% }) %>
@@ -435,7 +435,7 @@
                     </div>
                     <div class="form-group">
                         <div class="label-with-picker">
-                            <label class="label" style="margin-bottom:0;">Pesan tambahan <span style="font-weight:400;color:var(--text-muted);">(opsional)</span></label>
+                            <label class="label" style="margin-bottom:0;">Additional message <span style="font-weight:400;color:var(--text-muted);">(optional)</span></label>
                             <div class="ph-picker-anchor">
                                 <button type="button" class="ph-toggle-btn" onclick="togglePicker('ytShortPicker-<%= ytCh.id %>',event)">{…} Placeholder</button>
                                 <div class="ph-dropdown" id="ytShortPicker-<%= ytCh.id %>" style="display:none;"></div>
@@ -450,7 +450,7 @@
                             <i data-lucide="send" style="width:14px;height:14px;"></i> Test Notif
                         </button>
                         <button class="btn btn-primary" onclick="saveYtSettings('<%= ytCh.id %>')">
-                            <i data-lucide="save" style="width:14px;height:14px;"></i> Simpan
+                            <i data-lucide="save" style="width:14px;height:14px;"></i> Save
                         </button>
                     </div>
                 </div>
@@ -470,14 +470,14 @@
                             <input type="checkbox" class="toggle-input" id="liveEnabled-<%= ytCh.id %>"
                                    <%= ytCh.liveEnabled ? 'checked' : '' %>>
                             <span class="toggle-slider"></span>
-                            <span>Aktifkan notifikasi Live</span>
+                            <span>Enable Live notifications</span>
                         </label>
                     </div>
                     <div class="form-group">
                         <label class="label">Channel Discord</label>
                         <select class="select" id="liveChannel-<%= ytCh.id %>"
                                 onchange="updateYtPreview('<%= ytCh.id %>','live')">
-                            <option value="">— Pilih channel —</option>
+                            <option value="">— Select channel —</option>
                             <% channels.forEach(ch => { %>
                             <option value="<%= ch.id %>" <%= ytCh.liveChannelId === ch.id ? 'selected' : '' %>>#<%= ch.name %></option>
                             <% }) %>
@@ -485,14 +485,14 @@
                     </div>
                     <div class="form-group">
                         <div class="label-with-picker">
-                            <label class="label" style="margin-bottom:0;">Pesan tambahan <span style="font-weight:400;color:var(--text-muted);">(opsional)</span></label>
+                            <label class="label" style="margin-bottom:0;">Additional message <span style="font-weight:400;color:var(--text-muted);">(optional)</span></label>
                             <div class="ph-picker-anchor">
                                 <button type="button" class="ph-toggle-btn" onclick="togglePicker('ytLivePicker-<%= ytCh.id %>',event)">{…} Placeholder</button>
                                 <div class="ph-dropdown" id="ytLivePicker-<%= ytCh.id %>" style="display:none;"></div>
                             </div>
                         </div>
                         <textarea class="textarea" id="liveMessage-<%= ytCh.id %>" rows="3"
-                                  placeholder="{channel} sedang LIVE! {title}&#10;{url}"
+                                  placeholder="{channel} is LIVE! {title}&#10;{url}"
                                   oninput="updateYtPreview('<%= ytCh.id %>','live')"><%= ytCh.liveMessage %></textarea>
                     </div>
                     <div class="yt-action-row" style="display:flex;justify-content:flex-end;gap:.5rem;padding-top:.25rem;">
@@ -500,7 +500,7 @@
                             <i data-lucide="send" style="width:14px;height:14px;"></i> Test Notif
                         </button>
                         <button class="btn btn-primary" onclick="saveYtSettings('<%= ytCh.id %>')">
-                            <i data-lucide="save" style="width:14px;height:14px;"></i> Simpan
+                            <i data-lucide="save" style="width:14px;height:14px;"></i> Save
                         </button>
                     </div>
                 </div>
@@ -649,15 +649,15 @@ function updateYtPreview(chId, type) {
     const rawMsg    = msgArea?.value?.trim() || '';
 
     const defaultDescs = {
-        video: `Hey, <strong>${ytChName}</strong> baru aja upload video baru di YouTube!<br>Jangan ketinggalan, tonton sekarang! 🎉`,
-        short: `<strong>${ytChName}</strong> baru aja posting Short terbaru!<br>Cek video pendeknya, jangan sampai ketinggalan! ⚡`,
-        live:  `Hey, <strong>${ytChName}</strong> lagi <strong>LIVE</strong> di YouTube sekarang!<br>Yuk, join dan saksikan streamnya~ 🎉`,
+        video: `Hey, <strong>${ytChName}</strong> just uploaded a new video on YouTube!<br>Don't miss it, watch now! 🎉`,
+        short: `<strong>${ytChName}</strong> just posted a new Short!<br>Check out their quick video, don't miss out! ⚡`,
+        live:  `Hey, <strong>${ytChName}</strong> is <strong>LIVE</strong> on YouTube right now!<br>Come join and watch the stream~ 🎉`,
     };
 
     if (rawMsg) {
         const filled = rawMsg
             .replace(/{channel}/g, ytChName)
-            .replace(/{title}/g,   'Contoh Judul Video')
+            .replace(/{title}/g,   'Example Video Title')
             .replace(/{url}/g,     'https://youtube.com/watch?v=dQw4w9WgXcQ')
             .replace(/{id}/g,      'dQw4w9WgXcQ');
         if (customEl)  { customEl.innerHTML = discordMd(filled); customEl.style.display = ''; }
@@ -745,7 +745,7 @@ async function saveYtSettings(chId) {
 
 // ── Delete channel ─────────────────────────────────────────────────────────────
 async function deleteYtChannel(chId, chName) {
-    if (!confirm(`Hapus channel "${chName}" dari pantauan?\nSemua pengaturan notifikasinya akan ikut terhapus.`)) return;
+    if (!confirm(`Remove channel "${chName}" from monitoring?\nAll notification settings for it will also be deleted.`)) return;
     try {
         const r    = await fetch(`/api/guild/${GUILD_ID}/youtube/channels/${chId}`, { method: 'DELETE' });
         const data = await r.json();
@@ -767,7 +767,7 @@ async function deleteYtChannel(chId, chName) {
 // ── Placeholder picker ─────────────────────────────────────────────────────────
 const YT_PLACEHOLDERS = [
     { key: '{channel}', desc: 'Nama channel YouTube' },
-    { key: '{title}',   desc: 'Judul video / short / live' },
+    { key: '{title}',   desc: 'Title of video / short / live' },
     { key: '{url}',     desc: 'Link video' },
     { key: '{id}',      desc: 'Video ID' },
 ];
@@ -821,7 +821,7 @@ async function forcePoll(btn) {
 
 // ── Reset Last Video ───────────────────────────────────────────────────────────
 async function resetLastVideo(chId) {
-    if (!confirm('Reset posisi video terakhir?\n\nPoll berikutnya akan menganggap video terbaru saat ini sebagai "sudah dikirim" dan hanya mendeteksi video SETELAH reset.\n\nGunakan ini jika bot tidak mendeteksi video baru.')) return;
+    if (!confirm('Reset last video position?\n\nThe next poll will treat the current latest video as "already sent" and only notify for newer videos.')) return;
     try {
         const r    = await fetch(`/api/guild/${GUILD_ID}/youtube/channels/${chId}/reset`, { method: 'POST' });
         const data = await r.json();

@@ -5,11 +5,11 @@ const DiscordBot         = require('../../client/DiscordBot');
 const ApplicationCommand = require('../../structure/ApplicationCommand');
 
 // ── Duration parser ────────────────────────────────────────────────────────────
-// Contoh: "1h30m", "2d", "30m", "1h", "7200" (detik)
+// Example: "1h30m", "2d", "30m", "1h", "7200" (seconds)
 function parseDuration(input) {
     const str = String(input).trim().toLowerCase();
 
-    // Pure angka = menit
+    // Pure number = minutes
     if (/^\d+$/.test(str)) return parseInt(str) * 60_000;
 
     let ms = 0;
@@ -31,10 +31,10 @@ function formatDuration(ms) {
     const h = Math.floor((ms % 86_400_000) / 3_600_000);
     const m = Math.floor((ms % 3_600_000) / 60_000);
     const parts = [];
-    if (d) parts.push(`${d} hari`);
-    if (h) parts.push(`${h} jam`);
-    if (m) parts.push(`${m} menit`);
-    return parts.join(' ') || 'kurang dari 1 menit';
+    if (d) parts.push(`${d} day(s)`);
+    if (h) parts.push(`${h} hour(s)`);
+    if (m) parts.push(`${m} minute(s)`);
+    return parts.join(' ') || 'less than 1 minute';
 }
 
 // ── Command ────────────────────────────────────────────────────────────────────
@@ -42,41 +42,41 @@ function formatDuration(ms) {
 module.exports = new ApplicationCommand({
     command: {
         name: 'giveaway',
-        description: 'Kelola giveaway server.',
+        description: 'Manage server giveaways.',
         type: 1,
         default_member_permissions: String(PermissionFlagsBits.ManageGuild),
         options: [
             // ── start ─────────────────────────────────────────────────────
             {
                 name: 'start',
-                description: 'Mulai giveaway baru.',
+                description: 'Start a new giveaway.',
                 type: 1,
                 options: [
                     {
-                        name: 'hadiah',
-                        description: 'Hadiah yang akan diberikan (contoh: Discord Nitro 1 Bulan)',
+                        name: 'prize',
+                        description: 'The prize to be given (e.g. Discord Nitro 1 Month)',
                         type: 3, required: true,
                     },
                     {
-                        name: 'durasi',
-                        description: 'Durasi giveaway (contoh: 1h, 30m, 1d, 2h30m)',
+                        name: 'duration',
+                        description: 'Giveaway duration (e.g. 1h, 30m, 1d, 2h30m)',
                         type: 3, required: true,
                     },
                     {
                         name: 'channel',
-                        description: 'Channel tempat embed giveaway dikirim (default: channel saat ini)',
+                        description: 'Channel to send the giveaway embed (default: current channel)',
                         type: 7, required: false,
                         channel_types: [0, 5],
                     },
                     {
-                        name: 'pemenang',
-                        description: 'Jumlah pemenang (default: 1, maks: 20)',
+                        name: 'winners',
+                        description: 'Number of winners (default: 1, max: 20)',
                         type: 4, required: false,
                         min_value: 1, max_value: 20,
                     },
                     {
-                        name: 'role_wajib',
-                        description: 'Role yang wajib dimiliki untuk ikut (opsional)',
+                        name: 'required_role',
+                        description: 'Role required to participate (optional)',
                         type: 8, required: false,
                     },
                 ],
@@ -84,12 +84,12 @@ module.exports = new ApplicationCommand({
             // ── end ───────────────────────────────────────────────────────
             {
                 name: 'end',
-                description: 'Akhiri giveaway aktif sekarang dan pilih pemenang.',
+                description: 'End an active giveaway now and pick winners.',
                 type: 1,
                 options: [
                     {
                         name: 'giveaway',
-                        description: 'Pilih giveaway yang ingin diakhiri',
+                        description: 'Select the giveaway to end',
                         type: 3, required: true, autocomplete: true,
                     },
                 ],
@@ -97,12 +97,12 @@ module.exports = new ApplicationCommand({
             // ── reroll ────────────────────────────────────────────────────
             {
                 name: 'reroll',
-                description: 'Pilih ulang pemenang giveaway yang sudah selesai.',
+                description: 'Reroll the winner of a finished giveaway.',
                 type: 1,
                 options: [
                     {
                         name: 'giveaway',
-                        description: 'Pilih giveaway yang ingin di-reroll',
+                        description: 'Select the giveaway to reroll',
                         type: 3, required: true, autocomplete: true,
                     },
                 ],
@@ -110,7 +110,7 @@ module.exports = new ApplicationCommand({
             // ── list ──────────────────────────────────────────────────────
             {
                 name: 'list',
-                description: 'Tampilkan semua giveaway aktif di server ini.',
+                description: 'Show all active giveaways in this server.',
                 type: 1,
             },
         ],
@@ -142,7 +142,7 @@ module.exports = new ApplicationCommand({
             .filter(g => g.prize.toLowerCase().includes(focused))
             .slice(0, 25)
             .map(g => ({
-                name: `${g.prize} (${g.ended ? 'Selesai' : 'Aktif'})`.slice(0, 100),
+                name: `${g.prize} (${g.ended ? 'Ended' : 'Active'})`.slice(0, 100),
                 value: g.id,
             }));
 
@@ -160,31 +160,31 @@ module.exports = new ApplicationCommand({
 
         if (!manager) {
             return interaction.reply({
-                content: '❌ GiveawayManager tidak tersedia.',
+                content: '❌ GiveawayManager is not available.',
                 flags: MessageFlags.Ephemeral,
             });
         }
 
         // ── /giveaway start ───────────────────────────────────────────────
         if (sub === 'start') {
-            const prize          = interaction.options.getString('hadiah');
-            const durasiRaw      = interaction.options.getString('durasi');
+            const prize          = interaction.options.getString('prize');
+            const durasiRaw      = interaction.options.getString('duration');
             const channelOption  = interaction.options.getChannel('channel');
-            const winnerCount    = interaction.options.getInteger('pemenang')  ?? 1;
-            const requiredRole   = interaction.options.getRole('role_wajib');
+            const winnerCount    = interaction.options.getInteger('winners')       ?? 1;
+            const requiredRole   = interaction.options.getRole('required_role');
 
             const targetChannel = channelOption || interaction.channel;
 
             const durationMs = parseDuration(durasiRaw);
             if (durationMs < 10_000) {
                 return interaction.reply({
-                    content: '❌ Durasi minimal 10 detik. Contoh format: `1h`, `30m`, `1d`, `2h30m`.',
+                    content: '❌ Minimum duration is 10 seconds. Format examples: `1h`, `30m`, `1d`, `2h30m`.',
                     flags: MessageFlags.Ephemeral,
                 });
             }
             if (durationMs > 30 * 86_400_000) {
                 return interaction.reply({
-                    content: '❌ Durasi maksimal 30 hari.',
+                    content: '❌ Maximum duration is 30 days.',
                     flags: MessageFlags.Ephemeral,
                 });
             }
@@ -204,14 +204,14 @@ module.exports = new ApplicationCommand({
 
                 await interaction.editReply({
                     content: [
-                        `✅ Giveaway **${gw.prize}** berhasil dimulai di ${targetChannel}!`,
-                        `⏰ Berakhir dalam **${formatDuration(durationMs)}**`,
-                        `🏆 **${winnerCount}** pemenang`,
-                        requiredRole ? `🔒 Role wajib: ${requiredRole}` : '',
+                        `✅ Giveaway **${gw.prize}** started in ${targetChannel}!`,
+                        `⏰ Ends in **${formatDuration(durationMs)}**`,
+                        `🏆 **${winnerCount}** winner(s)`,
+                        requiredRole ? `🔒 Required role: ${requiredRole}` : '',
                     ].filter(Boolean).join('\n'),
                 });
             } catch (err) {
-                await interaction.editReply({ content: `❌ Gagal: ${err.message}` });
+                await interaction.editReply({ content: `❌ Failed: ${err.message}` });
             }
             return;
         }
@@ -222,18 +222,18 @@ module.exports = new ApplicationCommand({
             const gw = manager._get(id);
 
             if (!gw || gw.guildId !== interaction.guildId) {
-                return interaction.reply({ content: '❌ Giveaway tidak ditemukan.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: '❌ Giveaway not found.', flags: MessageFlags.Ephemeral });
             }
             if (gw.ended) {
-                return interaction.reply({ content: '❌ Giveaway ini sudah selesai.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: '❌ This giveaway has already ended.', flags: MessageFlags.Ephemeral });
             }
 
             await interaction.deferReply({ flags: MessageFlags.Ephemeral });
             try {
                 await manager.endGiveaway(id);
-                await interaction.editReply({ content: `✅ Giveaway **${gw.prize}** berhasil diakhiri!` });
+                await interaction.editReply({ content: `✅ Giveaway **${gw.prize}** ended successfully!` });
             } catch (err) {
-                await interaction.editReply({ content: `❌ Gagal: ${err.message}` });
+                await interaction.editReply({ content: `❌ Failed: ${err.message}` });
             }
             return;
         }
@@ -244,13 +244,13 @@ module.exports = new ApplicationCommand({
             const gw = manager._get(id);
 
             if (!gw || gw.guildId !== interaction.guildId) {
-                return interaction.reply({ content: '❌ Giveaway tidak ditemukan.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: '❌ Giveaway not found.', flags: MessageFlags.Ephemeral });
             }
             if (!gw.ended) {
-                return interaction.reply({ content: '❌ Giveaway belum selesai.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: '❌ Giveaway has not ended yet.', flags: MessageFlags.Ephemeral });
             }
             if (gw.cancelled) {
-                return interaction.reply({ content: '❌ Giveaway ini sudah dibatalkan.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: '❌ This giveaway has been cancelled.', flags: MessageFlags.Ephemeral });
             }
 
             await interaction.deferReply({ flags: MessageFlags.Ephemeral });
@@ -259,11 +259,11 @@ module.exports = new ApplicationCommand({
                 const mention = winners.map(u => `<@${u.id}>`).join(', ');
                 await interaction.editReply({
                     content: winners.length
-                        ? `✅ Reroll selesai! Pemenang baru: ${mention}`
-                        : '⚠️ Tidak ada peserta yang memenuhi syarat.',
+                        ? `✅ Reroll complete! New winner(s): ${mention}`
+                        : '⚠️ No eligible participants found.',
                 });
             } catch (err) {
-                await interaction.editReply({ content: `❌ Gagal: ${err.message}` });
+                await interaction.editReply({ content: `❌ Failed: ${err.message}` });
             }
             return;
         }
@@ -275,14 +275,14 @@ module.exports = new ApplicationCommand({
 
             if (!active.length) {
                 return interaction.reply({
-                    content: '📋 Tidak ada giveaway yang sedang berlangsung.',
+                    content: '📋 No giveaways are currently running.',
                     flags: MessageFlags.Ephemeral,
                 });
             }
 
             const embed = new EmbedBuilder()
                 .setColor(0xF0A032)
-                .setTitle('🎉 Giveaway Aktif')
+                .setTitle('🎉 Active Giveaways')
                 .setTimestamp();
 
             for (const gw of active.slice(0, 10)) {
@@ -291,9 +291,9 @@ module.exports = new ApplicationCommand({
                 embed.addFields({
                     name: gw.prize,
                     value: [
-                        `📢 ${channel ? channel.toString() : 'channel tidak ditemukan'}`,
-                        `⏰ Berakhir <t:${Math.floor(gw.endsAt / 1000)}:R>`,
-                        `🏆 ${gw.winnerCount} pemenang`,
+                        `📢 ${channel ? channel.toString() : 'channel not found'}`,
+                        `⏰ Ends <t:${Math.floor(gw.endsAt / 1000)}:R>`,
+                        `🏆 ${gw.winnerCount} winner(s)`,
                     ].join('\n'),
                     inline: false,
                 });

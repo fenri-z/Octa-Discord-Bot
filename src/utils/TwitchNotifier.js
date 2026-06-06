@@ -106,7 +106,7 @@ class TwitchNotifier {
         }`);
 
         const user = data?.user;
-        if (!user) throw new Error(`Akun Twitch "${login}" tidak ditemukan.`);
+        if (!user) throw new Error(`Twitch account "${login}" not found.`);
 
         // Fallback: jika profileImageURL null, pakai avatar default Twitch
         const thumbnail = user.profileImageURL
@@ -240,7 +240,7 @@ class TwitchNotifier {
         const embed = new EmbedBuilder()
             .setColor(0x9146FF)
             .setAuthor({
-                name:    `${displayName} sedang LIVE di Twitch!`,
+                name:    `${displayName} is LIVE on Twitch!`,
                 iconURL: account.thumbnail || undefined,
                 url:     streamUrl,
             })

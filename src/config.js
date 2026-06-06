@@ -1,11 +1,11 @@
 const config = {
     database: {
-        path: './database.db' // Path database SQLite (diganti dari database.yml)
+        path: './database.db' // SQLite database path (changed from database.yml)
     },
     development: {
         enabled: false, // If true, the bot will register all application commands to a specific guild (not globally).
         guildId: '1507687982638039111',
-        devGuildId: '1507687982638039111', // ID server pribadi owner/developer bot. Command PRIVATE_COMMANDS (seperti /server) hanya terdaftar di server ini, tidak pernah global.
+        devGuildId: '1507687982638039111', // Private guild ID of the bot owner/developer. PRIVATE_COMMANDS (like /server) are only registered here, never globally.
     },
     commands: {
         prefix: '?', // For message commands, prefix is required. This can be changed by a database.

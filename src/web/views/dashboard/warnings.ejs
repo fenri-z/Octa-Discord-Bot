@@ -26,7 +26,7 @@
                 <div class="stat-icon" style="color:#5865F2;"><i data-lucide="shield-alert"></i></div>
                 <div class="stat-info">
                     <div class="stat-value"><%= activeThresholds %></div>
-                    <div class="stat-label">Threshold Aktif</div>
+                    <div class="stat-label">Active Threshold</div>
                 </div>
             </div>
             <div class="stat-card">
@@ -38,9 +38,9 @@
             </div>
         </div>
 
-        <!-- ── Konfigurasi Threshold ─────────────────────────────────────────── -->
+        <!-- ── Threshold Configuration ─────────────────────────────────────────── -->
         <div class="settings-card">
-            <h2>Konfigurasi Threshold Otomatis</h2>
+            <h2>Automatic Threshold Configuration</h2>
             <p class="section-desc" style="margin-bottom:1.5rem;">
                 Bot akan otomatis menghukum member saat warn mereka mencapai angka tertentu.
                 Gunakan <strong>/warn add</strong> untuk memberi peringatan secara manual.
@@ -53,14 +53,14 @@
                     <div class="wn-threshold-label">Threshold 1</div>
                     <div class="wn-cfg-row">
                         <div class="form-group wn-count-group">
-                            <label class="label">Warn ke-</label>
+                            <label class="label">Warning #</label>
                             <input type="number" id="t1Count" class="input wn-count-input"
                                    min="1" max="20" value="<%= t1.count %>" placeholder="3">
                         </div>
                         <div class="form-group wn-action-group">
-                            <label class="label">Tindakan</label>
+                            <label class="label">Action</label>
                             <select id="t1Action" class="select" onchange="onActionChange('t1')">
-                                <option value="none" <%= (!t1.action || t1.action==='none') ? 'selected':'' %>>— Tidak ada —</option>
+                                <option value="none" <%= (!t1.action || t1.action==='none') ? 'selected':'' %>>— None —</option>
                                 <option value="mute" <%= t1.action==='mute' ? 'selected':'' %>>🔇 Timeout</option>
                                 <option value="kick" <%= t1.action==='kick' ? 'selected':'' %>>👢 Kick</option>
                                 <option value="ban"  <%= t1.action==='ban'  ? 'selected':'' %>>🔨 Ban</option>
@@ -68,14 +68,14 @@
                         </div>
                         <div class="form-group wn-action-group" id="t1DurGroup"
                              style="display:<%= t1.action==='mute' ? 'block' : 'none' %>;">
-                            <label class="label">Durasi Timeout</label>
+                            <label class="label">Timeout Duration</label>
                             <select id="t1Duration" class="select">
-                                <option value="60000"    <%= t1.duration===60000    ? 'selected':'' %>>⏱️ 1 menit</option>
-                                <option value="300000"   <%= t1.duration===300000   ? 'selected':'' %>>⏱️ 5 menit</option>
-                                <option value="600000"   <%= (t1.duration===600000  || !t1.duration) ? 'selected':'' %>>⏱️ 10 menit</option>
-                                <option value="1800000"  <%= t1.duration===1800000  ? 'selected':'' %>>⏱️ 30 menit</option>
-                                <option value="3600000"  <%= t1.duration===3600000  ? 'selected':'' %>>⏱️ 1 jam</option>
-                                <option value="86400000" <%= t1.duration===86400000 ? 'selected':'' %>>⏱️ 1 hari</option>
+                                <option value="60000"    <%= t1.duration===60000    ? 'selected':'' %>>⏱️ 1 minute</option>
+                                <option value="300000"   <%= t1.duration===300000   ? 'selected':'' %>>⏱️ 5 minutes</option>
+                                <option value="600000"   <%= (t1.duration===600000  || !t1.duration) ? 'selected':'' %>>⏱️ 10 minutes</option>
+                                <option value="1800000"  <%= t1.duration===1800000  ? 'selected':'' %>>⏱️ 30 minutes</option>
+                                <option value="3600000"  <%= t1.duration===3600000  ? 'selected':'' %>>⏱️ 1 hour</option>
+                                <option value="86400000" <%= t1.duration===86400000 ? 'selected':'' %>>⏱️ 1 day</option>
                             </select>
                         </div>
                     </div>
@@ -86,14 +86,14 @@
                     <div class="wn-threshold-label">Threshold 2</div>
                     <div class="wn-cfg-row">
                         <div class="form-group wn-count-group">
-                            <label class="label">Warn ke-</label>
+                            <label class="label">Warning #</label>
                             <input type="number" id="t2Count" class="input wn-count-input"
                                    min="1" max="20" value="<%= t2.count %>" placeholder="5">
                         </div>
                         <div class="form-group wn-action-group">
                             <label class="label">Tindakan</label>
                             <select id="t2Action" class="select" onchange="onActionChange('t2')">
-                                <option value="none" <%= (!t2.action || t2.action==='none') ? 'selected':'' %>>— Tidak ada —</option>
+                                <option value="none" <%= (!t2.action || t2.action==='none') ? 'selected':'' %>>— None —</option>
                                 <option value="mute" <%= t2.action==='mute' ? 'selected':'' %>>🔇 Timeout</option>
                                 <option value="kick" <%= t2.action==='kick' ? 'selected':'' %>>👢 Kick</option>
                                 <option value="ban"  <%= t2.action==='ban'  ? 'selected':'' %>>🔨 Ban</option>
@@ -101,14 +101,14 @@
                         </div>
                         <div class="form-group wn-action-group" id="t2DurGroup"
                              style="display:<%= t2.action==='mute' ? 'block' : 'none' %>;">
-                            <label class="label">Durasi Timeout</label>
+                            <label class="label">Timeout Duration</label>
                             <select id="t2Duration" class="select">
-                                <option value="60000"    <%= t2.duration===60000    ? 'selected':'' %>>⏱️ 1 menit</option>
-                                <option value="300000"   <%= t2.duration===300000   ? 'selected':'' %>>⏱️ 5 menit</option>
-                                <option value="600000"   <%= (t2.duration===600000  || !t2.duration) ? 'selected':'' %>>⏱️ 10 menit</option>
-                                <option value="1800000"  <%= t2.duration===1800000  ? 'selected':'' %>>⏱️ 30 menit</option>
-                                <option value="3600000"  <%= t2.duration===3600000  ? 'selected':'' %>>⏱️ 1 jam</option>
-                                <option value="86400000" <%= t2.duration===86400000 ? 'selected':'' %>>⏱️ 1 hari</option>
+                                <option value="60000"    <%= t2.duration===60000    ? 'selected':'' %>>⏱️ 1 minute</option>
+                                <option value="300000"   <%= t2.duration===300000   ? 'selected':'' %>>⏱️ 5 minutes</option>
+                                <option value="600000"   <%= (t2.duration===600000  || !t2.duration) ? 'selected':'' %>>⏱️ 10 minutes</option>
+                                <option value="1800000"  <%= t2.duration===1800000  ? 'selected':'' %>>⏱️ 30 minutes</option>
+                                <option value="3600000"  <%= t2.duration===3600000  ? 'selected':'' %>>⏱️ 1 hour</option>
+                                <option value="86400000" <%= t2.duration===86400000 ? 'selected':'' %>>⏱️ 1 day</option>
                             </select>
                         </div>
                     </div>
@@ -118,7 +118,7 @@
 
             <div class="form-row" style="margin-top:1rem;">
                 <button class="btn btn-primary" onclick="saveThresholds()">
-                    <i data-lucide="save"></i> Simpan Threshold
+                    <i data-lucide="save"></i> Save Threshold
                 </button>
             </div>
             <div id="thresholdMsg" class="form-message"></div>
@@ -129,7 +129,7 @@
             <h2>Cari Peringatan Member</h2>
             <p class="section-desc" style="margin-bottom:1.25rem;">
                 Masukkan User ID Discord untuk melihat semua peringatan member tersebut.
-                Aktifkan <em>Developer Mode</em> di Discord → klik kanan user → <em>Copy User ID</em>.
+                Enable <em>Developer Mode</em> in Discord → right-click user → <em>Copy User ID</em>.
             </p>
 
             <div class="wn-search-row">
@@ -148,10 +148,10 @@
                     <img id="srAvatar" src="" alt="" class="wn-avatar" onerror="this.style.display='none'">
                     <div>
                         <div id="srTag"   class="wn-user-tag">—</div>
-                        <div id="srTotal" class="wn-user-total">0 peringatan</div>
+                        <div id="srTotal" class="wn-user-total">0 warnings</div>
                     </div>
                     <button class="btn btn-danger wn-clear-btn" id="srClearBtn" onclick="clearUserWarns()">
-                        <i data-lucide="trash-2"></i> Hapus Semua
+                        <i data-lucide="trash-2"></i> Delete All
                     </button>
                 </div>
 
@@ -164,10 +164,10 @@
             <h2>Riwayat Peringatan Terbaru
                 <span style="font-size:.8rem;font-weight:400;color:var(--text-muted);margin-left:.4rem;">(50 terbaru)</span>
             </h2>
-            <p class="section-desc" style="margin-bottom:1.25rem;">Log peringatan yang diberikan moderator menggunakan <code>/warn add</code>.</p>
+            <p class="section-desc" style="margin-bottom:1.25rem;">Warning log given by moderators using <code>/warn add</code>.</p>
 
             <% if (warnLog.length === 0) { %>
-                <p style="color:var(--text-muted);font-size:.875rem;">Belum ada peringatan yang tercatat.</p>
+                <p style="color:var(--text-muted);font-size:.875rem;">No warnings recorded yet.</p>
             <% } else { %>
             <div class="wn-log-table-wrap">
                 <table class="wn-log-table">
@@ -475,7 +475,7 @@ function renderWarnItem(w, userId) {
             <div class="wn-warn-reason">${escHtml(w.reason)}</div>
             <div class="wn-warn-meta">oleh ${escHtml(w.moderatorTag)} • ${formatDate(w.timestamp)}</div>
         </div>
-        <button class="wn-warn-del" title="Hapus warn ini" onclick="deleteSingleWarn('${escHtml(userId)}','${escHtml(w.id)}',this)">
+        <button class="wn-warn-del" title="Delete this warning" onclick="deleteSingleWarn('${escHtml(userId)}','${escHtml(w.id)}',this)">
             <i data-lucide="x"></i>
         </button>`;
     return div;
@@ -498,7 +498,7 @@ async function searchWarns() {
     showMsg(msg, '', 'info');
 
     document.getElementById('srTag').textContent   = data.tag;
-    document.getElementById('srTotal').textContent = `${data.total} peringatan`;
+    document.getElementById('srTotal').textContent = `${data.total} warning(s)`;
     const avatarEl = document.getElementById('srAvatar');
     if (data.avatar) { avatarEl.src = data.avatar; avatarEl.style.display = ''; }
     else              { avatarEl.style.display = 'none'; }
@@ -506,7 +506,7 @@ async function searchWarns() {
     const listEl = document.getElementById('srWarnList');
     listEl.innerHTML = '';
     if (data.warns.length === 0) {
-        listEl.innerHTML = '<p style="color:var(--text-muted);font-size:.875rem;">Tidak ada peringatan. ✅</p>';
+        listEl.innerHTML = '<p style="color:var(--text-muted);font-size:.875rem;">No warnings. ✅</p>';
     } else {
         data.warns.slice().reverse().forEach(w => listEl.appendChild(renderWarnItem(w, userId)));
         if (typeof lucide !== 'undefined') lucide.createIcons();
@@ -518,15 +518,15 @@ async function searchWarns() {
 
 async function clearUserWarns() {
     if (!_searchUserId) return;
-    if (!confirm('Hapus semua peringatan user ini?')) return;
+    if (!confirm('Delete all warnings for this user?')) return;
 
     const msg  = document.getElementById('searchMsg');
     const data = await apiFetch(`/warnings/user/${_searchUserId}`, 'DELETE');
     showMsg(msg, data.message, data.success ? 'success' : 'error');
     if (!data.success) return;
 
-    document.getElementById('srTotal').textContent     = '0 peringatan';
-    document.getElementById('srWarnList').innerHTML    = '<p style="color:var(--text-muted);font-size:.875rem;">Tidak ada peringatan. ✅</p>';
+    document.getElementById('srTotal').textContent     = '0 warnings';
+    document.getElementById('srWarnList').innerHTML    = '<p style="color:var(--text-muted);font-size:.875rem;">No warnings. ✅</p>';
 }
 
 async function deleteSingleWarn(userId, warnId, btn) {
@@ -536,9 +536,9 @@ async function deleteSingleWarn(userId, warnId, btn) {
     const item = btn.closest('.wn-warn-item');
     if (item) item.remove();
 
-    document.getElementById('srTotal').textContent = `${data.total} peringatan`;
+    document.getElementById('srTotal').textContent = `${data.total} warning(s)`;
     if (data.total === 0) {
-        document.getElementById('srWarnList').innerHTML = '<p style="color:var(--text-muted);font-size:.875rem;">Tidak ada peringatan. ✅</p>';
+        document.getElementById('srWarnList').innerHTML = '<p style="color:var(--text-muted);font-size:.875rem;">No warnings. ✅</p>';
     }
 }
 </script>

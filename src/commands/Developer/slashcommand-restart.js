@@ -47,7 +47,7 @@ const ENTRY_FILE = path.join(ROOT_DIR, "src", "index.js");
 module.exports = new ApplicationCommand({
     command: {
         name: "restart",
-        description: "Restart bot dengan aman (database di-close dahulu).",
+        description: "Safely restart the bot (database is closed first).",
         type: 1
     },
 
@@ -62,7 +62,7 @@ module.exports = new ApplicationCommand({
         // ── Guard: hanya developer ────────────────────────────────────────
         if (!isDeveloper(interaction.user.id)) {
             return interaction.reply({
-                content: "❌ Kamu tidak punya izin untuk menjalankan command ini.",
+                content: "❌ You do not have permission to run this command.",
                 flags: MessageFlags.Ephemeral
             });
         }
@@ -71,8 +71,8 @@ module.exports = new ApplicationCommand({
             embeds: [
                 new EmbedBuilder()
                     .setColor("#FEE75C")
-                    .setTitle("🔄 Mempersiapkan Restart...")
-                    .setDescription("Menghapus autocomplete lama, menutup koneksi database, lalu merestart bot.\nBot akan kembali online dalam beberapa detik.")
+                    .setTitle("🔄 Preparing Restart...")
+                    .setDescription("Clearing old autocomplete data, closing database connection, then restarting the bot.\nBot will be back online in a few seconds.")
                     .setTimestamp()
             ],
             flags: MessageFlags.Ephemeral

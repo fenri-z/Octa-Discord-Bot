@@ -15,27 +15,27 @@ async function sendModLog(client, guild, embed) {
 module.exports = new ApplicationCommand({
     command: {
         name: 'ban',
-        description: 'Ban atau unban member dari server',
+        description: 'Ban or unban a member from the server',
         type: 1,
         default_member_permissions: String(PermissionFlagsBits.BanMembers),
         options: [
             {
                 type: 1,
                 name: 'member',
-                description: 'Ban member dari server',
+                description: 'Ban a member from the server',
                 options: [
-                    { type: 6, name: 'user',       description: 'Member yang di-ban',             required: true },
-                    { type: 3, name: 'alasan',      description: 'Alasan ban',                     required: false },
-                    { type: 4, name: 'hapus_pesan', description: 'Hapus pesan N hari terakhir (0–7)', required: false, min_value: 0, max_value: 7 },
+                    { type: 6, name: 'user',            description: 'Member to ban',                          required: true },
+                    { type: 3, name: 'reason',          description: 'Reason for the ban',                      required: false },
+                    { type: 4, name: 'delete_messages', description: 'Delete last N days of messages (0–7)',    required: false, min_value: 0, max_value: 7 },
                 ],
             },
             {
                 type: 1,
                 name: 'unban',
-                description: 'Cabut ban member dari server',
+                description: 'Unban a member from the server',
                 options: [
-                    { type: 6, name: 'user',   description: 'User yang di-unban (mention atau ID)', required: true },
-                    { type: 3, name: 'alasan', description: 'Alasan unban',                         required: false },
+                    { type: 6, name: 'user',   description: 'User to unban (mention or ID)', required: true },
+                    { type: 3, name: 'reason', description: 'Reason for the unban',          required: false },
                 ],
             },
         ],
@@ -48,37 +48,37 @@ module.exports = new ApplicationCommand({
         // ── Ban ─────────────────────────────────────────────────────────────────
         if (sub === 'member') {
             const target    = interaction.options.getUser('user');
-            const alasan    = interaction.options.getString('alasan') || 'Tidak ada alasan';
-            const hapusPesan = interaction.options.getInteger('hapus_pesan') ?? 0;
+            const alasan    = interaction.options.getString('reason') || 'No reason provided';
+            const hapusPesan = interaction.options.getInteger('delete_messages') ?? 0;
 
             const member = guild.members.cache.get(target.id);
 
-            // Cek: tidak bisa ban diri sendiri
+            // Check: cannot ban yourself
             if (target.id === interaction.user.id)
-                return interaction.reply({ content: '❌ Kamu tidak bisa ban diri sendiri.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: '❌ You cannot ban yourself.', flags: MessageFlags.Ephemeral });
 
-            // Cek: tidak bisa ban bot ini
+            // Check: cannot ban this bot
             if (target.id === client.user.id)
-                return interaction.reply({ content: '❌ Tidak bisa ban bot ini.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: '❌ Cannot ban this bot.', flags: MessageFlags.Ephemeral });
 
-            // Cek hierarki role (hanya jika target masih di server)
+            // Check role hierarchy (only if target is still in server)
             if (member) {
                 const botHighest  = guild.members.me?.roles.highest.position ?? 0;
                 const userHighest = interaction.member.roles.highest.position ?? 0;
                 if (member.roles.highest.position >= botHighest)
-                    return interaction.reply({ content: '❌ Role target lebih tinggi atau sama dengan role bot.', flags: MessageFlags.Ephemeral });
+                    return interaction.reply({ content: '❌ Target\'s role is higher than or equal to the bot\'s role.', flags: MessageFlags.Ephemeral });
                 if (member.roles.highest.position >= userHighest)
-                    return interaction.reply({ content: '❌ Kamu tidak bisa ban member dengan role lebih tinggi atau sama denganmu.', flags: MessageFlags.Ephemeral });
+                    return interaction.reply({ content: '❌ You cannot ban a member with a higher or equal role than yours.', flags: MessageFlags.Ephemeral });
             }
 
-            // Kirim DM notifikasi ke target sebelum di-ban
+            // Send DM notification to target before banning
             if (member) {
                 await target.send({
                     embeds: [new EmbedBuilder()
                         .setColor('#ED4245')
-                        .setTitle(`🔨 Kamu telah di-ban dari ${guild.name}`)
+                        .setTitle(`🔨 You have been banned from ${guild.name}`)
                         .addFields(
-                            { name: '📝 Alasan',     value: alasan },
+                            { name: '📝 Reason',     value: alasan },
                             { name: '🛡️ Moderator', value: interaction.user.tag },
                         )
                         .setTimestamp()],
@@ -88,18 +88,18 @@ module.exports = new ApplicationCommand({
             try {
                 await guild.members.ban(target.id, { reason: `${interaction.user.tag}: ${alasan}`, deleteMessageSeconds: hapusPesan * 86400 });
             } catch {
-                return interaction.reply({ content: '❌ Gagal ban member. Cek permission bot.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: '❌ Failed to ban member. Check bot permissions.', flags: MessageFlags.Ephemeral });
             }
 
             const embed = new EmbedBuilder()
                 .setColor('#ED4245')
-                .setTitle('🔨 Member Di-Ban')
+                .setTitle('🔨 Member Banned')
                 .setThumbnail(target.displayAvatarURL({ size: 64 }))
                 .addFields(
-                    { name: '👤 Member',        value: `${target} (${target.tag})`, inline: true },
-                    { name: '🛡️ Moderator',    value: `${interaction.user}`,       inline: true },
-                    { name: '🗑️ Hapus Pesan',  value: hapusPesan ? `${hapusPesan} hari` : 'Tidak', inline: true },
-                    { name: '📝 Alasan',        value: alasan },
+                    { name: '👤 Member',           value: `${target} (${target.tag})`, inline: true },
+                    { name: '🛡️ Moderator',       value: `${interaction.user}`,       inline: true },
+                    { name: '🗑️ Delete Messages', value: hapusPesan ? `${hapusPesan} day(s)` : 'No', inline: true },
+                    { name: '📝 Reason',           value: alasan },
                 )
                 .setTimestamp();
 
@@ -108,7 +108,7 @@ module.exports = new ApplicationCommand({
             return interaction.reply({
                 embeds: [new EmbedBuilder()
                     .setColor('#ED4245')
-                    .setDescription(`✅ **${target.tag}** berhasil di-ban.\n📝 Alasan: ${alasan}`)],
+                    .setDescription(`✅ **${target.tag}** has been banned.\n📝 Reason: ${alasan}`)],
                 flags: MessageFlags.Ephemeral,
             });
         }
@@ -116,28 +116,28 @@ module.exports = new ApplicationCommand({
         // ── Unban ───────────────────────────────────────────────────────────────
         if (sub === 'unban') {
             const target = interaction.options.getUser('user');
-            const alasan = interaction.options.getString('alasan') || 'Tidak ada alasan';
+            const alasan = interaction.options.getString('reason') || 'No reason provided';
 
             let banInfo;
             try {
                 banInfo = await guild.bans.fetch(target.id);
             } catch {
-                return interaction.reply({ content: `❌ **${target.tag}** tidak ada dalam daftar ban.`, flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: `❌ **${target.tag}** is not in the ban list.`, flags: MessageFlags.Ephemeral });
             }
 
             try {
                 await guild.members.unban(target.id, `${interaction.user.tag}: ${alasan}`);
             } catch {
-                return interaction.reply({ content: '❌ Gagal unban. Cek permission bot.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: '❌ Failed to unban. Check bot permissions.', flags: MessageFlags.Ephemeral });
             }
             const embed = new EmbedBuilder()
                 .setColor('#57F287')
-                .setTitle('✅ Member Di-Unban')
+                .setTitle('✅ Member Unbanned')
                 .setThumbnail(target.displayAvatarURL({ size: 64 }))
                 .addFields(
                     { name: '👤 Member',     value: `${target.tag} (${target.id})`, inline: true },
                     { name: '🛡️ Moderator', value: `${interaction.user}`,          inline: true },
-                    { name: '📝 Alasan',     value: alasan },
+                    { name: '📝 Reason',     value: alasan },
                 )
                 .setTimestamp();
 
@@ -146,7 +146,7 @@ module.exports = new ApplicationCommand({
             return interaction.reply({
                 embeds: [new EmbedBuilder()
                     .setColor('#57F287')
-                    .setDescription(`✅ **${target.tag}** berhasil di-unban.\n📝 Alasan: ${alasan}`)],
+                    .setDescription(`✅ **${target.tag}** has been unbanned.\n📝 Reason: ${alasan}`)],
                 flags: MessageFlags.Ephemeral,
             });
         }

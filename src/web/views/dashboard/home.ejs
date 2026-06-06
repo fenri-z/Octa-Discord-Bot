@@ -79,7 +79,7 @@
                 <li><code class="perm-name"><%= p.name %></code><span class="perm-desc"> — <%= p.desc %></span></li>
                 <% }); %>
             </ul>
-            <p class="perm-hint">Buka pengaturan server Discord → Roles → pilih role bot → centang permission di atas.</p>
+            <p class="perm-hint">Open Discord server settings → Roles → select the bot role → enable the permissions above.</p>
         </div>
         <% } %>
 
@@ -95,7 +95,7 @@
             <div class="ov-nickname-right">
                 <input type="text" id="nicknameInput" class="input" value="<%= botNickname %>"
                        maxlength="32" placeholder="Kosongkan untuk reset ke nama asli">
-                <button class="btn btn-primary" onclick="saveNickname('<%= guild.id %>')">Simpan</button>
+                <button class="btn btn-primary" onclick="saveNickname('<%= guild.id %>')">Save</button>
             </div>
             <div id="nicknameMsg" class="form-message" style="width:100%;margin-top:.5rem;"></div>
         </div>
@@ -118,7 +118,7 @@
                     </div>
                     <div class="ov-feat-body">
                         <div class="ov-feat-title">Welcome Notification</div>
-                        <div class="ov-feat-desc">Kartu & pesan sambutan otomatis saat member bergabung.</div>
+                        <div class="ov-feat-desc">Automatic welcome card & message when a member joins.</div>
                     </div>
                     <i data-lucide="arrow-right" class="ov-feat-arrow"></i>
                 </a>
@@ -128,7 +128,7 @@
                     </div>
                     <div class="ov-feat-body">
                         <div class="ov-feat-title">Goodbye Notification</div>
-                        <div class="ov-feat-desc">Kartu & pesan perpisahan otomatis saat member keluar.</div>
+                        <div class="ov-feat-desc">Automatic goodbye card & message when a member leaves.</div>
                     </div>
                     <i data-lucide="arrow-right" class="ov-feat-arrow"></i>
                 </a>
@@ -169,7 +169,7 @@
                     </div>
                     <div class="ov-feat-body">
                         <div class="ov-feat-title">Autorole Join</div>
-                        <div class="ov-feat-desc">Berikan role otomatis saat member atau bot baru bergabung.</div>
+                        <div class="ov-feat-desc">Automatically assign a role when a member or bot joins.</div>
                     </div>
                     <i data-lucide="arrow-right" class="ov-feat-arrow"></i>
                 </a>
@@ -189,7 +189,7 @@
                     </div>
                     <div class="ov-feat-body">
                         <div class="ov-feat-title">Autorole Button</div>
-                        <div class="ov-feat-desc">Panel tombol interaktif untuk member memilih role sendiri.</div>
+                        <div class="ov-feat-desc">Interactive button panel for members to choose their own roles.</div>
                     </div>
                     <i data-lucide="arrow-right" class="ov-feat-arrow"></i>
                 </a>
@@ -230,7 +230,7 @@
                     </div>
                     <div class="ov-feat-body">
                         <div class="ov-feat-title">Warning System</div>
-                        <div class="ov-feat-desc">Sistem peringatan bertahap dengan tindakan otomatis saat threshold tercapai.</div>
+                        <div class="ov-feat-desc">Graduated warning system with automatic actions when thresholds are reached.</div>
                     </div>
                     <i data-lucide="arrow-right" class="ov-feat-arrow"></i>
                 </a>
@@ -261,7 +261,7 @@
                     </div>
                     <div class="ov-feat-body">
                         <div class="ov-feat-title">Ticket</div>
-                        <div class="ov-feat-desc">Sistem tiket privat untuk member meminta bantuan staff.</div>
+                        <div class="ov-feat-desc">Private ticket system for members to request help from staff.</div>
                     </div>
                     <i data-lucide="arrow-right" class="ov-feat-arrow"></i>
                 </a>
@@ -281,7 +281,7 @@
                     </div>
                     <div class="ov-feat-body">
                         <div class="ov-feat-title">Message Builder</div>
-                        <div class="ov-feat-desc">Buat dan kirim template pesan embed ke channel manapun.</div>
+                        <div class="ov-feat-desc">Create and send embed message templates to any channel.</div>
                     </div>
                     <i data-lucide="arrow-right" class="ov-feat-arrow"></i>
                 </a>
@@ -291,7 +291,7 @@
                     </div>
                     <div class="ov-feat-body">
                         <div class="ov-feat-title">Server Stats</div>
-                        <div class="ov-feat-desc">Tampilkan statistik server secara otomatis via channel voice.</div>
+                        <div class="ov-feat-desc">Automatically display server statistics via voice channels.</div>
                     </div>
                     <i data-lucide="arrow-right" class="ov-feat-arrow"></i>
                 </a>
@@ -301,7 +301,7 @@
                     </div>
                     <div class="ov-feat-body">
                         <div class="ov-feat-title">Invite Links</div>
-                        <div class="ov-feat-desc">Lihat semua invite link server beserta statistik penggunaannya.</div>
+                        <div class="ov-feat-desc">View all server invite links and their usage statistics.</div>
                     </div>
                     <i data-lucide="arrow-right" class="ov-feat-arrow"></i>
                 </a>

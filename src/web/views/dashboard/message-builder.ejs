@@ -27,7 +27,7 @@
                     <% if (templates.length === 0) { %>
                         <div class="empty-state" id="emptyState">
                             <p style="font-size:2rem;margin-bottom:.5rem">✉️</p>
-                            <p>Belum ada template. Buat yang pertama!</p>
+                            <p>No templates yet. Buat yang pertama!</p>
                         </div>
                     <% } else { %>
                         <% templates.forEach(t => { %>
@@ -47,10 +47,10 @@
                                     <% if (t.messageType === 'plain') { %>
                                         <span style="color:var(--text-muted);font-style:italic;"><%= t.plainText ? t.plainText.slice(0, 60) + (t.plainText.length > 60 ? '…' : '') : '(teks kosong)' %></span>
                                     <% } else { %>
-                                        <%= t.title || '(tidak ada judul)' %>
+                                        <%= t.title || '(no title)' %>
                                     <% } %>
                                 </div>
-                                <div class="mb-card-desc"><%= t.description ? t.description.slice(0, 80) + (t.description.length > 80 ? '…' : '') : (t.messageType === 'plain' ? '' : '(tidak ada deskripsi)') %></div>
+                                <div class="mb-card-desc"><%= t.description ? t.description.slice(0, 80) + (t.description.length > 80 ? '…' : '') : (t.messageType === 'unik' ? '📌 Unique' : '📋 Regular') %></div>
                             </div>
                             <div class="mb-card-actions">
                                 <button class="btn btn-outline btn-sm" onclick="openEditModal('<%= t.name %>')"><i data-lucide="pencil"></i> Edit</button>
@@ -90,7 +90,7 @@
                                               style="color:<%- botUser ? botUser.roleColor : '#ffffff' %>">
                                             <%= botUser ? botUser.username : 'Bot' %>
                                         </span>
-                                        <span class="dc-timestamp">Hari ini pukul 12:00</span>
+                                        <span class="dc-timestamp">Today at 12:00 PM</span>
                                         <div id="mbPanelPreviewPlain" class="dc-plain-msg" style="display:none;"></div>
                                         <div class="dc-embed" id="mbPanelPreviewEmbed" style="display:none;">
                                             <div class="dc-embed-pill" id="mbPanelPreviewPill"></div>
@@ -138,21 +138,21 @@
                 <input type="hidden" id="editOriginalName">
 
                 <div class="form-group">
-                    <label class="label">Nama Template</label>
+                    <label class="label">Template Name</label>
                     <input type="text" id="editName" class="input" placeholder="contoh: pengumuman-rutin" maxlength="32">
                     <div class="hint">Hanya huruf, angka, <code>-</code> dan <code>_</code> (maks. 32 karakter).</div>
                 </div>
 
                 <div class="form-group">
-                    <label class="label">Kategori</label>
+                    <label class="label">Category</label>
                     <select id="editKategori" class="select">
-                        <option value="biasa">Biasa — bisa dikirim berkali-kali</option>
-                        <option value="unik">Unik — kirim sekali, bisa diedit</option>
+                        <option value="biasa">Regular — can be sent multiple times</option>
+                        <option value="unik">Unique — send once, can be edited</option>
                     </select>
                 </div>
 
                 <div class="form-group">
-                    <label class="label">Tipe Pesan</label>
+                    <label class="label">Message Type</label>
                     <div style="display:flex;gap:.75rem;">
                         <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;">
                             <input type="radio" name="editMessageType" id="mbTypeEmbed" value="embed" checked>
@@ -168,9 +168,9 @@
                 <!-- ── Panel Teks Biasa ── -->
                 <div id="mbPlainPanel" style="display:none;">
                     <div class="form-group">
-                        <label class="label">Isi Pesan Teks Biasa</label>
+                        <label class="label">Plain Text Message</label>
                         <textarea id="editPlainText" class="textarea" rows="5"
-                                  placeholder="Tulis isi pesan di sini..."
+                                  placeholder="Write your message here..."
                                   oninput="updatePreview()"></textarea>
                     </div>
                 </div>
@@ -179,7 +179,7 @@
                 <div id="mbEmbedPanel">
 
                 <div class="form-group">
-                    <label class="label">Judul Embed</label>
+                    <label class="label">Embed Title</label>
                     <input type="text" id="editTitle" class="input" placeholder="Judul embed..." maxlength="256" oninput="updatePreview()">
                 </div>
 
@@ -190,7 +190,7 @@
 
                 <div class="form-group">
                     <label class="label">Footer</label>
-                    <input type="text" id="editFooter" class="input" placeholder="Teks footer..." maxlength="2048" oninput="updatePreview()">
+                    <input type="text" id="editFooter" class="input" placeholder="Footer text..." maxlength="2048" oninput="updatePreview()">
                 </div>
 
                 <div class="form-group">
@@ -214,7 +214,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label class="label">Warna Embed</label>
+                    <label class="label">Embed Color</label>
                     <div style="display:flex;gap:.75rem;align-items:center;">
                         <input type="color" id="editColorPicker" value="#5865F2"
                                style="width:44px;height:36px;border:none;border-radius:6px;cursor:pointer;padding:0;background:none;"
@@ -246,7 +246,7 @@
                                       style="color:<%- botUser ? botUser.roleColor : '#ffffff' %>">
                                     <%= botUser ? botUser.username : 'Bot' %>
                                 </span>
-                                <span class="dc-timestamp">Hari ini pukul 12:00</span>
+                                <span class="dc-timestamp">Today at 12:00 PM</span>
                                 <!-- Plain text preview -->
                                 <div id="mbPreviewPlain" class="dc-plain-msg" style="display:none;"></div>
                                 <!-- Embed preview -->
@@ -272,28 +272,28 @@
         <div id="editMsg" class="form-message"></div>
         <div style="display:flex;gap:.75rem;justify-content:flex-end;">
             <button class="btn btn-outline" onclick="closeEditModal()">Batal</button>
-            <button class="btn btn-primary" onclick="saveTemplate()">Simpan</button>
+            <button class="btn btn-primary" onclick="saveTemplate()">Save</button>
         </div>
     </div>
 </div>
 
 <!-- ══════════════════════════════════════════════
-     MODAL: Kirim ke Channel
+     MODAL: Send to Channel
 ══════════════════════════════════════════════ -->
 <div class="mb-modal-backdrop" id="sendBackdrop" onclick="closeSendModal()"></div>
 <div class="mb-modal mb-modal-sm" id="sendModal">
     <div class="mb-modal-header">
-        <h2><i data-lucide="send"></i> Kirim Template</h2>
+        <h2><i data-lucide="send"></i> Send Template</h2>
         <button class="mb-modal-close" onclick="closeSendModal()">✕</button>
     </div>
     <div class="mb-modal-body">
         <p style="margin-bottom:1rem;color:var(--text-muted);font-size:.9rem;">
-            Kirim template <strong id="sendTemplateName"></strong> ke channel:
+            Send template <strong id="sendTemplateName"></strong> to channel:
         </p>
         <div class="form-group">
-            <label class="label">Channel Tujuan</label>
+            <label class="label">Destination Channel</label>
             <select id="sendChannel" class="select">
-                <option value="">— Pilih channel —</option>
+                <option value="">— Select channel —</option>
                 <% channels.forEach(ch => { %>
                     <option value="<%= ch.id %>">#<%= ch.name %></option>
                 <% }) %>
@@ -933,8 +933,8 @@ async function saveTemplate() {
     const name         = isEdit ? originalName : document.getElementById('editName').value.trim();
     const msg          = document.getElementById('editMsg');
 
-    if (!name) return showMsg(msg, 'Nama template tidak boleh kosong.', 'error');
-    if (!/^[a-zA-Z0-9_-]{1,32}$/.test(name)) return showMsg(msg, 'Nama tidak valid. Gunakan huruf, angka, - dan _.', 'error');
+    if (!name) return showMsg(msg, 'Template name cannot be empty.', 'error');
+    if (!/^[a-zA-Z0-9_-]{1,32}$/.test(name)) return showMsg(msg, 'Invalid name. Use letters, numbers, - and _.', 'error');
 
     const isPlain    = document.getElementById('mbTypePlain').checked;
     const payload = {
@@ -965,14 +965,14 @@ async function saveTemplate() {
 
 // ── Hapus template ────────────────────────────────────────────────────────
 async function deleteTemplate(name) {
-    if (!confirm(`Hapus template "${name}"? Tindakan ini tidak bisa dibatalkan.`)) return;
+    if (!confirm(`Delete template "${name}"? This action cannot be undone.`)) return;
     const res  = await fetch(`/api/guild/${GUILD_ID}/message-builder/${encodeURIComponent(name)}`, { method: 'DELETE' });
     const data = await res.json();
-    if (!data.success) return alert('Gagal: ' + data.message);
+    if (!data.success) return alert('Failed: ' + data.message);
     const card = document.querySelector(`.mb-card[data-name="${name}"]`);
     if (card) card.remove();
     if (!document.querySelector('.mb-card')) {
-        document.getElementById('mbGrid').innerHTML = '<div class="empty-state"><p style="font-size:2rem;margin-bottom:.5rem">✉️</p><p>Belum ada template. Buat yang pertama!</p></div>';
+        document.getElementById('mbGrid').innerHTML = '<div class="empty-state"><p style="font-size:2rem;margin-bottom:.5rem">✉️</p><p>No templates yet. Create the first one!</p></div>';
     }
 }
 
@@ -989,7 +989,7 @@ function closeSendModal() { closeModal('sendBackdrop', 'sendModal'); }
 async function sendTemplate() {
     const channelId = document.getElementById('sendChannel').value;
     const msg       = document.getElementById('sendMsg');
-    if (!channelId) return showMsg(msg, 'Pilih channel tujuan.', 'error');
+    if (!channelId) return showMsg(msg, 'Please select a destination channel.', 'error');
 
     const res  = await fetch(`/api/guild/${GUILD_ID}/message-builder/${encodeURIComponent(_sendingName)}/send`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },

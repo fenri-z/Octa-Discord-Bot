@@ -15,8 +15,8 @@ module.exports = new Component({
     run: async (client, interaction) => {
         const embed = new EmbedBuilder()
             .setColor('#57F287')
-            .setTitle('✅ Reset Dibatalkan')
-            .setDescription('> Reset Server Stats dibatalkan. Tidak ada perubahan yang dilakukan.')
+            .setTitle('✅ Reset Cancelled')
+            .setDescription('> Server Stats reset has been cancelled. No changes were made.')
             .setTimestamp();
 
         return interaction.update({ embeds: [embed], components: [] });

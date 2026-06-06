@@ -30,18 +30,18 @@ function getConfig(client, guildId) {
     };
 }
 
-// Validasi role umum — kembalikan pesan error atau null jika valid
+// Validate role — return error message or null if valid
 function validateRole(guild, role, interaction) {
     if (!role) {
-        interaction.reply({ content: '❌ Role tidak ditemukan. Gunakan mention `@role` atau ID role.', flags: MessageFlags.Ephemeral });
+        interaction.reply({ content: '❌ Role not found. Use a mention `@role` or a role ID.', flags: MessageFlags.Ephemeral });
         return false;
     }
     if (role.managed) {
-        interaction.reply({ content: '❌ Role yang dikelola integrasi eksternal tidak bisa digunakan sebagai autorole.', flags: MessageFlags.Ephemeral });
+        interaction.reply({ content: '❌ Roles managed by external integrations cannot be used as autoroles.', flags: MessageFlags.Ephemeral });
         return false;
     }
     if (role.id === guild.id) {
-        interaction.reply({ content: '❌ Role `@everyone` tidak bisa digunakan sebagai autorole.', flags: MessageFlags.Ephemeral });
+        interaction.reply({ content: '❌ The `@everyone` role cannot be used as an autorole.', flags: MessageFlags.Ephemeral });
         return false;
     }
     return true;
@@ -51,49 +51,49 @@ function validateRole(guild, role, interaction) {
 module.exports = new ApplicationCommand({
     command: {
         name: 'autorole',
-        description: 'Konfigurasi role otomatis saat member/bot bergabung ke server.',
+        description: 'Configure automatic roles when a member or bot joins the server.',
         type: 1,
         default_member_permissions: String(PermissionFlagsBits.ManageGuild),
         options: [
             // ── status ────────────────────────────────────────────────────
             {
                 name: 'status',
-                description: 'Lihat konfigurasi autorole saat ini.',
+                description: 'View the current autorole configuration.',
                 type: 1
             },
 
             // ── join ──────────────────────────────────────────────────────
             {
                 name: 'join',
-                description: 'Atur autorole saat member atau bot bergabung.',
+                description: 'Configure autorole when a member or bot joins.',
                 type: 2, // SUB_COMMAND_GROUP
                 options: [
                     {
                         name: 'set',
-                        description: 'Tetapkan role yang diberikan otomatis saat join.',
+                        description: 'Set the role automatically assigned on join.',
                         type: 1,
                         options: [
                             {
                                 name: 'type',
-                                description: 'Pilih target: member, bot, atau all (keduanya).',
+                                description: 'Select target: member, bot, or all (both).',
                                 type: 3, // STRING
                                 required: true,
                                 choices: [
-                                    { name: 'Member', value: 'member' },
-                                    { name: 'Bot',             value: 'bot'   },
-                                    { name: 'All (Semua)',     value: 'all'   }
+                                    { name: 'Member',     value: 'member' },
+                                    { name: 'Bot',        value: 'bot'    },
+                                    { name: 'All (Both)', value: 'all'    }
                                 ]
                             },
                             {
                                 name: 'role',
-                                description: 'Role yang akan diberikan otomatis.',
-                                type: 3, // STRING — di-resolve oleh resolveRole
+                                description: 'Role to be automatically assigned.',
+                                type: 3, // STRING — resolved by resolveRole
                                 autocomplete: true,
                                 required: true
                             },
                             {
                                 name: 'role_bot',
-                                description: '(Hanya untuk type=all) Role khusus untuk bot. Kosongkan = pakai role yang sama.',
+                                description: '(Only for type=all) Specific role for bots. Leave empty = use the same role.',
                                 type: 3,
                                 autocomplete: true,
                                 required: false
@@ -102,23 +102,23 @@ module.exports = new ApplicationCommand({
                     },
                     {
                         name: 'toggle',
-                        description: 'Aktifkan atau nonaktifkan autorole join.',
+                        description: 'Enable or disable autorole on join.',
                         type: 1,
                         options: [
                             {
                                 name: 'type',
-                                description: 'Pilih target: member, bot, atau all.',
+                                description: 'Select target: member, bot, or all.',
                                 type: 3,
                                 required: true,
                                 choices: [
-                                    { name: 'Member', value: 'member' },
-                                    { name: 'Bot',             value: 'bot'   },
-                                    { name: 'All (Semua)',     value: 'all'   }
+                                    { name: 'Member',     value: 'member' },
+                                    { name: 'Bot',        value: 'bot'    },
+                                    { name: 'All (Both)', value: 'all'    }
                                 ]
                             },
                             {
-                                name: 'aktif',
-                                description: 'true = nyalakan, false = matikan.',
+                                name: 'active',
+                                description: 'true = enable, false = disable.',
                                 type: 5, // BOOLEAN
                                 required: true
                             }
@@ -126,18 +126,18 @@ module.exports = new ApplicationCommand({
                     },
                     {
                         name: 'remove',
-                        description: 'Hapus konfigurasi autorole join.',
+                        description: 'Remove the autorole join configuration.',
                         type: 1,
                         options: [
                             {
                                 name: 'type',
-                                description: 'Pilih target yang ingin dihapus: member, bot, atau all.',
+                                description: 'Select the target to remove: member, bot, or all.',
                                 type: 3,
                                 required: true,
                                 choices: [
-                                    { name: 'Member', value: 'member' },
-                                    { name: 'Bot',             value: 'bot'   },
-                                    { name: 'All (Semua)',     value: 'all'   }
+                                    { name: 'Member',     value: 'member' },
+                                    { name: 'Bot',        value: 'bot'    },
+                                    { name: 'All (Both)', value: 'all'    }
                                 ]
                             }
                         ]
@@ -173,22 +173,22 @@ module.exports = new ApplicationCommand({
             const botRole   = cfg.botRoleId   ? guild.roles.cache.get(cfg.botRoleId)   : null;
 
             const embed = new EmbedBuilder()
-                .setTitle('⚙️ Konfigurasi Autorole Join')
+                .setTitle('⚙️ Autorole Join Configuration')
                 .setColor('#5865F2')
                 .addFields(
                     {
-                        name: '👤 Autorole Member',
+                        name: '👤 Member Autorole',
                         value: [
-                            `**Status:** ${cfg.memberEnabled ? '✅ Aktif' : '❌ Nonaktif'}`,
-                            `**Role:** ${memberRole ? `${memberRole}` : '`Belum diatur`'}`
+                            `**Status:** ${cfg.memberEnabled ? '✅ Enabled' : '❌ Disabled'}`,
+                            `**Role:** ${memberRole ? `${memberRole}` : '`Not set`'}`
                         ].join('\n'),
                         inline: true
                     },
                     {
-                        name: '🤖 Autorole Bot',
+                        name: '🤖 Bot Autorole',
                         value: [
-                            `**Status:** ${cfg.botEnabled ? '✅ Aktif' : '❌ Nonaktif'}`,
-                            `**Role:** ${botRole ? `${botRole}` : '`Belum diatur`'}`
+                            `**Status:** ${cfg.botEnabled ? '✅ Enabled' : '❌ Disabled'}`,
+                            `**Role:** ${botRole ? `${botRole}` : '`Not set`'}`
                         ].join('\n'),
                         inline: true
                     }
@@ -207,7 +207,7 @@ module.exports = new ApplicationCommand({
 
             if (!validateRole(guild, role, interaction)) return;
 
-            // Untuk type=all, cek role_bot (opsional — fallback ke role utama)
+            // For type=all, check role_bot (optional — falls back to main role)
             let botRole = role;
             if (type === 'all') {
                 const botRoleStr = options.getString('role_bot');
@@ -235,8 +235,8 @@ module.exports = new ApplicationCommand({
                 embeds: [
                     new EmbedBuilder()
                         .setColor('#57F287')
-                        .setTitle('✅ Autorole Join Diatur')
-                        .setDescription(lines.join('\n') + '\n\nStatus otomatis **diaktifkan**.')
+                        .setTitle('✅ Autorole Join Set')
+                        .setDescription(lines.join('\n') + '\n\nStatus automatically **enabled**.')
                 ],
                 flags: MessageFlags.Ephemeral
             });
@@ -244,20 +244,20 @@ module.exports = new ApplicationCommand({
 
         // ── /autorole join toggle ──────────────────────────────────────────
         if (subGroup === 'join' && sub === 'toggle') {
-            const type  = options.getString('type');
-            const aktif = options.getBoolean('aktif');
+            const type   = options.getString('type');
+            const active = options.getBoolean('active');
 
-            // Validasi jika diaktifkan tapi role belum diset
-            if (aktif) {
+            // Validate if enabling but role is not yet set
+            if (active) {
                 if ((type === 'member' || type === 'all') && !cfg.memberRoleId) {
                     return interaction.reply({
-                        content: '❌ Role member belum diatur. Gunakan `/autorole join set` terlebih dahulu.',
+                        content: '❌ Member role is not set. Use `/autorole join set` first.',
                         flags: MessageFlags.Ephemeral
                     });
                 }
                 if ((type === 'bot' || type === 'all') && !cfg.botRoleId) {
                     return interaction.reply({
-                        content: '❌ Role bot belum diatur. Gunakan `/autorole join set` terlebih dahulu.',
+                        content: '❌ Bot role is not set. Use `/autorole join set` first.',
                         flags: MessageFlags.Ephemeral
                     });
                 }
@@ -266,20 +266,20 @@ module.exports = new ApplicationCommand({
             const lines = [];
 
             if (type === 'member' || type === 'all') {
-                setBool(client, `autorole-member-enabled-${guild.id}`, aktif);
-                lines.push(`👤 Autorole **Member** ${aktif ? '✅ diaktifkan' : '❌ dinonaktifkan'}`);
+                setBool(client, `autorole-member-enabled-${guild.id}`, active);
+                lines.push(`👤 Autorole **Member** ${active ? '✅ enabled' : '❌ disabled'}`);
             }
 
             if (type === 'bot' || type === 'all') {
-                setBool(client, `autorole-bot-enabled-${guild.id}`, aktif);
-                lines.push(`🤖 Autorole **Bot** ${aktif ? '✅ diaktifkan' : '❌ dinonaktifkan'}`);
+                setBool(client, `autorole-bot-enabled-${guild.id}`, active);
+                lines.push(`🤖 Autorole **Bot** ${active ? '✅ enabled' : '❌ disabled'}`);
             }
 
             return interaction.reply({
                 embeds: [
                     new EmbedBuilder()
-                        .setColor(aktif ? '#57F287' : '#ED4245')
-                        .setTitle(`${aktif ? '✅' : '❌'} Toggle Autorole Join`)
+                        .setColor(active ? '#57F287' : '#ED4245')
+                        .setTitle(`${active ? '✅' : '❌'} Autorole Join Toggle`)
                         .setDescription(lines.join('\n'))
                 ],
                 flags: MessageFlags.Ephemeral
@@ -294,20 +294,20 @@ module.exports = new ApplicationCommand({
             if (type === 'member' || type === 'all') {
                 client.database.delete(`autorole-member-role-${guild.id}`);
                 setBool(client, `autorole-member-enabled-${guild.id}`, false);
-                lines.push('👤 Konfigurasi autorole **Member** dihapus.');
+                lines.push('👤 Autorole **Member** configuration removed.');
             }
 
             if (type === 'bot' || type === 'all') {
                 client.database.delete(`autorole-bot-role-${guild.id}`);
                 setBool(client, `autorole-bot-enabled-${guild.id}`, false);
-                lines.push('🤖 Konfigurasi autorole **Bot** dihapus.');
+                lines.push('🤖 Autorole **Bot** configuration removed.');
             }
 
             return interaction.reply({
                 embeds: [
                     new EmbedBuilder()
                         .setColor('#ED4245')
-                        .setTitle('🗑️ Autorole Join Dihapus')
+                        .setTitle('🗑️ Autorole Join Removed')
                         .setDescription(lines.join('\n'))
                 ],
                 flags: MessageFlags.Ephemeral

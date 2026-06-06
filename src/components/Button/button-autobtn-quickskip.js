@@ -2,7 +2,7 @@ const { ButtonInteraction, EmbedBuilder, MessageFlags } = require("discord.js");
 const DiscordBot = require("../../client/DiscordBot");
 const Component  = require("../../structure/Component");
 
-// ── Handler: ⏭️ Lewati ────────────────────────────────────────────────────────
+// ── Handler: ⏭️ Skip ─────────────────────────────────────────────────────────
 // customId format: autobtn-quickskip:<panelName>
 
 module.exports = new Component({
@@ -20,12 +20,12 @@ module.exports = new Component({
             embeds: [
                 new EmbedBuilder()
                     .setColor('#5865F2')
-                    .setTitle(`✅ Panel \`${panelName}\` Siap`)
+                    .setTitle(`✅ Panel \`${panelName}\` Ready`)
                     .setDescription(
-                        `Panel berhasil dibuat. Tambahkan tombol kapan saja dengan perintah berikut:\n\n` +
-                        `• \`/autorole-button tambah-button\` — tambah tombol satu per satu\n` +
-                        `• \`/autorole-button tambah-bulk\` — tambah banyak tombol sekaligus\n` +
-                        `• \`/autorole-button kirim ${panelName}\` — kirim panel ke channel setelah selesai`
+                        `Panel created successfully. Add buttons at any time with the following commands:\n\n` +
+                        `• \`/autorole-button add-button\` — add buttons one at a time\n` +
+                        `• \`/autorole-button add-bulk\` — add multiple buttons at once\n` +
+                        `• \`/autorole-button send ${panelName}\` — send the panel to a channel when ready`
                     )
                     .setTimestamp()
             ],

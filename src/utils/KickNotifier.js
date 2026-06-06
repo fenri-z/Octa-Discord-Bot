@@ -39,7 +39,7 @@ class KickNotifier {
 
     start() {
         if (!this.isConfigured) {
-            warn('[Kick] KICK_CLIENT_ID / KICK_CLIENT_SECRET belum diset di .env — KickNotifier nonaktif.');
+            warn('[Kick] KICK_CLIENT_ID / KICK_CLIENT_SECRET not set in .env — KickNotifier disabled.');
             warn('[Kick] Daftar di https://kick.com/settings/developer untuk mendapatkan credentials.');
             return;
         }
@@ -92,7 +92,7 @@ class KickNotifier {
         });
         if (!res.ok) {
             const body = await res.text().catch(() => '');
-            throw new Error(`Token request gagal: HTTP ${res.status} — ${body.slice(0, 100)}`);
+            throw new Error(`Token request failed: HTTP ${res.status} — ${body.slice(0, 100)}`);
         }
         const data = await res.json();
         this._accessToken = data.access_token;
@@ -117,7 +117,7 @@ class KickNotifier {
 
     async lookupChannel(input) {
         if (!this.isConfigured) {
-            throw new Error('KICK_CLIENT_ID dan KICK_CLIENT_SECRET belum dikonfigurasi di .env. Daftar di kick.com/settings/developer.');
+            throw new Error('KICK_CLIENT_ID and KICK_CLIENT_SECRET are not configured in .env. Register at kick.com/settings/developer.');
         }
 
         const slug = this._resolveSlug(input);
@@ -131,7 +131,7 @@ class KickNotifier {
         }
 
         const channel = chData?.data?.[0];
-        if (!channel) throw new Error(`Channel Kick "${slug}" tidak ditemukan.`);
+        if (!channel) throw new Error(`Kick channel "${slug}" not found.`);
 
         const userId = channel.broadcaster_user_id;
 
@@ -228,7 +228,7 @@ class KickNotifier {
                     };
 
                     await this._sendNotification(guild, freshAccount, streamData).catch(err =>
-                        warn(`[Kick] Kirim notif gagal: ${err.message}`)
+                        warn(`[Kick] Failed to send notification: ${err.message}`)
                     );
                     info(`[Kick] ${slug} LIVE di guild ${guild.name}`);
 
@@ -282,7 +282,7 @@ class KickNotifier {
         const embed = new EmbedBuilder()
             .setColor(0x53FC18)
             .setAuthor({
-                name:    `${displayName} sedang LIVE di Kick!`,
+                name:    `${displayName} is LIVE on Kick!`,
                 iconURL: account.thumbnail || undefined,
                 url:     streamUrl,
             })

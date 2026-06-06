@@ -126,7 +126,7 @@ class ComponentsListener {
                         await autocompleteRole(interaction, client, { excludeManaged: true }).catch(() => null);
                         return;
                     }
-                    if (focused.name === 'nama') {
+                    if (focused.name === 'nama' || focused.name === 'name') {
                         if (interaction.commandName === 'autorole-button') {
                             const { autocompleteAutobtnNama } = require('../../utils/autocompleteHelper');
                             await autocompleteAutobtnNama(interaction, client).catch(() => null);
@@ -149,12 +149,12 @@ class ComponentsListener {
                         }
                         return;
                     }
-                    if (focused.name === 'sumber') {
+                    if (focused.name === 'source') {
                         const { autocompleteSumberSalin } = require('../../utils/autocompleteHelper');
                         await autocompleteSumberSalin(interaction, client).catch(() => null);
                         return;
                     }
-                    if (focused.name === 'tujuan') {
+                    if (focused.name === 'target') {
                         const { autocompleteTujuanSalin } = require('../../utils/autocompleteHelper');
                         await autocompleteTujuanSalin(interaction, client).catch(() => null);
                         return;

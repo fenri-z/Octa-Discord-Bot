@@ -32,8 +32,8 @@ function getConfig(client, guildId) {
         channelId:    client.database.get(`goodbye-channel-${guildId}`)  ?? null,
         messageType:  client.database.get(`goodbye-messageType-${guildId}`) ?? 'embed',
         plainText:    client.database.get(`goodbye-plainText-${guildId}`)   ?? '',
-        title:        client.database.get(`goodbye-title-${guildId}`)    ?? '👋 Selamat Tinggal!',
-        description:  client.database.get(`goodbye-description-${guildId}`) ?? '{member} telah meninggalkan server.',
+        title:        client.database.get(`goodbye-title-${guildId}`)    ?? '👋 Goodbye!',
+        description:  client.database.get(`goodbye-description-${guildId}`) ?? '{member} has left the server.',
         color:        client.database.get(`goodbye-color-${guildId}`)    ?? '#ED4245',
         footerText:   client.database.get(`goodbye-footer-${guildId}`)   ?? null,
         thumbnail:    getBool(client, `goodbye-thumbnail-${guildId}`,     false),
@@ -65,88 +65,88 @@ function getConfig(client, guildId) {
 module.exports = new ApplicationCommand({
     command: {
         name: 'goodbye',
-        description: 'Konfigurasi goodbye notification untuk member yang keluar.',
+        description: 'Configure goodbye notifications for members who leave.',
         type: 1,
         default_member_permissions: String(PermissionFlagsBits.ManageGuild),
         options: [
-            { name: 'status',  description: 'Lihat konfigurasi goodbye saat ini.', type: 1 },
+            { name: 'status',  description: 'View the current goodbye configuration.', type: 1 },
             {
                 name: 'toggle',
-                description: 'Aktifkan atau nonaktifkan pesan perpisahan.',
+                description: 'Enable or disable goodbye messages.',
                 type: 1,
-                options: [{ name: 'aktif', description: 'true = nyalakan, false = matikan', type: 5, required: true }]
+                options: [{ name: 'active', description: 'true = enable, false = disable', type: 5, required: true }]
             },
             {
                 name: 'channel',
-                description: 'Atur channel tempat pesan perpisahan dikirim.',
+                description: 'Set the channel where goodbye messages will be sent.',
                 type: 1,
-                options: [{ name: 'channel', description: 'Pilih channel teks', type: 3, autocomplete: true, required: true }]
+                options: [{ name: 'channel', description: 'Select a text channel', type: 3, autocomplete: true, required: true }]
             },
             {
-                name: 'tipe',
-                description: 'Pilih tipe pesan: embed atau teks biasa.',
+                name: 'type',
+                description: 'Choose the message type: embed or plain text.',
                 type: 1,
-                options: [{ name: 'tipe', description: 'embed = pakai embed, plain = teks biasa', type: 3, required: true,
-                    choices: [{ name: '🖼️ Embed', value: 'embed' }, { name: '💬 Teks Biasa', value: 'plain' }] }]
+                options: [{ name: 'type', description: 'embed = use embed, plain = plain text', type: 3, required: true,
+                    choices: [{ name: '🖼️ Embed', value: 'embed' }, { name: '💬 Plain Text', value: 'plain' }] }]
             },
             {
-                name: 'teks',
-                description: 'Ubah judul & deskripsi embed (mode embed) atau isi teks biasa (mode plain) via modal.',
+                name: 'text',
+                description: 'Edit the embed title & description (embed mode) or plain text content (plain mode) via modal.',
                 type: 1
             },
             {
                 name: 'color',
-                description: 'Ubah warna embed (hex, contoh: #ED4245).',
+                description: 'Change the embed color (hex, e.g. #ED4245).',
                 type: 1,
-                options: [{ name: 'hex', description: 'Kode warna hex, contoh: #ED4245', type: 3, required: true, max_length: 7 }]
+                options: [{ name: 'hex', description: 'Hex color code, e.g. #ED4245', type: 3, required: true, max_length: 7 }]
             },
             {
                 name: 'footer',
-                description: 'Ubah atau hapus teks footer embed.',
+                description: 'Edit or remove the embed footer text.',
                 type: 1,
-                options: [{ name: 'teks', description: 'Teks footer. Ketik "-" untuk menghapus footer.', type: 3, required: true, max_length: 2048 }]
+                options: [{ name: 'text', description: 'Footer text. Type "-" to remove the footer.', type: 3, required: true, max_length: 2048 }]
             },
             {
                 name: 'thumbnail',
-                description: 'Tampilkan atau sembunyikan foto profil member di embed.',
+                description: 'Show or hide the member profile picture in the embed.',
                 type: 1,
-                options: [{ name: 'tampil', description: 'true = tampilkan, false = sembunyikan', type: 5, required: true }]
+                options: [{ name: 'show', description: 'true = show, false = hide', type: 5, required: true }]
             },
             {
                 name: 'fields',
-                description: 'Aktifkan atau nonaktifkan field info di embed.',
+                description: 'Enable or disable info fields in the embed.',
                 type: 1,
                 options: [
                     {
                         name: 'field',
-                        description: 'Pilih field yang ingin diubah',
+                        description: 'Choose the field to toggle',
                         type: 3,
                         required: true,
                         choices: [
                             { name: '👤 Member',       value: 'member'       },
-                            { name: '📅 Bergabung',    value: 'bergabung'    },
-                            { name: '📅 Akun Dibuat',  value: 'akun_dibuat'  },
-                            { name: '👥 Total Member', value: 'total_member' },
+                            { name: '📅 Joined',    value: 'bergabung'    },
+                            { name: '📅 Account Created',  value: 'akun_dibuat'  },
+                            { name: '👥 Total Members', value: 'total_member' },
                         ]
                     },
-                    { name: 'tampil', description: 'true = tampilkan, false = sembunyikan', type: 5, required: true }
+                    { name: 'show', description: 'true = show, false = hide', type: 5, required: true }
                 ]
             },
             {
                 name: 'card',
-                description: 'Konfigurasi goodbye card (gambar perpisahan dengan foto profil).',
+                description: 'Configure the goodbye card (farewell image with profile picture).',
                 type: 1,
                 options: [{
-                    name: 'aksi', description: 'Pilih aksi yang ingin dilakukan', type: 3, required: true,
+                    name: 'action', description: 'Choose the action to perform', type: 3, required: true,
                     choices: [
                         { name: '🔌 Toggle on/off card', value: 'toggle' },
-                        { name: '✏️  Ubah teks card',     value: 'teks'   },
-                        { name: '🎨 Ubah warna card',     value: 'warna'  },
+                        { name: '✏️  Edit card text',     value: 'teks'   },
+                        { name: '🎨 Edit card colors',     value: 'warna'  },
                     ]
                 }]
             },
-            { name: 'reset',   description: 'Reset semua pengaturan goodbye ke default.', type: 1 },
-            { name: 'preview', description: 'Pratinjau pesan perpisahan dengan pengaturan saat ini.', type: 1 },
+            { name: 'reset',   description: 'Reset all goodbye settings to default.', type: 1 },
+            { name: 'preview', description: 'Preview the goodbye message with the current settings.', type: 1 },
         ]
     },
     options: { cooldown: 3000 },
@@ -170,28 +170,28 @@ module.exports = new ApplicationCommand({
             const cfg      = getConfig(client, guildId);
             const channel  = cfg.channelId ? interaction.guild.channels.cache.get(cfg.channelId) : null;
             const colorHex = cfg.color.startsWith('#') ? cfg.color : `#${cfg.color}`;
-            const on = '✅ Tampil', off = '❌ Disembunyikan';
+            const on = '✅ Shown', off = '❌ Hidden';
 
             const embed = new EmbedBuilder()
                 .setColor(colorHex)
-                .setTitle('⚙️ Konfigurasi Pesan Perpisahan')
+                .setTitle('⚙️ Goodbye Message Configuration')
                 .addFields(
-                    { name: '🔌 Status',      value: cfg.enabled ? '✅ Aktif' : '❌ Nonaktif',                     inline: true },
-                    { name: '📨 Tipe Pesan',  value: cfg.messageType === 'plain' ? '💬 Teks Biasa' : '🖼️ Embed', inline: true },
-                    { name: '📢 Channel',     value: channel ? `<#${channel.id}>` : '`Belum diatur`',              inline: true },
-                    { name: '🎨 Warna',       value: `\`${cfg.color}\``,                                            inline: true },
-                    { name: '📌 Judul',       value: `\`${cfg.title}\``,                                            inline: false },
-                    { name: '📝 Deskripsi',   value: `\`${cfg.description}\``,                                      inline: false },
-                    { name: '💬 Teks Biasa',  value: cfg.plainText ? `\`${cfg.plainText.slice(0,100)}\`` : '`(kosong)`', inline: false },
-                    { name: '🃏 Goodbye Card',value: cfg.cardEnabled ? '✅ Aktif' : '❌ Nonaktif',                 inline: true },
-                    { name: '🔻 Footer',      value: cfg.footerText ? `\`${cfg.footerText}\`` : '`(tidak ada)`',  inline: false },
+                    { name: '🔌 Status',      value: cfg.enabled ? '✅ Enabled' : '❌ Disabled',                     inline: true },
+                    { name: '📨 Message Type',  value: cfg.messageType === 'plain' ? '💬 Plain Text' : '🖼️ Embed', inline: true },
+                    { name: '📢 Channel',     value: channel ? `<#${channel.id}>` : '`Not set`',              inline: true },
+                    { name: '🎨 Color',       value: `\`${cfg.color}\``,                                            inline: true },
+                    { name: '📌 Title',       value: `\`${cfg.title}\``,                                            inline: false },
+                    { name: '📝 Description',   value: `\`${cfg.description}\``,                                      inline: false },
+                    { name: '💬 Plain Text',  value: cfg.plainText ? `\`${cfg.plainText.slice(0,100)}\`` : '`(empty)`', inline: false },
+                    { name: '🃏 Goodbye Card',value: cfg.cardEnabled ? '✅ Enabled' : '❌ Disabled',                 inline: true },
+                    { name: '🔻 Footer',      value: cfg.footerText ? `\`${cfg.footerText}\`` : '`(none)`',  inline: false },
                     { name: '🖼️ Thumbnail',   value: cfg.thumbnail ? on : off,        inline: true },
                     { name: '👤 Member',      value: cfg.showMember ? on : off,        inline: true },
-                    { name: '📅 Bergabung',   value: cfg.showBergabung ? on : off,     inline: true },
-                    { name: '📅 Akun Dibuat', value: cfg.showAkunDibuat ? on : off,    inline: true },
-                    { name: '👥 Total Member',value: cfg.showTotalMember ? on : off,   inline: true },
+                    { name: '📅 Joined',   value: cfg.showBergabung ? on : off,     inline: true },
+                    { name: '📅 Account Created', value: cfg.showAkunDibuat ? on : off,    inline: true },
+                    { name: '👥 Total Members',value: cfg.showTotalMember ? on : off,   inline: true },
                 )
-                .setFooter({ text: 'Gunakan /goodbye preview untuk melihat tampilan embed.' })
+                .setFooter({ text: 'Use /goodbye preview to see the embed preview.' })
                 .setTimestamp();
 
             return interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
@@ -199,12 +199,12 @@ module.exports = new ApplicationCommand({
 
         // ── TOGGLE ────────────────────────────────────────────────────────
         if (sub === 'toggle') {
-            const val = interaction.options.getBoolean('aktif');
+            const val = interaction.options.getBoolean('active');
             if (val && !client.database.get(`goodbye-channel-${guildId}`))
-                return interaction.reply({ content: '❌ Atur channel goodbye terlebih dahulu dengan `/goodbye channel`.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: '❌ Set the goodbye channel first using `/goodbye channel`.', flags: MessageFlags.Ephemeral });
             setBool(client, `goodbye-enabled-${guildId}`, val);
             return interaction.reply({
-                content: val ? '✅ Pesan perpisahan **diaktifkan**.' : '❌ Pesan perpisahan **dinonaktifkan**.',
+                content: val ? '✅ Goodbye message **enabled**.' : '❌ Goodbye message **disabled**.',
                 flags: MessageFlags.Ephemeral
             });
         }
@@ -212,27 +212,27 @@ module.exports = new ApplicationCommand({
         // ── CHANNEL ───────────────────────────────────────────────────────
         if (sub === 'channel') {
             const ch = resolveChannel(interaction.guild, interaction.options.getString('channel'));
-            if (!ch) return interaction.reply({ content: '❌ Channel tidak ditemukan. Gunakan mention `#channel` atau ID channel.', flags: MessageFlags.Ephemeral });
+            if (!ch) return interaction.reply({ content: '❌ Channel not found. Use a `#channel` mention or channel ID.', flags: MessageFlags.Ephemeral });
             const chOk = await checkBotPermissions(interaction, [PermissionFlagsBits.SendMessages, PermissionFlagsBits.EmbedLinks], ch);
             if (!chOk) return;
             client.database.set(`goodbye-channel-${guildId}`, ch.id);
-            return interaction.reply({ content: `✅ Channel perpisahan diatur ke <#${ch.id}>.`, flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: `✅ Goodbye channel set to <#${ch.id}>.`, flags: MessageFlags.Ephemeral });
         }
 
         // ── TIPE ─────────────────────────────────────────────────────────
-        if (sub === 'tipe') {
-            const val = interaction.options.getString('tipe');
+        if (sub === 'type') {
+            const val = interaction.options.getString('type');
             client.database.set(`goodbye-messageType-${guildId}`, val);
             return interaction.reply({
                 content: val === 'plain'
-                    ? '✅ Tipe pesan goodbye diubah ke **Teks Biasa**. Gunakan `/goodbye teks` untuk mengatur isinya.'
-                    : '✅ Tipe pesan goodbye diubah ke **Embed**. Gunakan `/goodbye teks` untuk mengatur judul & deskripsinya.',
+                    ? '✅ Goodbye message type changed to **Plain Text**. Use `/goodbye text` to set the content.'
+                    : '✅ Goodbye message type changed to **Embed**. Use `/goodbye text` to set the title & description.',
                 flags: MessageFlags.Ephemeral
             });
         }
 
         // ── TEKS ─────────────────────────────────────────────────────────
-        if (sub === 'teks') {
+        if (sub === 'text') {
             const cfg     = getConfig(client, guildId);
             const isPlain = cfg.messageType === 'plain';
             const shortId = `${interaction.user.id.slice(-6)}${Date.now().toString(36)}`;
@@ -240,13 +240,13 @@ module.exports = new ApplicationCommand({
 
             const modal = new ModalBuilder()
                 .setCustomId(modalId)
-                .setTitle(isPlain ? '✏️ Ubah Teks Biasa Goodbye' : '✏️ Ubah Teks Embed Goodbye');
+                .setTitle(isPlain ? '✏️ Edit Plain Goodbye Text' : '✏️ Edit Goodbye Embed Text');
 
             if (isPlain) {
                 modal.addComponents(new ActionRowBuilder().addComponents(
                     new TextInputBuilder()
                         .setCustomId('plainText')
-                        .setLabel('Isi Pesan: {member} {server} {count} {tag}')
+                        .setLabel('Message Content: {member} {server} {count} {tag}')
                         .setStyle(TextInputStyle.Paragraph)
                         .setMaxLength(2000)
                         .setValue(cfg.plainText.slice(0, 2000))
@@ -257,7 +257,7 @@ module.exports = new ApplicationCommand({
                     new ActionRowBuilder().addComponents(
                         new TextInputBuilder()
                             .setCustomId('title')
-                            .setLabel('Judul: {username} {tag} {server} (bukan mention)')
+                            .setLabel('Title: {username} {tag} {server} (not a mention)')
                             .setStyle(TextInputStyle.Short)
                             .setMaxLength(256)
                             .setValue(cfg.title.slice(0, 256))
@@ -266,7 +266,7 @@ module.exports = new ApplicationCommand({
                     new ActionRowBuilder().addComponents(
                         new TextInputBuilder()
                             .setCustomId('description')
-                            .setLabel('Deskripsi: {member}=mention {username} {server}')
+                            .setLabel('Description: {member}=mention {username} {server}')
                             .setStyle(TextInputStyle.Paragraph)
                             .setMaxLength(1024)
                             .setValue(cfg.description.slice(0, 1024))
@@ -286,7 +286,7 @@ module.exports = new ApplicationCommand({
                 const newPlain = submitted.fields.getTextInputValue('plainText').trim();
                 client.database.set(`goodbye-plainText-${guildId}`, newPlain);
                 return submitted.reply({
-                    content: `✅ Teks biasa goodbye diperbarui.\n**Pesan:** ${newPlain}`,
+                    content: `✅ Goodbye plain text updated.\n**Message:** ${newPlain}`,
                     flags: MessageFlags.Ephemeral
                 });
             } else {
@@ -295,7 +295,7 @@ module.exports = new ApplicationCommand({
                 client.database.set(`goodbye-title-${guildId}`,       newTitle);
                 client.database.set(`goodbye-description-${guildId}`, newDesc);
                 return submitted.reply({
-                    content: `✅ Teks embed goodbye diperbarui.\n**Judul:** ${newTitle}\n**Deskripsi:** ${newDesc}`,
+                    content: `✅ Goodbye embed text updated.\n**Title:** ${newTitle}\n**Description:** ${newDesc}`,
                     flags: MessageFlags.Ephemeral
                 });
             }
@@ -305,29 +305,29 @@ module.exports = new ApplicationCommand({
         if (sub === 'color') {
             const val = interaction.options.getString('hex').trim();
             if (!/^#?[0-9A-Fa-f]{6}$/.test(val))
-                return interaction.reply({ content: '❌ Format warna tidak valid. Gunakan hex seperti `#ED4245` atau `ED4245`.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: '❌ Invalid color format. Use hex like `#ED4245` or `ED4245`.', flags: MessageFlags.Ephemeral });
             const clean = val.startsWith('#') ? val : `#${val}`;
             client.database.set(`goodbye-color-${guildId}`, clean);
-            return interaction.reply({ content: `✅ Warna embed diperbarui ke \`${clean}\`.`, flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: `✅ Embed color updated to \`${clean}\`.`, flags: MessageFlags.Ephemeral });
         }
 
         // ── FOOTER ────────────────────────────────────────────────────────
         if (sub === 'footer') {
-            const val = interaction.options.getString('teks').trim();
+            const val = interaction.options.getString('text').trim();
             if (val === '-') {
                 client.database.delete(`goodbye-footer-${guildId}`);
-                return interaction.reply({ content: '✅ Footer embed **dihapus**.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: '✅ Embed footer **removed**.', flags: MessageFlags.Ephemeral });
             }
             client.database.set(`goodbye-footer-${guildId}`, val);
-            return interaction.reply({ content: `✅ Footer embed diperbarui:\n> ${val}`, flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: `✅ Embed footer updated:\n> ${val}`, flags: MessageFlags.Ephemeral });
         }
 
         // ── THUMBNAIL ─────────────────────────────────────────────────────
         if (sub === 'thumbnail') {
-            const val = interaction.options.getBoolean('tampil');
+            const val = interaction.options.getBoolean('show');
             setBool(client, `goodbye-thumbnail-${guildId}`, val);
             return interaction.reply({
-                content: val ? '✅ Thumbnail foto profil **ditampilkan**.' : '✅ Thumbnail foto profil **disembunyikan**.',
+                content: val ? '✅ Profile picture thumbnail **shown**.' : '✅ Profile picture thumbnail **hidden**.',
                 flags: MessageFlags.Ephemeral
             });
         }
@@ -335,56 +335,56 @@ module.exports = new ApplicationCommand({
         // ── FIELDS ────────────────────────────────────────────────────────
         if (sub === 'fields') {
             const field = interaction.options.getString('field');
-            const val   = interaction.options.getBoolean('tampil');
+            const val   = interaction.options.getBoolean('show');
             const fieldMap = {
                 member:       { key: `goodbye-showMember-${guildId}`,      label: '👤 Member'       },
-                bergabung:    { key: `goodbye-showBergabung-${guildId}`,    label: '📅 Bergabung'    },
-                akun_dibuat:  { key: `goodbye-showAkunDibuat-${guildId}`,   label: '📅 Akun Dibuat'  },
-                total_member: { key: `goodbye-showTotalMember-${guildId}`,  label: '👥 Total Member' },
+                bergabung:    { key: `goodbye-showBergabung-${guildId}`,    label: '📅 Joined'    },
+                akun_dibuat:  { key: `goodbye-showAkunDibuat-${guildId}`,   label: '📅 Account Created'  },
+                total_member: { key: `goodbye-showTotalMember-${guildId}`,  label: '👥 Total Members' },
             };
             const target = fieldMap[field];
-            if (!target) return interaction.reply({ content: '❌ Field tidak valid.', flags: MessageFlags.Ephemeral });
+            if (!target) return interaction.reply({ content: '❌ Invalid field.', flags: MessageFlags.Ephemeral });
             setBool(client, target.key, val);
             return interaction.reply({
                 content: val
-                    ? `✅ Field **${target.label}** sekarang **ditampilkan** di embed.`
-                    : `✅ Field **${target.label}** sekarang **disembunyikan** dari embed.`,
+                    ? `✅ Field **${target.label}** is now **shown** in the embed.`
+                    : `✅ Field **${target.label}** is now **hidden** from the embed.`,
                 flags: MessageFlags.Ephemeral
             });
         }
 
         // ── CARD ─────────────────────────────────────────────────────────
         if (sub === 'card') {
-            const aksi = interaction.options.getString('aksi');
+            const action = interaction.options.getString('action');
             const cfg  = getConfig(client, guildId);
 
-            if (aksi === 'toggle') {
+            if (action === 'toggle') {
                 const newVal = !cfg.cardEnabled;
                 setBool(client, `goodbye-cardEnabled-${guildId}`, newVal);
                 return interaction.reply({
                     content: newVal
-                        ? '✅ Goodbye card **diaktifkan**. Gambar perpisahan akan dikirim bersama pesan goodbye.'
-                        : '❌ Goodbye card **dinonaktifkan**.',
+                        ? '✅ Goodbye card **enabled**. The farewell image will be sent along with the goodbye message.'
+                        : '❌ Goodbye card **disabled**.',
                     flags: MessageFlags.Ephemeral
                 });
             }
 
-            if (aksi === 'teks') {
+            if (action === 'teks') {
                 const shortId = `${interaction.user.id.slice(-6)}${Date.now().toString(36)}`;
                 const modalId = `gcard-teks-${guildId.slice(-8)}-${shortId}`;
-                const modal = new ModalBuilder().setCustomId(modalId).setTitle('✏️ Ubah Teks Goodbye Card');
+                const modal = new ModalBuilder().setCustomId(modalId).setTitle('✏️ Edit Goodbye Card Text');
                 modal.addComponents(
                     new ActionRowBuilder().addComponents(
                         new TextInputBuilder()
                             .setCustomId('welcomeText')
-                            .setLabel('Teks besar atas (misal: GOODBYE)')
+                            .setLabel('Large top text (e.g. GOODBYE)')
                             .setStyle(TextInputStyle.Short).setMaxLength(20)
                             .setValue(cfg.cardWelcomeText).setRequired(true)
                     ),
                     new ActionRowBuilder().addComponents(
                         new TextInputBuilder()
                             .setCustomId('subText')
-                            .setLabel('Teks kecil bawah: {server} {count} {tag}')
+                            .setLabel('Small bottom text: {server} {count} {tag}')
                             .setStyle(TextInputStyle.Short).setMaxLength(60)
                             .setValue(cfg.cardSubText).setRequired(true)
                     ),
@@ -397,18 +397,18 @@ module.exports = new ApplicationCommand({
                 if (!submitted) return;
                 client.database.set(`goodbye-cardWelcomeText-${guildId}`, submitted.fields.getTextInputValue('welcomeText').trim());
                 client.database.set(`goodbye-cardSubText-${guildId}`,     submitted.fields.getTextInputValue('subText').trim());
-                return submitted.reply({ content: '✅ Teks goodbye card diperbarui!', flags: MessageFlags.Ephemeral });
+                return submitted.reply({ content: '✅ Goodbye card text updated!', flags: MessageFlags.Ephemeral });
             }
 
-            if (aksi === 'warna') {
+            if (action === 'warna') {
                 const shortId = `${interaction.user.id.slice(-6)}${Date.now().toString(36)}`;
                 const modalId = `gcard-warna-${guildId.slice(-8)}-${shortId}`;
-                const modal = new ModalBuilder().setCustomId(modalId).setTitle('🎨 Ubah Warna Goodbye Card');
+                const modal = new ModalBuilder().setCustomId(modalId).setTitle('🎨 Edit Goodbye Card Colors');
                 modal.addComponents(
-                    new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId('bgColor').setLabel('Warna latar kiri (hex)').setStyle(TextInputStyle.Short).setMaxLength(7).setValue(cfg.cardBgColor).setRequired(true)),
-                    new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId('bgColor2').setLabel('Warna latar kanan (hex)').setStyle(TextInputStyle.Short).setMaxLength(7).setValue(cfg.cardBgColor2).setRequired(true)),
-                    new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId('accentColor').setLabel('Warna aksen/border avatar (hex)').setStyle(TextInputStyle.Short).setMaxLength(7).setValue(cfg.cardAccentColor).setRequired(true)),
-                    new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId('textColor').setLabel('Warna teks utama (hex)').setStyle(TextInputStyle.Short).setMaxLength(7).setValue(cfg.cardTextColor).setRequired(true)),
+                    new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId('bgColor').setLabel('Left background color (hex)').setStyle(TextInputStyle.Short).setMaxLength(7).setValue(cfg.cardBgColor).setRequired(true)),
+                    new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId('bgColor2').setLabel('Right background color (hex)').setStyle(TextInputStyle.Short).setMaxLength(7).setValue(cfg.cardBgColor2).setRequired(true)),
+                    new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId('accentColor').setLabel('Accent/avatar border color (hex)').setStyle(TextInputStyle.Short).setMaxLength(7).setValue(cfg.cardAccentColor).setRequired(true)),
+                    new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId('textColor').setLabel('Main text color (hex)').setStyle(TextInputStyle.Short).setMaxLength(7).setValue(cfg.cardTextColor).setRequired(true)),
                 );
                 await interaction.showModal(modal);
                 const submitted = await interaction.awaitModalSubmit({
@@ -418,10 +418,10 @@ module.exports = new ApplicationCommand({
                 if (!submitted) return;
                 const hexRe = /^#[0-9A-Fa-f]{6}$/;
                 const colorFields = [
-                    { id: 'bgColor',     key: `goodbye-cardBgColor-${guildId}`,   label: 'Latar kiri'  },
-                    { id: 'bgColor2',    key: `goodbye-cardBgColor2-${guildId}`,  label: 'Latar kanan' },
-                    { id: 'accentColor', key: `goodbye-cardAccent-${guildId}`,    label: 'Aksen'       },
-                    { id: 'textColor',   key: `goodbye-cardTextColor-${guildId}`, label: 'Teks utama'  },
+                    { id: 'bgColor',     key: `goodbye-cardBgColor-${guildId}`,   label: 'Left background'  },
+                    { id: 'bgColor2',    key: `goodbye-cardBgColor2-${guildId}`,  label: 'Right background' },
+                    { id: 'accentColor', key: `goodbye-cardAccent-${guildId}`,    label: 'Accent'       },
+                    { id: 'textColor',   key: `goodbye-cardTextColor-${guildId}`, label: 'Main text'  },
                 ];
                 const errors = [];
                 for (const f of colorFields) {
@@ -431,11 +431,11 @@ module.exports = new ApplicationCommand({
                 }
                 if (errors.length > 0) {
                     return submitted.reply({
-                        content: `⚠️ Format warna tidak valid untuk: **${errors.join(', ')}**. Field lain yang valid sudah disimpan.`,
+                        content: `⚠️ Invalid color format for: **${errors.join(', ')}**. Other valid fields have been saved.`,
                         flags: MessageFlags.Ephemeral
                     });
                 }
-                return submitted.reply({ content: '✅ Warna goodbye card berhasil diperbarui!', flags: MessageFlags.Ephemeral });
+                return submitted.reply({ content: '✅ Goodbye card colors successfully updated!', flags: MessageFlags.Ephemeral });
             }
         }
 
@@ -447,7 +447,7 @@ module.exports = new ApplicationCommand({
              'cardTitleColor', 'cardUsernameColor', 'cardMsgColor', 'cardFont',
              'showMember', 'showBergabung', 'showAkunDibuat', 'showTotalMember']
                 .forEach(k => client.database.delete(`goodbye-${k}-${guildId}`));
-            return interaction.reply({ content: '🔄 Semua pengaturan goodbye telah **direset ke default**.', flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: '🔄 All goodbye settings have been **reset to default**.', flags: MessageFlags.Ephemeral });
         }
 
         // ── PREVIEW ───────────────────────────────────────────────────────
@@ -459,7 +459,7 @@ module.exports = new ApplicationCommand({
             const displayName     = member.displayName || member.user.username;
             const createdRelative = `<t:${Math.floor(member.user.createdTimestamp / 1000)}:R>`;
 
-            // Untuk title & footer: {member} → @displayName (mention tidak render di embed title)
+            // For title & footer: {member} → @displayName (mention doesn't render in embed title)
             const parseTitle = (str) => str
                 .replace(/{member}/g,       `@${displayName}`)
                 .replace(/{username}/g,     member.user.username)
@@ -468,7 +468,7 @@ module.exports = new ApplicationCommand({
                 .replace(/{count}/g,        String(interaction.guild.memberCount))
                 .replace(/{akun\.dibuat}/g, createdRelative);
 
-            // Untuk description & plain text: {member} → mention <@ID>
+            // For description & plain text: {member} → mention <@ID>
             const parse = (str) => str
                 .replace(/{member}/g,       `<@${member.id}>`)
                 .replace(/{username}/g,     member.user.username)
@@ -507,36 +507,36 @@ module.exports = new ApplicationCommand({
                 }
             }
 
-            // Mode teks biasa
+            // Plain text mode
             if (cfg.messageType === 'plain') {
                 let content = parse(cfg.plainText).trim();
                 const infoLines = [];
                 if (cfg.showMember)      infoLines.push(`👤 **Member:** ${member.user.tag}`);
-                if (cfg.showBergabung)   infoLines.push(`📅 **Bergabung:** <t:${Math.floor(member.joinedTimestamp / 1000)}:R>`);
-                if (cfg.showAkunDibuat)  infoLines.push(`📅 **Akun Dibuat:** <t:${Math.floor(member.user.createdTimestamp / 1000)}:R>`);
-                if (cfg.showTotalMember) infoLines.push(`👥 **Total Member:** ${interaction.guild.memberCount} member`);
+                if (cfg.showBergabung)   infoLines.push(`📅 **Joined:** <t:${Math.floor(member.joinedTimestamp / 1000)}:R>`);
+                if (cfg.showAkunDibuat)  infoLines.push(`📅 **Account Created:** <t:${Math.floor(member.user.createdTimestamp / 1000)}:R>`);
+                if (cfg.showTotalMember) infoLines.push(`👥 **Total Members:** ${interaction.guild.memberCount} members`);
                 if (infoLines.length > 0) content += (content ? '\n' : '') + infoLines.join('\n');
                 content = content.trim();
                 if (content || cardAttachment) {
                     const payload = { flags: MessageFlags.Ephemeral };
-                    payload.content = `> 👁️ **Mode Pratinjau** — bukan pesan perpisahan sungguhan${content ? '\n' + content : ''}`;
+                    payload.content = `> 👁️ **Preview Mode** — not a real goodbye message${content ? '\n' + content : ''}`;
                     if (cardAttachment) payload.files = [cardAttachment];
                     return interaction.reply(payload);
                 }
-                return interaction.reply({ content: '> 👁️ **Mode Pratinjau** — pesan kosong dan goodbye card tidak aktif.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: '> 👁️ **Preview Mode** — empty message and goodbye card is not active.', flags: MessageFlags.Ephemeral });
             }
 
-            // Mode embed
+            // Embed mode
             const hasText   = cfg.title.trim() || cfg.description.trim();
             const hasFields = cfg.showMember || cfg.showBergabung || cfg.showAkunDibuat || cfg.showTotalMember;
 
             if (!hasText && !hasFields && !cardAttachment) {
-                return interaction.reply({ content: '> 👁️ **Mode Pratinjau** — pesan kosong dan goodbye card tidak aktif.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: '> 👁️ **Preview Mode** — empty message and goodbye card is not active.', flags: MessageFlags.Ephemeral });
             }
 
             const embed = new EmbedBuilder()
                 .setColor(colorHex)
-                .setAuthor({ name: '👁️ Mode Pratinjau — bukan pesan perpisahan sungguhan' })
+                .setAuthor({ name: '👁️ Preview Mode — not a real goodbye message' })
                 .setTimestamp();
 
             if (parseTitle(cfg.title))  embed.setTitle(parseTitle(cfg.title));
@@ -546,9 +546,9 @@ module.exports = new ApplicationCommand({
 
             const fields = [];
             if (cfg.showMember)      fields.push({ name: '👤 Member',       value: member.user.tag, inline: true });
-            if (cfg.showBergabung)   fields.push({ name: '📅 Bergabung',    value: member.joinedTimestamp ? `<t:${Math.floor(member.joinedTimestamp / 1000)}:R>` : '`Tidak diketahui`', inline: true });
-            if (cfg.showAkunDibuat)  fields.push({ name: '📅 Akun Dibuat',  value: `<t:${Math.floor(member.user.createdTimestamp / 1000)}:R>`, inline: true });
-            if (cfg.showTotalMember) fields.push({ name: '👥 Total Member', value: `**${interaction.guild.memberCount}** member`, inline: true });
+            if (cfg.showBergabung)   fields.push({ name: '📅 Joined',    value: member.joinedTimestamp ? `<t:${Math.floor(member.joinedTimestamp / 1000)}:R>` : '`Unknown`', inline: true });
+            if (cfg.showAkunDibuat)  fields.push({ name: '📅 Account Created',  value: `<t:${Math.floor(member.user.createdTimestamp / 1000)}:R>`, inline: true });
+            if (cfg.showTotalMember) fields.push({ name: '👥 Total Members', value: `**${interaction.guild.memberCount}** members`, inline: true });
             if (fields.length > 0) embed.addFields(...fields);
             if (cardAttachment) embed.setImage('attachment://goodbye-card.png');
 

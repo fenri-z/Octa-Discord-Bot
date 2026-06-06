@@ -7,19 +7,19 @@ const ApplicationCommand = require('../../structure/ApplicationCommand');
 function timeAgo(date) {
     const diff = Date.now() - date.getTime();
     const days = Math.floor(diff / 86_400_000);
-    if (days < 1)   return 'Hari ini';
-    if (days < 30)  return `${days} hari lalu`;
-    if (days < 365) return `${Math.floor(days / 30)} bulan lalu`;
-    return `${Math.floor(days / 365)} tahun lalu`;
+    if (days < 1)   return 'Today';
+    if (days < 30)  return `${days} days ago`;
+    if (days < 365) return `${Math.floor(days / 30)} months ago`;
+    return `${Math.floor(days / 365)} years ago`;
 }
 
 module.exports = new ApplicationCommand({
     command: {
         name: 'userinfo',
-        description: 'Tampilkan informasi detail tentang member',
+        description: 'Display detailed information about a member',
         type: 1,
         options: [
-            { type: 6, name: 'user', description: 'Member yang ingin dilihat (default: dirimu sendiri)', required: false },
+            { type: 6, name: 'user', description: 'Member to look up (default: yourself)', required: false },
         ],
     },
 
@@ -56,7 +56,7 @@ module.exports = new ApplicationCommand({
             : [];
 
         const roleStr = roles.length
-            ? roles.slice(0, 10).map(r => `<@&${r.id}>`).join(' ') + (roles.length > 10 ? ` +${roles.length - 10} lainnya` : '')
+            ? roles.slice(0, 10).map(r => `<@&${r.id}>`).join(' ') + (roles.length > 10 ? ` +${roles.length - 10} more` : '')
             : '—';
 
         // ── Badges / flags ────────────────────────────────────────────────────
@@ -90,12 +90,12 @@ module.exports = new ApplicationCommand({
             .setThumbnail(fullUser.displayAvatarURL({ size: 256, dynamic: true }))
             .addFields(
                 {
-                    name:  '👤 Informasi Akun',
+                    name:  '👤 Account Info',
                     value: [
                         `**Username:** ${fullUser.tag}`,
                         `**ID:** \`${fullUser.id}\``,
-                        `**Bot:** ${fullUser.bot ? 'Ya' : 'Tidak'}`,
-                        `**Dibuat:** <t:${Math.floor(fullUser.createdTimestamp / 1000)}:D> (${timeAgo(fullUser.createdAt)})`,
+                        `**Bot:** ${fullUser.bot ? 'Yes' : 'No'}`,
+                        `**Created:** <t:${Math.floor(fullUser.createdTimestamp / 1000)}:D> (${timeAgo(fullUser.createdAt)})`,
                     ].join('\n'),
                     inline: false,
                 },
@@ -104,32 +104,32 @@ module.exports = new ApplicationCommand({
         if (member) {
             embed.addFields(
                 {
-                    name:  '🏠 Informasi Server',
+                    name:  '🏠 Server Info',
                     value: [
-                        `**Bergabung:** <t:${Math.floor(member.joinedTimestamp / 1000)}:D> (${timeAgo(member.joinedAt)})`,
+                        `**Joined:** <t:${Math.floor(member.joinedTimestamp / 1000)}:D> (${timeAgo(member.joinedAt)})`,
                         `**Nickname:** ${member.nickname ?? '—'}`,
-                        `**Role tertinggi:** ${roles[0] ?? '—'}`,
-                        `**Status timeout:** ${isMuted ? `Ya — berakhir <t:${Math.floor(member.communicationDisabledUntil.getTime() / 1000)}:R>` : 'Tidak'}`,
+                        `**Highest role:** ${roles[0] ?? '—'}`,
+                        `**Timeout status:** ${isMuted ? `Yes — expires <t:${Math.floor(member.communicationDisabledUntil.getTime() / 1000)}:R>` : 'No'}`,
                     ].join('\n'),
                     inline: false,
                 },
                 {
-                    name:   `🎭 Role (${roles.length})`,
+                    name:   `🎭 Roles (${roles.length})`,
                     value:  roleStr,
                     inline: false,
                 },
             );
         } else {
-            embed.addFields({ name: '🏠 Status Server', value: '❌ Tidak ada di server ini', inline: false });
+            embed.addFields({ name: '🏠 Server Status', value: '❌ Not in this server', inline: false });
         }
 
-        embed.addFields({ name: '⚠️ Peringatan', value: `${warnCount} warn`, inline: true });
+        embed.addFields({ name: '⚠️ Warnings', value: `${warnCount} warn`, inline: true });
 
-        if (badgeStr) embed.addFields({ name: '🏅 Badge', value: badgeStr, inline: true });
+        if (badgeStr) embed.addFields({ name: '🏅 Badges', value: badgeStr, inline: true });
 
         if (fullUser.bannerURL()) embed.setImage(fullUser.bannerURL({ size: 512 }));
 
-        embed.setFooter({ text: `Diminta oleh ${interaction.user.tag}` }).setTimestamp();
+        embed.setFooter({ text: `Requested by ${interaction.user.tag}` }).setTimestamp();
 
         await interaction.editReply({ embeds: [embed] });
     },

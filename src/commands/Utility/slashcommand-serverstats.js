@@ -24,19 +24,19 @@ function setBool(client, key, val) {
 module.exports = new ApplicationCommand({
     command: {
         name: 'serverstats',
-        description: 'Setup channel statistik server otomatis (total member, user, dan bot).',
+        description: 'Set up automatic server statistics channels (total members, users, and bots).',
         type: 1,
         default_member_permissions: String(PermissionFlagsBits.ManageGuild),
         options: [
             // ── setup ──────────────────────────────────────────────────────
             {
                 name: 'setup',
-                description: 'Buat category & channel voice statistik secara otomatis.',
+                description: 'Automatically create a category & voice channels for server statistics.',
                 type: 1,
                 options: [
                     {
-                        name: 'nama_kategori',
-                        description: 'Nama kategori yang akan dibuat (default: 📊 Server Stats)',
+                        name: 'category_name',
+                        description: 'Name of the category to create (default: 📊 Server Stats)',
                         type: 3,
                         required: false
                     }
@@ -45,12 +45,12 @@ module.exports = new ApplicationCommand({
             // ── status ─────────────────────────────────────────────────────
             {
                 name: 'status',
-                description: 'Aktifkan atau nonaktifkan fitur server stats.',
+                description: 'Enable or disable the server stats feature.',
                 type: 1,
                 options: [
                     {
-                        name: 'aktif',
-                        description: 'Aktifkan atau nonaktifkan server stats',
+                        name: 'active',
+                        description: 'Enable or disable server stats',
                         type: 5,
                         required: true
                     }
@@ -59,24 +59,24 @@ module.exports = new ApplicationCommand({
             // ── label ──────────────────────────────────────────────────────
             {
                 name: 'label',
-                description: 'Ubah format teks channel statistik. Gunakan {count} sebagai placeholder angka.',
+                description: 'Change the statistics channel text format. Use {count} as a number placeholder.',
                 type: 1,
                 options: [
                     {
-                        name: 'tipe',
-                        description: 'Channel mana yang ingin diubah labelnya?',
+                        name: 'type',
+                        description: 'Which channel label do you want to change?',
                         type: 3,
                         required: true,
                         choices: [
-                            { name: '👥 Total Member',      value: 'total'    },
-                            { name: '👤 User (bukan bot)',  value: 'human'    },
+                            { name: '👥 Total Members',     value: 'total'    },
+                            { name: '👤 User (not bot)',     value: 'human'    },
                             { name: '🤖 Bot',               value: 'bot'      },
-                            { name: '📁 Nama Kategori',     value: 'category' },
+                            { name: '📁 Category Name',      value: 'category' },
                         ]
                     },
                     {
                         name: 'format',
-                        description: 'Format baru. Gunakan {count} untuk angka. Contoh: 👥 Member: {count}',
+                        description: 'New format. Use {count} for the number. Example: 👥 Members: {count}',
                         type: 3,
                         required: true
                     }
@@ -85,13 +85,13 @@ module.exports = new ApplicationCommand({
             // ── info ───────────────────────────────────────────────────────
             {
                 name: 'info',
-                description: 'Lihat konfigurasi server stats saat ini.',
+                description: 'View the current server stats configuration.',
                 type: 1
             },
             // ── reset ──────────────────────────────────────────────────────
             {
                 name: 'reset',
-                description: 'Hapus semua konfigurasi server stats (channel/category TIDAK dihapus otomatis).',
+                description: 'Remove all server stats configuration (channels/category are NOT deleted automatically).',
                 type: 1
             }
         ]
@@ -123,27 +123,27 @@ module.exports = new ApplicationCommand({
         if (sub === 'setup') {
             await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
-            const namaKategori = interaction.options.getString('nama_kategori') ?? '📊 Server Stats';
+            const namaKategori = interaction.options.getString('category_name') ?? '📊 Server Stats';
             const cfg = getServerStatsConfig(client, guildId);
 
             // ── Cek apakah sudah pernah disetup — langsung tolak ────────
             if (cfg.categoryId && cfg.totalId && cfg.humanId && cfg.botId) {
                 const embed = new EmbedBuilder()
                     .setColor('#ED4245')
-                    .setTitle('❌ Server Stats Sudah Disetup!')
+                    .setTitle('❌ Server Stats Already Set Up!')
                     .setThumbnail(guild.iconURL({ dynamic: true }) ?? null)
                     .setDescription(
-                        '> Server Stats sudah aktif di server ini dan tidak bisa disetup ulang.\n\n' +
-                        '> Jika ingin **memulai ulang dari awal**, gunakan `/serverstats reset` terlebih dahulu, lalu jalankan setup kembali.'
+                        '> Server Stats is already active in this server and cannot be set up again.\n\n' +
+                        '> If you want to **start over from scratch**, use `/serverstats reset` first, then run setup again.'
                     )
                     .addFields(
-                        { name: '📁 Kategori',     value: `<#${cfg.categoryId}>`, inline: true },
-                        { name: '👥 Total Member', value: `<#${cfg.totalId}>`,   inline: true },
+                        { name: '📁 Category',     value: `<#${cfg.categoryId}>`, inline: true },
+                        { name: '👥 Total Members', value: `<#${cfg.totalId}>`,   inline: true },
                         { name: '👤 User',         value: `<#${cfg.humanId}>`,   inline: true },
                         { name: '🤖 Bot',          value: `<#${cfg.botId}>`,     inline: true },
-                        { name: '⚡ Status',       value: cfg.enabled ? '✅ Aktif' : '❌ Nonaktif', inline: true },
+                        { name: '⚡ Status',        value: cfg.enabled ? '✅ Enabled' : '❌ Disabled', inline: true },
                     )
-                    .setFooter({ text: 'Gunakan /serverstats reset untuk menghapus konfigurasi yang ada.' })
+                    .setFooter({ text: 'Use /serverstats reset to remove the existing configuration.' })
                     .setTimestamp();
 
                 return interaction.editReply({ embeds: [embed] });
@@ -188,7 +188,7 @@ module.exports = new ApplicationCommand({
 
             if (!category) {
                 return interaction.editReply({
-                    content: '❌ Gagal membuat kategori. Pastikan bot memiliki izin **Manage Channels** dan posisi role bot cukup tinggi.'
+                    content: '❌ Failed to create category. Make sure the bot has **Manage Channels** permission and its role is high enough.'
                 });
             }
 
@@ -243,13 +243,13 @@ module.exports = new ApplicationCommand({
             if (!totalCh || !humanCh || !botCh) {
                 // Bersihkan category yang sudah terlanjur dibuat jika semua channel gagal
                 const channelFailed = [
-                    !totalCh ? 'Total Member' : null,
+                    !totalCh ? 'Total Members' : null,
                     !humanCh ? 'User'         : null,
                     !botCh   ? 'Bot'          : null,
                 ].filter(Boolean).join(', ');
 
                 return interaction.editReply({
-                    content: `❌ Gagal membuat channel: **${channelFailed}**.\nCek console bot untuk detail error, dan pastikan bot punya izin yang cukup.`
+                    content: `❌ Failed to create channel: **${channelFailed}**.\nCheck the bot console for error details and make sure the bot has sufficient permissions.`
                 });
             }
 
@@ -263,33 +263,33 @@ module.exports = new ApplicationCommand({
 
             const embed = new EmbedBuilder()
                 .setColor('#57F287')
-                .setTitle('✅ Server Stats Berhasil Disetup!')
+                .setTitle('✅ Server Stats Set Up Successfully!')
                 .setThumbnail(guild.iconURL({ dynamic: true }) ?? null)
                 .setDescription(
-                    '> Channel statistik berhasil dibuat dan akan **otomatis diperbarui** setiap kali member bergabung atau keluar.\n\n' +
-                    '> ⚠️ Channel ini tidak bisa di-*join* oleh member biasa — hanya sebagai tampilan angka.'
+                    '> Statistics channels have been created and will be **automatically updated** whenever a member joins or leaves.\n\n' +
+                    '> ⚠️ These channels cannot be joined by regular members — they are for display only.'
                 )
                 .addFields(
-                    { name: '📁 Kategori',       value: `<#${category.id}>`,  inline: true },
-                    { name: '👥 Total Member',   value: `<#${totalCh.id}>`,   inline: true },
+                    { name: '📁 Category',       value: `<#${category.id}>`,  inline: true },
+                    { name: '👥 Total Members',  value: `<#${totalCh.id}>`,   inline: true },
                     { name: '👤 User',           value: `<#${humanCh.id}>`,   inline: true },
                     { name: '🤖 Bot',            value: `<#${botCh.id}>`,     inline: true },
                     {
-                        name: '📊 Statistik Saat Ini',
-                        value: `${totalCount} member (${humanCount} user, ${botCount} bot)`,
+                        name: '📊 Current Statistics',
+                        value: `${totalCount} member(s) (${humanCount} user(s), ${botCount} bot(s))`,
                         inline: false
                     },
                     {
                         name: '💡 Tips',
                         value: [
-                            '• Ubah format label: `/serverstats label`',
-                            '• Nonaktifkan: `/serverstats status aktif:False`',
-                            '• Lihat config: `/serverstats info`',
+                            '• Change label format: `/serverstats label`',
+                            '• Disable: `/serverstats status active:False`',
+                            '• View config: `/serverstats info`',
                         ].join('\n'),
                         inline: false
                     }
                 )
-                .setFooter({ text: 'Gunakan /serverstats label untuk kustomisasi teks channel.' })
+                .setFooter({ text: 'Use /serverstats label to customize channel text.' })
                 .setTimestamp();
 
             return interaction.editReply({ embeds: [embed] });
@@ -299,29 +299,29 @@ module.exports = new ApplicationCommand({
         // STATUS
         // ══════════════════════════════════════════════════════════════════
         if (sub === 'status') {
-            const aktif = interaction.options.getBoolean('aktif');
+            const active = interaction.options.getBoolean('active');
             const cfg   = getServerStatsConfig(client, guildId);
 
-            if (aktif && (!cfg.categoryId || !cfg.totalId || !cfg.humanId || !cfg.botId)) {
+            if (active && (!cfg.categoryId || !cfg.totalId || !cfg.humanId || !cfg.botId)) {
                 return interaction.reply({
-                    content: '⚠️ Server stats belum disetup.\nGunakan `/serverstats setup` terlebih dahulu.',
+                    content: '⚠️ Server stats has not been set up.\nUse `/serverstats setup` first.',
                     flags: MessageFlags.Ephemeral
                 });
             }
 
-            setBool(client, `serverstats-enabled-${guildId}`, aktif);
+            setBool(client, `serverstats-enabled-${guildId}`, active);
 
-            if (aktif) await updateStats(client, guild);
+            if (active) await updateStats(client, guild);
 
             return interaction.reply({
                 embeds: [
                     new EmbedBuilder()
-                        .setColor(aktif ? '#57F287' : '#ED4245')
-                        .setTitle(aktif ? '✅ Server Stats Diaktifkan' : '🔴 Server Stats Dinonaktifkan')
+                        .setColor(active ? '#57F287' : '#ED4245')
+                        .setTitle(active ? '✅ Server Stats Enabled' : '🔴 Server Stats Disabled')
                         .setDescription(
-                            aktif
-                                ? '> Channel stats akan diperbarui otomatis setiap ada member bergabung atau keluar.'
-                                : '> Channel stats tidak akan diperbarui hingga diaktifkan kembali.\n> Channel yang sudah ada **tidak dihapus** secara otomatis.'
+                            active
+                                ? '> Stats channels will be updated automatically whenever a member joins or leaves.'
+                                : '> Stats channels will not be updated until re-enabled.\n> Existing channels are **not deleted** automatically.'
                         )
                         .setTimestamp()
                 ],
@@ -333,19 +333,19 @@ module.exports = new ApplicationCommand({
         // LABEL
         // ══════════════════════════════════════════════════════════════════
         if (sub === 'label') {
-            const tipe   = interaction.options.getString('tipe');
+            const tipe   = interaction.options.getString('type');
             const format = interaction.options.getString('format').trim();
 
             if (tipe !== 'category' && !format.includes('{count}')) {
                 return interaction.reply({
-                    content: '❌ Format harus mengandung `{count}` agar angka bisa ditampilkan.\nContoh: `👥 Member: {count}`',
+                    content: '❌ The format must contain `{count}` to display the number.\nExample: `👥 Members: {count}`',
                     flags: MessageFlags.Ephemeral
                 });
             }
 
             if (format.length > 90) {
                 return interaction.reply({
-                    content: `❌ Format terlalu panjang (${format.length} karakter). Maksimal 90 karakter.`,
+                    content: `❌ Format is too long (${format.length} characters). Maximum is 90 characters.`,
                     flags: MessageFlags.Ephemeral
                 });
             }
@@ -369,7 +369,7 @@ module.exports = new ApplicationCommand({
             if (tipe === 'category') {
                 if (!cfg.categoryId) {
                     return interaction.reply({
-                        content: '❌ Kategori belum disetup. Jalankan `/serverstats setup` terlebih dahulu.',
+                        content: '❌ Category has not been set up. Run `/serverstats setup` first.',
                         flags: MessageFlags.Ephemeral
                     });
                 }
@@ -378,7 +378,7 @@ module.exports = new ApplicationCommand({
 
                 if (!catCh) {
                     return interaction.reply({
-                        content: '❌ Channel kategori tidak ditemukan di Discord. Mungkin sudah dihapus manual.',
+                        content: '❌ Category channel not found in Discord. It may have been manually deleted.',
                         flags: MessageFlags.Ephemeral
                     });
                 }
@@ -395,17 +395,17 @@ module.exports = new ApplicationCommand({
                 await safeRename(ch, parseLabel(format, botCount));
             }
 
-            const namaLabel = { total: 'Total Member', human: 'User', bot: 'Bot', category: 'Kategori' }[tipe];
+            const namaLabel = { total: 'Total Members', human: 'User', bot: 'Bot', category: 'Category' }[tipe];
             const previewCount = tipe === 'total' ? totalCount : tipe === 'human' ? humanCount : botCount;
 
             return interaction.reply({
                 embeds: [
                     new EmbedBuilder()
                         .setColor('#FEE75C')
-                        .setTitle('✏️ Label Berhasil Diubah')
+                        .setTitle('✏️ Label Updated')
                         .addFields(
                             { name: 'Channel',     value: `**${namaLabel}**`,   inline: true },
-                            { name: 'Format Baru', value: `\`${format}\``,      inline: true },
+                            { name: 'New Format',  value: `\`${format}\``,      inline: true },
                             {
                                 name: 'Preview',
                                 value: tipe !== 'category'
@@ -431,8 +431,8 @@ module.exports = new ApplicationCommand({
             const humanCh = cfg.humanId    ? guild.channels.cache.get(cfg.humanId)    : null;
             const botCh   = cfg.botId      ? guild.channels.cache.get(cfg.botId)      : null;
 
-            const mention = (ch) => ch ? `<#${ch.id}>` : '`belum diatur`';
-            const tick    = (val) => val ? '✅ Aktif' : '❌ Nonaktif';
+            const mention = (ch) => ch ? `<#${ch.id}>` : '`not set`';
+            const tick    = (val) => val ? '✅ Enabled' : '❌ Disabled';
 
             await guild.members.fetch().catch(() => null);
             const allMembers = guild.members.cache;
@@ -444,24 +444,24 @@ module.exports = new ApplicationCommand({
                 embeds: [
                     new EmbedBuilder()
                         .setColor('#5865F2')
-                        .setTitle('📊 Konfigurasi Server Stats')
+                        .setTitle('📊 Server Stats Configuration')
                         .setThumbnail(guild.iconURL({ dynamic: true }) ?? null)
                         .addFields(
-                            { name: '⚡ Status',        value: tick(cfg.enabled),         inline: true  },
-                            { name: '📁 Kategori',       value: mention(catCh),             inline: true  },
-                            { name: '👥 Channel Total', value: mention(totalCh),            inline: true  },
-                            { name: '👤 Channel User',  value: mention(humanCh),            inline: true  },
-                            { name: '🤖 Channel Bot',   value: mention(botCh),              inline: true  },
-                            { name: '📝 Format Total',  value: `\`${cfg.totalLabel}\``,    inline: false },
-                            { name: '📝 Format User',   value: `\`${cfg.humanLabel}\``,    inline: true  },
-                            { name: '📝 Format Bot',    value: `\`${cfg.botLabel}\``,      inline: true  },
+                            { name: '⚡ Status',         value: tick(cfg.enabled),  inline: true  },
+                            { name: '📁 Category',       value: mention(catCh),     inline: true  },
+                            { name: '👥 Total Channel',  value: mention(totalCh),   inline: true  },
+                            { name: '👤 User Channel',   value: mention(humanCh),   inline: true  },
+                            { name: '🤖 Bot Channel',    value: mention(botCh),     inline: true  },
+                            { name: '📝 Total Format',   value: `\`${cfg.totalLabel}\``,  inline: false },
+                            { name: '📝 User Format',    value: `\`${cfg.humanLabel}\``,  inline: true  },
+                            { name: '📝 Bot Format',     value: `\`${cfg.botLabel}\``,    inline: true  },
                             {
-                                name: '📊 Statistik Saat Ini',
+                                name: '📊 Current Statistics',
                                 value: `Total: **${totalCount}** · User: **${humanCount}** · Bot: **${botCount}**`,
                                 inline: false
                             },
                         )
-                        .setFooter({ text: 'Gunakan /serverstats label untuk mengubah format teks.' })
+                        .setFooter({ text: 'Use /serverstats label to change the text format.' })
                         .setTimestamp()
                 ],
                 flags: MessageFlags.Ephemeral
@@ -480,8 +480,8 @@ module.exports = new ApplicationCommand({
                     embeds: [
                         new EmbedBuilder()
                             .setColor('#FEE75C')
-                            .setTitle('⚠️ Belum Ada Konfigurasi')
-                            .setDescription('> Server Stats belum pernah disetup di server ini.\n> Gunakan `/serverstats setup` untuk memulai.')
+                            .setTitle('⚠️ No Configuration Found')
+                            .setDescription('> Server Stats has never been set up in this server.\n> Use `/serverstats setup` to get started.')
                             .setTimestamp()
                     ],
                     flags: MessageFlags.Ephemeral
@@ -494,12 +494,12 @@ module.exports = new ApplicationCommand({
             const row = new ActionRowBuilder().addComponents(
                 new ButtonBuilder()
                     .setCustomId(`serverstats-reset-confirm:${guildId}`)
-                    .setLabel('Ya, Hapus Semuanya')
+                    .setLabel('Yes, Delete Everything')
                     .setStyle(ButtonStyle.Danger)
                     .setEmoji('🗑️'),
                 new ButtonBuilder()
                     .setCustomId(`serverstats-reset-cancel:${guildId}`)
-                    .setLabel('Batal')
+                    .setLabel('Cancel')
                     .setStyle(ButtonStyle.Secondary)
                     .setEmoji('✖️')
             );
@@ -509,22 +509,22 @@ module.exports = new ApplicationCommand({
             const humanCh = cfg.humanId    ? guild.channels.cache.get(cfg.humanId)    : null;
             const botCh   = cfg.botId      ? guild.channels.cache.get(cfg.botId)      : null;
 
-            const mention = (ch) => ch ? `<#${ch.id}>` : '`(tidak ditemukan)`';
+            const mention = (ch) => ch ? `<#${ch.id}>` : '`(not found)`';
 
             const confirmEmbed = new EmbedBuilder()
                 .setColor('#ED4245')
-                .setTitle('🗑️ Konfirmasi Reset Server Stats')
+                .setTitle('🗑️ Confirm Server Stats Reset')
                 .setDescription(
-                    '> Apakah kamu yakin ingin mereset Server Stats?\n\n' +
-                    '> ⚠️ **Channel dan category berikut akan dihapus permanen dari Discord:**'
+                    '> Are you sure you want to reset Server Stats?\n\n' +
+                    '> ⚠️ **The following channels and category will be permanently deleted from Discord:**'
                 )
                 .addFields(
-                    { name: '📁 Kategori',     value: mention(catCh),   inline: true },
-                    { name: '👥 Total Member', value: mention(totalCh), inline: true },
+                    { name: '📁 Category',     value: mention(catCh),   inline: true },
+                    { name: '👥 Total Members', value: mention(totalCh), inline: true },
                     { name: '👤 User',         value: mention(humanCh), inline: true },
                     { name: '🤖 Bot',          value: mention(botCh),   inline: true },
                 )
-                .setFooter({ text: 'Tindakan ini tidak bisa dibatalkan setelah dikonfirmasi.' })
+                .setFooter({ text: 'This action cannot be undone after confirmation.' })
                 .setTimestamp();
 
             return interaction.reply({

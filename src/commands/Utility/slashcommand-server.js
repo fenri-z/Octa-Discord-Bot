@@ -8,21 +8,21 @@ const DiscordBot = require("../../client/DiscordBot");
 const ApplicationCommand = require("../../structure/ApplicationCommand");
 const { isDeveloper } = require("../../utils/dmGuildProxy");
 
-// ── Label tipe channel ────────────────────────────────────────────────────
+// ── Channel type labels ────────────────────────────────────────────────────
 const CHANNEL_TYPE_LABEL = {
-    [ChannelType.GuildText]:          '💬 Teks',
-    [ChannelType.GuildVoice]:         '🔊 Suara',
-    [ChannelType.GuildCategory]:      '📁 Kategori',
-    [ChannelType.GuildAnnouncement]:  '📢 Pengumuman',
+    [ChannelType.GuildText]:          '💬 Text',
+    [ChannelType.GuildVoice]:         '🔊 Voice',
+    [ChannelType.GuildCategory]:      '📁 Category',
+    [ChannelType.GuildAnnouncement]:  '📢 Announcement',
     [ChannelType.GuildStageVoice]:    '🎙️ Stage',
     [ChannelType.GuildForum]:         '🗂️ Forum',
     [ChannelType.GuildMedia]:         '🖼️ Media',
-    [ChannelType.AnnouncementThread]: '🔁 Thread Pengumuman',
-    [ChannelType.PublicThread]:       '🔁 Thread Publik',
-    [ChannelType.PrivateThread]:      '🔒 Thread Privat',
+    [ChannelType.AnnouncementThread]: '🔁 Announcement Thread',
+    [ChannelType.PublicThread]:       '🔁 Public Thread',
+    [ChannelType.PrivateThread]:      '🔒 Private Thread',
 };
 function typeLabel(type) {
-    return CHANNEL_TYPE_LABEL[type] ?? `❓ Tipe ${type}`;
+    return CHANNEL_TYPE_LABEL[type] ?? `❓ Type ${type}`;
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────
@@ -43,7 +43,7 @@ async function sendChunked(interaction, embeds) {
 function getActiveGuild(client, userId, interaction) {
     // Jika dipanggil dari server langsung (bukan DM), pakai guild tersebut
     if (interaction.guild) return interaction.guild;
-    // DM → pakai yang dipilih via /server pilih
+    // DM → use the one selected via /server select
     const selectedGuildId = client.database.get(`dm-guild-${userId}`);
     if (!selectedGuildId) return null;
     return client.guilds.cache.get(selectedGuildId) ?? null;
@@ -53,24 +53,24 @@ function getActiveGuild(client, userId, interaction) {
 module.exports = new ApplicationCommand({
     command: {
         name: 'server',
-        description: 'Kelola server aktif untuk kontrol bot lewat DM. (Khusus owner/developer)',
+        description: 'Manage the active server for bot control via DM. (Owner/developer only)',
         type: 1,
         options: [
             // ── list ──────────────────────────────────────────────────
             {
                 name: 'list',
-                description: 'Tampilkan semua server yang diikuti bot.',
+                description: 'Show all servers the bot is in.',
                 type: 1
             },
             // ── pilih ─────────────────────────────────────────────────
             {
-                name: 'pilih',
-                description: 'Pilih server aktif untuk dikontrol lewat DM.',
+                name: 'select',
+                description: 'Select the active server to control via DM.',
                 type: 1,
                 options: [
                     {
                         name: 'id',
-                        description: 'Pilih atau ketik nama server',
+                        description: 'Select or type a server name',
                         type: 3,
                         required: true,
                         autocomplete: true
@@ -80,25 +80,25 @@ module.exports = new ApplicationCommand({
             // ── info ──────────────────────────────────────────────────
             {
                 name: 'info',
-                description: 'Lihat server aktif yang sedang dipilih.',
+                description: 'View the currently selected active server.',
                 type: 1
             },
             // ── channels ──────────────────────────────────────────────
             {
                 name: 'channels',
-                description: 'Tampilkan semua channel di server aktif beserta ID-nya.',
+                description: 'Show all channels in the active server with their IDs.',
                 type: 1,
                 options: [
                     {
-                        name: 'tipe',
-                        description: 'Filter berdasarkan tipe channel (kosongkan = semua)',
+                        name: 'type',
+                        description: 'Filter by channel type (leave empty = all)',
                         type: 3,
                         required: false,
                         choices: [
-                            { name: '💬 Teks',       value: 'text'     },
-                            { name: '🔊 Suara',      value: 'voice'    },
-                            { name: '📁 Kategori',   value: 'category' },
-                            { name: '📢 Pengumuman', value: 'news'     },
+                            { name: '💬 Text',         value: 'text'     },
+                            { name: '🔊 Voice',        value: 'voice'    },
+                            { name: '📁 Category',     value: 'category' },
+                            { name: '📢 Announcement', value: 'news'     },
                             { name: '🎙️ Stage',      value: 'stage'    },
                             { name: '🗂️ Forum',      value: 'forum'    },
                         ]
@@ -108,17 +108,17 @@ module.exports = new ApplicationCommand({
             // ── roles ─────────────────────────────────────────────────
             {
                 name: 'roles',
-                description: 'Tampilkan semua role di server aktif beserta ID-nya.',
+                description: 'Show all roles in the active server with their IDs.',
                 type: 1,
                 options: [
                     {
                         name: 'filter',
-                        description: 'Filter role yang ditampilkan (kosongkan = semua)',
+                        description: 'Filter roles shown (leave empty = all)',
                         type: 3,
                         required: false,
                         choices: [
-                            { name: '🤖 Bot / Managed',      value: 'bot'     },
-                            { name: '👤 Manual (bukan bot)',  value: 'manual'  },
+                            { name: '🤖 Bot / Managed',     value: 'bot'     },
+                            { name: '👤 Manual (not bot)',   value: 'manual'  },
                             { name: '💎 Booster',             value: 'booster' },
                         ]
                     }
@@ -127,28 +127,28 @@ module.exports = new ApplicationCommand({
             // ── commands ──────────────────────────────────────────────
             {
                 name: 'commands',
-                description: 'Tampilkan semua command server beserta status konfigurasinya.',
+                description: 'Show all server commands with their configuration status.',
                 type: 1,
                 options: [
                     {
-                        name: 'kategori',
-                        description: 'Filter berdasarkan kategori command (kosongkan = semua)',
+                        name: 'category',
+                        description: 'Filter by command category (leave empty = all)',
                         type: 3,
                         required: false,
                         choices: [
-                            { name: '👋 Member (welcome, goodbye)',         value: 'member'  },
+                            { name: '👋 Member (welcome, goodbye)',       value: 'member'  },
                             { name: '🎭 Role (autorole)',                   value: 'role'    },
                             { name: '💎 Booster',                           value: 'booster' },
-                            { name: '📨 Pesan & Embed',                     value: 'pesan'   },
-                            { name: '🔧 Utilitas (ping, prefix, invites)',  value: 'utility' },
+                            { name: '📨 Messages & Embed',               value: 'pesan'   },
+                            { name: '🔧 Utilities (ping, prefix, invites)', value: 'utility' },
                         ]
                     }
                 ]
             },
             // ── batalkan ──────────────────────────────────────────────
             {
-                name: 'batalkan',
-                description: 'Batalkan pilihan server aktif.',
+                name: 'cancel',
+                description: 'Cancel the active server selection.',
                 type: 1
             }
         ]
@@ -167,7 +167,7 @@ module.exports = new ApplicationCommand({
         // ── Hanya owner/developer ─────────────────────────────────────
         if (!isDeveloper(userId)) {
             return interaction.reply({
-                content: '❌ Command ini hanya bisa digunakan oleh owner atau developer bot.',
+                content: '❌ This command can only be used by the bot owner or developer.',
                 flags: MessageFlags.Ephemeral
             });
         }
@@ -182,7 +182,7 @@ module.exports = new ApplicationCommand({
 
             if (guilds.length === 0) {
                 return interaction.reply({
-                    content: '📭 Bot tidak ada di server manapun saat ini.',
+                    content: '📭 The bot is not in any server at the moment.',
                     flags: MessageFlags.Ephemeral
                 });
             }
@@ -196,11 +196,11 @@ module.exports = new ApplicationCommand({
                     guilds.map((g, i) => {
                         const isActive = g.id === selectedGuildId;
                         const num = String(i + 1).padStart(2, '0');
-                        return `\`${num}.\` ${isActive ? '**▶ ' : ''}${g.name}${isActive ? '** *(aktif)*' : ''}\n` +
+                        return `\`${num}.\` ${isActive ? '**▶ ' : ''}${g.name}${isActive ? '** *(active)*' : ''}\n` +
                                `      ID: \`${g.id}\` · ${g.memberCount} member`;
                     }).join('\n\n')
                 )
-                .setFooter({ text: 'Gunakan /server pilih <id> untuk memilih server.' })
+                .setFooter({ text: 'Use /server select <id> to select a server.' })
                 .setTimestamp();
 
             return interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
@@ -209,13 +209,13 @@ module.exports = new ApplicationCommand({
         // ══════════════════════════════════════════════════════════════
         // PILIH
         // ══════════════════════════════════════════════════════════════
-        if (sub === 'pilih') {
+        if (sub === 'select') {
             const guildId = interaction.options.getString('id').trim();
             const guild   = client.guilds.cache.get(guildId);
 
             if (!guild) {
                 return interaction.reply({
-                    content: `❌ Server dengan ID \`${guildId}\` tidak ditemukan.\nPastikan bot sudah ada di server tersebut. Gunakan \`/server list\` untuk melihat daftar.`,
+                    content: `❌ Server with ID \`${guildId}\` not found.\nMake sure the bot is already in that server. Use \`/server list\` to view the list.`,
                     flags: MessageFlags.Ephemeral
                 });
             }
@@ -230,11 +230,11 @@ module.exports = new ApplicationCommand({
             ]);
 
             const channelCount = guild.channels.cache.size;
-            const roleCount    = guild.roles.cache.size - 1; // kurangi @everyone
+            const roleCount    = guild.roles.cache.size - 1; // exclude @everyone
 
             const embed = new EmbedBuilder()
                 .setColor('#57F287')
-                .setTitle('✅ Server Aktif Dipilih')
+                .setTitle('✅ Active Server Selected')
                 .setThumbnail(guild.iconURL({ dynamic: true }) ?? null)
                 .addFields(
                     { name: '🏠 Server',       value: guild.name,             inline: true },
@@ -246,11 +246,11 @@ module.exports = new ApplicationCommand({
                 )
                 .setDescription(
                     (isFromGuild
-                        ? '> ⚠️ Kamu menggunakan command ini dari dalam server. Untuk kontrol penuh, gunakan lewat **DM bot**.\n'
+                        ? '> ⚠️ You are using this command from inside a server. For full control, use it via **bot DM**.\n'
                         : '') +
-                    '> Gunakan `/server channels` atau `/server roles` untuk melihat daftar.'
+                    '> Use `/server channels` or `/server roles` to view the list.'
                 )
-                .setFooter({ text: 'Gunakan /server batalkan untuk membatalkan pilihan.' })
+                .setFooter({ text: 'Use /server cancel to cancel the selection.' })
                 .setTimestamp();
 
             return interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
@@ -264,7 +264,7 @@ module.exports = new ApplicationCommand({
 
             if (!selectedGuildId && !isFromGuild) {
                 return interaction.reply({
-                    content: '📭 Belum ada server yang dipilih.\nGunakan `/server pilih <id>` untuk memilih server.',
+                    content: '📭 No server has been selected.\nUse `/server select <id>` to select a server.',
                     flags: MessageFlags.Ephemeral
                 });
             }
@@ -276,7 +276,7 @@ module.exports = new ApplicationCommand({
             if (!guild) {
                 client.database.delete(`dm-guild-${userId}`);
                 return interaction.reply({
-                    content: '❌ Server yang dipilih tidak ditemukan lagi. Pilihan telah dihapus otomatis.\nGunakan `/server pilih` untuk memilih server lain.',
+                    content: '❌ The selected server no longer exists. The selection has been automatically removed.\nUse `/server select` to select another server.',
                     flags: MessageFlags.Ephemeral
                 });
             }
@@ -289,25 +289,25 @@ module.exports = new ApplicationCommand({
 
             const embed = new EmbedBuilder()
                 .setColor('#5865F2')
-                .setTitle('🏠 Server Aktif Saat Ini')
+                .setTitle('🏠 Currently Active Server')
                 .setThumbnail(guild.iconURL({ dynamic: true }) ?? null)
                 .addFields(
-                    { name: '🏠 Nama Server',  value: guild.name,                                                    inline: true },
+                    { name: '🏠 Server Name',  value: guild.name,                                                    inline: true },
                     { name: '🆔 ID',           value: `\`${guild.id}\``,                                              inline: true },
-                    { name: '👥 Total Member', value: `${guild.memberCount}`,                                         inline: true },
-                    { name: '👑 Owner Server', value: `<@${guild.ownerId}>`,                                          inline: true },
-                    { name: '📅 Dibuat',       value: `<t:${Math.floor(guild.createdTimestamp / 1000)}:R>`,           inline: true },
+                    { name: '👥 Total Members', value: `${guild.memberCount}`,                                         inline: true },
+                    { name: '👑 Server Owner', value: `<@${guild.ownerId}>`,                                          inline: true },
+                    { name: '📅 Created',       value: `<t:${Math.floor(guild.createdTimestamp / 1000)}:R>`,           inline: true },
                     { name: '\u200b',          value: '\u200b',                                                       inline: true },
-                    { name: '🔑 Izin Bot',
+                    { name: '🔑 Bot Permissions',
                       value: [
-                        `Kirim Pesan: ${hasMsgPerm  ? '✅' : '❌'}`,
+                        `Send Messages: ${hasMsgPerm  ? '✅' : '❌'}`,
                         `Manage Roles: ${hasRolePerm ? '✅' : '❌'}`,
                         `Administrator: ${hasAdmin   ? '✅' : '❌'}`,
                       ].join('\n'),
                       inline: false
                     }
                 )
-                .setFooter({ text: 'Semua command akan dijalankan di server ini.' })
+                .setFooter({ text: 'All commands will be executed in this server.' })
                 .setTimestamp();
 
             return interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
@@ -323,9 +323,9 @@ module.exports = new ApplicationCommand({
             if (!guild) {
                 return interaction.reply({
                     content: [
-                        '⚠️ **Belum ada server yang dipilih.**',
-                        'Gunakan `/server pilih <id>` untuk memilih server terlebih dahulu.',
-                        'Gunakan `/server list` untuk melihat daftar server yang tersedia.'
+                        '⚠️ **No server has been selected.**',
+                        'Use `/server select <id>` to select a server first.',
+                        'Use `/server list` to view available servers.'
                     ].join('\n'),
                     flags: MessageFlags.Ephemeral
                 });
@@ -333,7 +333,7 @@ module.exports = new ApplicationCommand({
 
             await guild.channels.fetch().catch(() => null);
 
-            const tipeFilter = interaction.options.getString('tipe');
+            const tipeFilter = interaction.options.getString('type');
             const TIPE_MAP = {
                 text:     [ChannelType.GuildText],
                 voice:    [ChannelType.GuildVoice],
@@ -348,7 +348,7 @@ module.exports = new ApplicationCommand({
                 channels = channels.filter(c => TIPE_MAP[tipeFilter].includes(c.type));
             }
 
-            // Urutkan: kategori dulu, lalu nama
+            // Sort: categories first, then by name
             channels.sort((a, b) => {
                 if (a.type === ChannelType.GuildCategory && b.type !== ChannelType.GuildCategory) return -1;
                 if (b.type === ChannelType.GuildCategory && a.type !== ChannelType.GuildCategory) return 1;
@@ -357,7 +357,7 @@ module.exports = new ApplicationCommand({
 
             if (channels.length === 0) {
                 return interaction.reply({
-                    content: `📭 Tidak ada channel${tipeFilter ? ` dengan tipe **${tipeFilter}**` : ''} di server ini.`,
+                    content: `📭 No channels${tipeFilter ? ` with type **${tipeFilter}**` : ''} found in this server.`,
                     flags: MessageFlags.Ephemeral
                 });
             }
@@ -372,12 +372,12 @@ module.exports = new ApplicationCommand({
                     .setColor('#5865F2')
                     .setTitle(
                         i === 0
-                            ? `📋 Channel — ${guild.name}${tipeFilter ? ` (${tipeFilter})` : ''}`
-                            : `📋 Channel (lanjutan ${i + 1}/${pages.length})`
+                            ? `📋 Channels — ${guild.name}${tipeFilter ? ` (${tipeFilter})` : ''}`
+                            : `📋 Channels (continued ${i + 1}/${pages.length})`
                     )
                     .setDescription(page.join('\n'))
                     .setFooter({
-                        text: `Total: ${total} channel · Server: ${guild.name}${tipeFilter ? ` · Filter: ${tipeFilter}` : ''}`
+                        text: `Total: ${total} channel(s) · Server: ${guild.name}${tipeFilter ? ` · Filter: ${tipeFilter}` : ''}`
                     })
                     .setTimestamp()
             );
@@ -394,9 +394,9 @@ module.exports = new ApplicationCommand({
             if (!guild) {
                 return interaction.reply({
                     content: [
-                        '⚠️ **Belum ada server yang dipilih.**',
-                        'Gunakan `/server pilih <id>` untuk memilih server terlebih dahulu.',
-                        'Gunakan `/server list` untuk melihat daftar server yang tersedia.'
+                        '⚠️ **No server selected.**',
+                        'Use `/server select <id>` to select a server first.',
+                        'Use `/server list` to see the list of available servers.'
                     ].join('\n'),
                     flags: MessageFlags.Ephemeral
                 });
@@ -413,12 +413,12 @@ module.exports = new ApplicationCommand({
             if (filter === 'manual')  roles = roles.filter(r => !r.managed);
             if (filter === 'booster') roles = roles.filter(r => r.tags?.premiumSubscriberRole);
 
-            // Urutkan dari posisi tertinggi ke terendah
+            // Sort from highest to lowest position
             roles.sort((a, b) => b.position - a.position);
 
             if (roles.length === 0) {
                 return interaction.reply({
-                    content: `📭 Tidak ada role${filter ? ` dengan filter **${filter}**` : ''} di server ini.`,
+                    content: `📭 Tidak ada role${filter ? ` with filter **${filter}**` : ''} in this server.`,
                     flags: MessageFlags.Ephemeral
                 });
             }
@@ -438,12 +438,12 @@ module.exports = new ApplicationCommand({
                     .setColor('#FF73FA')
                     .setTitle(
                         i === 0
-                            ? `🎭 Role — ${guild.name}${filter ? ` (${filter})` : ''}`
-                            : `🎭 Role (lanjutan ${i + 1}/${pages.length})`
+                            ? `🎭 Roles — ${guild.name}${filter ? ` (${filter})` : ''}`
+                            : `🎭 Roles (continued ${i + 1}/${pages.length})`
                     )
                     .setDescription(page.join('\n'))
                     .setFooter({
-                        text: `Total: ${total} role · Server: ${guild.name}${filter ? ` · Filter: ${filter}` : ''} · Urutan: tertinggi → terendah`
+                        text: `Total: ${total} role(s) · Server: ${guild.name}${filter ? ` · Filter: ${filter}` : ''} · Urutan: tertinggi → terendah`
                     })
                     .setTimestamp()
             );
@@ -460,16 +460,16 @@ module.exports = new ApplicationCommand({
             if (!guild) {
                 return interaction.reply({
                     content: [
-                        '⚠️ **Belum ada server yang dipilih.**',
-                        'Gunakan `/server pilih <id>` untuk memilih server terlebih dahulu.',
-                        'Gunakan `/server list` untuk melihat daftar server yang tersedia.'
+                        '⚠️ **No server selected.**',
+                        'Use `/server select <id>` to select a server first.',
+                        'Use `/server list` to see the list of available servers.'
                     ].join('\n'),
                     flags: MessageFlags.Ephemeral
                 });
             }
 
             const guildId   = guild.id;
-            const kategori  = interaction.options.getString('kategori');
+            const category  = interaction.options.getString('category');
 
             // ── Helper baca db ────────────────────────────────────────
             const db = client.database;
@@ -480,9 +480,9 @@ module.exports = new ApplicationCommand({
                 return true;
             };
             const getStr = (key, fallback = null) => db.get(key) ?? fallback;
-            const channelMention = (id) => id ? `<#${id}>` : '`belum diatur`';
-            const roleMention    = (id) => id ? `<@&${id}>` : '`belum diatur`';
-            const tick = (val) => val ? '✅ Aktif' : '❌ Nonaktif';
+            const channelMention = (id) => id ? `<#${id}>` : '`not set`';
+            const roleMention    = (id) => id ? `<@&${id}>` : '`not set`';
+            const tick = (val) => val ? '✅ Enabled' : '❌ Disabled';
 
             // ── Definisi semua command beserta status ─────────────────
             const ALL_CATEGORIES = {
@@ -492,22 +492,22 @@ module.exports = new ApplicationCommand({
                     commands: [
                         {
                             name: '`/welcome`',
-                            desc: 'Pesan sambutan member baru.',
+                            desc: 'New member welcome message.',
                             fields: [
                                 { name: 'Status',   value: tick(getBoolCmd(`welcome-enabled-${guildId}`, true)),          inline: true },
                                 { name: 'Channel',  value: channelMention(getStr(`welcome-channel-${guildId}`)),           inline: true },
                                 { name: 'Thumbnail',value: tick(getBoolCmd(`welcome-thumbnail-${guildId}`, true)),         inline: true },
-                                { name: 'Judul',    value: `\`${getStr(`welcome-title-${guildId}`, '👋 Selamat Datang di {server}!')}\``, inline: false },
+                                { name: 'Title',    value: `\`${getStr(`welcome-title-${guildId}`, '👋 Welcome to {server}!')}\``, inline: false },
                             ]
                         },
                         {
                             name: '`/goodbye`',
-                            desc: 'Pesan perpisahan member keluar.',
+                            desc: 'Member leave farewell message.',
                             fields: [
                                 { name: 'Status',   value: tick(getBoolCmd(`goodbye-enabled-${guildId}`, true)),           inline: true },
                                 { name: 'Channel',  value: channelMention(getStr(`goodbye-channel-${guildId}`)),           inline: true },
                                 { name: 'Thumbnail',value: tick(getBoolCmd(`goodbye-thumbnail-${guildId}`, true)),         inline: true },
-                                { name: 'Judul',    value: `\`${getStr(`goodbye-title-${guildId}`, '👋 Selamat Tinggal!')}\``, inline: false },
+                                { name: 'Title',    value: `\`${getStr(`goodbye-title-${guildId}`, '👋 Goodbye!')}\``, inline: false },
                             ]
                         },
                     ]
@@ -518,7 +518,7 @@ module.exports = new ApplicationCommand({
                     commands: [
                         {
                             name: '`/autorole`',
-                            desc: 'Role otomatis saat member/bot bergabung.',
+                            desc: 'Automatic role when member/bot joins.',
                             fields: [
                                 { name: 'Human — Status', value: tick(getBoolCmd(`autorole-human-enabled-${guildId}`, false)), inline: true },
                                 { name: 'Human — Role',   value: roleMention(getStr(`autorole-human-role-${guildId}`)),        inline: true },
@@ -536,7 +536,7 @@ module.exports = new ApplicationCommand({
                     commands: [
                         {
                             name: '`/booster`',
-                            desc: 'Notifikasi & autorole untuk server booster.',
+                            desc: 'Notifications & autorole for server boosters.',
                             fields: [
                                 { name: '🚀 Boost — Status',   value: tick(getBoolCmd(`booster-boost-enabled-${guildId}`, false)),      inline: true },
                                 { name: '🚀 Boost — Channel',  value: channelMention(getStr(`booster-boost-channel-${guildId}`)),       inline: true },
@@ -553,21 +553,21 @@ module.exports = new ApplicationCommand({
                 },
 
                 pesan: {
-                    label: '📨 Pesan & Embed',
+                    label: '📨 Messages & Embed',
                     commands: [
                         {
-                            name: '`/pesan`',
-                            desc: 'Template pesan tersimpan yang bisa dikirim ke channel manapun.',
+                            name: '`/message`',
+                            desc: 'Saved message templates that can be sent to any channel.',
                             fields: (() => {
                                 const raw  = db.get(`pesan-list-${guildId}`);
                                 let list   = [];
                                 try { list = raw ? JSON.parse(raw) : []; } catch { list = []; }
                                 return [
                                     {
-                                        name:  'Template Tersimpan',
+                                        name:  'Saved Templates',
                                         value: list.length
                                             ? list.map(n => `\`${n}\``).join(', ')
-                                            : '`(belum ada template)`',
+                                            : '`(no templates)`',
                                         inline: false
                                     }
                                 ];
@@ -575,41 +575,41 @@ module.exports = new ApplicationCommand({
                         },
                         {
                             name: '`/embed`',
-                            desc: 'Buat & kirim embed custom ke channel server.',
+                            desc: 'Create & send a custom embed to a server channel.',
                             fields: [
-                                { name: 'Cara pakai', value: '`/embed buat` → edit → `/embed kirim`', inline: false }
+                                { name: 'How to use', value: '`/embed buat` → edit → `/embed kirim`', inline: false }
                             ]
                         },
                     ]
                 },
 
                 utility: {
-                    label: '🔧 Utilitas',
+                    label: '🔧 Utilities',
                     commands: [
                         {
                             name: '`/ping`',
-                            desc: 'Cek latensi bot ke Discord API.',
+                            desc: 'Check bot latency to the Discord API.',
                             fields: [
-                                { name: 'Cara pakai', value: '`/ping`', inline: false }
+                                { name: 'How to use', value: '`/ping`', inline: false }
                             ]
                         },
                         {
                             name: '`!setprefix`',
-                            desc: 'Ubah prefix message command untuk server ini.',
+                            desc: 'Change the message command prefix for this server.',
                             fields: [
-                                { name: 'Prefix saat ini', value: `\`${getStr(`prefix-${guildId}`, '!')}\``, inline: false }
+                                { name: 'Current Prefix', value: `\`${getStr(`prefix-${guildId}`, '!')}\``, inline: false }
                             ]
                         },
                         {
                             name: '`/invites`',
-                            desc: 'Lihat total undangan seorang member.',
+                            desc: 'View the total invitations of a member.',
                             fields: [
-                                { name: 'Cara pakai', value: '`/invites [member]`', inline: false }
+                                { name: 'How to use', value: '`/invites [member]`', inline: false }
                             ]
                         },
                         {
                             name: '`/serverstats`',
-                            desc: 'Channel voice otomatis yang menampilkan jumlah member, user, dan bot.',
+                            desc: 'Automatic voice channels showing member, user, and bot counts.',
                             fields: (() => {
                                 const getBoolCmd = (key, def) => {
                                     const raw = db.get(key);
@@ -626,15 +626,15 @@ module.exports = new ApplicationCommand({
                                 const humanLabel = getStr(`serverstats-human-label-${guildId}`, '👤 User: {count}');
                                 const botLabel   = getStr(`serverstats-bot-label-${guildId}`,   '🤖 Bot: {count}');
                                 return [
-                                    { name: 'Status',           value: enabled ? '✅ Aktif' : '❌ Nonaktif', inline: true  },
-                                    { name: 'Kategori',         value: categoryId ? `<#${categoryId}>` : '`belum diatur`', inline: true },
+                                    { name: 'Status',    value: enabled ? '✅ Enabled' : '❌ Disabled', inline: true  },
+                                    { name: 'Category',  value: categoryId ? `<#${categoryId}>` : '`not set`', inline: true },
                                     { name: '\u200b',           value: '\u200b', inline: true },
-                                    { name: 'Channel Total',    value: totalId    ? `<#${totalId}>`    : '`belum diatur`', inline: true  },
-                                    { name: 'Channel User',     value: humanId    ? `<#${humanId}>`    : '`belum diatur`', inline: true  },
-                                    { name: 'Channel Bot',      value: botId      ? `<#${botId}>`      : '`belum diatur`', inline: true  },
-                                    { name: 'Format Total',     value: `\`${totalLabel}\``, inline: false },
-                                    { name: 'Format User',      value: `\`${humanLabel}\``, inline: true  },
-                                    { name: 'Format Bot',       value: `\`${botLabel}\``,   inline: true  },
+                                    { name: 'Total Channel',  value: totalId  ? `<#${totalId}>` : '`not set`', inline: true  },
+                                    { name: 'User Channel',   value: humanId  ? `<#${humanId}>` : '`not set`', inline: true  },
+                                    { name: 'Bot Channel',    value: botId    ? `<#${botId}>` : '`not set`',   inline: true  },
+                                    { name: 'Total Format',   value: `\`${totalLabel}\``, inline: false },
+                                    { name: 'User Format',    value: `\`${humanLabel}\``, inline: true  },
+                                    { name: 'Bot Format',     value: `\`${botLabel}\``,   inline: true  },
                                 ];
                             })()
                         },
@@ -643,13 +643,13 @@ module.exports = new ApplicationCommand({
             };
 
             // ── Tentukan kategori yang akan ditampilkan ────────────────
-            const selectedCats = kategori
-                ? (ALL_CATEGORIES[kategori] ? [ALL_CATEGORIES[kategori]] : [])
+            const selectedCats = category
+                ? (ALL_CATEGORIES[category] ? [ALL_CATEGORIES[category]] : [])
                 : Object.values(ALL_CATEGORIES);
 
             if (selectedCats.length === 0) {
                 return interaction.reply({
-                    content: `❌ Kategori **${kategori}** tidak dikenali.`,
+                    content: `❌ Category **${category}** not recognized.`,
                     flags: MessageFlags.Ephemeral
                 });
             }
@@ -683,17 +683,17 @@ module.exports = new ApplicationCommand({
             // Tambah embed ringkasan di awal
             const summaryEmbed = new EmbedBuilder()
                 .setColor(baseColor)
-                .setTitle(`🗂️ Daftar Command — ${guild.name}`)
+                .setTitle(`🗂️ Command List — ${guild.name}`)
                 .setThumbnail(guild.iconURL({ dynamic: true }) ?? null)
                 .setDescription(
                     selectedCats.map(cat =>
                         `**${cat.label}**\n` +
                         cat.commands.map(c => `• ${c.name} — ${c.desc}`).join('\n')
                     ).join('\n\n') +
-                    '\n\n> Gunakan `/server commands kategori:<nama>` untuk melihat detail per kategori.'
+                    '\n\n> Use `/server commands category:<name>` to view details per category.'
                 )
                 .setFooter({
-                    text: `Server: ${guild.name}${kategori ? ` · Kategori: ${kategori}` : ' · Semua kategori'}`
+                    text: `Server: ${guild.name}${category ? ` · Category: ${category}` : ' · All categories'}`
                 })
                 .setTimestamp();
 
@@ -718,12 +718,12 @@ module.exports = new ApplicationCommand({
         // ══════════════════════════════════════════════════════════════
         // BATALKAN
         // ══════════════════════════════════════════════════════════════
-        if (sub === 'batalkan') {
+        if (sub === 'cancel') {
             const existing = client.database.get(`dm-guild-${userId}`);
 
             if (!existing) {
                 return interaction.reply({
-                    content: '⚠️ Tidak ada server aktif yang dipilih.',
+                    content: '⚠️ No active server is currently selected.',
                     flags: MessageFlags.Ephemeral
                 });
             }
@@ -732,7 +732,7 @@ module.exports = new ApplicationCommand({
             client.database.delete(`dm-guild-${userId}`);
 
             return interaction.reply({
-                content: `✅ Pilihan server **${guild?.name ?? existing}** telah dibatalkan.\nCommand dari DM tidak akan diteruskan ke server manapun sampai kamu memilih server lagi.`,
+                content: `✅ Server selection **${guild?.name ?? existing}** has been cancelled.\nCommands from DM will not be forwarded to any server until you select one again.`,
                 flags: MessageFlags.Ephemeral
             });
         }

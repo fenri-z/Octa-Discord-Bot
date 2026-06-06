@@ -75,7 +75,7 @@ module.exports = new Event({
         const devGuildId = process.env.DEV_GUILD_ID;
         const { publicCmds, devCmds } = loadCommands();
 
-        info(`Terdaftar di ${guilds.length} server.`);
+        info(`Registered in ${guilds.length} server(s).`);
         info(`${publicCmds.length} public commands, ${devCmds.length} dev-only commands.`);
 
         if (!__client__.inviteCache) __client__.inviteCache = new Map();
@@ -117,11 +117,11 @@ module.exports = new Event({
                 success(`[deploy] ${result.value.name}${tag} — ${result.value.count} commands ✓`);
             } else {
                 fail++;
-                warn(`[deploy] Gagal: ${result.reason?.message}`);
+                warn(`[deploy] Failed: ${result.reason?.message}`);
             }
         }
 
-        success(`\nInisialisasi selesai: ${ok} server berhasil${fail > 0 ? `, ${fail} gagal` : ''}.`);
+        success(`\nInitialization complete: ${ok} server(s) succeeded${fail > 0 ? `, ${fail} failed` : ''}.`);
         success('Bot siap digunakan!');
 
         client.user.setPresence({ status: 'online', activities: [{ name: '/help', type: 4 }] });
@@ -133,7 +133,7 @@ module.exports = new Event({
             client.giveawayManager       = giveawayManager;
             await giveawayManager.start();
         } catch (err) {
-            warn(`[Giveaway] Gagal memulai GiveawayManager: ${err.message}`);
+            warn(`[Giveaway] Failed to start GiveawayManager: ${err.message}`);
         }
 
         // ── Twitch EventSub Notifier ───────────────────────────────────────
@@ -143,7 +143,7 @@ module.exports = new Event({
             client.twitchNotifier       = twitchNotifier;
             await twitchNotifier.start();
         } catch (err) {
-            warn(`[Twitch] Gagal memulai TwitchNotifier: ${err.message}`);
+            warn(`[Twitch] Failed to start TwitchNotifier: ${err.message}`);
         }
 
         // ── Kick Notifier ──────────────────────────────────────────────────
@@ -153,7 +153,7 @@ module.exports = new Event({
             client.kickNotifier   = kickNotifier;
             kickNotifier.start();
         } catch (err) {
-            warn(`[Kick] Gagal memulai KickNotifier: ${err.message}`);
+            warn(`[Kick] Failed to start KickNotifier: ${err.message}`);
         }
     }
 }).toJSON();

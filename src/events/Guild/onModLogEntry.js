@@ -29,11 +29,11 @@ module.exports = new Event({
                 if (!events.ban) return;
                 embed = new EmbedBuilder()
                     .setColor('#ED4245')
-                    .setTitle('🔨 Member Di-Ban')
+                    .setTitle('🔨 Member Banned')
                     .addFields(
-                        { name: '👤 Member',      value: target   ? `<@${target.id}> (${target.tag ?? target.id})` : 'Tidak diketahui', inline: true },
-                        { name: '🛡️ Moderator',  value: executor ? `<@${executor.id}>`                             : 'Tidak diketahui', inline: true },
-                        { name: '📝 Alasan',      value: reason || 'Tidak ada alasan' },
+                        { name: '👤 Member',      value: target   ? `<@${target.id}> (${target.tag ?? target.id})` : 'Unknown', inline: true },
+                        { name: '🛡️ Moderator',  value: executor ? `<@${executor.id}>`                             : 'Unknown', inline: true },
+                        { name: '📝 Reason',      value: reason || 'No reason provided' },
                     )
                     .setTimestamp();
                 break;
@@ -42,11 +42,11 @@ module.exports = new Event({
                 if (!events.unban) return;
                 embed = new EmbedBuilder()
                     .setColor('#57F287')
-                    .setTitle('✅ Member Di-Unban')
+                    .setTitle('✅ Member Unbanned')
                     .addFields(
-                        { name: '👤 Member',     value: target   ? `<@${target.id}> (${target.tag ?? target.id})` : 'Tidak diketahui', inline: true },
-                        { name: '🛡️ Moderator', value: executor ? `<@${executor.id}>`                             : 'Tidak diketahui', inline: true },
-                        { name: '📝 Alasan',     value: reason || 'Tidak ada alasan' },
+                        { name: '👤 Member',     value: target   ? `<@${target.id}> (${target.tag ?? target.id})` : 'Unknown', inline: true },
+                        { name: '🛡️ Moderator', value: executor ? `<@${executor.id}>`                             : 'Unknown', inline: true },
+                        { name: '📝 Reason',     value: reason || 'No reason provided' },
                     )
                     .setTimestamp();
                 break;
@@ -55,11 +55,11 @@ module.exports = new Event({
                 if (!events.kick) return;
                 embed = new EmbedBuilder()
                     .setColor('#FEE75C')
-                    .setTitle('👢 Member Di-Kick')
+                    .setTitle('👢 Member Kicked')
                     .addFields(
-                        { name: '👤 Member',     value: target   ? `<@${target.id}> (${target.tag ?? target.id})` : 'Tidak diketahui', inline: true },
-                        { name: '🛡️ Moderator', value: executor ? `<@${executor.id}>`                             : 'Tidak diketahui', inline: true },
-                        { name: '📝 Alasan',     value: reason || 'Tidak ada alasan' },
+                        { name: '👤 Member',     value: target   ? `<@${target.id}> (${target.tag ?? target.id})` : 'Unknown', inline: true },
+                        { name: '🛡️ Moderator', value: executor ? `<@${executor.id}>`                             : 'Unknown', inline: true },
+                        { name: '📝 Reason',     value: reason || 'No reason provided' },
                     )
                     .setTimestamp();
                 break;
@@ -73,21 +73,21 @@ module.exports = new Event({
                     const until = new Date(timeoutChange.new);
                     embed = new EmbedBuilder()
                         .setColor('#EB459E')
-                        .setTitle('🔇 Member Di-Timeout')
+                        .setTitle('🔇 Member Timed Out')
                         .addFields(
-                            { name: '👤 Member',     value: target   ? `<@${target.id}>` : 'Tidak diketahui', inline: true },
-                            { name: '🛡️ Moderator', value: executor ? `<@${executor.id}>` : 'Tidak diketahui', inline: true },
-                            { name: '⏱️ Berakhir',  value: `<t:${Math.floor(until.getTime() / 1000)}:R>`, inline: true },
-                            { name: '📝 Alasan',     value: reason || 'Tidak ada alasan' },
+                            { name: '👤 Member',     value: target   ? `<@${target.id}>` : 'Unknown', inline: true },
+                            { name: '🛡️ Moderator', value: executor ? `<@${executor.id}>` : 'Unknown', inline: true },
+                            { name: '⏱️ Expires',  value: `<t:${Math.floor(until.getTime() / 1000)}:R>`, inline: true },
+                            { name: '📝 Reason',     value: reason || 'No reason provided' },
                         )
                         .setTimestamp();
                 } else {
                     embed = new EmbedBuilder()
                         .setColor('#57F287')
-                        .setTitle('🔊 Timeout Dihapus')
+                        .setTitle('🔊 Timeout Removed')
                         .addFields(
-                            { name: '👤 Member',     value: target   ? `<@${target.id}>` : 'Tidak diketahui', inline: true },
-                            { name: '🛡️ Moderator', value: executor ? `<@${executor.id}>` : 'Tidak diketahui', inline: true },
+                            { name: '👤 Member',     value: target   ? `<@${target.id}>` : 'Unknown', inline: true },
+                            { name: '🛡️ Moderator', value: executor ? `<@${executor.id}>` : 'Unknown', inline: true },
                         )
                         .setTimestamp();
                 }

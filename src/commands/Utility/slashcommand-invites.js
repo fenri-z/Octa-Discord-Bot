@@ -26,13 +26,13 @@ function hasInvitePermission(interaction) {
 module.exports = new ApplicationCommand({
     command: {
         name: 'invites',
-        description: 'Tampilkan semua invite link server, diurutkan dari penggunaan terbanyak.',
+        description: 'Show all server invite links, sorted by most used.',
         type: 1,
         default_member_permissions: String(PermissionFlagsBits.ManageGuild),
         options: [
             {
-                name: 'halaman',
-                description: 'Nomor halaman daftar invite (default: 1)',
+                name: 'page',
+                description: 'Page number of the invite list (default: 1)',
                 type: 4,       // INTEGER
                 required: false,
                 min_value: 1
@@ -50,8 +50,8 @@ module.exports = new ApplicationCommand({
         if (!hasInvitePermission(interaction)) {
             return interaction.reply({
                 content: [
-                    '❌ Kamu tidak memiliki izin untuk menggunakan command ini.',
-                    'Dibutuhkan salah satu dari:',
+                    '❌ You do not have permission to use this command.',
+                    'Required one of:',
                     '• **Administrator** · **Manage Server** · **Manage Channels**',
                     '• Server Owner · Bot Owner · Bot Developer'
                 ].join('\n'),
@@ -66,7 +66,7 @@ module.exports = new ApplicationCommand({
         if (!ok) return;
 
         const { guild } = interaction;
-        const page = Math.max(1, interaction.options.getInteger('halaman') ?? 1);
+        const page = Math.max(1, interaction.options.getInteger('page') ?? 1);
 
         // ── Ambil semua invite ─────────────────────────────────────────
         let guildInvites;
@@ -74,12 +74,12 @@ module.exports = new ApplicationCommand({
             guildInvites = await guild.invites.fetch();
         } catch {
             return interaction.editReply({
-                content: '❌ Bot tidak dapat membaca invite. Pastikan bot memiliki izin **Manage Guild**.'
+                content: '❌ Bot cannot read invites. Make sure the bot has **Manage Guild** permission.'
             });
         }
 
         if (guildInvites.size === 0) {
-            return interaction.editReply({ content: '📭 Tidak ada invite link aktif di server ini.' });
+            return interaction.editReply({ content: '📭 No active invite links in this server.' });
         }
 
         // ── Urutkan berdasarkan uses terbanyak ─────────────────────────
@@ -97,28 +97,28 @@ module.exports = new ApplicationCommand({
             const rank     = (curPage - 1) * PER_PAGE + i + 1;
             const uses     = inv.uses ?? 0;
             const maxUses  = inv.maxUses ? `/${inv.maxUses}` : '/∞';
-            const inviter  = inv.inviter ? `@${inv.inviter.username}` : '*Tidak diketahui*';
+            const inviter  = inv.inviter ? `@${inv.inviter.username}` : '*Unknown*';
             const ch       = inv.channel ? `#${inv.channel.name}` : '`-`';
             const expiry   = inv.expiresTimestamp
                 ? `<t:${Math.floor(inv.expiresTimestamp / 1000)}:R>`
-                : 'permanen';
-            const temp     = inv.temporary ? ' · sementara' : '';
+                : 'permanent';
+            const temp     = inv.temporary ? ' · temporary' : '';
             return `\`#${rank}\` **[${inv.code}](https://discord.gg/${inv.code})** — ${inviter} — ${ch}\n` +
-                   `   ​↳ **${uses}${maxUses}** digunakan · ${expiry}${temp}`;
+                   `   ​↳ **${uses}${maxUses}** uses · ${expiry}${temp}`;
         });
 
         // ── Embed ──────────────────────────────────────────────────────
         const embed = new EmbedBuilder()
             .setColor(0x5865F2)
-            .setTitle(`📋 Semua Invite — ${guild.name}`)
+            .setTitle(`📋 All Invites — ${guild.name}`)
             .setDescription(lines.join('\n\n'))
             .addFields(
-                { name: '🔗 Total Invite',       value: `**${sorted.length}**`,       inline: true },
-                { name: '📊 Total Digunakan',     value: `**${totalUses}**×`,          inline: true },
-                { name: '👤 Pengundang Unik',     value: `**${uniqueInviters}**`,      inline: true },
+                { name: '🔗 Total Invites',       value: `**${sorted.length}**`,       inline: true },
+                { name: '📊 Total Uses',     value: `**${totalUses}**×`,          inline: true },
+                { name: '👤 Unique Inviters',     value: `**${uniqueInviters}**`,      inline: true },
             )
             .setFooter({
-                text: `Halaman ${curPage}/${totalPages}${totalPages > 1 ? ` · /invites halaman:${curPage + 1} untuk berikutnya` : ''} · ${interaction.user.tag}`,
+                text: `Page ${curPage}/${totalPages}${totalPages > 1 ? ` · /invites page:${curPage + 1} for next` : ''} · ${interaction.user.tag}`,
                 iconURL: interaction.user.displayAvatarURL({ dynamic: true })
             })
             .setTimestamp();

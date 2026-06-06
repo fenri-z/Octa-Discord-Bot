@@ -158,7 +158,7 @@
         <!-- Header -->
         <div class="page-header">
             <h1>Kick Notification</h1>
-            <p>Pantau streamer Kick.com dan kirim notifikasi otomatis ke Discord saat mereka mulai Live.</p>
+            <p>Monitor Kick.com streamers and automatically send notifications to Discord when they go Live.</p>
         </div>
 
         <!-- Warning: belum dikonfigurasi -->
@@ -166,7 +166,7 @@
         <div class="perm-card perm-warn" style="margin-bottom:1.5rem;">
             <i data-lucide="alert-triangle"></i>
             <div>
-                <strong>Kick API belum dikonfigurasi.</strong> Tambahkan variabel berikut ke file <code>.env</code> lalu restart bot:
+                <strong>Kick API is not configured.</strong> Add the following variables to your <code>.env</code> file and restart the bot:
                 <div style="margin-top:.5rem;font-size:.82rem;background:rgba(0,0,0,.3);padding:.5rem .75rem;border-radius:6px;font-family:monospace;line-height:1.8;">
                     KICK_CLIENT_ID=your_client_id<br>
                     KICK_CLIENT_SECRET=your_client_secret
@@ -195,7 +195,7 @@
                 </div>
                 <div class="stat-info">
                     <div class="stat-value"><%= kickAccounts.filter(a => a.enabled).length %></div>
-                    <div class="stat-label">Notifikasi Aktif</div>
+                    <div class="stat-label">Active Notifications</div>
                 </div>
             </div>
             <div class="stat-card">
@@ -209,12 +209,12 @@
             </div>
         </div>
 
-        <!-- Tambah Streamer -->
+        <!-- Add Streamer -->
         <% if (kickAccounts.length < maxAccounts) { %>
         <div class="settings-card" style="margin-bottom:1.5rem;">
             <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:1rem;">
                 <i data-lucide="plus-circle" style="color:#53FC18;width:18px;height:18px;flex-shrink:0;"></i>
-                <h2 style="margin:0;font-size:1rem;font-weight:600;">Tambah Streamer Kick</h2>
+                <h2 style="margin:0;font-size:1rem;font-weight:600;">Add Kick Streamer</h2>
             </div>
             <p style="font-size:.85rem;color:var(--text-muted);margin:0 0 1rem 0;">
                 Masukkan username atau URL Kick. Sisa slot: <strong><%= maxAccounts - kickAccounts.length %></strong> dari <%= maxAccounts %>.
@@ -271,7 +271,7 @@
                         <div id="kkLookupLogin" style="font-size:.78rem;color:var(--text-muted);"></div>
                     </div>
                     <button class="btn btn-success" onclick="addKickStreamer()" style="flex-shrink:0;background:#53FC18;border-color:#53FC18;color:#000;">
-                        <i data-lucide="plus" style="width:14px;height:14px;"></i> Tambah
+                        <i data-lucide="plus" style="width:14px;height:14px;"></i> Add
                     </button>
                 </div>
             </div>
@@ -288,7 +288,7 @@
         <% if (kickAccounts.length === 0) { %>
             <div class="settings-card" style="text-align:center;padding:3rem 1.5rem;">
                 <svg viewBox="0 0 24 24" fill="currentColor" style="width:48px;height:48px;color:#53FC18;opacity:.4;display:block;margin:0 auto .75rem;"><path d="M2.664 0v24h5.227v-8.01l2.557-2.503 5.186 10.513H21l-7.527-14.6L20.188 3.54h-5.753L8.083 9.872 7.89 9.68V0z"/></svg>
-                <p style="color:var(--text-muted);margin:0;">Belum ada streamer Kick yang dipantau.</p>
+                <p style="color:var(--text-muted);margin:0;">No Kick streamers being monitored yet.</p>
             </div>
         <% } else { %>
         <% kickAccounts.forEach(function(acc) {
@@ -325,7 +325,7 @@
                         data-slug="<%= acc.slug %>"
                         data-name="<%= (acc.displayName||acc.slug).replace(/"/g,'&quot;') %>"
                         onclick="removeKickStreamer(this.dataset.slug, this.dataset.name)"
-                        title="Hapus streamer">
+                        title="Delete streamer">
                     <i data-lucide="trash-2" style="width:13px;height:13px;"></i>
                 </button>
             </div>
@@ -341,13 +341,13 @@
                                    <%= acc.enabled ? 'checked' : '' %>
                                    onchange="updateKickPreview('<%= cardKey %>')">
                             <span class="toggle-slider"></span>
-                            <span>Aktifkan notifikasi Live</span>
+                            <span>Enable Live notifications</span>
                         </label>
                     </div>
                     <div class="form-group">
                         <label class="label">Channel Discord</label>
                         <select class="select" id="kkChannel-<%= cardKey %>" onchange="updateKickPreview('<%= cardKey %>')">
-                            <option value="">— Pilih channel —</option>
+                            <option value="">— Select channel —</option>
                             <% (locals.channels||[]).forEach(ch => { %>
                             <option value="<%= ch.id %>" <%= acc.channelId===ch.id?'selected':'' %>>#<%= ch.name %></option>
                             <% }) %>
@@ -355,7 +355,7 @@
                     </div>
                     <div class="form-group" style="margin-bottom:0;">
                         <div class="label-with-picker">
-                            <label class="label" style="margin-bottom:0;">Pesan kustom <span style="font-weight:400;color:var(--text-muted);">(opsional)</span></label>
+                            <label class="label" style="margin-bottom:0;">Custom message <span style="font-weight:400;color:var(--text-muted);">(optional)</span></label>
                             <div class="ph-picker-anchor">
                                 <button type="button" class="ph-toggle-btn" onclick="toggleKkPicker('kkPicker-<%= cardKey %>',event)">{…} Placeholder</button>
                                 <div class="ph-dropdown" id="kkPicker-<%= cardKey %>" style="display:none;"></div>
@@ -363,7 +363,7 @@
                         </div>
                         <textarea class="textarea" rows="3" id="kkMessage-<%= cardKey %>"
                                   style="font-size:.82rem;"
-                                  placeholder="🟢 {account} lagi LIVE di Kick! {url}"
+                                  placeholder="🟢 {account} is LIVE on Kick! {url}"
                                   oninput="updateKickPreview('<%= cardKey %>')"
                         ><%= acc.message||'' %></textarea>
                     </div>
@@ -375,7 +375,7 @@
                         </button>
                         <button class="btn btn-primary" onclick="saveKickStreamer('<%= acc.slug %>','<%= cardKey %>')"
                                 style="background:#53FC18;border-color:#53FC18;color:#000;">
-                            <i data-lucide="save" style="width:14px;height:14px;"></i> Simpan
+                            <i data-lucide="save" style="width:14px;height:14px;"></i> Save
                         </button>
                     </div>
                     <div id="kkMsg-<%= cardKey %>" class="form-message" style="margin-top:.4rem;"></div>
@@ -396,7 +396,7 @@
                                      alt="bot" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
                                 <div class="dc-msg-body">
                                     <span class="dc-username"><%= locals.botNavName || 'Bot' %></span>
-                                    <span class="dc-timestamp">Hari ini pukul 12:00</span>
+                                    <span class="dc-timestamp">Today at 12:00 PM</span>
 
                                     <div id="kkPrev-<%= cardKey %>" class="dc-embed" style="max-width:100%;">
                                         <div style="width:4px;flex-shrink:0;background:#53FC18;"></div>
@@ -415,7 +415,7 @@
                                                     </div>
                                                     <div class="dc-embed-desc" id="kkPrevDesc-<%= cardKey %>"></div>
                                                     <div class="dc-embed-field">
-                                                        <div class="dc-field-name">🎮 Kategori</div>
+                                                        <div class="dc-field-name">🎮 Category</div>
                                                         <div class="dc-field-value" style="color:#dbdee1;">Just Chatting</div>
                                                     </div>
                                                     <div class="dc-embed-field">
@@ -534,7 +534,7 @@ async function saveKickStreamer(slug, key) {
     const message   = document.getElementById(`kkMessage-${key}`)?.value?.trim() || '';
 
     if (enabled && !channelId) {
-        showMsg(msgEl, 'Notifikasi diaktifkan tapi channel Discord belum dipilih.', 'error');
+        showMsg(msgEl, 'Notification is enabled but no Discord channel has been selected.', 'error');
         document.getElementById(`kkChannel-${key}`)?.focus();
         return;
     }
@@ -592,7 +592,7 @@ async function refreshKickThumbnail(slug, key) {
 
 // ── Remove ────────────────────────────────────────────────────────────────────
 async function removeKickStreamer(slug, name) {
-    if (!confirm(`Hapus streamer "${name}"?`)) return;
+    if (!confirm(`Delete streamer "${name}"?`)) return;
     const r    = await fetch(`/api/guild/${GUILD_ID}/kick/accounts/${encodeURIComponent(slug)}`, { method: 'DELETE' });
     const data = await r.json();
     if (data.success) location.reload();
@@ -636,8 +636,8 @@ const PH_KICK = [
     ['{account}',   'Nama tampilan streamer'],
     ['{slug}',      'Username Kick'],
     ['{url}',       'Link stream'],
-    ['{category}',  'Kategori stream'],
-    ['{title}',     'Judul stream'],
+    ['{category}',  'Stream category'],
+    ['{title}',     'Stream title'],
     ['{viewers}',   'Jumlah penonton'],
 ];
 

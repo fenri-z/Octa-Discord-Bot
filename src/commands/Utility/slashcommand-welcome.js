@@ -68,104 +68,104 @@ function getConfig(client, guildId) {
 module.exports = new ApplicationCommand({
     command: {
         name: 'welcome',
-        description: 'Konfigurasi welcome notification untuk member baru.',
+        description: 'Configure welcome notifications for new members.',
         type: 1,
         default_member_permissions: String(PermissionFlagsBits.ManageGuild),
         options: [
             {
                 name: 'status',
-                description: 'Lihat konfigurasi welcome saat ini.',
+                description: 'View the current welcome configuration.',
                 type: 1
             },
             {
                 name: 'toggle',
-                description: 'Aktifkan atau nonaktifkan pesan sambutan.',
+                description: 'Enable or disable welcome messages.',
                 type: 1,
-                options: [{ name: 'aktif', description: 'true = nyalakan, false = matikan', type: 5, required: true }]
+                options: [{ name: 'active', description: 'true = enable, false = disable', type: 5, required: true }]
             },
             {
                 name: 'channel',
-                description: 'Atur channel tempat pesan sambutan dikirim.',
+                description: 'Set the channel where welcome messages will be sent.',
                 type: 1,
-                options: [{ name: 'channel', description: 'Pilih channel teks', type: 3, autocomplete: true, required: true }]
+                options: [{ name: 'channel', description: 'Select a text channel', type: 3, autocomplete: true, required: true }]
             },
             {
-                name: 'tipe',
-                description: 'Pilih tipe pesan: embed atau teks biasa.',
+                name: 'type',
+                description: 'Choose the message type: embed or plain text.',
                 type: 1,
-                options: [{ name: 'tipe', description: 'embed = pakai embed, plain = teks biasa', type: 3, required: true, choices: [{ name: '🖼️ Embed', value: 'embed' }, { name: '💬 Teks Biasa', value: 'plain' }] }]
+                options: [{ name: 'type', description: 'embed = use embed, plain = plain text', type: 3, required: true, choices: [{ name: '🖼️ Embed', value: 'embed' }, { name: '💬 Plain Text', value: 'plain' }] }]
             },
             {
-                name: 'teks',
-                description: 'Ubah judul & deskripsi embed (mode embed) atau isi teks biasa (mode plain) via modal.',
+                name: 'text',
+                description: 'Edit the embed title & description (embed mode) or plain text content (plain mode) via modal.',
                 type: 1
             },
             {
                 name: 'color',
-                description: 'Ubah warna embed (hex, contoh: #FF5733).',
+                description: 'Change the embed color (hex, e.g. #FF5733).',
                 type: 1,
-                options: [{ name: 'hex', description: 'Kode warna hex, contoh: #5865F2', type: 3, required: true, max_length: 7 }]
+                options: [{ name: 'hex', description: 'Hex color code, e.g. #5865F2', type: 3, required: true, max_length: 7 }]
             },
             {
                 name: 'footer',
-                description: 'Ubah atau hapus teks footer embed.',
+                description: 'Edit or remove the embed footer text.',
                 type: 1,
-                options: [{ name: 'teks', description: 'Teks footer. Ketik "-" untuk menghapus footer.', type: 3, required: true, max_length: 2048 }]
+                options: [{ name: 'text', description: 'Footer text. Type "-" to remove the footer.', type: 3, required: true, max_length: 2048 }]
             },
             {
                 name: 'thumbnail',
-                description: 'Tampilkan atau sembunyikan foto profil member di embed.',
+                description: 'Show or hide the member profile picture in the embed.',
                 type: 1,
-                options: [{ name: 'tampil', description: 'true = tampilkan, false = sembunyikan', type: 5, required: true }]
+                options: [{ name: 'show', description: 'true = show, false = hide', type: 5, required: true }]
             },
             {
                 name: 'fields',
-                description: 'Aktifkan atau nonaktifkan field info di embed (member & pengundang).',
+                description: 'Enable or disable info fields in the embed (member & inviter).',
                 type: 1,
                 options: [
                     {
                         name: 'field',
-                        description: 'Pilih field yang ingin diubah',
+                        description: 'Choose the field to toggle',
                         type: 3,
                         required: true,
                         choices: [
-                            { name: '👤 Member Baru',    value: 'member_baru'    },
-                            { name: '📅 Akun Dibuat',    value: 'akun_dibuat'    },
-                            { name: '👥 Total Member',   value: 'total_member'   },
-                            { name: '📨 Diundang Oleh',  value: 'diundang_oleh'  },
-                            { name: '🔗 Kode Invite',    value: 'kode_invite'    },
-                            { name: '📊 Total Undangan', value: 'total_undangan' },
+                            { name: '👤 New Member',    value: 'member_baru'    },
+                            { name: '📅 Account Created',    value: 'akun_dibuat'    },
+                            { name: '👥 Total Members',   value: 'total_member'   },
+                            { name: '📨 Invited By',  value: 'diundang_oleh'  },
+                            { name: '🔗 Invite Code',    value: 'kode_invite'    },
+                            { name: '📊 Total Invites', value: 'total_undangan' },
                         ]
                     },
-                    { name: 'tampil', description: 'true = tampilkan, false = sembunyikan', type: 5, required: true }
+                    { name: 'show', description: 'true = show, false = hide', type: 5, required: true }
                 ]
             },
             {
                 name: 'card',
-                description: 'Konfigurasi welcome card (gambar sambutan dengan foto profil).',
+                description: 'Configure the welcome card (greeting image with profile picture).',
                 type: 1,
                 options: [
                     {
-                        name: 'aksi',
-                        description: 'Pilih aksi yang ingin dilakukan',
+                        name: 'action',
+                        description: 'Choose the action to perform',
                         type: 3,
                         required: true,
                         choices: [
-                            { name: '🔌 Toggle on/off card',       value: 'toggle'  },
-                            { name: '✏️  Ubah teks card',           value: 'teks'    },
-                            { name: '🎨 Ubah warna card',           value: 'warna'   },
+                            { name: '🔌 Toggle card on/off',       value: 'toggle'  },
+                            { name: '✏️  Edit card text',           value: 'teks'    },
+                            { name: '🎨 Edit card colors',           value: 'warna'   },
                         ]
                     }
                 ]
             },
             {
                 name: 'reset',
-                description: 'Reset semua pengaturan welcome ke default.',
+                description: 'Reset all welcome settings to default.',
                 type: 1
             },
             {
                 name: 'preview',
-                description: 'Pratinjau pesan sambutan dengan pengaturan saat ini.',
+                description: 'Preview the welcome message with the current settings.',
                 type: 1
             }
         ]
@@ -192,31 +192,31 @@ module.exports = new ApplicationCommand({
             const channel = cfg.channelId ? interaction.guild.channels.cache.get(cfg.channelId) : null;
             const colorHex = cfg.color.startsWith('#') ? cfg.color : `#${cfg.color}`;
 
-            const on  = '✅ Tampil';
-            const off = '❌ Disembunyikan';
+            const on  = '✅ Shown';
+            const off = '❌ Hidden';
 
             const embed = new EmbedBuilder()
                 .setColor(colorHex)
-                .setTitle('⚙️ Konfigurasi Pesan Sambutan')
+                .setTitle('⚙️ Welcome Message Configuration')
                 .addFields(
-                    { name: '🔌 Status',           value: cfg.enabled           ? '✅ Aktif' : '❌ Nonaktif',         inline: true },
-                    { name: '📨 Tipe Pesan',        value: cfg.messageType === 'plain' ? '💬 Teks Biasa' : '🖼️ Embed',         inline: true },
-                    { name: '📢 Channel',           value: channel               ? `<#${channel.id}>` : '`Belum diatur`', inline: true },
-                    { name: '🎨 Warna',             value: `\`${cfg.color}\``,                                           inline: true },
-                    { name: '📌 Judul',             value: `\`${cfg.title}\``,                                           inline: false },
-                    { name: '📝 Deskripsi',         value: `\`${cfg.description}\``,                                     inline: false },
-                    { name: '💬 Teks Biasa',         value: `\`${cfg.plainText}\``,                                          inline: false },
-                    { name: '🃏 Welcome Card',      value: cfg.cardEnabled ? '✅ Aktif' : '❌ Nonaktif',  inline: true },
-                    { name: '🔻 Footer',            value: cfg.footerText        ? `\`${cfg.footerText}\`` : '`(tidak ada)`', inline: false },
+                    { name: '🔌 Status',           value: cfg.enabled           ? '✅ Enabled' : '❌ Disabled',         inline: true },
+                    { name: '📨 Message Type',        value: cfg.messageType === 'plain' ? '💬 Plain Text' : '🖼️ Embed',         inline: true },
+                    { name: '📢 Channel',           value: channel               ? `<#${channel.id}>` : '`Not set`', inline: true },
+                    { name: '🎨 Color',             value: `\`${cfg.color}\``,                                           inline: true },
+                    { name: '📌 Title',             value: `\`${cfg.title}\``,                                           inline: false },
+                    { name: '📝 Description',         value: `\`${cfg.description}\``,                                     inline: false },
+                    { name: '💬 Plain Text',         value: `\`${cfg.plainText}\``,                                          inline: false },
+                    { name: '🃏 Welcome Card',      value: cfg.cardEnabled ? '✅ Enabled' : '❌ Disabled',  inline: true },
+                    { name: '🔻 Footer',            value: cfg.footerText        ? `\`${cfg.footerText}\`` : '`(none)`', inline: false },
                     { name: '🖼️ Thumbnail',         value: cfg.thumbnail         ? on : off,  inline: true },
-                    { name: '👤 Member Baru',       value: cfg.showMemberNew     ? on : off,  inline: true },
-                    { name: '📅 Akun Dibuat',       value: cfg.showAkunDibuat    ? on : off,  inline: true },
-                    { name: '👥 Total Member',      value: cfg.showTotalMember   ? on : off,  inline: true },
-                    { name: '📨 Diundang Oleh',     value: cfg.showDiundangOleh  ? on : off,  inline: true },
-                    { name: '🔗 Kode Invite',       value: cfg.showKodeInvite    ? on : off,  inline: true },
-                    { name: '📊 Total Undangan',    value: cfg.showTotalUndangan ? on : off,  inline: true },
+                    { name: '👤 New Member',       value: cfg.showMemberNew     ? on : off,  inline: true },
+                    { name: '📅 Account Created',       value: cfg.showAkunDibuat    ? on : off,  inline: true },
+                    { name: '👥 Total Members',      value: cfg.showTotalMember   ? on : off,  inline: true },
+                    { name: '📨 Invited By',     value: cfg.showDiundangOleh  ? on : off,  inline: true },
+                    { name: '🔗 Invite Code',       value: cfg.showKodeInvite    ? on : off,  inline: true },
+                    { name: '📊 Total Invites',    value: cfg.showTotalUndangan ? on : off,  inline: true },
                 )
-                .setFooter({ text: 'Gunakan /welcome preview untuk melihat tampilan embed.' })
+                .setFooter({ text: 'Use /welcome preview to see the embed preview.' })
                 .setTimestamp();
 
             return interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
@@ -224,12 +224,12 @@ module.exports = new ApplicationCommand({
 
         // ── TOGGLE ────────────────────────────────────────────────────────
         if (sub === 'toggle') {
-            const val = interaction.options.getBoolean('aktif');
+            const val = interaction.options.getBoolean('active');
             if (val && !client.database.get(`welcome-channel-${guildId}`))
-                return interaction.reply({ content: '❌ Atur channel welcome terlebih dahulu dengan `/welcome channel`.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: '❌ Set the welcome channel first using `/welcome channel`.', flags: MessageFlags.Ephemeral });
             setBool(client, `welcome-enabled-${guildId}`, val);
             return interaction.reply({
-                content: val ? '✅ Pesan sambutan **diaktifkan**.' : '❌ Pesan sambutan **dinonaktifkan**.',
+                content: val ? '✅ Welcome message **enabled**.' : '❌ Welcome message **disabled**.',
                 flags: MessageFlags.Ephemeral
             });
         }
@@ -237,27 +237,27 @@ module.exports = new ApplicationCommand({
         // ── CHANNEL ───────────────────────────────────────────────────────
         if (sub === 'channel') {
             const ch = resolveChannel(interaction.guild, interaction.options.getString('channel'));
-            if (!ch) return interaction.reply({ content: '❌ Channel tidak ditemukan.', flags: MessageFlags.Ephemeral });
+            if (!ch) return interaction.reply({ content: '❌ Channel not found.', flags: MessageFlags.Ephemeral });
             const chOk = await checkBotPermissions(interaction, [PermissionFlagsBits.SendMessages, PermissionFlagsBits.EmbedLinks], ch);
             if (!chOk) return;
             client.database.set(`welcome-channel-${guildId}`, ch.id);
-            return interaction.reply({ content: `✅ Channel sambutan diatur ke <#${ch.id}>.`, flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: `✅ Welcome channel set to <#${ch.id}>.`, flags: MessageFlags.Ephemeral });
         }
 
         // ── TIPE ─────────────────────────────────────────────────────────
-        if (sub === 'tipe') {
-            const val = interaction.options.getString('tipe');
+        if (sub === 'type') {
+            const val = interaction.options.getString('type');
             client.database.set(`welcome-messageType-${guildId}`, val);
             return interaction.reply({
                 content: val === 'plain'
-                    ? '✅ Tipe pesan welcome diubah ke **Teks Biasa**. Gunakan `/welcome teks` untuk mengatur isinya.'
-                    : '✅ Tipe pesan welcome diubah ke **Embed**. Gunakan `/welcome teks` untuk mengatur judul & deskripsinya.',
+                    ? '✅ Welcome message type changed to **Plain Text**. Use `/welcome text` to set the content.'
+                    : '✅ Welcome message type changed to **Embed**. Use `/welcome text` to set the title & description.',
                 flags: MessageFlags.Ephemeral
             });
         }
 
-        // ── TEKS (modal: judul + deskripsi embed, atau teks biasa) ───────────
-        if (sub === 'teks') {
+        // ── TEXT (modal: embed title + description, or plain text) ───────────
+        if (sub === 'text') {
             const cfg      = getConfig(client, guildId);
             const isPlain  = cfg.messageType === 'plain';
             const shortId  = `${interaction.user.id.slice(-6)}${Date.now().toString(36)}`;
@@ -265,12 +265,12 @@ module.exports = new ApplicationCommand({
 
             const modal = new ModalBuilder()
                 .setCustomId(modalId)
-                .setTitle(isPlain ? '✏️ Ubah Teks Biasa Welcome' : '✏️ Ubah Teks Embed Welcome');
+                .setTitle(isPlain ? '✏️ Edit Plain Welcome Text' : '✏️ Edit Welcome Embed Text');
 
             if (isPlain) {
                 const plainInput = new TextInputBuilder()
                     .setCustomId('plainText')
-                    .setLabel('Isi Pesan: {member} {server} {count} {tag}')
+                    .setLabel('Message Content: {member} {server} {count} {tag}')
                     .setStyle(TextInputStyle.Paragraph)
                     .setMaxLength(2000)
                     .setValue(cfg.plainText.slice(0, 2000))
@@ -280,7 +280,7 @@ module.exports = new ApplicationCommand({
             } else {
                 const titleInput = new TextInputBuilder()
                     .setCustomId('title')
-                    .setLabel('Judul: {server} {member} {count} {tag}')
+                    .setLabel('Title: {server} {member} {count} {tag}')
                     .setStyle(TextInputStyle.Short)
                     .setMaxLength(256)
                     .setValue(cfg.title.slice(0, 256))
@@ -288,7 +288,7 @@ module.exports = new ApplicationCommand({
 
                 const descInput = new TextInputBuilder()
                     .setCustomId('description')
-                    .setLabel('Deskripsi: {member} {server} {count}')
+                    .setLabel('Description: {member} {server} {count}')
                     .setStyle(TextInputStyle.Paragraph)
                     .setMaxLength(1024)
                     .setValue(cfg.description.slice(0, 1024))
@@ -302,19 +302,19 @@ module.exports = new ApplicationCommand({
 
             await interaction.showModal(modal);
 
-            // Tunggu submit modal (max 5 menit), filter ketat per modalId + user
+            // Wait for modal submit (max 5 minutes), strict filter per modalId + user
             const submitted = await interaction.awaitModalSubmit({
                 filter: i => i.customId === modalId && i.user.id === interaction.user.id,
                 time: 5 * 60 * 1000
             }).catch(() => null);
 
-            if (!submitted) return; // timeout atau dibatalkan, diam saja
+            if (!submitted) return; // timeout or cancelled, do nothing
 
             if (isPlain) {
                 const newPlain = submitted.fields.getTextInputValue('plainText').trim();
                 client.database.set(`welcome-plainText-${guildId}`, newPlain);
                 return submitted.reply({
-                    content: `✅ Teks biasa welcome diperbarui.\n**Pesan:** ${newPlain}`,
+                    content: `✅ Welcome plain text updated.\n**Message:** ${newPlain}`,
                     flags: MessageFlags.Ephemeral
                 });
             } else {
@@ -323,7 +323,7 @@ module.exports = new ApplicationCommand({
                 client.database.set(`welcome-title-${guildId}`,       newTitle);
                 client.database.set(`welcome-description-${guildId}`, newDesc);
                 return submitted.reply({
-                    content: `✅ Teks embed welcome diperbarui.\n**Judul:** ${newTitle}\n**Deskripsi:** ${newDesc}`,
+                    content: `✅ Welcome embed text updated.\n**Title:** ${newTitle}\n**Description:** ${newDesc}`,
                     flags: MessageFlags.Ephemeral
                 });
             }
@@ -333,29 +333,29 @@ module.exports = new ApplicationCommand({
         if (sub === 'color') {
             const val = interaction.options.getString('hex').trim();
             if (!/^#?[0-9A-Fa-f]{6}$/.test(val))
-                return interaction.reply({ content: '❌ Format warna tidak valid. Gunakan hex seperti `#5865F2`.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: '❌ Invalid color format. Use hex like `#5865F2`.', flags: MessageFlags.Ephemeral });
             const clean = val.startsWith('#') ? val : `#${val}`;
             client.database.set(`welcome-color-${guildId}`, clean);
-            return interaction.reply({ content: `✅ Warna embed diperbarui ke \`${clean}\`.`, flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: `✅ Embed color updated to \`${clean}\`.`, flags: MessageFlags.Ephemeral });
         }
 
         // ── FOOTER ────────────────────────────────────────────────────────
         if (sub === 'footer') {
-            const val = interaction.options.getString('teks').trim();
+            const val = interaction.options.getString('text').trim();
             if (val === '-') {
                 client.database.delete(`welcome-footer-${guildId}`);
-                return interaction.reply({ content: '✅ Footer embed **dihapus**.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: '✅ Embed footer **removed**.', flags: MessageFlags.Ephemeral });
             }
             client.database.set(`welcome-footer-${guildId}`, val);
-            return interaction.reply({ content: `✅ Footer embed diperbarui:\n> ${val}`, flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: `✅ Embed footer updated:\n> ${val}`, flags: MessageFlags.Ephemeral });
         }
 
         // ── THUMBNAIL ─────────────────────────────────────────────────────
         if (sub === 'thumbnail') {
-            const val = interaction.options.getBoolean('tampil');
+            const val = interaction.options.getBoolean('show');
             setBool(client, `welcome-thumbnail-${guildId}`, val);
             return interaction.reply({
-                content: val ? '✅ Thumbnail foto profil **ditampilkan**.' : '✅ Thumbnail foto profil **disembunyikan**.',
+                content: val ? '✅ Profile picture thumbnail **shown**.' : '✅ Profile picture thumbnail **hidden**.',
                 flags: MessageFlags.Ephemeral
             });
         }
@@ -363,60 +363,60 @@ module.exports = new ApplicationCommand({
         // ── FIELDS ────────────────────────────────────────────────────────
         if (sub === 'fields') {
             const field = interaction.options.getString('field');
-            const val   = interaction.options.getBoolean('tampil');
+            const val   = interaction.options.getBoolean('show');
 
             const fieldMap = {
-                member_baru:    { key: `welcome-showMemberNew-${guildId}`,     label: '👤 Member Baru'    },
-                akun_dibuat:    { key: `welcome-showAkunDibuat-${guildId}`,    label: '📅 Akun Dibuat'    },
-                total_member:   { key: `welcome-showTotalMember-${guildId}`,   label: '👥 Total Member'   },
-                diundang_oleh:  { key: `welcome-showDiundangOleh-${guildId}`,  label: '📨 Diundang Oleh'  },
-                kode_invite:    { key: `welcome-showKodeInvite-${guildId}`,    label: '🔗 Kode Invite'    },
-                total_undangan: { key: `welcome-showTotalUndangan-${guildId}`, label: '📊 Total Undangan' },
+                member_baru:    { key: `welcome-showMemberNew-${guildId}`,     label: '👤 New Member'    },
+                akun_dibuat:    { key: `welcome-showAkunDibuat-${guildId}`,    label: '📅 Account Created'    },
+                total_member:   { key: `welcome-showTotalMember-${guildId}`,   label: '👥 Total Members'   },
+                diundang_oleh:  { key: `welcome-showDiundangOleh-${guildId}`,  label: '📨 Invited By'  },
+                kode_invite:    { key: `welcome-showKodeInvite-${guildId}`,    label: '🔗 Invite Code'    },
+                total_undangan: { key: `welcome-showTotalUndangan-${guildId}`, label: '📊 Total Invites' },
             };
 
             const target = fieldMap[field];
-            if (!target) return interaction.reply({ content: '❌ Field tidak valid.', flags: MessageFlags.Ephemeral });
+            if (!target) return interaction.reply({ content: '❌ Invalid field.', flags: MessageFlags.Ephemeral });
 
             setBool(client, target.key, val);
             return interaction.reply({
                 content: val
-                    ? `✅ Field **${target.label}** sekarang **ditampilkan** di embed.`
-                    : `✅ Field **${target.label}** sekarang **disembunyikan** dari embed.`,
+                    ? `✅ Field **${target.label}** is now **shown** in the embed.`
+                    : `✅ Field **${target.label}** is now **hidden** from the embed.`,
                 flags: MessageFlags.Ephemeral
             });
         }
 
         // ── CARD ─────────────────────────────────────────────────────────
         if (sub === 'card') {
-            const aksi = interaction.options.getString('aksi');
+            const action = interaction.options.getString('action');
             const cfg  = getConfig(client, guildId);
 
             // ── toggle ──────────────────────────────────────────────────
-            if (aksi === 'toggle') {
+            if (action === 'toggle') {
                 const newVal = !cfg.cardEnabled;
                 setBool(client, `welcome-cardEnabled-${guildId}`, newVal);
                 return interaction.reply({
                     content: newVal
-                        ? '✅ Welcome card **diaktifkan**. Gambar sambutan akan dikirim bersama pesan welcome.'
-                        : '❌ Welcome card **dinonaktifkan**.',
+                        ? '✅ Welcome card **enabled**. The greeting image will be sent along with the welcome message.'
+                        : '❌ Welcome card **disabled**.',
                     flags: MessageFlags.Ephemeral
                 });
             }
 
             // ── teks ────────────────────────────────────────────────────
-            if (aksi === 'teks') {
+            if (action === 'teks') {
                 const shortId = `${interaction.user.id.slice(-6)}${Date.now().toString(36)}`;
                 const modalId = `wcard-teks-${guildId.slice(-8)}-${shortId}`;
 
                 const modal = new ModalBuilder()
                     .setCustomId(modalId)
-                    .setTitle('✏️ Ubah Teks Welcome Card');
+                    .setTitle('✏️ Edit Welcome Card Text');
 
                 modal.addComponents(
                     new ActionRowBuilder().addComponents(
                         new TextInputBuilder()
                             .setCustomId('welcomeText')
-                            .setLabel('Teks besar atas (misal: WELCOME)')
+                            .setLabel('Large top text (e.g. WELCOME)')
                             .setStyle(TextInputStyle.Short)
                             .setMaxLength(20)
                             .setValue(cfg.cardWelcomeText)
@@ -425,7 +425,7 @@ module.exports = new ApplicationCommand({
                     new ActionRowBuilder().addComponents(
                         new TextInputBuilder()
                             .setCustomId('subText')
-                            .setLabel('Teks kecil bawah: {server} {count} {tag}')
+                            .setLabel('Small bottom text: {server} {count} {tag}')
                             .setStyle(TextInputStyle.Short)
                             .setMaxLength(60)
                             .setValue(cfg.cardSubText)
@@ -448,25 +448,25 @@ module.exports = new ApplicationCommand({
                 client.database.set(`welcome-cardSubText-${guildId}`,     newSubText);
 
                 return submitted.reply({
-                    content: `✅ Teks welcome card diperbarui!\n**Teks Besar:** ${newWelcomeText}\n**Sub teks:** ${newSubText}`,
+                    content: `✅ Welcome card text updated!\n**Large Text:** ${newWelcomeText}\n**Sub Text:** ${newSubText}`,
                     flags: MessageFlags.Ephemeral
                 });
             }
 
             // ── warna ───────────────────────────────────────────────────
-            if (aksi === 'warna') {
+            if (action === 'warna') {
                 const shortId = `${interaction.user.id.slice(-6)}${Date.now().toString(36)}`;
                 const modalId = `wcard-warna-${guildId.slice(-8)}-${shortId}`;
 
                 const modal = new ModalBuilder()
                     .setCustomId(modalId)
-                    .setTitle('🎨 Ubah Warna Welcome Card');
+                    .setTitle('🎨 Edit Welcome Card Colors');
 
                 modal.addComponents(
                     new ActionRowBuilder().addComponents(
                         new TextInputBuilder()
                             .setCustomId('bgColor')
-                            .setLabel('Warna latar kiri (hex, contoh: #1a1a2e)')
+                            .setLabel('Left background color (hex, e.g. #1a1a2e)')
                             .setStyle(TextInputStyle.Short)
                             .setMaxLength(7)
                             .setValue(cfg.cardBgColor)
@@ -475,7 +475,7 @@ module.exports = new ApplicationCommand({
                     new ActionRowBuilder().addComponents(
                         new TextInputBuilder()
                             .setCustomId('bgColor2')
-                            .setLabel('Warna latar kanan (hex, contoh: #16213e)')
+                            .setLabel('Right background color (hex, e.g. #16213e)')
                             .setStyle(TextInputStyle.Short)
                             .setMaxLength(7)
                             .setValue(cfg.cardBgColor2)
@@ -484,7 +484,7 @@ module.exports = new ApplicationCommand({
                     new ActionRowBuilder().addComponents(
                         new TextInputBuilder()
                             .setCustomId('accentColor')
-                            .setLabel('Warna aksen/border avatar (hex)')
+                            .setLabel('Accent/avatar border color (hex)')
                             .setStyle(TextInputStyle.Short)
                             .setMaxLength(7)
                             .setValue(cfg.cardAccentColor)
@@ -493,7 +493,7 @@ module.exports = new ApplicationCommand({
                     new ActionRowBuilder().addComponents(
                         new TextInputBuilder()
                             .setCustomId('textColor')
-                            .setLabel('Warna teks utama (hex, contoh: #ffffff)')
+                            .setLabel('Main text color (hex, e.g. #ffffff)')
                             .setStyle(TextInputStyle.Short)
                             .setMaxLength(7)
                             .setValue(cfg.cardTextColor)
@@ -511,10 +511,10 @@ module.exports = new ApplicationCommand({
 
                 const hexRe = /^#[0-9A-Fa-f]{6}$/;
                 const fields = [
-                    { id: 'bgColor',     key: `welcome-cardBgColor-${guildId}`,   label: 'Latar kiri'    },
-                    { id: 'bgColor2',    key: `welcome-cardBgColor2-${guildId}`,  label: 'Latar kanan'   },
-                    { id: 'accentColor', key: `welcome-cardAccent-${guildId}`,    label: 'Aksen'         },
-                    { id: 'textColor',   key: `welcome-cardTextColor-${guildId}`, label: 'Teks utama'    },
+                    { id: 'bgColor',     key: `welcome-cardBgColor-${guildId}`,   label: 'Left background'    },
+                    { id: 'bgColor2',    key: `welcome-cardBgColor2-${guildId}`,  label: 'Right background'   },
+                    { id: 'accentColor', key: `welcome-cardAccent-${guildId}`,    label: 'Accent'         },
+                    { id: 'textColor',   key: `welcome-cardTextColor-${guildId}`, label: 'Main text'    },
                 ];
 
                 const errors = [];
@@ -526,13 +526,13 @@ module.exports = new ApplicationCommand({
 
                 if (errors.length > 0) {
                     return submitted.reply({
-                        content: `⚠️ Format warna tidak valid untuk: **${errors.join(', ')}**. Gunakan format hex seperti \`#5865F2\`. Field lain yang valid sudah disimpan.`,
+                        content: `⚠️ Invalid color format for: **${errors.join(', ')}**. Use hex format like \`#5865F2\`. Other valid fields have been saved.`,
                         flags: MessageFlags.Ephemeral
                     });
                 }
 
                 return submitted.reply({
-                    content: '✅ Warna welcome card berhasil diperbarui!',
+                    content: '✅ Welcome card colors successfully updated!',
                     flags: MessageFlags.Ephemeral
                 });
             }
@@ -545,7 +545,7 @@ module.exports = new ApplicationCommand({
              'showMemberNew', 'showAkunDibuat', 'showTotalMember',
              'showDiundangOleh', 'showKodeInvite', 'showTotalUndangan']
                 .forEach(k => client.database.delete(`welcome-${k}-${guildId}`));
-            return interaction.reply({ content: '🔄 Semua pengaturan welcome telah **direset ke default**.', flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: '🔄 All welcome settings have been **reset to default**.', flags: MessageFlags.Ephemeral });
         }
 
         // ── PREVIEW ───────────────────────────────────────────────────────
@@ -560,12 +560,12 @@ module.exports = new ApplicationCommand({
                 .replace(/{tag}/g,             member.user.tag)
                 .replace(/{server}/g,          interaction.guild.name)
                 .replace(/{count}/g,           String(interaction.guild.memberCount))
-                .replace(/{inviter}/g,         member.user.tag + ' (contoh)')
-                .replace(/{kode\.invite}/g,    'abc123 (contoh)')
-                .replace(/{total\.undangan}/g, '42 (contoh)')
+                .replace(/{inviter}/g,         member.user.tag + ' (example)')
+                .replace(/{kode\.invite}/g,    'abc123 (example)')
+                .replace(/{total\.undangan}/g, '42 (example)')
                 .replace(/{akun\.dibuat}/g,    `<t:${Math.floor(member.user.createdTimestamp / 1000)}:R>`);
 
-            // Generate welcome card jika cardEnabled
+            // Generate welcome card if cardEnabled
             let cardAttachment = null;
             if (cfg.cardEnabled) {
                 try {
@@ -595,41 +595,41 @@ module.exports = new ApplicationCommand({
                 }
             }
 
-            // Mode teks biasa
+            // Plain text mode
             if (cfg.messageType === 'plain') {
                 let content = parse(cfg.plainText).trim();
                 const infoLines = [];
-                if (cfg.showMemberNew)     infoLines.push(`👤 **Member Baru:** ${member.user.tag}`);
-                if (cfg.showAkunDibuat)    infoLines.push(`📅 **Akun Dibuat:** <t:${Math.floor(member.user.createdTimestamp / 1000)}:R>`);
-                if (cfg.showTotalMember)   infoLines.push(`👥 **Total Member:** ${interaction.guild.memberCount} member`);
-                if (cfg.showDiundangOleh)  infoLines.push(`📨 **Diundang Oleh:** ${member.user.tag} (contoh)`);
-                if (cfg.showKodeInvite)    infoLines.push(`🔗 **Kode Invite:** \`abc123\` (contoh)`);
-                if (cfg.showTotalUndangan) infoLines.push(`📊 **Total Undangan:** 42 undangan (contoh)`);
+                if (cfg.showMemberNew)     infoLines.push(`👤 **New Member:** ${member.user.tag}`);
+                if (cfg.showAkunDibuat)    infoLines.push(`📅 **Account Created:** <t:${Math.floor(member.user.createdTimestamp / 1000)}:R>`);
+                if (cfg.showTotalMember)   infoLines.push(`👥 **Total Members:** ${interaction.guild.memberCount} members`);
+                if (cfg.showDiundangOleh)  infoLines.push(`📨 **Invited By:** ${member.user.tag} (example)`);
+                if (cfg.showKodeInvite)    infoLines.push(`🔗 **Invite Code:** \`abc123\` (example)`);
+                if (cfg.showTotalUndangan) infoLines.push(`📊 **Total Invites:** 42 invites (example)`);
                 if (infoLines.length > 0) content += (content ? '\n' : '') + infoLines.join('\n');
                 content = content.trim();
 
                 if (content) {
                     const payload = {
-                        content: `> 👁️ **Mode Pratinjau** — bukan sambutan sungguhan\n${content}`,
+                        content: `> 👁️ **Preview Mode** — not a real welcome message\n${content}`,
                         flags: MessageFlags.Ephemeral
                     };
                     if (cardAttachment) payload.files = [cardAttachment];
                     return interaction.reply(payload);
                 } else if (cardAttachment) {
                     return interaction.reply({
-                        content: '> 👁️ **Mode Pratinjau** — bukan sambutan sungguhan *(pesan kosong, hanya welcome card)*',
+                        content: '> 👁️ **Preview Mode** — not a real welcome message *(empty message, welcome card only)*',
                         files: [cardAttachment],
                         flags: MessageFlags.Ephemeral
                     });
                 } else {
                     return interaction.reply({
-                        content: '> 👁️ **Mode Pratinjau** — pesan kosong dan welcome card tidak aktif.',
+                        content: '> 👁️ **Preview Mode** — empty message and welcome card is not active.',
                         flags: MessageFlags.Ephemeral
                     });
                 }
             }
 
-            // Mode embed
+            // Embed mode
             const hasText   = cfg.title.trim() || cfg.description.trim();
             const hasFields = cfg.showMemberNew || cfg.showAkunDibuat || cfg.showTotalMember
                            || cfg.showDiundangOleh || cfg.showKodeInvite || cfg.showTotalUndangan;
@@ -638,7 +638,7 @@ module.exports = new ApplicationCommand({
                 if (cardAttachment) {
                     const cardOnlyEmbed = new EmbedBuilder()
                         .setColor(colorHex)
-                        .setAuthor({ name: '👁️ Mode Pratinjau — bukan sambutan sungguhan' })
+                        .setAuthor({ name: '👁️ Preview Mode — not a real welcome message' })
                         .setTimestamp()
                         .setImage('attachment://welcome-card.png');
                     return interaction.reply({
@@ -648,14 +648,14 @@ module.exports = new ApplicationCommand({
                     });
                 }
                 return interaction.reply({
-                    content: '> 👁️ **Mode Pratinjau** — pesan kosong dan welcome card tidak aktif.',
+                    content: '> 👁️ **Preview Mode** — empty message and welcome card is not active.',
                     flags: MessageFlags.Ephemeral
                 });
             }
 
             const embed = new EmbedBuilder()
                 .setColor(colorHex)
-                .setAuthor({ name: '👁️ Mode Pratinjau — bukan sambutan sungguhan' })
+                .setAuthor({ name: '👁️ Preview Mode — not a real welcome message' })
                 .setTimestamp();
 
             if (parse(cfg.title))       embed.setTitle(parse(cfg.title));
@@ -665,12 +665,12 @@ module.exports = new ApplicationCommand({
             if (cfg.thumbnail)  embed.setThumbnail(member.user.displayAvatarURL({ dynamic: true, size: 256 }));
 
             const fields = [];
-            if (cfg.showMemberNew)     fields.push({ name: '👤 Member Baru',    value: member.user.tag, inline: true });
-            if (cfg.showAkunDibuat)    fields.push({ name: '📅 Akun Dibuat',    value: `<t:${Math.floor(member.user.createdTimestamp / 1000)}:R>`, inline: true });
-            if (cfg.showTotalMember)   fields.push({ name: '👥 Total Member',   value: `**${interaction.guild.memberCount}** member`, inline: true });
-            if (cfg.showDiundangOleh)  fields.push({ name: '📨 Diundang Oleh',  value: `${member.user.tag} (contoh)`, inline: true });
-            if (cfg.showKodeInvite)    fields.push({ name: '🔗 Kode Invite',    value: '`abc123` (contoh)', inline: true });
-            if (cfg.showTotalUndangan) fields.push({ name: '📊 Total Undangan', value: '**42** undangan (contoh)', inline: true });
+            if (cfg.showMemberNew)     fields.push({ name: '👤 New Member',    value: member.user.tag, inline: true });
+            if (cfg.showAkunDibuat)    fields.push({ name: '📅 Account Created',    value: `<t:${Math.floor(member.user.createdTimestamp / 1000)}:R>`, inline: true });
+            if (cfg.showTotalMember)   fields.push({ name: '👥 Total Members',   value: `**${interaction.guild.memberCount}** members`, inline: true });
+            if (cfg.showDiundangOleh)  fields.push({ name: '📨 Invited By',  value: `${member.user.tag} (example)`, inline: true });
+            if (cfg.showKodeInvite)    fields.push({ name: '🔗 Invite Code',    value: '`abc123` (example)', inline: true });
+            if (cfg.showTotalUndangan) fields.push({ name: '📊 Total Invites', value: '**42** invites (example)', inline: true });
             if (fields.length > 0) embed.addFields(...fields);
 
             if (cardAttachment) embed.setImage('attachment://welcome-card.png');

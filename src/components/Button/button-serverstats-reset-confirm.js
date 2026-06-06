@@ -8,7 +8,7 @@ const Component   = require('../../structure/Component');
 const { getServerStatsConfig } = require('../../utils/serverStatsHelper');
 const { warn } = require('../../utils/Console');
 
-// ── Hapus channel langsung via REST API (lebih andal dari .delete() object) ──
+// ── Delete channel directly via REST API (more reliable than .delete() on the object) ──
 async function deleteChannelById(token, channelId, reason) {
     if (!channelId) return { ok: true, skipped: true };
 
@@ -22,7 +22,7 @@ async function deleteChannelById(token, channelId, reason) {
     }).catch(err => ({ ok: false, _fetchError: err.message }));
 
     if (res._fetchError) return { ok: false, error: res._fetchError };
-    // 200 = berhasil dihapus, 404 = sudah tidak ada (anggap sukses)
+    // 200 = successfully deleted, 404 = already gone (treat as success)
     if (res.ok || res.status === 404) return { ok: true, status: res.status };
 
     const body = await res.json().catch(() => ({}));
@@ -42,21 +42,21 @@ module.exports = new Component({
         const guild   = interaction.guild;
         const guildId = guild.id;
 
-        // ── Cek izin user yang menekan tombol ─────────────────────────────
+        // ── Check the permission of the user pressing the button ─────────
         const member = interaction.member ?? await guild.members.fetch(interaction.user.id).catch(() => null);
         if (!member || !member.permissions.has(PermissionFlagsBits.ManageGuild)) {
             return interaction.editReply({
-                content: '❌ Kamu tidak memiliki izin **Manage Server** untuk melakukan reset.',
+                content: '❌ You do not have the **Manage Server** permission to perform a reset.',
                 embeds: [],
                 components: [],
             });
         }
 
-        // ── Cek permission bot sebelum mencoba hapus ───────────────────────
+        // ── Check bot permissions before attempting deletion ───────────────
         const botMember = guild.members.me ?? await guild.members.fetchMe().catch(() => null);
         if (!botMember || !botMember.permissions.has(PermissionFlagsBits.ManageChannels)) {
             return interaction.editReply({
-                content: '❌ Bot tidak memiliki izin **Manage Channels** di server ini.\nBerikan izin tersebut lalu coba lagi, atau hapus channel stats secara manual.',
+                content: '❌ The bot does not have the **Manage Channels** permission in this server.\nGrant that permission and try again, or delete the stats channels manually.',
                 embeds: [],
                 components: [],
             });
@@ -66,56 +66,56 @@ module.exports = new Component({
         const { categoryId, totalId, humanId, botId } = cfg;
 
         const token  = process.env.CLIENT_TOKEN;
-        const reason = `Reset server stats oleh ${interaction.user.tag}`;
+        const reason = `Server stats reset by ${interaction.user.tag}`;
         const label  = `[serverstats-reset] guild:${guildId}`;
 
-        // ── Kirim feedback awal ke user ────────────────────────────────────
+        // ── Send initial feedback to the user ──────────────────────────────
         const embedPending = new EmbedBuilder()
             .setColor('#FEE75C')
-            .setTitle('⏳ Sedang Mereset Server Stats...')
+            .setTitle('⏳ Resetting Server Stats...')
             .setDescription(
-                '> Sedang menghapus channel dan category statistik dari Discord...\n\n' +
-                '> Mohon tunggu sebentar.'
+                '> Deleting statistics channels and category from Discord...\n\n' +
+                '> Please wait a moment.'
             )
-            .setFooter({ text: `Direset oleh ${interaction.user.tag}` })
+            .setFooter({ text: `Reset by ${interaction.user.tag}` })
             .setTimestamp();
 
         await interaction.editReply({ embeds: [embedPending], components: [] });
 
-        // ── STEP 1: Hapus channel Discord dulu (sebelum hapus database) ────
+        // ── STEP 1: Delete Discord channels first (before deleting database) ──
         const failedChannels = [];
 
         for (const [name, id] of [['total', totalId], ['human', humanId], ['bot', botId]]) {
             if (!id) continue;
 
-            // Cek permission bot di channel/category spesifik ini
+            // Check bot permission in this specific channel/category
             const discordChannel = guild.channels.cache.get(id);
             if (discordChannel) {
                 const permsInChannel = botMember.permissionsIn(discordChannel);
                 if (!permsInChannel.has(PermissionFlagsBits.ManageChannels)) {
-                    warn(`${label} bot tidak punya ManageChannels di channel ${name} (${id}), skip.`);
-                    failedChannels.push(`\`${name}\` — bot tidak punya izin di channel ini`);
+                    warn(`${label} bot lacks ManageChannels in channel ${name} (${id}), skipping.`);
+                    failedChannels.push(`\`${name}\` — bot lacks permission in this channel`);
                     continue;
                 }
             }
 
             const result = await deleteChannelById(token, id, reason);
             if (!result.ok) {
-                warn(`${label} gagal hapus channel ${name} (${id}): ${result.error}`);
+                warn(`${label} failed to delete channel ${name} (${id}): ${result.error}`);
                 failedChannels.push(`\`${name}\` — ${result.error}`);
             }
         }
 
-        // Hapus category terakhir setelah semua voice channel terhapus
+        // Delete the category last after all voice channels are removed
         if (categoryId) {
             const result = await deleteChannelById(token, categoryId, reason);
             if (!result.ok) {
-                warn(`${label} gagal hapus category (${categoryId}): ${result.error}`);
+                warn(`${label} failed to delete category (${categoryId}): ${result.error}`);
                 failedChannels.push(`\`category\` — ${result.error}`);
             }
         }
 
-        // ── STEP 2: Hapus database SETELAH channel Discord dihapus ────────
+        // ── STEP 2: Delete database AFTER Discord channels are deleted ─────
         const keysToDelete = [
             `serverstats-enabled-${guildId}`,
             `serverstats-category-${guildId}`,
@@ -129,34 +129,34 @@ module.exports = new Component({
         ];
         for (const key of keysToDelete) client.database.delete(key);
 
-        // ── STEP 3: Balas interaksi dengan hasil akhir ─────────────────────
+        // ── STEP 3: Reply to interaction with the final result ─────────────
         if (failedChannels.length > 0) {
-            // Ada channel yang gagal dihapus
+            // Some channels failed to be deleted
             const embedPartial = new EmbedBuilder()
                 .setColor('#FFA500')
-                .setTitle('⚠️ Reset Sebagian Berhasil')
+                .setTitle('⚠️ Partial Reset Successful')
                 .setDescription(
-                    '> Konfigurasi database telah dihapus.\n\n' +
-                    '> Namun beberapa channel **gagal dihapus otomatis** dari Discord:\n' +
+                    '> Database configuration has been deleted.\n\n' +
+                    '> However, some channels **failed to be deleted automatically** from Discord:\n' +
                     failedChannels.map(f => `> • ${f}`).join('\n') + '\n\n' +
-                    '> **Silakan hapus channel tersebut secara manual.**\n\n' +
-                    '> Gunakan `/serverstats setup` untuk memulai konfigurasi baru.'
+                    '> **Please delete those channels manually.**\n\n' +
+                    '> Use `/serverstats setup` to start a new configuration.'
                 )
-                .setFooter({ text: `Direset oleh ${interaction.user.tag}` })
+                .setFooter({ text: `Reset by ${interaction.user.tag}` })
                 .setTimestamp();
 
             await interaction.editReply({ embeds: [embedPartial], components: [] });
         } else {
-            // Semua berhasil
+            // All succeeded
             const embedSuccess = new EmbedBuilder()
                 .setColor('#57F287')
-                .setTitle('✅ Server Stats Berhasil Direset')
+                .setTitle('✅ Server Stats Successfully Reset')
                 .setDescription(
-                    '> Semua konfigurasi server stats telah dihapus.\n\n' +
-                    '> Semua channel dan category statistik telah dihapus dari Discord.\n\n' +
-                    '> Gunakan `/serverstats setup` untuk memulai konfigurasi baru.'
+                    '> All server stats configuration has been deleted.\n\n' +
+                    '> All statistics channels and category have been removed from Discord.\n\n' +
+                    '> Use `/serverstats setup` to start a new configuration.'
                 )
-                .setFooter({ text: `Direset oleh ${interaction.user.tag}` })
+                .setFooter({ text: `Reset by ${interaction.user.tag}` })
                 .setTimestamp();
 
             await interaction.editReply({ embeds: [embedSuccess], components: [] });

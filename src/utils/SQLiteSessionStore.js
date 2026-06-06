@@ -11,7 +11,7 @@ const { Store } = require('express-session');
 
 class SQLiteSessionStore extends Store {
     /**
-     * @param {import('better-sqlite3').Database} db - instance better-sqlite3 yang sudah terbuka
+     * @param {import('better-sqlite3').Database} db - an open better-sqlite3 instance
      */
     constructor(db) {
         super();

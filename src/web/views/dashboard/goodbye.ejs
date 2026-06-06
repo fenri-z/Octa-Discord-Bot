@@ -8,7 +8,7 @@
         <%- include('../partials/perm-notice') %>
         <div class="page-header">
             <h1>Goodbye Notification</h1>
-            <p>Notifikasi yang dikirim saat member meninggalkan server.</p>
+            <p>Notification sent when a member leaves the server.</p>
         </div>
 
         <div class="goodbye-editor-layout">
@@ -20,14 +20,14 @@
                         <input type="checkbox" id="goodbyeEnabled" class="toggle-input"
                                <%= goodbyeData.enabled ? 'checked' : '' %>>
                         <span class="toggle-slider"></span>
-                        <span>Aktifkan Goodbye Notification</span>
+                        <span>Enable Goodbye Notification</span>
                     </label>
                 </div>
 
                 <div class="form-group">
                     <label class="label">Channel</label>
                     <select id="goodbyeChannel" class="select">
-                        <option value="">— Pilih channel —</option>
+                        <option value="">— Select channel —</option>
                         <% (locals.channels || []).forEach(ch => { %>
                             <option value="<%= ch.id %>" <%= goodbyeData.channelId === ch.id ? 'selected' : '' %>>
                                 #<%= ch.name %>
@@ -37,7 +37,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label class="label">Tipe Pesan</label>
+                    <label class="label">Message Type</label>
                     <div style="display:flex;gap:.75rem;">
                         <label class="radio-label" style="display:flex;align-items:center;gap:.5rem;cursor:pointer;">
                             <input type="radio" name="goodbyeMessageType" id="typeEmbed" value="embed"
@@ -47,7 +47,7 @@
                         <label class="radio-label" style="display:flex;align-items:center;gap:.5rem;cursor:pointer;">
                             <input type="radio" name="goodbyeMessageType" id="typePlain" value="plain"
                                    <%= (goodbyeData.messageType || 'plain') === 'plain' ? 'checked' : '' %>>
-                            <span>Teks Biasa</span>
+                            <span>Plain Text</span>
                         </label>
                     </div>
                 </div>
@@ -55,14 +55,14 @@
                 <!-- ── Panel Teks Biasa ── -->
                 <div id="plainTextPanel" class="form-group" style="display:none;">
                     <div class="label-with-picker">
-                        <label class="label" style="margin-bottom:0;">Isi Pesan Teks Biasa</label>
+                        <label class="label" style="margin-bottom:0;">Plain Text Message</label>
                         <div class="ph-picker-anchor">
                             <button type="button" class="ph-toggle-btn" onclick="togglePicker('plainPicker',event)">{…} Placeholder</button>
                             <div class="ph-dropdown" id="plainPicker" style="display:none;"></div>
                         </div>
                     </div>
                     <textarea id="goodbyePlainText" class="textarea" rows="3"
-                              placeholder="Sampai jumpa, {member}! Terima kasih sudah bersama kami di **{server}**."><%= goodbyeData.plainText %></textarea>
+                              placeholder="Goodbye, {member}! Thanks for being with us in **{server}**."><%= goodbyeData.plainText %></textarea>
                 </div>
 
                 <!-- ── Panel Embed ── -->
@@ -70,25 +70,25 @@
 
                 <div class="form-group">
                     <div class="label-with-picker">
-                        <label class="label" style="margin-bottom:0;">Judul Embed</label>
+                        <label class="label" style="margin-bottom:0;">Embed Title</label>
                         <div class="ph-picker-anchor">
                             <button type="button" class="ph-toggle-btn" onclick="togglePicker('embedPicker',event)">{…} Placeholder</button>
                             <div class="ph-dropdown" id="embedPicker" style="display:none;"></div>
                         </div>
                     </div>
                     <input type="text" id="goodbyeTitle" class="input"
-                           placeholder="👋 Selamat Tinggal!"
+                           placeholder="👋 Goodbye!"
                            value="<%= goodbyeData.title || '' %>">
                 </div>
 
                 <div class="form-group">
-                    <label class="label">Deskripsi Embed</label>
+                    <label class="label">Embed Description</label>
                     <textarea id="goodbyeDescription" class="textarea" rows="3"
-                              placeholder="{member} telah meninggalkan server."><%= goodbyeData.description || '' %></textarea>
+                              placeholder="{member} has left the server."><%= goodbyeData.description || '' %></textarea>
                 </div>
 
                 <div class="form-group">
-                    <label class="label">Warna Embed</label>
+                    <label class="label">Embed Color</label>
                     <div style="display:flex;gap:.75rem;align-items:center;">
                         <input type="color" id="goodbyeColorPicker" value="<%= goodbyeData.color || '#ED4245' %>"
                                style="width:44px;height:36px;border:none;border-radius:6px;cursor:pointer;padding:0;background:none;"
@@ -101,9 +101,9 @@
                 </div>
 
                 <div class="form-group">
-                    <label class="label">Footer <span style="font-weight:400;color:var(--text-muted)">(opsional)</span></label>
+                    <label class="label">Footer <span style="font-weight:400;color:var(--text-muted)">(optional)</span></label>
                     <input type="text" id="goodbyeFooter" class="input"
-                           placeholder='Kosongkan untuk menghapus'
+                           placeholder='Leave blank to remove'
                            value="<%= goodbyeData.footerText || '' %>">
                 </div>
 
@@ -112,14 +112,14 @@
                         <input type="checkbox" id="goodbyeThumbnail" class="toggle-input"
                                <%= goodbyeData.thumbnail ? 'checked' : '' %>>
                         <span class="toggle-slider"></span>
-                        <span>Tampilkan foto profil member (thumbnail)</span>
+                        <span>Show member profile picture (thumbnail)</span>
                     </label>
                 </div>
 
                 </div><!-- /embedPanel -->
 
                 <div id="fieldsPanel" class="form-group">
-                    <label class="label" style="margin-bottom:.75rem;">Field Info</label>
+                    <label class="label" style="margin-bottom:.75rem;">Info Fields</label>
                     <div style="display:flex;flex-direction:column;gap:.6rem;">
                         <label class="toggle-label">
                             <input type="checkbox" id="field_member" class="toggle-input field-toggle"
@@ -129,17 +129,17 @@
                         <label class="toggle-label">
                             <input type="checkbox" id="field_bergabung" class="toggle-input field-toggle"
                                    <%= goodbyeData.showBergabung ? 'checked' : '' %>>
-                            <span class="toggle-slider"></span><span>Bergabung Sejak</span>
+                            <span class="toggle-slider"></span><span>Joined Since</span>
                         </label>
                         <label class="toggle-label">
                             <input type="checkbox" id="field_akun_dibuat" class="toggle-input field-toggle"
                                    <%= goodbyeData.showAkunDibuat ? 'checked' : '' %>>
-                            <span class="toggle-slider"></span><span>Akun Dibuat</span>
+                            <span class="toggle-slider"></span><span>Account Created</span>
                         </label>
                         <label class="toggle-label">
                             <input type="checkbox" id="field_total_member" class="toggle-input field-toggle"
                                    <%= goodbyeData.showTotalMember ? 'checked' : '' %>>
-                            <span class="toggle-slider"></span><span>Total Member</span>
+                            <span class="toggle-slider"></span><span>Total Members</span>
                         </label>
                     </div>
                 </div>
@@ -150,7 +150,7 @@
                         <input type="checkbox" id="cardEnabled" class="toggle-input"
                                <%= goodbyeData.cardEnabled ? 'checked' : '' %>>
                         <span class="toggle-slider"></span>
-                        <span>Kirim gambar perpisahan (goodbye card)</span>
+                        <span>Send goodbye card image</span>
                     </label>
                 </div>
 
@@ -158,15 +158,15 @@
 
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;">
                         <div class="form-group">
-                            <label class="label">Bentuk Avatar</label>
+                            <label class="label">Avatar Shape</label>
                             <div style="display:flex;gap:.6rem;margin-top:.2rem;">
                                 <label style="display:flex;align-items:center;gap:.4rem;cursor:pointer;font-size:.85rem;">
                                     <input type="radio" name="cardAvatarShape" value="circle" <%= (goodbyeData.cardAvatarShape||'circle')==='circle'?'checked':'' %>>
-                                    <span>Lingkaran</span>
+                                    <span>Circle</span>
                                 </label>
                                 <label style="display:flex;align-items:center;gap:.4rem;cursor:pointer;font-size:.85rem;">
                                     <input type="radio" name="cardAvatarShape" value="square" <%= goodbyeData.cardAvatarShape==='square'?'checked':'' %>>
-                                    <span>Kotak</span>
+                                    <span>Square</span>
                                 </label>
                             </div>
                         </div>
@@ -181,9 +181,9 @@
                     </div>
 
                     <div class="form-group">
-                        <label class="label">Tipe Background</label>
+                        <label class="label">Background Type</label>
                         <div style="display:flex;gap:.75rem;flex-wrap:wrap;margin-top:.2rem;">
-                            <% [['gradient','Gradien'],['solid','Solid'],['image','Gambar URL'],['transparent','Transparan']].forEach(function(bt){ %>
+                            <% [['gradient','Gradient'],['solid','Solid'],['image','Image URL'],['transparent','Transparent']].forEach(function(bt){ %>
                             <label style="display:flex;align-items:center;gap:.4rem;cursor:pointer;font-size:.85rem;">
                                 <input type="radio" name="cardBgType" value="<%= bt[0] %>" <%= (goodbyeData.cardBgType||'gradient')===bt[0]?'checked':'' %>>
                                 <span><%= bt[1] %></span>
@@ -194,7 +194,7 @@
 
                     <div id="cardBgGradientPanel" style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;">
                         <div class="form-group">
-                            <label class="label" id="cardBgColor1Label">Latar Kiri</label>
+                            <label class="label" id="cardBgColor1Label">Left Background</label>
                             <div style="display:flex;gap:.5rem;align-items:center;">
                                 <input type="color" id="cardBgColorPicker" value="<%= goodbyeData.cardBgColor||'#1a0a0a' %>"
                                        style="width:38px;height:32px;border:none;border-radius:5px;cursor:pointer;padding:0;background:none;"
@@ -204,7 +204,7 @@
                             </div>
                         </div>
                         <div class="form-group" id="cardBgColor2Group">
-                            <label class="label">Latar Kanan</label>
+                            <label class="label">Right Background</label>
                             <div style="display:flex;gap:.5rem;align-items:center;">
                                 <input type="color" id="cardBgColor2Picker" value="<%= goodbyeData.cardBgColor2||'#2e0a0a' %>"
                                        style="width:38px;height:32px;border:none;border-radius:5px;cursor:pointer;padding:0;background:none;"
@@ -216,16 +216,16 @@
                     </div>
 
                     <div id="cardBgImagePanel" style="display:none;" class="form-group">
-                        <label class="label">URL Gambar Latar</label>
+                        <label class="label">Background Image URL</label>
                         <input type="text" id="cardBgImageUrl" class="input"
                                placeholder="https://example.com/background.jpg"
                                value="<%= goodbyeData.cardBgImageUrl||'' %>">
-                        <div class="hint" style="margin-top:.3rem;">URL gambar JPEG/PNG · Akan di-resize otomatis ke ukuran card</div>
+                        <div class="hint" style="margin-top:.3rem;">JPEG/PNG image URL · Will be auto-resized to fit the card</div>
                     </div>
 
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;">
                         <div class="form-group">
-                            <label class="label">Warna Overlay</label>
+                            <label class="label">Overlay Color</label>
                             <div style="display:flex;gap:.5rem;align-items:center;">
                                 <input type="color" id="cardOverlayColorPicker" value="<%= goodbyeData.cardOverlayColor||'#000000' %>"
                                        style="width:38px;height:32px;border:none;border-radius:5px;cursor:pointer;padding:0;background:none;"
@@ -236,7 +236,7 @@
                         </div>
                         <div class="form-group">
                             <label class="label" style="display:flex;justify-content:space-between;">
-                                <span>Opasitas Overlay</span>
+                                <span>Overlay Opacity</span>
                                 <span id="cardOverlayOpacityVal" style="color:var(--text-muted);font-weight:400;"><%= goodbyeData.cardOverlayOpacity||'0' %>%</span>
                             </label>
                             <input type="range" id="cardOverlayOpacity" min="0" max="100"
@@ -248,7 +248,7 @@
 
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;">
                         <div class="form-group">
-                            <label class="label">Warna Judul (GOODBYE)</label>
+                            <label class="label">Title Color (GOODBYE)</label>
                             <div style="display:flex;gap:.5rem;align-items:center;">
                                 <input type="color" id="cardTitleColorPicker" value="<%= goodbyeData.cardTitleColor||'#ffffff' %>"
                                        style="width:38px;height:32px;border:none;border-radius:5px;cursor:pointer;padding:0;background:none;"
@@ -258,7 +258,7 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label class="label">Warna Nama Pengguna</label>
+                            <label class="label">Username Color</label>
                             <div style="display:flex;gap:.5rem;align-items:center;">
                                 <input type="color" id="cardUsernameColorPicker" value="<%= goodbyeData.cardUsernameColor||goodbyeData.cardAccentColor||'#ED4245' %>"
                                        style="width:38px;height:32px;border:none;border-radius:5px;cursor:pointer;padding:0;background:none;"
@@ -268,7 +268,7 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label class="label">Warna Pesan (sub teks)</label>
+                            <label class="label">Message Color (sub text)</label>
                             <div style="display:flex;gap:.5rem;align-items:center;">
                                 <input type="color" id="cardMsgColorPicker" value="<%= goodbyeData.cardMsgColor||'#cccccc' %>"
                                        style="width:38px;height:32px;border:none;border-radius:5px;cursor:pointer;padding:0;background:none;"
@@ -278,7 +278,7 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label class="label">Warna Border Avatar</label>
+                            <label class="label">Avatar Border Color</label>
                             <div style="display:flex;gap:.5rem;align-items:center;">
                                 <input type="color" id="cardAccentPicker" value="<%= goodbyeData.cardAccentColor||'#ED4245' %>"
                                        style="width:38px;height:32px;border:none;border-radius:5px;cursor:pointer;padding:0;background:none;"
@@ -290,12 +290,12 @@
                     </div>
 
                     <div class="form-group">
-                        <label class="label">Teks Besar (GOODBYE)</label>
+                        <label class="label">Large Text (GOODBYE)</label>
                         <input type="text" id="cardWelcomeText" class="input" maxlength="20"
                                placeholder="GOODBYE" value="<%= goodbyeData.cardWelcomeText||'GOODBYE' %>">
                     </div>
                     <div class="form-group">
-                        <label class="label">Teks Kecil Bawah</label>
+                        <label class="label">Small Text Below</label>
                         <input type="text" id="cardSubText" class="input" maxlength="60"
                                placeholder="FROM {server}" value="<%= goodbyeData.cardSubText||'FROM {server}' %>">
                         <div class="hint" style="margin-top:.3rem;"><code>{server}</code> · <code>{count}</code> · <code>{tag}</code></div>
@@ -304,7 +304,7 @@
                 </div><!-- /cardPanel -->
 
                 <div class="form-actions">
-                    <button class="btn btn-primary" onclick="saveGoodbye('<%= guild.id %>')">Simpan</button>
+                    <button class="btn btn-primary" onclick="saveGoodbye('<%= guild.id %>')">Save</button>
                 </div>
                 <div id="goodbyeMsg" class="form-message"></div>
             </div>
@@ -330,7 +330,7 @@
                             <img class="dc-avatar" src="<%- loginUser && botUser ? botUser.avatarUrl : 'https://cdn.discordapp.com/embed/avatars/0.png' %>" alt="bot avatar" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
                             <div class="dc-msg-body">
                                 <span class="dc-username" style="color:<%- botUser ? botUser.roleColor : '#ffffff' %>"><%= botUser ? botUser.username : 'Bot' %></span>
-                                <span class="dc-timestamp">Hari ini pukul 12:00</span>
+                                <span class="dc-timestamp">Today at 12:00 PM</span>
                                 <div id="previewPlainMsg" class="dc-plain-msg" style="display:none;"></div>
                                 <img id="previewCardInPlain" style="display:none;width:100%;max-width:440px;border-radius:8px;margin-top:.4rem;" alt="">
                                 <div class="dc-embed" id="previewEmbed">
@@ -433,7 +433,7 @@ const SAMPLE = {
     avatarUrl:   <%- JSON.stringify(loginUser.avatarUrl) %>,
     server:      <%- JSON.stringify(guild.name) %>,
     count:       '<%= guild.memberCount %>',
-    akun_dibuat: '3 tahun yang lalu',
+    akun_dibuat: '3 years ago',
 };
 
 const guildId = '<%= guild.id %>';
@@ -644,7 +644,7 @@ async function drawCardPreview() {
     if (imgPanel)  imgPanel.style.display  = bgType === 'image' ? 'block' : 'none';
     if (col2Grp)   col2Grp.style.display   = bgType === 'gradient' ? 'block' : 'none';
     const lbl = document.getElementById('cardBgColor1Label');
-    if (lbl) lbl.textContent = bgType === 'gradient' ? 'Latar Kiri' : 'Warna Latar';
+    if (lbl) lbl.textContent = bgType === 'gradient' ? 'Left Background' : 'Background Color';
 
     ctx.clearRect(0, 0, W, H);
     function rr(x, y, w, h, r) {
@@ -800,8 +800,8 @@ function insertPh(targetId, ph) {
 // ── Field defs ────────────────────────────────────────────────────────────────
 const FIELD_DEFS = [
     { id: 'field_member',       name: '👤 Member',       value: SAMPLE.username        },
-    { id: 'field_bergabung',    name: '📅 Bergabung',    value: '2 tahun yang lalu'    },
-    { id: 'field_akun_dibuat',  name: '📅 Akun Dibuat',  value: SAMPLE.akun_dibuat     },
+    { id: 'field_bergabung',    name: '📅 Joined',       value: '2 years ago'          },
+    { id: 'field_akun_dibuat',  name: '📅 Account Created',  value: SAMPLE.akun_dibuat     },
     { id: 'field_total_member', name: '👥 Total Member', value: SAMPLE.count           },
 ];
 
@@ -905,7 +905,7 @@ toggleCardPanel().then(() => toggleMessageTypePanel());
 async function saveGoodbye(guildId) {
     const msg = document.getElementById('goodbyeMsg');
     if (!document.getElementById('goodbyeChannel').value)
-        return showMsg(msg, 'Pilih channel tujuan terlebih dahulu.', 'error');
+        return showMsg(msg, 'Please select a destination channel first.', 'error');
     const payload = {
         enabled:       document.getElementById('goodbyeEnabled').checked,
         channelId:     document.getElementById('goodbyeChannel').value,

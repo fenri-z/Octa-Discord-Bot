@@ -15,44 +15,44 @@ async function sendModLog(client, guild, embed) {
 module.exports = new ApplicationCommand({
     command: {
         name: 'kick',
-        description: 'Kick member dari server',
+        description: 'Kick a member from the server',
         type: 1,
         default_member_permissions: String(PermissionFlagsBits.KickMembers),
         options: [
-            { type: 6, name: 'user',   description: 'Member yang di-kick', required: true },
-            { type: 3, name: 'alasan', description: 'Alasan kick',         required: false },
+            { type: 6, name: 'user',   description: 'Member to kick',         required: true },
+            { type: 3, name: 'reason', description: 'Reason for the kick',    required: false },
         ],
     },
 
     run: async (client, interaction) => {
         const target = interaction.options.getUser('user');
-        const alasan = interaction.options.getString('alasan') || 'Tidak ada alasan';
+        const alasan = interaction.options.getString('reason') || 'No reason provided';
         const guild  = interaction.guild;
 
         if (target.id === interaction.user.id)
-            return interaction.reply({ content: '❌ Kamu tidak bisa kick diri sendiri.', flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: '❌ You cannot kick yourself.', flags: MessageFlags.Ephemeral });
 
         if (target.id === client.user.id)
-            return interaction.reply({ content: '❌ Tidak bisa kick bot ini.', flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: '❌ Cannot kick this bot.', flags: MessageFlags.Ephemeral });
 
         const member = guild.members.cache.get(target.id);
         if (!member)
-            return interaction.reply({ content: '❌ Member tidak ditemukan di server ini.', flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: '❌ Member not found in this server.', flags: MessageFlags.Ephemeral });
 
         if (!member.kickable)
-            return interaction.reply({ content: '❌ Bot tidak bisa kick member ini (role terlalu tinggi).', flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: '❌ Bot cannot kick this member (role too high).', flags: MessageFlags.Ephemeral });
 
         const userHighest = interaction.member.roles.highest.position ?? 0;
         if (member.roles.highest.position >= userHighest)
-            return interaction.reply({ content: '❌ Kamu tidak bisa kick member dengan role lebih tinggi atau sama denganmu.', flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: '❌ You cannot kick a member with a higher or equal role than yours.', flags: MessageFlags.Ephemeral });
 
-        // Kirim DM notifikasi sebelum di-kick
+        // Send DM notification before kicking
         await target.send({
             embeds: [new EmbedBuilder()
                 .setColor('#FEE75C')
-                .setTitle(`👢 Kamu telah di-kick dari ${guild.name}`)
+                .setTitle(`👢 You have been kicked from ${guild.name}`)
                 .addFields(
-                    { name: '📝 Alasan',     value: alasan },
+                    { name: '📝 Reason',     value: alasan },
                     { name: '🛡️ Moderator', value: interaction.user.tag },
                 )
                 .setTimestamp()],
@@ -61,17 +61,17 @@ module.exports = new ApplicationCommand({
         try {
             await member.kick(`${interaction.user.tag}: ${alasan}`);
         } catch {
-            return interaction.reply({ content: '❌ Gagal kick member. Cek permission bot.', flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: '❌ Failed to kick member. Check bot permissions.', flags: MessageFlags.Ephemeral });
         }
 
         const embed = new EmbedBuilder()
             .setColor('#FEE75C')
-            .setTitle('👢 Member Di-Kick')
+            .setTitle('👢 Member Kicked')
             .setThumbnail(target.displayAvatarURL({ size: 64 }))
             .addFields(
                 { name: '👤 Member',     value: `${target} (${target.tag})`, inline: true },
                 { name: '🛡️ Moderator', value: `${interaction.user}`,       inline: true },
-                { name: '📝 Alasan',     value: alasan },
+                { name: '📝 Reason',     value: alasan },
             )
             .setTimestamp();
 
@@ -80,7 +80,7 @@ module.exports = new ApplicationCommand({
         return interaction.reply({
             embeds: [new EmbedBuilder()
                 .setColor('#FEE75C')
-                .setDescription(`✅ **${target.tag}** berhasil di-kick.\n📝 Alasan: ${alasan}`)],
+                .setDescription(`✅ **${target.tag}** has been kicked.\n📝 Reason: ${alasan}`)],
             flags: MessageFlags.Ephemeral,
         });
     },

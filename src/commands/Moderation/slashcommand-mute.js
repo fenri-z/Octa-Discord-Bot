@@ -22,10 +22,10 @@ function parseDuration(str) {
 }
 
 function formatDuration(ms) {
-    if (ms < 60_000)        return `${ms / 1_000} detik`;
-    if (ms < 3_600_000)     return `${ms / 60_000} menit`;
-    if (ms < 86_400_000)    return `${ms / 3_600_000} jam`;
-    return `${ms / 86_400_000} hari`;
+    if (ms < 60_000)        return `${ms / 1_000} second(s)`;
+    if (ms < 3_600_000)     return `${ms / 60_000} minute(s)`;
+    if (ms < 86_400_000)    return `${ms / 3_600_000} hour(s)`;
+    return `${ms / 86_400_000} day(s)`;
 }
 
 const MAX_TIMEOUT_MS = 28 * 86_400_000; // 28 hari — batas Discord
@@ -33,27 +33,27 @@ const MAX_TIMEOUT_MS = 28 * 86_400_000; // 28 hari — batas Discord
 module.exports = new ApplicationCommand({
     command: {
         name: 'mute',
-        description: 'Timeout atau cabut timeout member',
+        description: 'Timeout or remove timeout from a member',
         type: 1,
         default_member_permissions: String(PermissionFlagsBits.ModerateMembers),
         options: [
             {
                 type: 1,
                 name: 'member',
-                description: 'Beri timeout pada member',
+                description: 'Apply a timeout to a member',
                 options: [
-                    { type: 6, name: 'user',    description: 'Member yang di-mute',                      required: true },
-                    { type: 3, name: 'durasi',  description: 'Durasi timeout, contoh: 10m, 1h, 2d (maks 28d)', required: true },
-                    { type: 3, name: 'alasan',  description: 'Alasan mute',                              required: false },
+                    { type: 6, name: 'user',     description: 'Member to mute',                              required: true },
+                    { type: 3, name: 'duration', description: 'Timeout duration, e.g. 10m, 1h, 2d (max 28d)', required: true },
+                    { type: 3, name: 'reason',   description: 'Reason for the mute',                         required: false },
                 ],
             },
             {
                 type: 1,
                 name: 'unmute',
-                description: 'Cabut timeout member',
+                description: 'Remove timeout from a member',
                 options: [
-                    { type: 6, name: 'user',   description: 'Member yang di-unmute', required: true },
-                    { type: 3, name: 'alasan', description: 'Alasan unmute',         required: false },
+                    { type: 6, name: 'user',   description: 'Member to unmute',         required: true },
+                    { type: 3, name: 'reason', description: 'Reason for the unmute',    required: false },
                 ],
             },
         ],
@@ -66,68 +66,68 @@ module.exports = new ApplicationCommand({
         // ── Mute ────────────────────────────────────────────────────────────────
         if (sub === 'member') {
             const target  = interaction.options.getUser('user');
-            const durStr  = interaction.options.getString('durasi');
-            const alasan  = interaction.options.getString('alasan') || 'Tidak ada alasan';
+            const durStr  = interaction.options.getString('duration');
+            const alasan  = interaction.options.getString('reason') || 'No reason provided';
 
             const durationMs = parseDuration(durStr);
             if (!durationMs)
                 return interaction.reply({
-                    content: '❌ Format durasi tidak valid. Contoh: `30s`, `10m`, `2h`, `1d`.',
+                    content: '❌ Invalid duration format. Examples: `30s`, `10m`, `2h`, `1d`.',
                     flags: MessageFlags.Ephemeral,
                 });
 
             if (durationMs > MAX_TIMEOUT_MS)
-                return interaction.reply({ content: '❌ Durasi maksimal timeout adalah **28 hari**.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: '❌ Maximum timeout duration is **28 days**.', flags: MessageFlags.Ephemeral });
 
             if (target.id === interaction.user.id)
-                return interaction.reply({ content: '❌ Kamu tidak bisa mute diri sendiri.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: '❌ You cannot mute yourself.', flags: MessageFlags.Ephemeral });
 
             if (target.id === client.user.id)
-                return interaction.reply({ content: '❌ Tidak bisa mute bot ini.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: '❌ Cannot mute this bot.', flags: MessageFlags.Ephemeral });
 
             const member = guild.members.cache.get(target.id);
             if (!member)
-                return interaction.reply({ content: '❌ Member tidak ditemukan di server ini.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: '❌ Member not found in this server.', flags: MessageFlags.Ephemeral });
 
             if (!member.moderatable)
-                return interaction.reply({ content: '❌ Bot tidak bisa timeout member ini (role terlalu tinggi).', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: '❌ Bot cannot timeout this member (role too high).', flags: MessageFlags.Ephemeral });
 
             const userHighest = interaction.member.roles.highest.position ?? 0;
             if (member.roles.highest.position >= userHighest)
-                return interaction.reply({ content: '❌ Kamu tidak bisa mute member dengan role lebih tinggi atau sama denganmu.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: '❌ You cannot mute a member with a higher or equal role than yours.', flags: MessageFlags.Ephemeral });
 
             const until = new Date(Date.now() + durationMs);
 
             try {
                 await member.timeout(durationMs, `${interaction.user.tag}: ${alasan}`);
             } catch {
-                return interaction.reply({ content: '❌ Gagal mute member. Cek permission bot.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: '❌ Failed to mute member. Check bot permissions.', flags: MessageFlags.Ephemeral });
             }
 
-            // DM notifikasi
+            // DM notification
             await target.send({
                 embeds: [new EmbedBuilder()
                     .setColor('#EB459E')
-                    .setTitle(`🔇 Kamu telah di-mute di ${guild.name}`)
+                    .setTitle(`🔇 You have been muted in ${guild.name}`)
                     .addFields(
-                        { name: '⏱️ Durasi',     value: formatDuration(durationMs) },
-                        { name: '📅 Berakhir',    value: `<t:${Math.floor(until.getTime() / 1000)}:R>` },
-                        { name: '📝 Alasan',      value: alasan },
-                        { name: '🛡️ Moderator',  value: interaction.user.tag },
+                        { name: '⏱️ Duration',   value: formatDuration(durationMs) },
+                        { name: '📅 Expires',    value: `<t:${Math.floor(until.getTime() / 1000)}:R>` },
+                        { name: '📝 Reason',     value: alasan },
+                        { name: '🛡️ Moderator', value: interaction.user.tag },
                     )
                     .setTimestamp()],
             }).catch(() => null);
 
             const embed = new EmbedBuilder()
                 .setColor('#EB459E')
-                .setTitle('🔇 Member Di-Mute')
+                .setTitle('🔇 Member Muted')
                 .setThumbnail(target.displayAvatarURL({ size: 64 }))
                 .addFields(
                     { name: '👤 Member',     value: `${target} (${target.tag})`,                         inline: true },
                     { name: '🛡️ Moderator', value: `${interaction.user}`,                               inline: true },
-                    { name: '⏱️ Durasi',    value: formatDuration(durationMs),                          inline: true },
-                    { name: '📅 Berakhir',  value: `<t:${Math.floor(until.getTime() / 1000)}:R>`,       inline: true },
-                    { name: '📝 Alasan',    value: alasan },
+                    { name: '⏱️ Duration',  value: formatDuration(durationMs),                          inline: true },
+                    { name: '📅 Expires',   value: `<t:${Math.floor(until.getTime() / 1000)}:R>`,       inline: true },
+                    { name: '📝 Reason',    value: alasan },
                 )
                 .setTimestamp();
 
@@ -136,7 +136,7 @@ module.exports = new ApplicationCommand({
             return interaction.reply({
                 embeds: [new EmbedBuilder()
                     .setColor('#EB459E')
-                    .setDescription(`✅ **${target.tag}** berhasil di-mute selama **${formatDuration(durationMs)}**.\n📝 Alasan: ${alasan}`)],
+                    .setDescription(`✅ **${target.tag}** has been muted for **${formatDuration(durationMs)}**.\n📝 Reason: ${alasan}`)],
                 flags: MessageFlags.Ephemeral,
             });
         }
@@ -144,28 +144,28 @@ module.exports = new ApplicationCommand({
         // ── Unmute ──────────────────────────────────────────────────────────────
         if (sub === 'unmute') {
             const target = interaction.options.getUser('user');
-            const alasan = interaction.options.getString('alasan') || 'Tidak ada alasan';
+            const alasan = interaction.options.getString('reason') || 'No reason provided';
 
             const member = guild.members.cache.get(target.id);
             if (!member)
-                return interaction.reply({ content: '❌ Member tidak ditemukan di server ini.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: '❌ Member not found in this server.', flags: MessageFlags.Ephemeral });
 
             if (!member.communicationDisabledUntil || member.communicationDisabledUntil < new Date())
-                return interaction.reply({ content: `❌ **${target.tag}** tidak sedang dalam kondisi mute.`, flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: `❌ **${target.tag}** is not currently muted.`, flags: MessageFlags.Ephemeral });
 
             try {
                 await member.timeout(null, `${interaction.user.tag}: ${alasan}`);
             } catch {
-                return interaction.reply({ content: '❌ Gagal unmute member. Cek permission bot.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: '❌ Failed to unmute member. Check bot permissions.', flags: MessageFlags.Ephemeral });
             }
 
-            // DM notifikasi
+            // DM notification
             await target.send({
                 embeds: [new EmbedBuilder()
                     .setColor('#57F287')
-                    .setTitle(`🔊 Mute kamu di ${guild.name} telah dicabut`)
+                    .setTitle(`🔊 Your mute in ${guild.name} has been removed`)
                     .addFields(
-                        { name: '📝 Alasan',     value: alasan },
+                        { name: '📝 Reason',     value: alasan },
                         { name: '🛡️ Moderator', value: interaction.user.tag },
                     )
                     .setTimestamp()],
@@ -173,12 +173,12 @@ module.exports = new ApplicationCommand({
 
             const embed = new EmbedBuilder()
                 .setColor('#57F287')
-                .setTitle('🔊 Mute Member Dicabut')
+                .setTitle('🔊 Member Unmuted')
                 .setThumbnail(target.displayAvatarURL({ size: 64 }))
                 .addFields(
                     { name: '👤 Member',     value: `${target} (${target.tag})`, inline: true },
                     { name: '🛡️ Moderator', value: `${interaction.user}`,       inline: true },
-                    { name: '📝 Alasan',     value: alasan },
+                    { name: '📝 Reason',     value: alasan },
                 )
                 .setTimestamp();
 
@@ -187,7 +187,7 @@ module.exports = new ApplicationCommand({
             return interaction.reply({
                 embeds: [new EmbedBuilder()
                     .setColor('#57F287')
-                    .setDescription(`✅ Mute **${target.tag}** berhasil dicabut.\n📝 Alasan: ${alasan}`)],
+                    .setDescription(`✅ **${target.tag}** has been unmuted.\n📝 Reason: ${alasan}`)],
                 flags: MessageFlags.Ephemeral,
             });
         }

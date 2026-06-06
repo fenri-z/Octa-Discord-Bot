@@ -9,7 +9,7 @@
         <%- include('../partials/perm-notice') %>
         <div class="page-header">
             <h1>Autorole Join</h1>
-            <p>Role otomatis diberikan saat member atau bot bergabung ke server.</p>
+            <p>Role automatically assigned when a member or bot joins the server.</p>
         </div>
 
 
@@ -18,7 +18,7 @@
         ══════════════════════════════════════ -->
         <div id="tab-join" class="ar-tab-content">
             <div class="settings-card">
-                <p class="section-desc">Role yang otomatis diberikan saat <strong>member</strong> atau <strong>bot</strong> bergabung ke server.</p>
+                <p class="section-desc">Role automatically assigned when a <strong>member</strong> or <strong>bot</strong> joins the server.</p>
 
                 <!-- Member -->
                 <div class="ar-section">
@@ -28,13 +28,13 @@
                             <input type="checkbox" id="joinMemberEnabled" class="toggle-input"
                                    <%= joinData.memberEnabled ? 'checked' : '' %>>
                             <span class="toggle-slider"></span>
-                            <span>Aktifkan untuk Member</span>
+                            <span>Enable for Members</span>
                         </label>
                     </div>
                     <div class="form-group">
                         <label class="label">Role untuk Member</label>
                         <select id="joinMemberRole" class="select">
-                            <option value="">— Pilih role —</option>
+                            <option value="">— Select role —</option>
                             <% roles.forEach(role => { %>
                                 <option value="<%= role.id %>"
                                         style="color: <%= role.color %>"
@@ -56,13 +56,13 @@
                             <input type="checkbox" id="joinBotEnabled" class="toggle-input"
                                    <%= joinData.botEnabled ? 'checked' : '' %>>
                             <span class="toggle-slider"></span>
-                            <span>Aktifkan untuk Bot</span>
+                            <span>Enable for Bots</span>
                         </label>
                     </div>
                     <div class="form-group">
                         <label class="label">Role untuk Bot</label>
                         <select id="joinBotRole" class="select">
-                            <option value="">— Pilih role —</option>
+                            <option value="">— Select role —</option>
                             <% roles.forEach(role => { %>
                                 <option value="<%= role.id %>"
                                         style="color: <%= role.color %>"
@@ -71,12 +71,12 @@
                                 </option>
                             <% }) %>
                         </select>
-                        <div class="hint">Hanya role yang bisa di-assign oleh bot yang ditampilkan.</div>
+                        <div class="hint">Only roles that can be assigned by the bot are shown.</div>
                     </div>
                 </div>
 
                 <div class="form-actions">
-                    <button class="btn btn-primary" onclick="saveJoin()">Simpan</button>
+                    <button class="btn btn-primary" onclick="saveJoin()">Save</button>
                 </div>
                 <div id="joinMsg" class="form-message"></div>
             </div>
@@ -87,7 +87,7 @@
         ══════════════════════════════════════ -->
         <div id="tab-booster" class="ar-tab-content" style="display:none;">
             <div class="settings-card">
-                <p class="section-desc">Role yang otomatis diberikan saat member melakukan <strong>boost</strong> server, dan dicabut saat mereka <strong>unboost</strong>.</p>
+                <p class="section-desc">Role automatically assigned when a member <strong>boosts</strong> the server, and removed wheat mereka <strong>unboost</strong>.</p>
 
                 <div class="ar-section">
                     <div class="ar-section-title">Autorole Booster</div>
@@ -96,13 +96,13 @@
                             <input type="checkbox" id="boosterAutoroleEnabled" class="toggle-input"
                                    <%= boosterData.autoroleEnabled ? 'checked' : '' %>>
                             <span class="toggle-slider"></span>
-                            <span>Aktifkan Autorole Booster</span>
+                            <span>Enable Autorole Booster</span>
                         </label>
                     </div>
                     <div class="form-group">
                         <label class="label">Role untuk Booster</label>
                         <select id="boosterAutoroleRole" class="select">
-                            <option value="">— Pilih role —</option>
+                            <option value="">— Select role —</option>
                             <% roles.forEach(role => { %>
                                 <option value="<%= role.id %>"
                                         style="color: <%= role.color %>"
@@ -117,20 +117,20 @@
                 <div class="ar-divider"></div>
 
                 <div class="ar-section">
-                    <div class="ar-section-title">Autoremove saat Unboost</div>
+                    <div class="ar-section-title">Autoremove on Unboost</div>
                     <div class="form-group">
                         <label class="toggle-label">
                             <input type="checkbox" id="boosterAutoremoveEnabled" class="toggle-input"
                                    <%= boosterData.autoremoveEnabled ? 'checked' : '' %>>
                             <span class="toggle-slider"></span>
-                            <span>Cabut role otomatis saat member berhenti boost</span>
+                            <span>Automatically remove role when member stops boosting</span>
                         </label>
-                        <div class="hint" style="margin-top:.5rem;">Jika diaktifkan, role booster akan langsung dicabut saat member menghapus boostnya.</div>
+                        <div class="hint" style="margin-top:.5rem;">If enabled, the booster role will be immediately removed when a member removes their boost.</div>
                     </div>
                 </div>
 
                 <div class="form-actions">
-                    <button class="btn btn-primary" onclick="saveBooster()">Simpan</button>
+                    <button class="btn btn-primary" onclick="saveBooster()">Save</button>
                 </div>
                 <div id="boosterMsg" class="form-message"></div>
             </div>
@@ -143,7 +143,7 @@
 
             <!-- Toolbar -->
             <div class="mb-toolbar">
-                <button class="btn btn-primary" onclick="openCreatePanel()">＋ Panel Baru</button>
+                <button class="btn btn-primary" onclick="openCreatePanel()">＋ New Panel</button>
                 <input type="text" class="input mb-search" placeholder="🔍 Cari panel..." oninput="filterPanels(this.value)">
             </div>
 
@@ -156,10 +156,10 @@
                 <% if (panels.length === 0) { %>
                     <div class="empty-state" id="emptyPanels">
                         <p style="font-size:2rem;margin-bottom:.5rem">🔘</p>
-                        <p>Belum ada panel. Klik <strong>＋ Panel Baru</strong> untuk membuat panel autorole button.</p>
+                        <p>No panels yet. Click <strong>＋ New Panel</strong> to create an autorole button panel.</p>
                         <p style="color:var(--text-muted);font-size:.85rem;margin-top:.5rem">
                             Panel juga bisa dibuat lewat Discord dengan perintah
-                            <code>/autorole-button buat</code>.
+                            <code>/autorole-button create</code>.
                         </p>
                     </div>
                 <% } else { %>
@@ -206,7 +206,7 @@
                                     </span>
                                 <% }) %>
                             <% } else { %>
-                                <span style="color:var(--text-muted);font-size:.8rem">Belum ada tombol</span>
+                                <span style="color:var(--text-muted);font-size:.8rem">No buttons yet</span>
                             <% } %>
                         </div>
                         <div class="ar-panel-actions">
@@ -214,9 +214,9 @@
                             <% if (sentP) { %>
                                 <a class="btn btn-outline btn-sm"
                                    href="https://discord.com/channels/<%= guild.id %>/<%= sentP.channelId %>/<%= sentP.messageId %>"
-                                   target="_blank">🔗 Lihat</a>
+                                   target="_blank">🔗 View</a>
                             <% } else { %>
-                                <button class="btn btn-outline btn-sm" onclick="openSendPanel('<%= p.name %>')">📨 Kirim</button>
+                                <button class="btn btn-outline btn-sm" onclick="openSendPanel('<%= p.name %>')">📨 Send</button>
                             <% } %>
                             <button class="btn btn-sm ar-btn-delete" onclick="deletePanel('<%= p.name %>')"><i data-lucide="trash-2"></i></button>
                         </div>
@@ -235,7 +235,7 @@
                 <div class="ap-preview-body">
                     <div id="apPreviewPlaceholder" class="ap-preview-placeholder">
                         <div style="font-size:1.75rem">👆</div>
-                        <div>Klik panel untuk melihat preview</div>
+                        <div>Click a panel to see preview</div>
                     </div>
                     <div id="apPreviewContent" style="display:none;">
                         <div class="dc-window">
@@ -250,7 +250,7 @@
                                          alt="avatar" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
                                     <div class="dc-msg-body">
                                         <span class="dc-username"><%- locals.botNavName || 'Bot' %></span>
-                                        <span class="dc-timestamp">Hari ini pukul 12:00</span>
+                                        <span class="dc-timestamp">Today at 12:00 PM</span>
                                         <div id="apPanelPreviewPlain" class="dc-plain-msg" style="display:none;"></div>
                                         <div class="dc-embed" id="apPanelPreviewEmbed" style="display:none;">
                                             <div class="dc-embed-pill" id="apPanelPreviewPill"></div>
@@ -281,7 +281,7 @@
 
             <!-- Toolbar -->
             <div class="mb-toolbar">
-                <button class="btn btn-primary" onclick="openCreateReactPanel()">＋ Panel Baru</button>
+                <button class="btn btn-primary" onclick="openCreateReactPanel()">＋ New Panel</button>
                 <input type="text" class="input mb-search" placeholder="🔍 Cari panel..." oninput="filterReactPanels(this.value)">
             </div>
 
@@ -294,10 +294,10 @@
                 <% if (reactPanels.length === 0) { %>
                     <div class="empty-state" id="emptyReactPanels">
                         <p style="font-size:2rem;margin-bottom:.5rem">✨</p>
-                        <p>Belum ada panel. Klik <strong>＋ Panel Baru</strong> untuk membuat panel autorole reaction.</p>
+                        <p>No panels yet. Click <strong>＋ New Panel</strong> to create an autorole reaction panel.</p>
                         <p style="color:var(--text-muted);font-size:.85rem;margin-top:.5rem">
                             Panel juga bisa dibuat lewat Discord dengan perintah
-                            <code>/autorole-reaction buat</code>.
+                            <code>/autorole-reaction create</code>.
                         </p>
                     </div>
                 <% } else { %>
@@ -346,7 +346,7 @@
                                     </span>
                                 <% }) %>
                             <% } else { %>
-                                <span style="color:var(--text-muted);font-size:.8rem">Belum ada reaction</span>
+                                <span style="color:var(--text-muted);font-size:.8rem">No reactions yet</span>
                             <% } %>
                         </div>
                         <div class="ar-panel-actions">
@@ -356,7 +356,7 @@
                                    href="https://discord.com/channels/<%= guild.id %>/<%= sentRP.channelId %>/<%= sentRP.messageId %>"
                                    target="_blank">🔗 Lihat</a>
                             <% } else { %>
-                                <button class="btn btn-outline btn-sm" onclick="openSendReactPanel('<%= p.name %>')">📨 Kirim</button>
+                                <button class="btn btn-outline btn-sm" onclick="openSendReactPanel('<%= p.name %>')">📨 Send</button>
                             <% } %>
                             <button class="btn btn-sm ar-btn-delete" onclick="deleteReactPanel('<%= p.name %>')"><i data-lucide="trash-2"></i></button>
                         </div>
@@ -375,7 +375,7 @@
                 <div class="ap-preview-body">
                     <div id="apReactPreviewPlaceholder" class="ap-preview-placeholder">
                         <div style="font-size:1.75rem">✨</div>
-                        <div>Klik panel untuk melihat preview</div>
+                        <div>Click a panel to see preview</div>
                     </div>
                     <div id="apReactPreviewContent" style="display:none;">
                         <div class="dc-window">
@@ -390,7 +390,7 @@
                                          alt="avatar" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
                                     <div class="dc-msg-body">
                                         <span class="dc-username"><%- locals.botNavName || 'Bot' %></span>
-                                        <span class="dc-timestamp">Hari ini pukul 12:00</span>
+                                        <span class="dc-timestamp">Today at 12:00 PM</span>
                                         <div id="apReactPanelPreviewPlain" class="dc-plain-msg" style="display:none;"></div>
                                         <div class="dc-embed" id="apReactPanelPreviewEmbed" style="display:none;">
                                             <div class="dc-embed-pill" id="apReactPanelPreviewPill"></div>
@@ -433,7 +433,7 @@
 <div class="mb-modal-backdrop" id="panelBackdrop" onclick="closePanelModal()"></div>
 <div class="mb-modal mb-modal-full" id="panelModal">
     <div class="mb-modal-header">
-        <h2 id="panelModalTitle">Panel Baru</h2>
+        <h2 id="panelModalTitle">New Panel</h2>
         <button class="mb-modal-close" onclick="closePanelModal()">✕</button>
     </div>
     <div class="mb-modal-body">
@@ -445,15 +445,15 @@
             <div class="mb-editor-form">
 
                 <div class="form-group">
-                    <label class="label">Nama Panel</label>
-                    <input type="text" id="panelName" class="input" placeholder="contoh: pilih-role" maxlength="32">
+                    <label class="label">Panel Name</label>
+                    <input type="text" id="panelName" class="input" placeholder="e.g.: choose-role" maxlength="32">
                     <div class="hint">Hanya huruf, angka, <code>-</code>, <code>_</code> (maks 32 karakter).</div>
                 </div>
 
                 <div class="form-group" id="panelChannelGroup">
-                    <label class="label">Kirim ke Channel</label>
+                    <label class="label">Send to Channel</label>
                     <select id="panelSendChannelInline" class="select">
-                        <option value="">— Pilih channel —</option>
+                        <option value="">— Select channel —</option>
                         <% channels.forEach(c => { %>
                             <option value="<%= c.id %>">#<%= c.name %></option>
                         <% }) %>
@@ -463,13 +463,13 @@
                 <div class="form-group">
                     <label class="label">Mode</label>
                     <select id="panelMode" class="select">
-                        <option value="multi">☑️ Multi — bisa pilih banyak role</option>
-                        <option value="single">🔘 Single — hanya 1 role aktif (radio)</option>
+                        <option value="multi">☑️ Multi — can select multiple roles</option>
+                        <option value="single">🔘 Single — only 1 active role (radio)</option>
                     </select>
                 </div>
 
                 <div class="form-group">
-                    <label class="label">Tipe Pesan</label>
+                    <label class="label">Message Type</label>
                     <div style="display:flex;gap:.75rem;">
                         <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;">
                             <input type="radio" name="panelMessageType" id="panelTypeEmbed" value="embed" checked>
@@ -485,9 +485,9 @@
                 <!-- Plain text panel -->
                 <div id="panelPlainPanel" style="display:none;">
                     <div class="form-group">
-                        <label class="label">Isi Pesan Teks Biasa</label>
+                        <label class="label">Plain Text Message</label>
                         <textarea id="panelPlainText" class="textarea" rows="5"
-                                  placeholder="Tulis isi pesan di sini..."
+                                  placeholder="Write your message here..."
                                   oninput="updatePanelPreview()"></textarea>
                     </div>
                 </div>
@@ -498,15 +498,15 @@
                 <div style="font-size:.8rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:.75rem;">Tampilan Embed</div>
 
                 <div class="form-group">
-                    <label class="label">Judul</label>
-                    <input type="text" id="panelEmbedTitle" class="input" placeholder="Contoh: Pilih Role Kamu"
+                    <label class="label">Title</label>
+                    <input type="text" id="panelEmbedTitle" class="input" placeholder="Example: Choose Your Role"
                            maxlength="256" oninput="updatePanelPreview()">
                 </div>
 
                 <div class="form-group">
-                    <label class="label">Deskripsi</label>
+                    <label class="label">Description</label>
                     <textarea id="panelEmbedDescription" class="textarea" rows="4"
-                              placeholder="Jelaskan fungsi tombol di sini..." maxlength="4000"
+                              placeholder="Describe the buttons here..." maxlength="4000"
                               oninput="updatePanelPreview()"></textarea>
                 </div>
 
@@ -517,19 +517,19 @@
                 </div>
 
                 <div class="form-group">
-                    <label class="label">URL Gambar <span class="hint-inline">(bawah embed, opsional)</span></label>
-                    <input type="text" id="panelEmbedImage" class="input" placeholder="https://... (ketik - untuk hapus)"
+                    <label class="label">Image URL <span class="hint-inline">(below embed, optional)</span></label>
+                    <input type="text" id="panelEmbedImage" class="input" placeholder="https://... (type - to remove)"
                            oninput="updatePanelPreview()">
                 </div>
 
                 <div class="form-group">
-                    <label class="label">URL Thumbnail <span class="hint-inline">(pojok kanan, opsional)</span></label>
-                    <input type="text" id="panelEmbedThumbnail" class="input" placeholder="https://... (ketik - untuk hapus)"
+                    <label class="label">Thumbnail URL <span class="hint-inline">(top right, optional)</span></label>
+                    <input type="text" id="panelEmbedThumbnail" class="input" placeholder="https://... (type - to remove)"
                            oninput="updatePanelPreview()">
                 </div>
 
                 <div class="form-group">
-                    <label class="label">Warna Embed</label>
+                    <label class="label">Embed Color</label>
                     <div style="display:flex;gap:.75rem;align-items:center;">
                         <input type="color" id="panelColorPicker" value="#5865F2"
                                style="width:44px;height:36px;border:none;border-radius:6px;cursor:pointer;padding:0;background:none;"
@@ -557,7 +557,7 @@
                             <img class="dc-avatar" src="<%- locals.botNavAvatar || 'https://cdn.discordapp.com/embed/avatars/0.png' %>" alt="avatar" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
                             <div class="dc-msg-body">
                                 <span class="dc-username" style="color:<%- locals.botNavColor || '#ffffff' %>"><%- locals.botNavName || 'Bot' %></span>
-                                <span class="dc-timestamp">Hari ini pukul 12:00</span>
+                                <span class="dc-timestamp">Today at 12:00 PM</span>
                                 <!-- Plain text preview -->
                                 <div id="panelPreviewPlain" class="dc-plain-msg" style="display:none;"></div>
                                 <div class="dc-embed" id="panelPreviewEmbed">
@@ -578,7 +578,7 @@
                     </div>
                 </div>
                 <div id="panelPreviewHint" style="margin-top:.75rem;font-size:.78rem;color:var(--text-muted);">
-                    💡 Perubahan tombol di bawah akan langsung disimpan bersama embed saat klik <strong>Simpan</strong>.
+                    💡 Button changes below will be saved together with the embed when you click <strong>Save</strong>.
                 </div>
             </div>
         </div>
@@ -588,16 +588,16 @@
             <div class="ar-divider"></div>
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem;flex-wrap:wrap;gap:.5rem;">
                 <div style="display:flex;align-items:center;gap:.5rem;">
-                    <span style="font-size:.8rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;">🔘 Tombol Role</span>
+                    <span style="font-size:.8rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;">🔘 Role Buttons</span>
                     <span id="inlineBtnCounter" style="font-size:.72rem;padding:.15rem .45rem;border-radius:999px;background:var(--bg2);border:1px solid var(--border);color:var(--text-muted);">0/25</span>
                 </div>
                 <button type="button" class="btn btn-primary btn-sm" onclick="addInlineBtnRow()" style="gap:.3rem;">
-                    <span style="font-size:1rem;line-height:1;">＋</span> Tambah Tombol
+                    <span style="font-size:1rem;line-height:1;">＋</span> Add Button
                 </button>
             </div>
             <div id="inlineBtnTable"></div>
             <p id="inlineBtnEmpty" style="color:var(--text-muted);font-size:.85rem;padding:.4rem 0;">
-                Belum ada tombol. Klik <strong>＋ Tambah Tombol</strong> untuk menambahkan, atau lewati dan tambahkan nanti.
+                No buttons yet. Click <strong>＋ Add Button</strong> to add one, or skip and add later.
             </p>
         </div>
 
@@ -607,23 +607,23 @@
         <!-- State 1: Form aktif -->
         <div id="panelFooterForm" style="display:flex;gap:.75rem;justify-content:flex-end;">
             <button class="btn btn-outline" onclick="closePanelModal()">Batal</button>
-            <button class="btn btn-primary" id="panelSaveBtn" onclick="savePanel()">Simpan</button>
+            <button class="btn btn-primary" id="panelSaveBtn" onclick="savePanel()">Save</button>
         </div>
         <!-- State 2: Setelah simpan berhasil, panel belum terkirim -->
         <div id="panelFooterSend" style="display:none;">
             <div style="display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;justify-content:space-between;">
                 <div style="display:flex;gap:.6rem;align-items:center;flex:1;min-width:200px;">
-                    <span style="font-size:.85rem;white-space:nowrap;">📨 Kirim ke:</span>
+                    <span style="font-size:.85rem;white-space:nowrap;">📨 Send to:</span>
                     <select id="panelSendChannel" class="select" style="flex:1;">
-                        <option value="">— Pilih channel —</option>
+                        <option value="">— Select channel —</option>
                         <% channels.forEach(c => { %>
                             <option value="<%= c.id %>">#<%= c.name %></option>
                         <% }) %>
                     </select>
                 </div>
                 <div style="display:flex;gap:.6rem;">
-                    <button class="btn btn-outline" onclick="closePanelModal()">Lewati</button>
-                    <button class="btn btn-primary" onclick="sendAfterSave()">📨 Kirim</button>
+                    <button class="btn btn-outline" onclick="closePanelModal()">Skip</button>
+                    <button class="btn btn-primary" onclick="sendAfterSave()">📨 Send</button>
                 </div>
             </div>
             <div id="panelSendMsg" class="form-message" style="margin-top:.5rem;"></div>
@@ -637,15 +637,15 @@
 <div class="mb-modal-backdrop" id="btnBackdrop" onclick="closeBtnModal()"></div>
 <div class="mb-modal mb-modal-wide" id="btnModal">
     <div class="mb-modal-header">
-        <h2>🔘 Kelola Tombol — <span id="btnModalPanelName"></span></h2>
+        <h2>🔘 Manage Buttons — <span id="btnModalPanelName"></span></h2>
         <button class="mb-modal-close" onclick="closeBtnModal()">✕</button>
     </div>
     <div class="mb-modal-body">
 
         <!-- Tombol aksi atas -->
         <div style="display:flex;gap:.6rem;margin-bottom:1rem;flex-wrap:wrap;align-items:center;">
-            <button class="btn btn-primary btn-sm" onclick="addButtonRow()">＋ Tambah Tombol</button>
-            <button class="btn btn-outline btn-sm" onclick="addMultipleRows()">＋＋ Tambah Beberapa</button>
+            <button class="btn btn-primary btn-sm" onclick="addButtonRow()">＋ Add Button</button>
+            <button class="btn btn-outline btn-sm" onclick="addMultipleRows()">＋＋ Add Multiple</button>
             <span style="flex:1"></span>
             <span style="font-size:.8rem;color:var(--text-muted)" id="btnCounter"></span>
         </div>
@@ -659,42 +659,42 @@
     </div>
     <div class="mb-modal-footer">
         <div style="display:flex;gap:.75rem;justify-content:space-between;align-items:center;flex-wrap:wrap;">
-            <span style="font-size:.8rem;color:var(--text-muted)">Klik "Simpan Semua" untuk menyimpan perubahan.</span>
+            <span style="font-size:.8rem;color:var(--text-muted)">Click "Save All" to save changes.</span>
             <div style="display:flex;gap:.75rem;">
                 <button class="btn btn-outline" onclick="closeBtnModal()">Batal</button>
-                <button class="btn btn-primary" onclick="saveAllButtons()">💾 Simpan Semua</button>
+                <button class="btn btn-primary" onclick="saveAllButtons()">💾 Save All</button>
             </div>
         </div>
     </div>
 </div>
 
 <!-- ══════════════════════════════════════
-     MODAL: Tambah Beberapa Tombol
+     MODAL: Add Multiple Buttons
 ══════════════════════════════════════ -->
 <div class="mb-modal-backdrop" id="multiBackdrop" onclick="closeMultiModal()"></div>
 <div class="mb-modal mb-modal-sm" id="multiModal">
     <div class="mb-modal-header">
-        <h2>＋＋ Tambah Beberapa Tombol</h2>
+        <h2>＋＋ Add Multiple Buttons</h2>
         <button class="mb-modal-close" onclick="closeMultiModal()">✕</button>
     </div>
     <div class="mb-modal-body">
         <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:1rem;">
-            Pilih berapa tombol yang ingin ditambahkan sekaligus.
+            Select how many buttons to add at once.
         </p>
         <div class="form-group">
-            <label class="label">Jumlah Tombol</label>
+            <label class="label">Number of Buttons</label>
             <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
-                <button class="btn btn-outline btn-sm multi-count-btn" onclick="confirmMultiAdd(2)">2 tombol</button>
-                <button class="btn btn-outline btn-sm multi-count-btn" onclick="confirmMultiAdd(3)">3 tombol</button>
-                <button class="btn btn-outline btn-sm multi-count-btn" onclick="confirmMultiAdd(4)">4 tombol</button>
-                <button class="btn btn-outline btn-sm multi-count-btn" onclick="confirmMultiAdd(5)">5 tombol</button>
+                <button class="btn btn-outline btn-sm multi-count-btn" onclick="confirmMultiAdd(2)">2 buttons</button>
+                <button class="btn btn-outline btn-sm multi-count-btn" onclick="confirmMultiAdd(3)">3 buttons</button>
+                <button class="btn btn-outline btn-sm multi-count-btn" onclick="confirmMultiAdd(4)">4 buttons</button>
+                <button class="btn btn-outline btn-sm multi-count-btn" onclick="confirmMultiAdd(5)">5 buttons</button>
             </div>
         </div>
         <div class="form-group">
-            <label class="label">Atau masukkan jumlah sendiri</label>
+            <label class="label">Or enter a custom number</label>
             <div style="display:flex;gap:.5rem;align-items:center;">
                 <input type="number" id="multiCustomCount" class="input" min="1" max="25" placeholder="1-25" style="max-width:100px;">
-                <button class="btn btn-primary btn-sm" onclick="confirmMultiAddCustom()">Tambah</button>
+                <button class="btn btn-primary btn-sm" onclick="confirmMultiAddCustom()">Add</button>
             </div>
         </div>
     </div>
@@ -709,29 +709,29 @@
 <div class="mb-modal-backdrop" id="sendPanelBackdrop" onclick="closeSendPanel()"></div>
 <div class="mb-modal mb-modal-sm" id="sendPanelModal">
     <div class="mb-modal-header">
-        <h2>📨 Kirim Panel</h2>
+        <h2>📨 Send Panel</h2>
         <button class="mb-modal-close" onclick="closeSendPanel()">✕</button>
     </div>
     <div class="mb-modal-body">
         <p style="margin-bottom:1rem;color:var(--text-muted);font-size:.9rem;">
-            Kirim panel <strong id="sendPanelName"></strong> ke channel:
+            Send panel <strong id="sendPanelName"></strong> to channel:
         </p>
         <select id="sendPanelChannel" class="select">
-            <option value="">— Pilih channel —</option>
+            <option value="">— Select channel —</option>
             <% channels.forEach(c => { %>
                 <option value="<%= c.id %>">#<%= c.name %></option>
             <% }) %>
         </select>
         <div class="hint" style="margin-top:.5rem;">
-            ⚠️ Panel hanya bisa dikirim <strong>1 kali</strong>. Setelah terkirim, gunakan
-            <strong>Edit Panel</strong> untuk memperbarui embed maupun tombol.
+            ⚠️ Panel can only be sent <strong>once</strong>. After sending, use
+            <strong>Edit Panel</strong> to update the embed or buttons.
         </div>
         <div id="sendPanelMsg" class="form-message" style="margin-top:.75rem;"></div>
     </div>
     <div class="mb-modal-footer">
         <div style="display:flex;gap:.75rem;justify-content:flex-end;">
             <button class="btn btn-outline" onclick="closeSendPanel()">Batal</button>
-            <button class="btn btn-primary" onclick="doSendPanel()">Kirim</button>
+            <button class="btn btn-primary" onclick="doSendPanel()">Send</button>
         </div>
     </div>
 </div>
@@ -742,7 +742,7 @@
 <div class="mb-modal-backdrop" id="reactPanelBackdrop" onclick="closeReactPanelModal()"></div>
 <div class="mb-modal mb-modal-full" id="reactPanelModal">
     <div class="mb-modal-header">
-        <h2 id="reactPanelModalTitle">Panel Reaction Baru</h2>
+        <h2 id="reactPanelModalTitle">New Reaction Panel</h2>
         <button class="mb-modal-close" onclick="closeReactPanelModal()">✕</button>
     </div>
     <div class="mb-modal-body">
@@ -753,15 +753,15 @@
             <div class="mb-editor-form">
 
                 <div class="form-group">
-                    <label class="label">Nama Panel</label>
-                    <input type="text" id="reactPanelName" class="input" placeholder="contoh: pilih-role" maxlength="32">
-                    <div class="hint">Hanya huruf, angka, <code>-</code>, <code>_</code> (maks 32 karakter).</div>
+                    <label class="label">Panel Name</label>
+                    <input type="text" id="reactPanelName" class="input" placeholder="e.g.: choose-role" maxlength="32">
+                    <div class="hint">Letters, numbers, <code>-</code>, <code>_</code> only (max 32 chars).</div>
                 </div>
 
                 <div class="form-group" id="reactPanelChannelGroup">
-                    <label class="label">Kirim ke Channel</label>
+                    <label class="label">Send to Channel</label>
                     <select id="reactPanelSendChannelInline" class="select">
-                        <option value="">— Pilih channel —</option>
+                        <option value="">— Select channel —</option>
                         <% channels.forEach(c => { %>
                             <option value="<%= c.id %>">#<%= c.name %></option>
                         <% }) %>
@@ -771,13 +771,13 @@
                 <div class="form-group">
                     <label class="label">Mode</label>
                     <select id="reactPanelMode" class="select">
-                        <option value="multi">☑️ Multi — bisa pilih banyak role</option>
-                        <option value="single">🔘 Single — hanya 1 role aktif (radio)</option>
+                        <option value="multi">☑️ Multi — can select multiple roles</option>
+                        <option value="single">🔘 Single — only 1 active role (radio)</option>
                     </select>
                 </div>
 
                 <div class="form-group">
-                    <label class="label">Tipe Pesan</label>
+                    <label class="label">Message Type</label>
                     <div style="display:flex;gap:.75rem;">
                         <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;">
                             <input type="radio" name="reactPanelMessageType" id="reactPanelTypeEmbed" value="embed" checked>
@@ -792,9 +792,9 @@
 
                 <div id="reactPanelPlainPanel" style="display:none;">
                     <div class="form-group">
-                        <label class="label">Isi Pesan Teks Biasa</label>
+                        <label class="label">Plain Text Message</label>
                         <textarea id="reactPanelPlainText" class="textarea" rows="5"
-                                  placeholder="Tulis isi pesan di sini..."
+                                  placeholder="Write your message here..."
                                   oninput="updateReactPanelPreview()"></textarea>
                     </div>
                 </div>
@@ -805,7 +805,7 @@
 
                 <div class="form-group">
                     <label class="label">Judul</label>
-                    <input type="text" id="reactPanelEmbedTitle" class="input" placeholder="Contoh: Pilih Role Kamu"
+                    <input type="text" id="reactPanelEmbedTitle" class="input" placeholder="Example: Choose Your Role"
                            maxlength="256" oninput="updateReactPanelPreview()">
                 </div>
                 <div class="form-group">
@@ -821,16 +821,16 @@
                 </div>
                 <div class="form-group">
                     <label class="label">URL Gambar <span class="hint-inline">(bawah embed, opsional)</span></label>
-                    <input type="text" id="reactPanelEmbedImage" class="input" placeholder="https://... (ketik - untuk hapus)"
+                    <input type="text" id="reactPanelEmbedImage" class="input" placeholder="https://... (type - to remove)"
                            oninput="updateReactPanelPreview()">
                 </div>
                 <div class="form-group">
                     <label class="label">URL Thumbnail <span class="hint-inline">(pojok kanan, opsional)</span></label>
-                    <input type="text" id="reactPanelEmbedThumbnail" class="input" placeholder="https://... (ketik - untuk hapus)"
+                    <input type="text" id="reactPanelEmbedThumbnail" class="input" placeholder="https://... (type - to remove)"
                            oninput="updateReactPanelPreview()">
                 </div>
                 <div class="form-group">
-                    <label class="label">Warna Embed</label>
+                    <label class="label">Embed Color</label>
                     <div style="display:flex;gap:.75rem;align-items:center;">
                         <input type="color" id="reactPanelColorPicker" value="#5865F2"
                                style="width:44px;height:36px;border:none;border-radius:6px;cursor:pointer;padding:0;background:none;"
@@ -857,7 +857,7 @@
                             <img class="dc-avatar" src="<%- locals.botNavAvatar || 'https://cdn.discordapp.com/embed/avatars/0.png' %>" alt="avatar" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
                             <div class="dc-msg-body">
                                 <span class="dc-username" style="color:<%- locals.botNavColor || '#ffffff' %>"><%- locals.botNavName || 'Bot' %></span>
-                                <span class="dc-timestamp">Hari ini pukul 12:00</span>
+                                <span class="dc-timestamp">Today at 12:00 PM</span>
                                 <div id="reactPanelPreviewPlain" class="dc-plain-msg" style="display:none;"></div>
                                 <div class="dc-embed" id="reactPanelPreviewEmbed">
                                     <div class="dc-embed-pill" id="reactPanelPreviewPill"></div>
@@ -877,7 +877,7 @@
                     </div>
                 </div>
                 <div style="margin-top:.75rem;font-size:.78rem;color:var(--text-muted);">
-                    💡 Perubahan reaction di bawah akan langsung disimpan bersama embed saat klik <strong>Simpan</strong>.
+                    💡 Reaction changes below will be saved together with the embed when you click <strong>Save</strong>.
                 </div>
             </div>
         </div>
@@ -891,13 +891,13 @@
                     <span id="inlineReactCounter" style="font-size:.72rem;padding:.15rem .45rem;border-radius:999px;background:var(--bg2);border:1px solid var(--border);color:var(--text-muted);">0/20</span>
                 </div>
                 <button type="button" class="btn btn-primary btn-sm" onclick="addInlineReactRow()" style="gap:.3rem;">
-                    <span style="font-size:1rem;line-height:1;">＋</span> Tambah Reaction
+                    <span style="font-size:1rem;line-height:1;">＋</span> Add Reaction
                 </button>
             </div>
             <div id="inlineReactTable"></div>
             <div id="inlineReactEmpty" style="text-align:center;padding:1.5rem 1rem;color:var(--text-muted);border:2px dashed var(--border);border-radius:10px;margin:.5rem 0;">
                 <div style="font-size:2rem;margin-bottom:.4rem;">✨</div>
-                <div style="font-size:.85rem;">Belum ada reaction. Klik <strong style="color:var(--text);">＋ Tambah Reaction</strong> untuk menambahkan.</div>
+                <div style="font-size:.85rem;">No reactions yet. Click <strong style="color:var(--text);">＋ Add Reaction</strong> to addtuk menambahkan.</div>
             </div>
             <div style="margin-top:.75rem;padding:.6rem .75rem;background:rgba(88,101,242,.08);border-radius:8px;border:1px solid rgba(88,101,242,.2);font-size:.78rem;color:var(--text-muted);line-height:1.6;">
                 💡 <strong style="color:var(--text);">Tips:</strong>
@@ -911,22 +911,22 @@
     <div class="mb-modal-footer">
         <div id="reactPanelFooterForm" style="display:flex;gap:.75rem;justify-content:flex-end;">
             <button class="btn btn-outline" onclick="closeReactPanelModal()">Batal</button>
-            <button class="btn btn-primary" id="reactPanelSaveBtn" onclick="saveReactPanel()">Simpan</button>
+            <button class="btn btn-primary" id="reactPanelSaveBtn" onclick="saveReactPanel()">Save</button>
         </div>
         <div id="reactPanelFooterSend" style="display:none;">
             <div style="display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;justify-content:space-between;">
                 <div style="display:flex;gap:.6rem;align-items:center;flex:1;min-width:200px;">
-                    <span style="font-size:.85rem;white-space:nowrap;">📨 Kirim ke:</span>
+                    <span style="font-size:.85rem;white-space:nowrap;">📨 Send to:</span>
                     <select id="reactPanelSendChannel" class="select" style="flex:1;">
-                        <option value="">— Pilih channel —</option>
+                        <option value="">— Select channel —</option>
                         <% channels.forEach(c => { %>
                             <option value="<%= c.id %>">#<%= c.name %></option>
                         <% }) %>
                     </select>
                 </div>
                 <div style="display:flex;gap:.6rem;">
-                    <button class="btn btn-outline" onclick="closeReactPanelModal()">Lewati</button>
-                    <button class="btn btn-primary" onclick="sendReactAfterSave()">📨 Kirim</button>
+                    <button class="btn btn-outline" onclick="closeReactPanelModal()">Skip</button>
+                    <button class="btn btn-primary" onclick="sendReactAfterSave()">📨 Send</button>
                 </div>
             </div>
             <div id="reactPanelSendMsg" class="form-message" style="margin-top:.5rem;"></div>
@@ -940,7 +940,7 @@
 <div class="mb-modal-backdrop" id="sendReactPanelBackdrop" onclick="closeSendReactPanel()"></div>
 <div class="mb-modal mb-modal-sm" id="sendReactPanelModal">
     <div class="mb-modal-header">
-        <h2>📨 Kirim Panel Reaction</h2>
+        <h2>📨 Send Reaction Panel</h2>
         <button class="mb-modal-close" onclick="closeSendReactPanel()">✕</button>
     </div>
     <div class="mb-modal-body">
@@ -948,7 +948,7 @@
             Kirim panel <strong id="sendReactPanelName"></strong> ke channel:
         </p>
         <select id="sendReactPanelChannel" class="select">
-            <option value="">— Pilih channel —</option>
+            <option value="">— Select channel —</option>
             <% channels.forEach(c => { %>
                 <option value="<%= c.id %>">#<%= c.name %></option>
             <% }) %>
@@ -962,7 +962,7 @@
     <div class="mb-modal-footer">
         <div style="display:flex;gap:.75rem;justify-content:flex-end;">
             <button class="btn btn-outline" onclick="closeSendReactPanel()">Batal</button>
-            <button class="btn btn-primary" onclick="doSendReactPanel()">Kirim</button>
+            <button class="btn btn-primary" onclick="doSendReactPanel()">Send</button>
         </div>
     </div>
 </div>
@@ -1502,9 +1502,9 @@ function resolveHtmlMentions(html){
 
 // ── Tab ──────────────────────────────────────────────────────────────────────
 const TAB_META = {
-    join:     { title: 'Autorole Join',     desc: 'Role otomatis diberikan saat member atau bot bergabung ke server.' },
+    join:     { title: 'Autorole Join',     desc: 'Role automatically assigned when a member or bot joins the server.' },
     booster:  { title: 'Autorole Booster',  desc: 'Role otomatis diberikan saat member melakukan boost server.' },
-    button:   { title: 'Autorole Button',   desc: 'Panel tombol interaktif untuk member memilih role sendiri.' },
+    button:   { title: 'Autorole Button',   desc: 'Interactive button panel for members to choose their own roles.' },
     reaction: { title: 'Autorole Reaction', desc: 'Panel reaction emoji untuk member memilih role dengan klik emoji.' },
 };
 
@@ -1842,7 +1842,7 @@ let _savedPanelName = '';
 async function sendAfterSave() {
     const msg       = document.getElementById('panelSendMsg');
     const channelId = document.getElementById('panelSendChannel').value;
-    if (!channelId) return showMsg(msg, 'Pilih channel terlebih dahulu.', 'error');
+    if (!channelId) return showMsg(msg, 'Please select a channel first.', 'error');
 
     const res  = await fetch(`/api/guild/${GUILD_ID}/autorole-button/${encodeURIComponent(_savedPanelName)}/send`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -1850,7 +1850,7 @@ async function sendAfterSave() {
     });
     const data = await res.json();
     if (!data.success) return showMsg(msg, data.message, 'error');
-    showMsg(msg, '✅ Panel berhasil dikirim!', 'success');
+    showMsg(msg, '✅ Panel sent successfully!', 'success');
     setTimeout(() => { closePanelModal(); _reloadKeepHash(); }, 900);
 }
 
@@ -1860,7 +1860,7 @@ async function savePanel() {
     const name         = originalName || document.getElementById('panelName').value.trim().toLowerCase();
 
     if (!name || !/^[a-zA-Z0-9_-]{1,32}$/.test(name))
-        return showMsg(msg, 'Nama panel tidak valid. Gunakan huruf, angka, - atau _.', 'error');
+        return showMsg(msg, 'Invalid panel name. Use letters, numbers, - or _.', 'error');
 
     const isPlainType      = document.getElementById('panelTypePlain').checked;
     const embedTitle       = document.getElementById('panelEmbedTitle').value.trim();
@@ -1873,27 +1873,27 @@ async function savePanel() {
     const panelPlainText   = document.getElementById('panelPlainText').value.trim();
 
     if (isPlainType) {
-        if (!panelPlainText) return showMsg(msg, 'Isi pesan teks biasa tidak boleh kosong.', 'error');
+        if (!panelPlainText) return showMsg(msg, 'Plain text message cannot be empty.', 'error');
     } else {
         // Validasi URL gambar jika diisi (bukan '-')
         const urlOk = v => !v || v === '-' || /^https?:\/\/.+\..+/.test(v);
-        if (!urlOk(rawImage)) return showMsg(msg, 'URL Gambar tidak valid. Harus https://...', 'error');
-        if (!urlOk(rawThumb)) return showMsg(msg, 'URL Thumbnail tidak valid. Harus https://...', 'error');
+        if (!urlOk(rawImage)) return showMsg(msg, 'Invalid image URL. Must start with https://...', 'error');
+        if (!urlOk(rawThumb)) return showMsg(msg, 'Invalid thumbnail URL. Must start with https://...', 'error');
 
         // Validasi warna hex
         if (!/^#[0-9A-Fa-f]{6}$/.test(embedColor))
-            return showMsg(msg, 'Warna embed tidak valid. Contoh: #5865F2', 'error');
+            return showMsg(msg, 'Invalid embed color. Example: #5865F2', 'error');
     }
 
     // Validasi khusus panel baru
     if (!originalName) {
         const inlineChannelVal = document.getElementById('panelSendChannelInline').value;
         if (!inlineChannelVal)
-            return showMsg(msg, 'Pilih channel tujuan pengiriman panel.', 'error');
+            return showMsg(msg, 'Please select a channel to send the panel to.', 'error');
 
         const validBtns = _inlineBtns.filter(b => b.roleId && b.label);
         if (validBtns.length === 0)
-            return showMsg(msg, 'Tambahkan minimal 1 tombol role sebelum menyimpan panel.', 'error');
+            return showMsg(msg, 'Add at least 1 role button before saving the panel.', 'error');
     }
 
     const payload = {
@@ -1927,7 +1927,7 @@ async function savePanel() {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ buttons: btns })
         });
-    } catch(e) { console.error('Gagal simpan tombol inline:', e); }
+    } catch(e) { console.error('Failed to save inline buttons:', e); }
 
     if (originalName) {
         // Edit panel — langsung tutup
@@ -1946,17 +1946,17 @@ async function savePanel() {
                 });
                 const sendData = await sendRes.json();
                 if (sendData.success) {
-                    showMsg(msg, '✅ Panel berhasil disimpan dan dikirim ke channel!', 'success');
+                    showMsg(msg, '✅ Panel saved and sent to channel successfully!', 'success');
                 } else {
-                    showMsg(msg, `⚠️ Panel disimpan, tapi gagal kirim: ${sendData.message}`, 'error');
+                    showMsg(msg, `⚠️ Panel saved, but failed to send: ${sendData.message}`, 'error');
                 }
             } catch(e) {
-                showMsg(msg, '⚠️ Panel disimpan, tapi gagal kirim. Coba kirim manual.', 'error');
+                showMsg(msg, '⚠️ Panel saved, but failed to send. Try sending manually.', 'error');
             }
             setTimeout(() => { closePanelModal(); _reloadKeepHash(); }, 1200);
         } else {
             // Tidak ada channel dipilih — tampilkan footer kirim seperti sebelumnya
-            showMsg(msg, '✅ Panel disimpan! Pilih channel untuk mengirimnya ke Discord.', 'success');
+            showMsg(msg, '✅ Panel saved! Select a channel to send it to Discord.', 'success');
             document.getElementById('panelSendChannel').value   = '';
             document.getElementById('panelSendMsg').textContent = '';
             _savedPanelName = name;
@@ -1987,23 +1987,23 @@ function renderInlineBtnTable() {
         const style    = btn.style || 1;
         const label    = btn.label || '';
         const chipCls  = label ? `style-${style}` : 'style-empty';
-        const chipText = label || 'Label tombol...';
+        const chipText = label || 'Button label...';
         return `
         <div class="btn-card" id="inrow-${i}">
             <div class="btn-card-top">
                 <span class="btn-num-badge">${i + 1}</span>
                 <span class="btn-preview-chip ${chipCls}" id="inrow-preview-${i}">${chipText}</span>
                 <span style="flex:1;"></span>
-                <button class="ar-btn-delete" onclick="removeInlineBtn(${i})" title="Hapus">${trashSvg}</button>
+                <button class="ar-btn-delete" onclick="removeInlineBtn(${i})" title="Delete">${trashSvg}</button>
             </div>
             <div class="btn-card-fields">
                 <select class="react-select" id="inrow-role-${i}" onchange="updateInlineBtn(${i})">
-                    <option value="">— Pilih Role —</option>
+                    <option value="">— Select Role —</option>
                     ${ALL_ROLES.map(r => `<option value="${r.id}" style="color:${r.color}" ${r.id === btn.roleId ? 'selected' : ''}>@${r.name}</option>`).join('')}
                 </select>
                 <input type="text" class="react-input" id="inrow-label-${i}"
                        value="${label.replace(/"/g, '&quot;')}"
-                       placeholder="Label tombol..." maxlength="80"
+                       placeholder="Button label..." maxlength="80"
                        oninput="updateInlineBtn(${i})">
                 <select class="react-select" id="inrow-style-${i}" onchange="updateInlineBtn(${i})">
                     ${STYLE_OPTIONS.map(o => `<option value="${o.v}" ${String(style) === o.v ? 'selected' : ''}>${o.l}</option>`).join('')}
@@ -2025,7 +2025,7 @@ function updateInlineBtn(i) {
     // Live-update preview chip
     const chip = document.getElementById(`inrow-preview-${i}`);
     if (chip) {
-        chip.textContent = label || 'Label tombol...';
+        chip.textContent = label || 'Button label...';
         chip.className   = `btn-preview-chip ${label ? `style-${style}` : 'style-empty'}`;
     }
     document.getElementById('inlineBtnCounter').textContent = `${_inlineBtns.length}/25`;
@@ -2033,7 +2033,7 @@ function updateInlineBtn(i) {
 }
 
 function addInlineBtnRow() {
-    if (_inlineBtns.length >= 25) return alert('Maks 25 tombol per panel.');
+    if (_inlineBtns.length >= 25) return alert('Max 25 buttons per panel.');
     _inlineBtns.push({ roleId: '', label: '', style: 1 });
     renderInlineBtnTable();
     const body = document.getElementById('panelModal').querySelector('.mb-modal-body');
@@ -2065,8 +2065,8 @@ async function deletePanel(name) {
     const card   = document.querySelector(`.ar-panel-card[data-name="${name}"]`);
     const isSent = card?.querySelector('.status-sent') !== null;
     const msg    = isSent
-        ? `Hapus panel "${name}"?\n\n⚠️ Pesan yang sudah terkirim di Discord juga akan dihapus secara permanen.`
-        : `Hapus panel "${name}"?`;
+        ? `Delete panel "${name}"?\n\n⚠️ The message already sent on Discord will also be permanently deleted.`
+        : `Delete panel "${name}"?`;
     if (!confirm(msg)) return;
     const res  = await fetch(`/api/guild/${GUILD_ID}/autorole-button/${encodeURIComponent(name)}`, { method: 'DELETE' });
     const data = await res.json();
@@ -2088,7 +2088,7 @@ function closeSendPanel() { closeModal('sendPanelBackdrop', 'sendPanelModal'); }
 async function doSendPanel() {
     const msg       = document.getElementById('sendPanelMsg');
     const channelId = document.getElementById('sendPanelChannel').value;
-    if (!channelId) return showMsg(msg, 'Pilih channel terlebih dahulu.', 'error');
+    if (!channelId) return showMsg(msg, 'Please select a channel first.', 'error');
 
     const res  = await fetch(`/api/guild/${GUILD_ID}/autorole-button/${encodeURIComponent(_sendPanelName)}/send`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -2130,7 +2130,7 @@ function buildStyleOptions(selectedVal = '1') {
 function renderBtnEditorTable() {
     const table   = document.getElementById('btnEditorTable');
     const counter = document.getElementById('btnCounter');
-    counter.textContent = `${_btnData.length}/25 tombol`;
+    counter.textContent = `${_btnData.length}/25 buttons`;
 
     const trashSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>`;
 
@@ -2138,7 +2138,7 @@ function renderBtnEditorTable() {
         table.innerHTML = `
             <div style="text-align:center;padding:1.5rem 1rem;color:var(--text-muted);border:2px dashed var(--border);border-radius:10px;margin:.5rem 0;">
                 <div style="font-size:2rem;margin-bottom:.4rem;">🔘</div>
-                <div style="font-size:.85rem;">Belum ada tombol. Klik <strong style="color:var(--text);">＋ Tambah Tombol</strong> untuk menambahkan.</div>
+                <div style="font-size:.85rem;">No buttons yet. Click <strong style="color:var(--text);">＋ Add Button</strong> to addn.</div>
             </div>`;
         return;
     }
@@ -2147,23 +2147,23 @@ function renderBtnEditorTable() {
         const style    = btn.style || 1;
         const label    = btn.label || '';
         const chipCls  = label ? `style-${style}` : 'style-empty';
-        const chipText = label || 'Label tombol...';
+        const chipText = label || 'Button label...';
         return `
         <div class="btn-card" id="btnrow-${i}">
             <div class="btn-card-top">
                 <span class="btn-num-badge">${i + 1}</span>
                 <span class="btn-preview-chip ${chipCls}" id="brow-preview-${i}">${chipText}</span>
                 <span style="flex:1;"></span>
-                <button class="ar-btn-delete" onclick="removeButtonRow(${i})" title="Hapus">${trashSvg}</button>
+                <button class="ar-btn-delete" onclick="removeButtonRow(${i})" title="Delete">${trashSvg}</button>
             </div>
             <div class="btn-card-fields">
                 <select class="react-select" id="brow-role-${i}" onchange="checkDuplicateRoles();updateBulkPreview(${i})">
-                    <option value="">— Pilih Role —</option>
+                    <option value="">— Select Role —</option>
                     ${buildRoleOptions(btn.roleId)}
                 </select>
                 <input type="text" class="react-input" id="brow-label-${i}"
                        value="${label.replace(/"/g, '&quot;')}"
-                       placeholder="Label tombol..." maxlength="80"
+                       placeholder="Button label..." maxlength="80"
                        oninput="updateBulkPreview(${i})">
                 <select class="react-select" id="brow-style-${i}" onchange="updateBulkPreview(${i})">
                     ${buildStyleOptions(String(style))}
@@ -2192,7 +2192,7 @@ async function refreshBtnData() {
 }
 
 function addButtonRow() {
-    if (_btnData.length >= 25) return alert('Panel sudah penuh (maks 25 tombol).');
+    if (_btnData.length >= 25) return alert('Panel is full (max 25 buttons).');
     _btnData.push({ roleId: '', label: '', style: 1 });
     renderBtnEditorTable();
     const body = document.getElementById('btnModal').querySelector('.mb-modal-body');
@@ -2235,7 +2235,7 @@ function updateBulkPreview(i) {
     const style = parseInt(document.getElementById(`brow-style-${i}`)?.value || '1');
     const chip  = document.getElementById(`brow-preview-${i}`);
     if (chip) {
-        chip.textContent = label || 'Label tombol...';
+        chip.textContent = label || 'Button label...';
         chip.className   = `btn-preview-chip ${label ? `style-${style}` : 'style-empty'}`;
     }
 }
@@ -2252,13 +2252,13 @@ function checkDuplicateRoles() {
         const isDup = b.roleId && roleCount[b.roleId] > 1;
         card.classList.toggle('has-duplicate', isDup);
         sel.style.borderColor = isDup ? 'var(--red)' : '';
-        sel.title = isDup ? '⚠️ Role ini sudah dipakai tombol lain' : '';
+        sel.title = isDup ? '⚠️ This role is already used by another button' : '';
     });
 
     const dupCount = Object.values(roleCount).filter(c => c > 1).length;
     const counter  = document.getElementById('btnCounter');
     if (counter) {
-        counter.textContent = `${buttons.length}/25 tombol` + (dupCount ? ` · ⚠️ ${dupCount} duplikat` : '');
+        counter.textContent = `${buttons.length}/25 buttons` + (dupCount ? ` · ⚠️ ${dupCount} duplicate(s)` : '');
         counter.style.color = dupCount ? 'var(--red)' : '';
     }
 }
@@ -2479,7 +2479,7 @@ let _savedReactPanelName = '';
 async function sendReactAfterSave() {
     const msg       = document.getElementById('reactPanelSendMsg');
     const channelId = document.getElementById('reactPanelSendChannel').value;
-    if (!channelId) return showMsg(msg, 'Pilih channel terlebih dahulu.', 'error');
+    if (!channelId) return showMsg(msg, 'Please select a channel first.', 'error');
 
     const res  = await fetch(`/api/guild/${GUILD_ID}/autorole-reaction/${encodeURIComponent(_savedReactPanelName)}/send`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -2487,7 +2487,7 @@ async function sendReactAfterSave() {
     });
     const data = await res.json();
     if (!data.success) return showMsg(msg, data.message, 'error');
-    showMsg(msg, '✅ Panel berhasil dikirim!', 'success');
+    showMsg(msg, '✅ Panel sent successfully!', 'success');
     setTimeout(() => { closeReactPanelModal(); _reloadKeepHash(); }, 900);
 }
 
@@ -2497,7 +2497,7 @@ async function saveReactPanel() {
     const name         = originalName || document.getElementById('reactPanelName').value.trim().toLowerCase();
 
     if (!name || !/^[a-zA-Z0-9_-]{1,32}$/.test(name))
-        return showMsg(msg, 'Nama panel tidak valid. Gunakan huruf, angka, - atau _.', 'error');
+        return showMsg(msg, 'Invalid panel name. Use letters, numbers, - or _.', 'error');
 
     const isPlainType      = document.getElementById('reactPanelTypePlain').checked;
     const embedTitle       = document.getElementById('reactPanelEmbedTitle').value.trim();
@@ -2510,23 +2510,23 @@ async function saveReactPanel() {
     const panelPlainText   = document.getElementById('reactPanelPlainText').value.trim();
 
     if (isPlainType) {
-        if (!panelPlainText) return showMsg(msg, 'Isi pesan teks biasa tidak boleh kosong.', 'error');
+        if (!panelPlainText) return showMsg(msg, 'Plain text message cannot be empty.', 'error');
     } else {
         const urlOk = v => !v || v === '-' || /^https?:\/\/.+\..+/.test(v);
-        if (!urlOk(rawImage)) return showMsg(msg, 'URL Gambar tidak valid. Harus https://...', 'error');
-        if (!urlOk(rawThumb)) return showMsg(msg, 'URL Thumbnail tidak valid. Harus https://...', 'error');
+        if (!urlOk(rawImage)) return showMsg(msg, 'Invalid image URL. Must start with https://...', 'error');
+        if (!urlOk(rawThumb)) return showMsg(msg, 'Invalid thumbnail URL. Must start with https://...', 'error');
         if (!/^#[0-9A-Fa-f]{6}$/.test(embedColor))
-            return showMsg(msg, 'Warna embed tidak valid. Contoh: #5865F2', 'error');
+            return showMsg(msg, 'Invalid embed color. Example: #5865F2', 'error');
     }
 
     if (!originalName) {
         const inlineChannelVal = document.getElementById('reactPanelSendChannelInline').value;
         if (!inlineChannelVal)
-            return showMsg(msg, 'Pilih channel tujuan pengiriman panel.', 'error');
+            return showMsg(msg, 'Please select a channel to send the panel to.', 'error');
 
         const validReacts = _inlineReacts.filter(r => r.emoji && r.roleId);
         if (validReacts.length === 0)
-            return showMsg(msg, 'Tambahkan minimal 1 reaction sebelum menyimpan panel.', 'error');
+            return showMsg(msg, 'Add at least 1 reaction before saving the panel.', 'error');
     }
 
     const payload = {
@@ -2571,14 +2571,14 @@ async function saveReactPanel() {
                 });
                 const sendData = await sendRes.json();
                 if (sendData.success) {
-                    showMsg(msg, '✅ Panel berhasil disimpan dan dikirim ke channel!', 'success');
+                    showMsg(msg, '✅ Panel saved and sent to channel!', 'success');
                 } else {
-                    showMsg(msg, `⚠️ Panel disimpan, tapi gagal kirim: ${sendData.message}`, 'error');
+                    showMsg(msg, `⚠️ Panel saved, but failed to send: ${sendData.message}`, 'error');
                 }
-            } catch { showMsg(msg, '⚠️ Panel disimpan, tapi gagal kirim.', 'error'); }
+            } catch { showMsg(msg, '⚠️ Panel saved, but failed to send.', 'error'); }
             setTimeout(() => { closeReactPanelModal(); _reloadKeepHash(); }, 1200);
         } else {
-            showMsg(msg, '✅ Panel disimpan! Pilih channel untuk mengirimnya.', 'success');
+            showMsg(msg, '✅ Panel saved! Select a channel to send it.', 'success');
             document.getElementById('reactPanelSendChannel').value   = '';
             document.getElementById('reactPanelSendMsg').textContent = '';
             _savedReactPanelName = name;
@@ -2619,12 +2619,12 @@ function renderInlineReactTable() {
         <div class="react-editor-card" id="inreact-${i}">
             <span class="react-num-badge">${i + 1}</span>
             <div class="react-emoji-bubble ${hasEmoji ? 'has-emoji' : ''}" id="inreact-bubble-${i}"
-                 title="${hasEmoji ? 'Preview emoji' : 'Belum ada emoji'}">
+                 title="${hasEmoji ? 'Preview emoji' : 'No emoji selected'}">
                 ${hasEmoji ? emojiDisplay : '<span class="react-empty-icon">✨</span>'}
             </div>
             <div class="react-fields">
                 <select class="react-select" id="inreact-role-${i}" onchange="updateInlineReact(${i})">
-                    <option value="">— Pilih Role —</option>
+                    <option value="">— Select Role —</option>
                     ${ALL_ROLES.map(role => `<option value="${role.id}" style="color:${role.color}" ${role.id === r.roleId ? 'selected' : ''}>@${role.name}</option>`).join('')}
                 </select>
                 <div class="react-emoji-input-wrap">
@@ -2636,7 +2636,7 @@ function renderInlineReactTable() {
                            onpaste="_onEmojiPaste(event,${i})">
                 </div>
             </div>
-            <button class="ar-btn-delete" onclick="removeInlineReact(${i})" title="Hapus">
+            <button class="ar-btn-delete" onclick="removeInlineReact(${i})" title="Delete">
                 <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
             </button>
         </div>`;
@@ -2788,7 +2788,7 @@ function updateInlineReact(i) {
         } else {
             bubble.innerHTML = '<span class="react-empty-icon">✨</span>';
             bubble.classList.remove('has-emoji');
-            bubble.title = 'Belum ada emoji';
+            bubble.title = 'No emoji selected';
         }
     }
 
@@ -2826,8 +2826,8 @@ async function deleteReactPanel(name) {
     const card   = document.querySelector(`.ar-panel-card[data-type="reaction"][data-name="${name}"]`);
     const isSent = card?.querySelector('.status-sent') !== null;
     const msg    = isSent
-        ? `Hapus panel "${name}"?\n\n⚠️ Pesan yang sudah terkirim di Discord juga akan dihapus secara permanen.`
-        : `Hapus panel "${name}"?`;
+        ? `Delete panel "${name}"?\n\n⚠️ The message already sent on Discord will also be permanently deleted.`
+        : `Delete panel "${name}"?`;
     if (!confirm(msg)) return;
     const res  = await fetch(`/api/guild/${GUILD_ID}/autorole-reaction/${encodeURIComponent(name)}`, { method: 'DELETE' });
     const data = await res.json();
@@ -2848,7 +2848,7 @@ function closeSendReactPanel() { closeModal('sendReactPanelBackdrop', 'sendReact
 async function doSendReactPanel() {
     const msg       = document.getElementById('sendReactPanelMsg');
     const channelId = document.getElementById('sendReactPanelChannel').value;
-    if (!channelId) return showMsg(msg, 'Pilih channel terlebih dahulu.', 'error');
+    if (!channelId) return showMsg(msg, 'Please select a channel first.', 'error');
 
     const res  = await fetch(`/api/guild/${GUILD_ID}/autorole-reaction/${encodeURIComponent(_sendReactPanelName)}/send`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -2866,16 +2866,16 @@ async function saveAllButtons() {
 
     // Validasi wajib
     for (let i = 0; i < buttons.length; i++) {
-        if (!buttons[i].roleId) return showMsg(msg, `Tombol #${i+1}: Pilih role terlebih dahulu.`, 'error');
-        if (!buttons[i].label)  return showMsg(msg, `Tombol #${i+1}: Label tidak boleh kosong.`, 'error');
-        if (buttons[i].label.length > 80) return showMsg(msg, `Tombol #${i+1}: Label melebihi 80 karakter.`, 'error');
+        if (!buttons[i].roleId) return showMsg(msg, `Button #${i+1}: Please select a role first.`, 'error');
+        if (!buttons[i].label)  return showMsg(msg, `Button #${i+1}: Label cannot be empty.`, 'error');
+        if (buttons[i].label.length > 80) return showMsg(msg, `Button #${i+1}: Label exceeds 80 characters.`, 'error');
     }
 
     // Validasi duplikat
     const seen = {};
     for (let i = 0; i < buttons.length; i++) {
         if (seen[buttons[i].roleId] !== undefined) {
-            return showMsg(msg, `Tombol #${seen[buttons[i].roleId]+1} dan #${i+1} menggunakan role yang sama.`, 'error');
+            return showMsg(msg, `Button #${seen[buttons[i].roleId]+1} and #${i+1} use the same role.`, 'error');
         }
         seen[buttons[i].roleId] = i;
     }
@@ -2886,7 +2886,7 @@ async function saveAllButtons() {
     });
     const data = await res.json();
     if (!data.success) return showMsg(msg, data.message, 'error');
-    showMsg(msg, `${buttons.length} tombol berhasil disimpan!`, 'success');
+    showMsg(msg, `${buttons.length} button(s) saved successfully!`, 'success');
     _btnData = buttons;
     renderBtnEditorTable();
     setTimeout(() => { closeBtnModal(); _reloadKeepHash(); }, 800);

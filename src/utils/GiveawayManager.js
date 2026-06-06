@@ -46,7 +46,7 @@ class GiveawayManager {
     async createGiveaway({ guildId, channelId, prize, durationMs, winnerCount, hostId, requiredRoleId }) {
         const guild   = this.client.guilds.cache.get(guildId);
         const channel = guild?.channels.cache.get(channelId);
-        if (!channel) throw new Error('Channel tidak ditemukan.');
+        if (!channel) throw new Error('Channel not found.');
 
         const id     = crypto.randomUUID();
         const endsAt = Date.now() + durationMs;
@@ -103,9 +103,9 @@ class GiveawayManager {
 
     async rerollGiveaway(id) {
         const gw = this._get(id);
-        if (!gw) throw new Error('Giveaway tidak ditemukan.');
-        if (!gw.ended) throw new Error('Giveaway belum selesai.');
-        if (gw.cancelled) throw new Error('Giveaway sudah dibatalkan.');
+        if (!gw) throw new Error('Giveaway not found.');
+        if (!gw.ended) throw new Error('Giveaway has not ended yet.');
+        if (gw.cancelled) throw new Error('Giveaway has been cancelled.');
 
         const winners  = await this._pickWinners(gw);
         gw.winners     = winners.map(u => u.id);
@@ -121,9 +121,9 @@ class GiveawayManager {
 
     async cancelGiveaway(id) {
         const gw = this._get(id);
-        if (!gw) throw new Error('Giveaway tidak ditemukan.');
-        if (gw.ended) throw new Error('Giveaway sudah selesai.');
-        if (gw.cancelled) throw new Error('Giveaway sudah dibatalkan.');
+        if (!gw) throw new Error('Giveaway not found.');
+        if (gw.ended) throw new Error('Giveaway has already ended.');
+        if (gw.cancelled) throw new Error('Giveaway has been cancelled.');
 
         clearTimeout(this._timers.get(id));
         this._timers.delete(id);
@@ -155,8 +155,8 @@ class GiveawayManager {
 
     deleteGiveaway(id) {
         const gw = this._get(id);
-        if (!gw) throw new Error('Giveaway tidak ditemukan.');
-        if (!gw.ended && !gw.cancelled) throw new Error('Hanya giveaway yang sudah selesai atau dibatalkan yang bisa dihapus.');
+        if (!gw) throw new Error('Giveaway not found.');
+        if (!gw.ended && !gw.cancelled) throw new Error('Only giveaways that have ended or been cancelled can be deleted.');
 
         const db = this.client.database;
         db?.delete(`giveaway-${id}`);
@@ -210,7 +210,7 @@ class GiveawayManager {
             const shuffled = entrants.sort(() => Math.random() - 0.5);
             return shuffled.slice(0, gw.winnerCount);
         } catch (err) {
-            warn(`[Giveaway] Gagal ambil pemenang: ${err.message}`);
+            warn(`[Giveaway] Failed to pick winners: ${err.message}`);
             return [];
         }
     }
@@ -268,10 +268,10 @@ class GiveawayManager {
             }
 
             const mention = winners.map(u => `<@${u.id}>`).join(', ');
-            const prefix  = isReroll ? '🔄 **Reroll!**' : '🎊 **Selamat!**';
+            const prefix  = isReroll ? '🔄 **Reroll!**' : '🎊 **Congratulations!**';
             await channel.send(
                 `${prefix} ${mention} memenangkan **${gw.prize}**! ` +
-                `[Lihat giveaway](https://discord.com/channels/${gw.guildId}/${gw.channelId}/${gw.messageId})`
+                `[View giveaway](https://discord.com/channels/${gw.guildId}/${gw.channelId}/${gw.messageId})`
             ).catch(() => {});
         } catch { /* noop */ }
     }

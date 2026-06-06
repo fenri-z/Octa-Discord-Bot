@@ -39,7 +39,7 @@ async function checkBotPermissions(interaction, perms, channel = null) {
 
     if (!botMember) {
         await interaction.reply({
-            content: '❌ Gagal mengambil data bot dari server. Coba lagi.',
+            content: '❌ Failed to fetch bot data from server. Please try again.',
             flags: MessageFlags.Ephemeral
         });
         return false;
@@ -61,7 +61,7 @@ async function checkBotPermissions(interaction, perms, channel = null) {
 
     const replyMethod = interaction.deferred || interaction.replied ? 'editReply' : 'reply';
     await interaction[replyMethod]({
-        content: `❌ Bot tidak memiliki izin yang diperlukan${channelInfo}.\n\n**Izin yang kurang:** ${missingNames}`,
+        content: `❌ Bot does not have the required permissions${channelInfo}.\n\n**Missing permissions:** ${missingNames}`,
         flags: MessageFlags.Ephemeral
     });
 

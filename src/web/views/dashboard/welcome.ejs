@@ -8,7 +8,7 @@
         <%- include('../partials/perm-notice') %>
         <div class="page-header">
             <h1>Welcome Notification</h1>
-            <p>Notifikasi yang dikirim saat member baru bergabung ke server.</p>
+            <p>Notification sent when a new member joins the server.</p>
         </div>
 
         <div class="welcome-editor-layout">
@@ -20,14 +20,14 @@
                         <input type="checkbox" id="welcomeEnabled" class="toggle-input"
                                <%= welcomeData.enabled ? 'checked' : '' %>>
                         <span class="toggle-slider"></span>
-                        <span>Aktifkan Welcome Notification</span>
+                        <span>Enable Welcome Notification</span>
                     </label>
                 </div>
 
                 <div class="form-group">
                     <label class="label">Channel</label>
                     <select id="welcomeChannel" class="select">
-                        <option value="">— Pilih channel —</option>
+                        <option value="">— Select channel —</option>
                         <% (locals.channels || []).forEach(ch => { %>
                             <option value="<%= ch.id %>" <%= welcomeData.channelId === ch.id ? 'selected' : '' %>>
                                 #<%= ch.name %>
@@ -37,7 +37,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label class="label">Tipe Pesan</label>
+                    <label class="label">Message Type</label>
                     <div style="display:flex;gap:.75rem;">
                         <label class="radio-label" style="display:flex;align-items:center;gap:.5rem;cursor:pointer;">
                             <input type="radio" name="welcomeMessageType" id="typeEmbed" value="embed"
@@ -47,7 +47,7 @@
                         <label class="radio-label" style="display:flex;align-items:center;gap:.5rem;cursor:pointer;">
                             <input type="radio" name="welcomeMessageType" id="typePlain" value="plain"
                                    <%= (welcomeData.messageType || 'plain') === 'plain' ? 'checked' : '' %>>
-                            <span>Teks Biasa</span>
+                            <span>Plain Text</span>
                         </label>
                     </div>
                 </div>
@@ -55,14 +55,14 @@
                 <!-- ── Panel Teks Biasa ── -->
                 <div id="plainTextPanel" class="form-group" style="display:none;">
                     <div class="label-with-picker">
-                        <label class="label" style="margin-bottom:0;">Isi Pesan Teks Biasa</label>
+                        <label class="label" style="margin-bottom:0;">Plain Text Message</label>
                         <div class="ph-picker-anchor">
                             <button type="button" class="ph-toggle-btn" onclick="togglePicker('plainPicker',event)">{…} Placeholder</button>
                             <div class="ph-dropdown" id="plainPicker" style="display:none;"></div>
                         </div>
                     </div>
                     <textarea id="welcomePlainText" class="textarea" rows="3"
-                              placeholder="Halo {member}, selamat datang di **{server}**! 🎉 Kamu adalah member ke-**{count}**."><%= welcomeData.plainText %></textarea>
+                              placeholder="Hello {member}, welcome to **{server}**! 🎉 You are member #**{count}**."><%= welcomeData.plainText %></textarea>
                 </div>
 
                 <!-- ── Panel Embed ── -->
@@ -70,25 +70,25 @@
 
                 <div class="form-group">
                     <div class="label-with-picker">
-                        <label class="label" style="margin-bottom:0;">Judul Embed</label>
+                        <label class="label" style="margin-bottom:0;">Embed Title</label>
                         <div class="ph-picker-anchor">
                             <button type="button" class="ph-toggle-btn" onclick="togglePicker('embedPicker',event)">{…} Placeholder</button>
                             <div class="ph-dropdown" id="embedPicker" style="display:none;"></div>
                         </div>
                     </div>
                     <input type="text" id="welcomeTitle" class="input"
-                           placeholder="👋 Selamat Datang di {server}!"
+                           placeholder="👋 Welcome to {server}!"
                            value="<%= welcomeData.title %>">
                 </div>
 
                 <div class="form-group">
-                    <label class="label">Deskripsi Embed</label>
+                    <label class="label">Embed Description</label>
                     <textarea id="welcomeDescription" class="textarea" rows="3"
-                              placeholder="Halo {member}, senang kamu bergabung! 🎉&#10;Kamu adalah member ke-**{count}**."><%= welcomeData.description %></textarea>
+                              placeholder="Hello {member}, glad to have you here! 🎉&#10;You are member #**{count}**."><%= welcomeData.description %></textarea>
                 </div>
 
                 <div class="form-group">
-                    <label class="label">Warna Embed</label>
+                    <label class="label">Embed Color</label>
                     <div style="display:flex;gap:.75rem;align-items:center;">
                         <input type="color" id="welcomeColorPicker" value="<%= welcomeData.color || '#5865F2' %>"
                                style="width:44px;height:36px;border:none;border-radius:6px;cursor:pointer;padding:0;background:none;"
@@ -101,9 +101,9 @@
                 </div>
 
                 <div class="form-group">
-                    <label class="label">Footer <span style="font-weight:400;color:var(--text-muted)">(opsional)</span></label>
+                    <label class="label">Footer <span style="font-weight:400;color:var(--text-muted)">(optional)</span></label>
                     <input type="text" id="welcomeFooter" class="input"
-                           placeholder='Kosongkan untuk menghapus'
+                           placeholder='Leave blank to remove'
                            value="<%= welcomeData.footerText || '' %>">
                 </div>
 
@@ -112,44 +112,44 @@
                         <input type="checkbox" id="welcomeThumbnail" class="toggle-input"
                                <%= welcomeData.thumbnail ? 'checked' : '' %>>
                         <span class="toggle-slider"></span>
-                        <span>Tampilkan foto profil member (thumbnail)</span>
+                        <span>Show member profile picture (thumbnail)</span>
                     </label>
                 </div>
 
                 </div><!-- /embedPanel -->
 
                 <div id="fieldsPanel" class="form-group">
-                    <label class="label" style="margin-bottom:.75rem;">Field Info</label>
+                    <label class="label" style="margin-bottom:.75rem;">Info Fields</label>
                     <div style="display:flex;flex-direction:column;gap:.6rem;">
                         <label class="toggle-label">
                             <input type="checkbox" id="field_member_baru" class="toggle-input field-toggle"
                                    <%= welcomeData.showMemberNew ? 'checked' : '' %>>
-                            <span class="toggle-slider"></span><span>Member Baru</span>
+                            <span class="toggle-slider"></span><span>New Member</span>
                         </label>
                         <label class="toggle-label">
                             <input type="checkbox" id="field_akun_dibuat" class="toggle-input field-toggle"
                                    <%= welcomeData.showAkunDibuat ? 'checked' : '' %>>
-                            <span class="toggle-slider"></span><span>Akun Dibuat</span>
+                            <span class="toggle-slider"></span><span>Account Created</span>
                         </label>
                         <label class="toggle-label">
                             <input type="checkbox" id="field_total_member" class="toggle-input field-toggle"
                                    <%= welcomeData.showTotalMember ? 'checked' : '' %>>
-                            <span class="toggle-slider"></span><span>Total Member</span>
+                            <span class="toggle-slider"></span><span>Total Members</span>
                         </label>
                         <label class="toggle-label">
                             <input type="checkbox" id="field_diundang_oleh" class="toggle-input field-toggle"
                                    <%= welcomeData.showDiundangOleh ? 'checked' : '' %>>
-                            <span class="toggle-slider"></span><span>Diundang Oleh</span>
+                            <span class="toggle-slider"></span><span>Invited By</span>
                         </label>
                         <label class="toggle-label">
                             <input type="checkbox" id="field_kode_invite" class="toggle-input field-toggle"
                                    <%= welcomeData.showKodeInvite ? 'checked' : '' %>>
-                            <span class="toggle-slider"></span><span>Kode Invite</span>
+                            <span class="toggle-slider"></span><span>Invite Code</span>
                         </label>
                         <label class="toggle-label">
                             <input type="checkbox" id="field_total_undangan" class="toggle-input field-toggle"
                                    <%= welcomeData.showTotalUndangan ? 'checked' : '' %>>
-                            <span class="toggle-slider"></span><span>Total Undangan</span>
+                            <span class="toggle-slider"></span><span>Total Invites</span>
                         </label>
                     </div>
                 </div>
@@ -168,15 +168,15 @@
 
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;">
                         <div class="form-group">
-                            <label class="label">Bentuk Avatar</label>
+                            <label class="label">Avatar Shape</label>
                             <div style="display:flex;gap:.6rem;margin-top:.2rem;">
                                 <label style="display:flex;align-items:center;gap:.4rem;cursor:pointer;font-size:.85rem;">
                                     <input type="radio" name="cardAvatarShape" value="circle" <%= (welcomeData.cardAvatarShape||'circle')==='circle'?'checked':'' %>>
-                                    <span>Lingkaran</span>
+                                    <span>Circle</span>
                                 </label>
                                 <label style="display:flex;align-items:center;gap:.4rem;cursor:pointer;font-size:.85rem;">
                                     <input type="radio" name="cardAvatarShape" value="square" <%= welcomeData.cardAvatarShape==='square'?'checked':'' %>>
-                                    <span>Kotak</span>
+                                    <span>Square</span>
                                 </label>
                             </div>
                         </div>
@@ -191,9 +191,9 @@
                     </div>
 
                     <div class="form-group">
-                        <label class="label">Tipe Background</label>
+                        <label class="label">Background Type</label>
                         <div style="display:flex;gap:.75rem;flex-wrap:wrap;margin-top:.2rem;">
-                            <% [['gradient','Gradien'],['solid','Solid'],['image','Gambar URL'],['transparent','Transparan']].forEach(function(bt){ %>
+                            <% [['gradient','Gradient'],['solid','Solid'],['image','Image URL'],['transparent','Transparent']].forEach(function(bt){ %>
                             <label style="display:flex;align-items:center;gap:.4rem;cursor:pointer;font-size:.85rem;">
                                 <input type="radio" name="cardBgType" value="<%= bt[0] %>" <%= (welcomeData.cardBgType||'gradient')===bt[0]?'checked':'' %>>
                                 <span><%= bt[1] %></span>
@@ -204,7 +204,7 @@
 
                     <div id="cardBgGradientPanel" style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;">
                         <div class="form-group">
-                            <label class="label" id="cardBgColor1Label">Latar Kiri</label>
+                            <label class="label" id="cardBgColor1Label">Left Background</label>
                             <div style="display:flex;gap:.5rem;align-items:center;">
                                 <input type="color" id="cardBgColorPicker" value="<%= welcomeData.cardBgColor||'#1a1a2e' %>"
                                        style="width:38px;height:32px;border:none;border-radius:5px;cursor:pointer;padding:0;background:none;"
@@ -214,7 +214,7 @@
                             </div>
                         </div>
                         <div class="form-group" id="cardBgColor2Group">
-                            <label class="label">Latar Kanan</label>
+                            <label class="label">Right Background</label>
                             <div style="display:flex;gap:.5rem;align-items:center;">
                                 <input type="color" id="cardBgColor2Picker" value="<%= welcomeData.cardBgColor2||'#16213e' %>"
                                        style="width:38px;height:32px;border:none;border-radius:5px;cursor:pointer;padding:0;background:none;"
@@ -226,16 +226,16 @@
                     </div>
 
                     <div id="cardBgImagePanel" style="display:none;" class="form-group">
-                        <label class="label">URL Gambar Latar</label>
+                        <label class="label">Background Image URL</label>
                         <input type="text" id="cardBgImageUrl" class="input"
                                placeholder="https://example.com/background.jpg"
                                value="<%= welcomeData.cardBgImageUrl||'' %>">
-                        <div class="hint" style="margin-top:.3rem;">URL gambar JPEG/PNG · Akan di-resize otomatis ke ukuran card</div>
+                        <div class="hint" style="margin-top:.3rem;">JPEG/PNG image URL · Will be auto-resized to fit the card</div>
                     </div>
 
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;">
                         <div class="form-group">
-                            <label class="label">Warna Overlay</label>
+                            <label class="label">Overlay Color</label>
                             <div style="display:flex;gap:.5rem;align-items:center;">
                                 <input type="color" id="cardOverlayColorPicker" value="<%= welcomeData.cardOverlayColor||'#000000' %>"
                                        style="width:38px;height:32px;border:none;border-radius:5px;cursor:pointer;padding:0;background:none;"
@@ -246,7 +246,7 @@
                         </div>
                         <div class="form-group">
                             <label class="label" style="display:flex;justify-content:space-between;">
-                                <span>Opasitas Overlay</span>
+                                <span>Overlay Opacity</span>
                                 <span id="cardOverlayOpacityVal" style="color:var(--text-muted);font-weight:400;"><%= welcomeData.cardOverlayOpacity||'0' %>%</span>
                             </label>
                             <input type="range" id="cardOverlayOpacity" min="0" max="100"
@@ -258,7 +258,7 @@
 
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;">
                         <div class="form-group">
-                            <label class="label">Warna Judul (WELCOME)</label>
+                            <label class="label">Title Color (WELCOME)</label>
                             <div style="display:flex;gap:.5rem;align-items:center;">
                                 <input type="color" id="cardTitleColorPicker" value="<%= welcomeData.cardTitleColor||'#ffffff' %>"
                                        style="width:38px;height:32px;border:none;border-radius:5px;cursor:pointer;padding:0;background:none;"
@@ -268,7 +268,7 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label class="label">Warna Nama Pengguna</label>
+                            <label class="label">Username Color</label>
                             <div style="display:flex;gap:.5rem;align-items:center;">
                                 <input type="color" id="cardUsernameColorPicker" value="<%= welcomeData.cardUsernameColor||welcomeData.cardAccentColor||'#5865F2' %>"
                                        style="width:38px;height:32px;border:none;border-radius:5px;cursor:pointer;padding:0;background:none;"
@@ -278,7 +278,7 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label class="label">Warna Pesan (sub teks)</label>
+                            <label class="label">Message Color (sub text)</label>
                             <div style="display:flex;gap:.5rem;align-items:center;">
                                 <input type="color" id="cardMsgColorPicker" value="<%= welcomeData.cardMsgColor||'#cccccc' %>"
                                        style="width:38px;height:32px;border:none;border-radius:5px;cursor:pointer;padding:0;background:none;"
@@ -288,7 +288,7 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label class="label">Warna Border Avatar</label>
+                            <label class="label">Avatar Border Color</label>
                             <div style="display:flex;gap:.5rem;align-items:center;">
                                 <input type="color" id="cardAccentPicker" value="<%= welcomeData.cardAccentColor||'#5865F2' %>"
                                        style="width:38px;height:32px;border:none;border-radius:5px;cursor:pointer;padding:0;background:none;"
@@ -300,12 +300,12 @@
                     </div>
 
                     <div class="form-group">
-                        <label class="label">Teks Besar (WELCOME)</label>
+                        <label class="label">Large Text (WELCOME)</label>
                         <input type="text" id="cardWelcomeText" class="input" maxlength="20"
                                placeholder="WELCOME" value="<%= welcomeData.cardWelcomeText||'WELCOME' %>">
                     </div>
                     <div class="form-group">
-                        <label class="label">Teks Kecil Bawah</label>
+                        <label class="label">Small Text Below</label>
                         <input type="text" id="cardSubText" class="input" maxlength="60"
                                placeholder="TO {server}" value="<%= welcomeData.cardSubText||'TO {server}' %>">
                         <div class="hint" style="margin-top:.3rem;"><code>{server}</code> · <code>{count}</code> · <code>{tag}</code></div>
@@ -314,7 +314,7 @@
                 </div>
 
                 <div class="form-actions">
-                    <button class="btn btn-primary" onclick="saveWelcome('<%= guild.id %>')">Simpan</button>
+                    <button class="btn btn-primary" onclick="saveWelcome('<%= guild.id %>')">Save</button>
                 </div>
                 <div id="welcomeMsg" class="form-message"></div>
             </div>
@@ -341,7 +341,7 @@
                             <img class="dc-avatar" src="<%- loginUser && botUser ? botUser.avatarUrl : 'https://cdn.discordapp.com/embed/avatars/0.png' %>" alt="bot avatar" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
                             <div class="dc-msg-body">
                                 <span class="dc-username" style="color:<%- botUser ? botUser.roleColor : '#ffffff' %>"><%= botUser ? botUser.username : 'Bot' %></span>
-                                <span class="dc-timestamp">Hari ini pukul 12:00</span>
+                                <span class="dc-timestamp">Today at 12:00 PM</span>
                                 <!-- Teks biasa preview -->
                                 <div id="previewPlainMsg" class="dc-plain-msg" style="display:none;"></div>
                                 <img id="previewCardInPlain" style="display:none;width:100%;max-width:440px;border-radius:8px;margin-top:.4rem;" alt="">
@@ -560,7 +560,7 @@ const SAMPLE = {
     inviter:        'OctaUser#1234',
     kode_invite:    'abc123',
     total_undangan: '42',
-    akun_dibuat:    '3 tahun yang lalu',
+    akun_dibuat:    '3 years ago',
 };
 
 // Markdown Discord → HTML
@@ -716,7 +716,7 @@ function mentionBadge(color, text, bg) {
 // Sentinel values:
 //   undefined  = belum pernah di-fetch
 //   'fetching' = sedang di-fetch
-//   null       = fetch sudah selesai tapi tidak ditemukan (jangan retry)
+//   null       = fetch done but not found (don't retry)
 //   string / object = hasil sukses
 
 async function resolveMentionId(id, guildId) {
@@ -920,7 +920,7 @@ async function drawCardPreview() {
     if (imgPanel)  imgPanel.style.display  = bgType === 'image' ? 'block' : 'none';
     if (col2Grp)   col2Grp.style.display   = bgType === 'gradient' ? 'block' : 'none';
     const lbl = document.getElementById('cardBgColor1Label');
-    if (lbl) lbl.textContent = bgType === 'gradient' ? 'Latar Kiri' : 'Warna Latar';
+    if (lbl) lbl.textContent = bgType === 'gradient' ? 'Left Background' : 'Background Color';
 
     ctx.clearRect(0, 0, W, H);
 
@@ -1117,12 +1117,12 @@ const PLACEHOLDERS = [
     ['{member}',         'Mention member'],
     ['{username}',       'Nama pengguna'],
     ['{tag}',            'Username#tag'],
-    ['{server}',         'Nama server'],
-    ['{count}',          'Total member'],
-    ['{inviter}',        'Nama pengundang'],
-    ['{kode.invite}',    'Kode invite'],
-    ['{total.undangan}', 'Total undangan'],
-    ['{akun.dibuat}',    'Tanggal buat akun'],
+    ['{server}',         'Server name'],
+    ['{count}',          'Total members'],
+    ['{inviter}',        'Inviter name'],
+    ['{kode.invite}',    'Invite code'],
+    ['{total.undangan}', 'Total invites'],
+    ['{akun.dibuat}',    'Account creation date'],
 ];
 
 let _lastFocusedEmbed = 'welcomeDescription';
@@ -1160,12 +1160,12 @@ function insertPh(targetId, ph) {
 }
 // ── Fields sample data ─────────────────────────────────────────────────────
 const FIELD_DEFS = [
-    { id: 'field_member_baru',    name: '👤 Member Baru',    value: SAMPLE.displayName   },
-    { id: 'field_akun_dibuat',    name: '📅 Akun Dibuat',    value: '3 tahun yang lalu'  },
-    { id: 'field_total_member',   name: '👥 Total Member',   value: SAMPLE.count         },
-    { id: 'field_diundang_oleh',  name: '📨 Diundang Oleh',  value: 'OctaUser#1234'     },
-    { id: 'field_kode_invite',    name: '🔗 Kode Invite',    value: 'abc123'             },
-    { id: 'field_total_undangan', name: '📊 Total Undangan', value: '5 orang'            },
+    { id: 'field_member_baru',    name: '👤 New Member',        value: SAMPLE.displayName   },
+    { id: 'field_akun_dibuat',    name: '📅 Account Created',   value: '3 years ago'        },
+    { id: 'field_total_member',   name: '👥 Total Members',     value: SAMPLE.count         },
+    { id: 'field_diundang_oleh',  name: '📨 Invited By',        value: 'OctaUser#1234'      },
+    { id: 'field_kode_invite',    name: '🔗 Invite Code',       value: 'abc123'             },
+    { id: 'field_total_undangan', name: '📊 Total Invites',     value: '5 people'           },
 ];
 
 // ── Channels map untuk preview nama channel ────────────────────────────────
@@ -1309,7 +1309,7 @@ toggleCardPanel().then(() => toggleMessageTypePanel());
 async function saveWelcome(guildId) {
     const msg = document.getElementById('welcomeMsg');
     if (!document.getElementById('welcomeChannel').value)
-        return showMsg(msg, 'Pilih channel tujuan terlebih dahulu.', 'error');
+        return showMsg(msg, 'Please select a destination channel first.', 'error');
     const payload = {
         enabled:           document.getElementById('welcomeEnabled').checked,
         channelId:         document.getElementById('welcomeChannel').value,

@@ -111,8 +111,8 @@ module.exports = new Event({
             .replace(/{tag}/g,             member.user.tag)
             .replace(/{server}/g,          guild.name)
             .replace(/{count}/g,           String(totalMembers))
-            .replace(/{inviter}/g,         inviter ? inviter.tag : 'Tidak diketahui')
-            .replace(/{kode\.invite}/g,    usedInvite ? usedInvite.code : 'Tidak diketahui')
+            .replace(/{inviter}/g,         inviter ? inviter.tag : 'Unknown')
+            .replace(/{kode\.invite}/g,    usedInvite ? usedInvite.code : 'Unknown')
             .replace(/{total\.undangan}/g, inviter ? String(inviterTotalUses) : '-')
             .replace(/{akun\.dibuat}/g,    createdRelative);
 
@@ -123,8 +123,8 @@ module.exports = new Event({
             .replace(/{tag}/g,             member.user.tag)
             .replace(/{server}/g,          guild.name)
             .replace(/{count}/g,           String(totalMembers))
-            .replace(/{inviter}/g,         inviter ? inviter.tag : 'Tidak diketahui')
-            .replace(/{kode\.invite}/g,    usedInvite ? usedInvite.code : 'Tidak diketahui')
+            .replace(/{inviter}/g,         inviter ? inviter.tag : 'Unknown')
+            .replace(/{kode\.invite}/g,    usedInvite ? usedInvite.code : 'Unknown')
             .replace(/{total\.undangan}/g, inviter ? String(inviterTotalUses) : '-')
             .replace(/{akun\.dibuat}/g,    createdRelative);
 
@@ -163,12 +163,12 @@ module.exports = new Event({
             // Mode teks biasa — field info ditulis sebagai baris teks di bawah pesan
             let content = parse(plainText).trim();
             const infoLines = [];
-            if (showMemberNew)     infoLines.push(`👤 **Member Baru:** ${member.user.tag}`);
-            if (showAkunDibuat)    infoLines.push(`📅 **Akun Dibuat:** <t:${Math.floor(member.user.createdTimestamp / 1000)}:R>`);
-            if (showTotalMember)   infoLines.push(`👥 **Total Member:** ${totalMembers} member`);
-            if (showDiundangOleh)  infoLines.push(`📨 **Diundang Oleh:** ${inviter ? inviter.tag : 'Tidak diketahui'}`);
-            if (showKodeInvite)    infoLines.push(`🔗 **Kode Invite:** ${usedInvite ? `\`${usedInvite.code}\`` : 'Tidak diketahui'}`);
-            if (showTotalUndangan) infoLines.push(`📊 **Total Undangan:** ${inviter ? `${inviterTotalUses} undangan` : '-'}`);
+            if (showMemberNew)     infoLines.push(`👤 **New Member:** ${member.user.tag}`);
+            if (showAkunDibuat)    infoLines.push(`📅 **Account Created:** <t:${Math.floor(member.user.createdTimestamp / 1000)}:R>`);
+            if (showTotalMember)   infoLines.push(`👥 **Total Members:** ${totalMembers} member(s)`);
+            if (showDiundangOleh)  infoLines.push(`📨 **Diundang Oleh:** ${inviter ? inviter.tag : 'Unknown'}`);
+            if (showKodeInvite)    infoLines.push(`🔗 **Kode Invite:** ${usedInvite ? `\`${usedInvite.code}\`` : 'Unknown'}`);
+            if (showTotalUndangan) infoLines.push(`📊 **Total Invites:** ${inviter ? `${inviterTotalUses} invite(s)` : '-'}`);
             if (infoLines.length > 0) content += (content ? '\n' : '') + infoLines.join('\n');
 
             if (content) {
@@ -201,12 +201,12 @@ module.exports = new Event({
 
             // ── Tambahkan field secara kondisional ────────────────────────
             const fields = [];
-            if (showMemberNew)     fields.push({ name: '👤 Member Baru',    value: member.user.tag, inline: true });
-            if (showAkunDibuat)    fields.push({ name: '📅 Akun Dibuat',    value: `<t:${Math.floor(member.user.createdTimestamp / 1000)}:R>`, inline: true });
-            if (showTotalMember)   fields.push({ name: '👥 Total Member',   value: `**${totalMembers}** member`, inline: true });
-            if (showDiundangOleh)  fields.push({ name: '📨 Diundang Oleh',  value: inviter ? inviter.tag : '`Tidak diketahui`', inline: true });
-            if (showKodeInvite)    fields.push({ name: '🔗 Kode Invite',    value: usedInvite ? `\`${usedInvite.code}\`` : '`Tidak diketahui`', inline: true });
-            if (showTotalUndangan) fields.push({ name: '📊 Total Undangan', value: inviter ? `**${inviterTotalUses}** undangan` : '`-`', inline: true });
+            if (showMemberNew)     fields.push({ name: '👤 New Member',    value: member.user.tag, inline: true });
+            if (showAkunDibuat)    fields.push({ name: '📅 Account Created',    value: `<t:${Math.floor(member.user.createdTimestamp / 1000)}:R>`, inline: true });
+            if (showTotalMember)   fields.push({ name: '👥 Total Members',   value: `**${totalMembers}** member(s)`, inline: true });
+            if (showDiundangOleh)  fields.push({ name: '📨 Invited By',  value: inviter ? inviter.tag : '`Unknown`', inline: true });
+            if (showKodeInvite)    fields.push({ name: '🔗 Invite Code',    value: usedInvite ? `\`${usedInvite.code}\`` : '`Unknown`', inline: true });
+            if (showTotalUndangan) fields.push({ name: '📊 Total Invites', value: inviter ? `**${inviterTotalUses}** invite(s)` : '`-`', inline: true });
             if (fields.length > 0) embed.addFields(...fields);
             if (cardAttachment) embed.setImage('attachment://welcome-card.png');
 

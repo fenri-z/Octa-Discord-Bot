@@ -17,7 +17,7 @@ function _mapInvite(inv) {
         code:        inv.code,
         url:         `https://discord.gg/${inv.code}`,
         inviterId:   inv.inviter?.id        ?? null,
-        inviterTag:  inv.inviter?.username  ?? 'Tidak diketahui',
+        inviterTag:  inv.inviter?.username  ?? 'Unknown',
         channelId:   inv.channel?.id        ?? null,
         channelName: inv.channel?.name      ?? '-',
         uses:        inv.uses               ?? 0,
@@ -95,14 +95,14 @@ async function _ensureChannels(guild) {
 }
 
 const REQUIRED_PERMS = [
-    { flag: PermissionsBitField.Flags.ViewChannel,        name: 'View Channel',         desc: 'Melihat channel' },
-    { flag: PermissionsBitField.Flags.SendMessages,       name: 'Send Messages',        desc: 'Mengirim pesan (welcome, goodbye, dll.)' },
-    { flag: PermissionsBitField.Flags.EmbedLinks,         name: 'Embed Links',          desc: 'Mengirim embed (welcome, goodbye, pesan)' },
-    { flag: PermissionsBitField.Flags.AttachFiles,        name: 'Attach Files',         desc: 'Mengirim gambar welcome card' },
+    { flag: PermissionsBitField.Flags.ViewChannel,        name: 'View Channel',         desc: 'View channels' },
+    { flag: PermissionsBitField.Flags.SendMessages,       name: 'Send Messages',        desc: 'Send messages (welcome, goodbye, etc.)' },
+    { flag: PermissionsBitField.Flags.EmbedLinks,         name: 'Embed Links',          desc: 'Send embeds (welcome, goodbye, messages)' },
+    { flag: PermissionsBitField.Flags.AttachFiles,        name: 'Attach Files',         desc: 'Send welcome card images' },
     { flag: PermissionsBitField.Flags.ManageRoles,        name: 'Manage Roles',         desc: 'Autorole & autorole button' },
-    { flag: PermissionsBitField.Flags.ManageChannels,     name: 'Manage Channels',      desc: 'Server Stats (buat channel statistik)' },
-    { flag: PermissionsBitField.Flags.ChangeNickname,     name: 'Change Nickname',      desc: 'Ganti nickname bot sendiri' },
-    { flag: PermissionsBitField.Flags.ReadMessageHistory, name: 'Read Message History', desc: 'Membaca riwayat pesan' },
+    { flag: PermissionsBitField.Flags.ManageChannels,     name: 'Manage Channels',      desc: 'Server Stats (create stats channels)' },
+    { flag: PermissionsBitField.Flags.ChangeNickname,     name: 'Change Nickname',      desc: "Change the bot's own nickname" },
+    { flag: PermissionsBitField.Flags.ReadMessageHistory, name: 'Read Message History', desc: 'Read message history' },
 ];
 
 function getMissingPerms(guild) {
@@ -132,7 +132,7 @@ function requireManageGuild(req, res, next) {
     if (!guild) {
         return res.status(403).render('error', { hasSidebar: false,
             title: 'Akses Ditolak',
-            message: 'Kamu tidak punya izin untuk mengatur server ini.'
+            message: 'You do not have permission to manage this server.'
         });
     }
 
@@ -255,9 +255,9 @@ router.get('/:guildId/welcome', requireLogin, requireManageGuild, async (req, re
             enabled:           getDbBool(db, `welcome-enabled-${guildId}`,           false),
             channelId:         db?.get(`welcome-channel-${guildId}`)                 ?? '',
             messageType:       db?.get(`welcome-messageType-${guildId}`)             ?? 'plain',
-            plainText:         db?.get(`welcome-plainText-${guildId}`)               ?? 'Halo {member}, selamat datang di **{server}**! 🎉 Kamu adalah member ke-**{count}**.',
-            title:             db?.get(`welcome-title-${guildId}`)                   ?? '👋 Selamat Datang di {server}!',
-            description:       db?.get(`welcome-description-${guildId}`)             ?? 'Halo {member}, senang kamu bergabung! 🎉\nKamu adalah member ke-**{count}**.',
+            plainText:         db?.get(`welcome-plainText-${guildId}`)               ?? 'Hello {member}, welcome to **{server}**! 🎉 You are member #**{count}**.',
+            title:             db?.get(`welcome-title-${guildId}`)                   ?? '👋 Welcome to {server}!',
+            description:       db?.get(`welcome-description-${guildId}`)             ?? 'Hello {member}, glad to have you here! 🎉\nYou are member #**{count}**.',
             color:             db?.get(`welcome-color-${guildId}`)                   ?? '#5865F2',
             footerText:        db?.get(`welcome-footer-${guildId}`)                  ?? '',
             thumbnail:         getDbBool(db, `welcome-thumbnail-${guildId}`,          false),
@@ -344,7 +344,7 @@ router.get('/:guildId/welcome', requireLogin, requireManageGuild, async (req, re
         console.error('[dashboard/welcome] Error fetching guild data:', err);
         res.status(500).render('error', { hasSidebar: false,
             title: 'Server Error',
-            message: 'Gagal memuat data server dari Discord.'
+            message: 'Failed to load server data from Discord.'
         });
     }
 });
@@ -363,9 +363,9 @@ router.get('/:guildId/goodbye', requireLogin, requireManageGuild, async (req, re
             enabled:       getDbBool(db, `goodbye-enabled-${guildId}`,        false),
             channelId:     db?.get(`goodbye-channel-${guildId}`)              ?? '',
             messageType:   db?.get(`goodbye-messageType-${guildId}`)          ?? 'plain',
-            plainText:     db?.get(`goodbye-plainText-${guildId}`)            ?? 'Sampai jumpa, {member}! Terima kasih sudah bersama kami di **{server}**.',
-            title:         db?.get(`goodbye-title-${guildId}`)                ?? '👋 Selamat Tinggal!',
-            description:   db?.get(`goodbye-description-${guildId}`)          ?? '{member} telah meninggalkan server.',
+            plainText:     db?.get(`goodbye-plainText-${guildId}`)            ?? 'Goodbye, {member}! Thanks for being with us in **{server}**.',
+            title:         db?.get(`goodbye-title-${guildId}`)                ?? '👋 Goodbye!',
+            description:   db?.get(`goodbye-description-${guildId}`)          ?? '{member} has left the server.',
             color:         db?.get(`goodbye-color-${guildId}`)                ?? '#ED4245',
             footerText:    db?.get(`goodbye-footer-${guildId}`)               ?? '',
             thumbnail:     getDbBool(db, `goodbye-thumbnail-${guildId}`,       false),
@@ -445,7 +445,7 @@ router.get('/:guildId/goodbye', requireLogin, requireManageGuild, async (req, re
         console.error('[dashboard/goodbye] Error fetching guild data:', err);
         res.status(500).render('error', { hasSidebar: false,
             title: 'Server Error',
-            message: 'Gagal memuat data server dari Discord.'
+            message: 'Failed to load server data from Discord.'
         });
     }
 });
@@ -463,9 +463,9 @@ router.get('/:guildId/booster', requireLogin, requireManageGuild, async (req, re
             enabled:            getDbBool(db, `booster-boost-enabled-${guildId}`,          false),
             channelId:          db?.get(`booster-boost-channel-${guildId}`)                 ?? '',
             messageType:        db?.get(`booster-boost-messageType-${guildId}`)             ?? 'plain',
-            plainText:          db?.get(`booster-boost-plainText-${guildId}`)               ?? '🚀 {member} baru saja boost **{server}**! Total boost: **{boosts}**.',
-            title:              db?.get(`booster-boost-title-${guildId}`)                   ?? '🚀 Server Boost Baru!',
-            description:        db?.get(`booster-boost-desc-${guildId}`)                    ?? 'Terima kasih {member} sudah boost server ini! 💖\nTotal boost sekarang: **{boosts}**.',
+            plainText:          db?.get(`booster-boost-plainText-${guildId}`)               ?? '🚀 {member} just boosted **{server}**! Total boosts: **{boosts}**.',
+            title:              db?.get(`booster-boost-title-${guildId}`)                   ?? '🚀 New Server Boost!',
+            description:        db?.get(`booster-boost-desc-${guildId}`)                    ?? 'Thank you {member} for boosting this server! 💖\nTotal boosts now: **{boosts}**.',
             color:              db?.get(`booster-boost-color-${guildId}`)                   ?? '#FF73FA',
             footerText:         db?.get(`booster-boost-footer-${guildId}`)                  ?? '',
             showMember:         getDbBool(db, `booster-boost-showMember-${guildId}`,        true),
@@ -494,9 +494,9 @@ router.get('/:guildId/booster', requireLogin, requireManageGuild, async (req, re
             enabled:            getDbBool(db, `booster-unboost-enabled-${guildId}`,         false),
             channelId:          db?.get(`booster-unboost-channel-${guildId}`)                ?? '',
             messageType:        db?.get(`booster-unboost-messageType-${guildId}`)            ?? 'plain',
-            plainText:          db?.get(`booster-unboost-plainText-${guildId}`)              ?? '💔 {member} telah berhenti boost **{server}**. Total boost: **{boosts}**.',
-            title:              db?.get(`booster-unboost-title-${guildId}`)                  ?? '💔 Boost Berakhir',
-            description:        db?.get(`booster-unboost-desc-${guildId}`)                   ?? '{member} telah mencabut boost-nya dari server.\nTotal boost sekarang: **{boosts}**.',
+            plainText:          db?.get(`booster-unboost-plainText-${guildId}`)              ?? '💔 {member} has stopped boosting **{server}**. Total boosts: **{boosts}**.',
+            title:              db?.get(`booster-unboost-title-${guildId}`)                  ?? '💔 Boost Ended',
+            description:        db?.get(`booster-unboost-desc-${guildId}`)                   ?? '{member} has removed their boost from the server.\nTotal boosts now: **{boosts}**.',
             color:              db?.get(`booster-unboost-color-${guildId}`)                  ?? '#ED4245',
             footerText:         db?.get(`booster-unboost-footer-${guildId}`)                 ?? '',
             showMember:         getDbBool(db, `booster-unboost-showMember-${guildId}`,       true),
@@ -768,7 +768,7 @@ router.get('/:guildId/message-builder', requireLogin, requireManageGuild, async 
         res.status(500).render('error', {
             hasSidebar: false,
             title: 'Server Error',
-            message: 'Gagal memuat halaman Message Builder.'
+            message: 'Failed to load the Message Builder page.'
         });
     }
 });
@@ -785,7 +785,7 @@ router.get('/:guildId/invites', requireLogin, requireManageGuild, async (req, re
             // Gunakan cache 60 detik — hindari fetch ke Discord API setiap page load
             invites = await _getCachedInvites(guild);
         } catch {
-            fetchError = 'Bot tidak memiliki izin Manage Guild untuk membaca invite server ini.';
+            fetchError = 'Bot does not have the Manage Guild permission to read server invites.';
         }
 
         const totalUses      = invites.reduce((s, inv) => s + inv.uses, 0);
@@ -807,7 +807,7 @@ router.get('/:guildId/invites', requireLogin, requireManageGuild, async (req, re
         res.status(500).render('error', {
             hasSidebar: false,
             title: 'Server Error',
-            message: 'Gagal memuat halaman Invite Links.'
+            message: 'Failed to load the Invite Links page.'
         });
     }
 });
@@ -854,7 +854,7 @@ router.get('/:guildId/serverstats', requireLogin, requireManageGuild, async (req
         res.status(500).render('error', {
             hasSidebar: false,
             title: 'Server Error',
-            message: 'Gagal memuat halaman Server Stats.'
+            message: 'Failed to load the Server Stats page.'
         });
     }
 });
@@ -887,9 +887,9 @@ router.get('/:guildId/ticket', requireLogin, requireManageGuild, async (req, res
         logChannelId:  db?.get(`ticket-log-channel-${guildId}`) ?? '',
         staffRoles,
         embedTitle:    db?.get(`ticket-embed-title-${guildId}`) ?? '🎫 Support Ticket',
-        embedDesc:     db?.get(`ticket-embed-desc-${guildId}`)  ?? 'Klik tombol di bawah untuk membuat tiket dan mendapatkan bantuan dari tim staff.',
+        embedDesc:     db?.get(`ticket-embed-desc-${guildId}`)  ?? 'Click the button below to create a ticket and get help from staff.',
         embedColor:    db?.get(`ticket-embed-color-${guildId}`) ?? '#5865F2',
-        btnLabel:      db?.get(`ticket-embed-btn-label-${guildId}`) ?? '📩 Buat Ticket',
+        btnLabel:      db?.get(`ticket-embed-btn-label-${guildId}`) ?? '📩 Create Ticket',
         panelSent,
         panelMsgId,
         panelChannelId,
@@ -1002,7 +1002,7 @@ router.get('/:guildId/tiktok', requireLogin, requireManageGuild, async (req, res
         res.status(500).render('error', {
             hasSidebar: false,
             title: 'Server Error',
-            message: 'Gagal memuat halaman TikTok Notification.',
+            message: 'Failed to load the TikTok Notification page.',
         });
     }
 });
@@ -1042,7 +1042,7 @@ router.get('/:guildId/giveaway', requireLogin, requireManageGuild, async (req, r
         res.status(500).render('error', {
             hasSidebar: false,
             title: 'Server Error',
-            message: 'Gagal memuat halaman Giveaway.',
+            message: 'Failed to load the Giveaway page.',
         });
     }
 });
@@ -1097,7 +1097,7 @@ router.get('/:guildId/twitch', requireLogin, requireManageGuild, async (req, res
         res.status(500).render('error', {
             hasSidebar: false,
             title: 'Server Error',
-            message: 'Gagal memuat halaman Twitch Notification.',
+            message: 'Failed to load the Twitch Notification page.',
         });
     }
 });
@@ -1138,7 +1138,7 @@ router.get('/:guildId/kick', requireLogin, requireManageGuild, async (req, res) 
         res.status(500).render('error', {
             hasSidebar: false,
             title: 'Server Error',
-            message: 'Gagal memuat halaman Kick Notification.',
+            message: 'Failed to load the Kick Notification page.',
         });
     }
 });
@@ -1190,7 +1190,7 @@ router.get('/:guildId/youtube', requireLogin, requireManageGuild, async (req, re
         res.status(500).render('error', {
             hasSidebar: false,
             title: 'Server Error',
-            message: 'Gagal memuat halaman YouTube Notification.'
+            message: 'Failed to load the YouTube Notification page.'
         });
     }
 });
@@ -1258,7 +1258,7 @@ router.get('/:guildId/automod', requireLogin, requireManageGuild, async (req, re
             guild,
             automodData,
             textChannels,
-            roles,        // masih dipakai untuk whitelist role
+            roles,        // still used for role whitelist
             activeCount,
             missingPerms: getMissingPerms(guild),
             activePage: 'automod',
@@ -1269,7 +1269,7 @@ router.get('/:guildId/automod', requireLogin, requireManageGuild, async (req, re
         res.status(500).render('error', {
             hasSidebar: false,
             title: 'Server Error',
-            message: 'Gagal memuat halaman Automod.'
+            message: 'Failed to load the Automod page.'
         });
     }
 });
@@ -1312,7 +1312,7 @@ router.get('/:guildId/warnings', requireLogin, requireManageGuild, async (req, r
         res.status(500).render('error', {
             hasSidebar: false,
             title:   'Server Error',
-            message: 'Gagal memuat halaman Warning System.',
+            message: 'Failed to load the Warning System page.',
         });
     }
 });
@@ -1359,7 +1359,7 @@ router.get('/:guildId/modlog', requireLogin, requireManageGuild, async (req, res
         res.status(500).render('error', {
             hasSidebar: false,
             title: 'Server Error',
-            message: 'Gagal memuat halaman Mod Log.',
+            message: 'Failed to load the Mod Log page.',
         });
     }
 });

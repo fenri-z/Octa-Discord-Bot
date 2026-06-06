@@ -51,7 +51,7 @@ class YouTubeNotifier {
             // Perpanjang subscription yang mau expire setiap 6 jam
             this._renewTimer = setInterval(() => this._renewSubscriptions(), RENEW_INTERVAL_MS);
         } else {
-            info('[YouTube] BASE_URL tidak di-set. Mode RSS polling (5 menit). Set BASE_URL di .env untuk aktifkan WebSub.');
+            info('[YouTube] BASE_URL not set. RSS polling mode (5 min). Set BASE_URL in .env to enable WebSub.');
         }
 
         // RSS fallback / primary
@@ -87,12 +87,12 @@ class YouTubeNotifier {
     async lookupChannel(input) {
         const url = this._resolveChannelUrl(input);
         const res = await fetch(url, { signal: AbortSignal.timeout(12_000), headers: BROWSER_HEADERS });
-        if (!res.ok) throw new Error(`HTTP ${res.status} saat fetch halaman channel`);
+        if (!res.ok) throw new Error(`HTTP ${res.status} while fetching channel page`);
         const html = await res.text();
 
         const idMatch = html.match(/"channelId"\s*:\s*"(UC[\w-]+)"/)
                      || html.match(/channel\/(UC[\w-]{22})/);
-        if (!idMatch) throw new Error('Channel tidak ditemukan. Coba gunakan Channel ID (UCxxxxxx) langsung.');
+        if (!idMatch) throw new Error('Channel not found. Try using the Channel ID (UCxxxxxx) directly.');
         const id = idMatch[1];
 
         const nameMatch = html.match(/<meta[^>]+property="og:title"[^>]+content="([^"]+)"/i)
@@ -147,7 +147,7 @@ class YouTubeNotifier {
         meta.verifiedAt = Date.now();
         meta.expiresAt  = Date.now() + LEASE_SECONDS * 1000;
         db.set(`youtube-websub-${channelId}`, JSON.stringify(meta));
-        info(`[WebSub] Subscription aktif: ${channelId}`);
+        info(`[WebSub] Subscription active: ${channelId}`);
     }
 
     // Dipanggil webhook route saat ada push notifikasi dari YouTube
@@ -191,7 +191,7 @@ class YouTubeNotifier {
         const channelName = channelNameM ? this._decodeXml(channelNameM[1]) : channelId;
         const videoUrl    = `https://www.youtube.com/watch?v=${videoId}`;
 
-        info(`[WebSub] Push diterima: "${title}" (${videoId}) ch=${channelId} — tunggu 30 detik agar thumbnail siap...`);
+        info(`[WebSub] Push received: "${title}" (${videoId}) ch=${channelId} — waiting 30 seconds for thumbnail to be ready...`);
 
         // YouTube butuh waktu generate thumbnail setelah upload.
         // WebSub push datang sangat cepat, tunggu sebentar agar thumbnail tersedia.
@@ -206,12 +206,12 @@ class YouTubeNotifier {
             const liveInfo = await this._isLive(videoId);
             // Waiting room / scheduled premiere — abaikan, live poll akan kirim saat benar-benar live
             if (liveInfo.isUpcoming) {
-                info(`[WebSub] ${videoId} masih upcoming/waiting room, skip`);
+                info(`[WebSub] ${videoId} is still upcoming/waiting room, skipping`);
                 return;
             }
             // Verifikasi video memang milik channel yang dipantau
             if (liveInfo.channelId && liveInfo.channelId !== channelId) {
-                warn(`[WebSub] Video ${videoId} bukan milik channel ${channelId} (actual: ${liveInfo.channelId}), skip`);
+                warn(`[WebSub] Video ${videoId} does not belong to channel ${channelId} (actual: ${liveInfo.channelId}), skipping`);
                 return;
             }
             if (liveInfo.live) type = 'live';
@@ -249,7 +249,7 @@ class YouTubeNotifier {
                 videoId, url: finalUrl, title,
                 channel:   ytCh.name,
                 thumbnail,
-            }).catch(err => warn(`[WebSub] Kirim notif gagal: ${err.message}`));
+            }).catch(err => warn(`[WebSub] Failed to send notification: ${err.message}`));
         }
     }
 
@@ -282,13 +282,13 @@ class YouTubeNotifier {
                     meta.requestedAt = Date.now();
                     db.set(`youtube-websub-${channelId}`, JSON.stringify(meta));
                 }
-                info(`[WebSub] ${mode} request dikirim untuk channel ${channelId}`);
+                info(`[WebSub] ${mode} request sent for channel ${channelId}`);
                 return true;
             }
-            warn(`[WebSub] Hub menolak ${mode} untuk ${channelId}: HTTP ${res.status}`);
+            warn(`[WebSub] Hub rejected ${mode} for ${channelId}: HTTP ${res.status}`);
             return false;
         } catch (err) {
-            warn(`[WebSub] ${mode} gagal untuk ${channelId}: ${err.message}`);
+            warn(`[WebSub] ${mode} failed for ${channelId}: ${err.message}`);
             return false;
         }
     }
@@ -375,7 +375,7 @@ class YouTubeNotifier {
             headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' },
         });
         if (!rssRes.ok) {
-            warn(`[YouTube] RSS gagal untuk ${ytCh.name}: HTTP ${rssRes.status}`);
+            warn(`[YouTube] RSS failed for ${ytCh.name}: HTTP ${rssRes.status}`);
             return;
         }
 
@@ -566,7 +566,7 @@ class YouTubeNotifier {
 
             // Verifikasi video memang milik channel yang dipantau (cegah cross-channel notification)
             if (liveInfo.channelId && liveInfo.channelId !== ytCh.id) {
-                warn(`[YouTube/Live] Video ${entry.id} bukan milik channel ${ytCh.id} (actual: ${liveInfo.channelId}), skip`);
+                warn(`[YouTube/Live] Video ${entry.id} does not belong to channel ${ytCh.id} (actual: ${liveInfo.channelId}), skipping`);
                 continue;
             }
 
@@ -584,7 +584,7 @@ class YouTubeNotifier {
                 title:     entry.title || 'Live Stream',
                 channel:   ytCh.name,
                 thumbnail,
-            }).catch(err => warn(`[YouTube/Live] Kirim notif gagal: ${err.message}`));
+            }).catch(err => warn(`[YouTube/Live] Failed to send notification: ${err.message}`));
         }
 
         // Bersihkan notifKey yang sudah > 48 jam untuk cegah bloat DB
@@ -618,8 +618,8 @@ class YouTubeNotifier {
             .replace(/{id}/g,      data.videoId);
 
         const titles = {
-            video: `📹 ${data.channel} — Video Baru!`,
-            short: `🎬 ${data.channel} — Short Baru!`,
+            video: `📹 ${data.channel} — New Video!`,
+            short: `🎬 ${data.channel} — New Short!`,
             live:  `🔴 ${data.channel} is Live Now!`,
         };
         const fields = { video: '🎬 Judul Video', short: '🎬 Judul Short', live: '🎙️ Judul Stream' };
@@ -627,9 +627,9 @@ class YouTubeNotifier {
 
         // Default description menarik jika user tidak isi pesan tambahan
         const defaultDescs = {
-            video: `Hey, **${data.channel}** baru aja upload video baru di YouTube!\nJangan ketinggalan, tonton sekarang! 🎉`,
-            short: `**${data.channel}** baru aja posting Short terbaru!\nCek video pendeknya, jangan sampai ketinggalan! ⚡`,
-            live:  `Hey, **${data.channel}** lagi **LIVE** di YouTube sekarang!\nYuk, join dan saksikan streamnya~ 🎉`,
+            video: `Hey, **${data.channel}** just uploaded a new video on YouTube!\nDon't miss it, watch now! 🎉`,
+            short: `**${data.channel}** just posted a new Short!\nCheck out their quick video, don't miss out! ⚡`,
+            live:  `Hey, **${data.channel}** is **LIVE** on YouTube right now!\nCome join and watch the stream~ 🎉`,
         };
 
         const customMsg = fill(ytCh[cfg.msg]).trim();
@@ -650,7 +650,7 @@ class YouTubeNotifier {
         if (data.thumbnail) embed.setImage(data.thumbnail);
 
         await discordCh.send({ embeds: [embed] }).catch(err =>
-            warn(`[YouTube] Kirim notif gagal: ${err.message}`)
+            warn(`[YouTube] Failed to send notification: ${err.message}`)
         );
     }
 

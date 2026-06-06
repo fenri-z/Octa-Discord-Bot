@@ -42,7 +42,7 @@ module.exports = new Event({
 
             // Tingkatkan verifikasi server ke level tertinggi
             try {
-                await guild.setVerificationLevel(4, 'Automod Anti-Raid diaktifkan');
+                await guild.setVerificationLevel(4, 'Automod Anti-Raid activated');
             } catch { /* tidak ada izin */ }
 
             if (logChannel?.isTextBased()) {
@@ -52,7 +52,7 @@ module.exports = new Event({
                             .setColor('#ED4245')
                             .setTitle('🚨 Anti-Raid — Serangan Terdeteksi!')
                             .setDescription([
-                                `**${tracker.joins.length}** member bergabung dalam **${cfg.interval}** detik terakhir.`,
+                                `**${tracker.joins.length}** members joined in the last **${cfg.interval}** seconds.`,
                                 '',
                                 '**Tindakan Diambil:**',
                                 '🔒 Verifikasi server ditingkatkan ke level **Highest**',
