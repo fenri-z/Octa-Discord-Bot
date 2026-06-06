@@ -524,20 +524,20 @@
 <%- include('../partials/footer') %>
 
 <script>
-const GUILD_ID               = '<%= guild.id %>';
-const I18N_YT_CONFIRM_DELETE = '<%= t("youtube.confirm_delete") %>';
-const I18N_YT_CONFIRM_RESET  = '<%= t("youtube.confirm_reset") %>';
-const I18N_YT_ERR_INPUT      = '<%= t("youtube.err_enter_input") %>';
-const I18N_YT_ERR_CONN       = '<%= t("youtube.err_connection") %>';
-const I18N_YT_SENDING        = '<%= t("youtube.sending") %>';
-const I18N_YT_POLLING        = '<%= t("youtube.polling") %>';
-const I18N_YT_DEF_VIDEO      = '<%- t("youtube.default_video_desc") %>';
-const I18N_YT_DEF_SHORT      = '<%- t("youtube.default_short_desc") %>';
-const I18N_YT_DEF_LIVE       = '<%- t("youtube.default_live_desc") %>';
-const I18N_YT_PH_CHANNEL     = '<%= t("youtube.ph_channel_desc") %>';
-const I18N_YT_PH_TITLE       = '<%= t("youtube.ph_title_desc") %>';
-const I18N_YT_PH_URL         = '<%= t("youtube.ph_url_desc") %>';
-const I18N_YT_PH_ID          = '<%= t("youtube.ph_id_desc") %>';
+const GUILD_ID               = '<%- guild.id %>';
+const I18N_YT_CONFIRM_DELETE = <%- JSON.stringify(t("youtube.confirm_delete")) %>;
+const I18N_YT_CONFIRM_RESET  = <%- JSON.stringify(t("youtube.confirm_reset")) %>;
+const I18N_YT_ERR_INPUT      = <%- JSON.stringify(t("youtube.err_enter_input")) %>;
+const I18N_YT_ERR_CONN       = <%- JSON.stringify(t("youtube.err_connection")) %>;
+const I18N_YT_SENDING        = <%- JSON.stringify(t("youtube.sending")) %>;
+const I18N_YT_POLLING        = <%- JSON.stringify(t("youtube.polling")) %>;
+const I18N_YT_DEF_VIDEO      = <%- JSON.stringify(t("youtube.default_video_desc")) %>;
+const I18N_YT_DEF_SHORT      = <%- JSON.stringify(t("youtube.default_short_desc")) %>;
+const I18N_YT_DEF_LIVE       = <%- JSON.stringify(t("youtube.default_live_desc")) %>;
+const I18N_YT_PH_CHANNEL     = <%- JSON.stringify(t("youtube.ph_channel_desc")) %>;
+const I18N_YT_PH_TITLE       = <%- JSON.stringify(t("youtube.ph_title_desc")) %>;
+const I18N_YT_PH_URL         = <%- JSON.stringify(t("youtube.ph_url_desc")) %>;
+const I18N_YT_PH_ID          = <%- JSON.stringify(t("youtube.ph_id_desc")) %>;
 
 // ── Lookup & Tambah Channel ────────────────────────────────────────────────────
 let _lookupData = null;
