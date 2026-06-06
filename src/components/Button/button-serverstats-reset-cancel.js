@@ -4,6 +4,7 @@ const {
 } = require('discord.js');
 const DiscordBot  = require('../../client/DiscordBot');
 const Component   = require('../../structure/Component');
+const { getLang, getStrings } = require('../../utils/BotLang');
 
 module.exports = new Component({
     customId: 'serverstats-reset-cancel',
@@ -13,10 +14,11 @@ module.exports = new Component({
      * @param {ButtonInteraction} interaction
      */
     run: async (client, interaction) => {
+        const s = getStrings(getLang(client.database, interaction.guild?.id)).serverstats;
         const embed = new EmbedBuilder()
             .setColor('#57F287')
-            .setTitle('✅ Reset Cancelled')
-            .setDescription('> Server Stats reset has been cancelled. No changes were made.')
+            .setTitle(s.reset_cancel_title)
+            .setDescription(s.reset_cancel_desc)
             .setTimestamp();
 
         return interaction.update({ embeds: [embed], components: [] });

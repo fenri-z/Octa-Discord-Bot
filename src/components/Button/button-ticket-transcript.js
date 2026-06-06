@@ -3,6 +3,7 @@ const {
 } = require("discord.js");
 const DiscordBot = require("../../client/DiscordBot");
 const Component  = require("../../structure/Component");
+const { getLang, getStrings } = require('../../utils/BotLang');
 
 async function fetchAllMessages(channel) {
     const messages = [];
@@ -57,15 +58,16 @@ module.exports = new Component({
     run: async (client, interaction) => {
         const { guild, channel } = interaction;
         const guildId = guild.id;
+        const s = getStrings(getLang(client.database, guildId)).ticket;
 
         const raw = client.database.get(`ticket-info-${guildId}-${channel.id}`);
         if (!raw) {
-            return interaction.reply({ content: '❌ This channel is not a valid ticket.', flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: s.transcript_no_ticket, flags: MessageFlags.Ephemeral });
         }
 
         let ticketInfo;
         try { ticketInfo = JSON.parse(raw); } catch {
-            return interaction.reply({ content: '❌ Ticket data is corrupted.', flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: s.transcript_corrupted, flags: MessageFlags.Ephemeral });
         }
 
         await interaction.deferReply({ flags: MessageFlags.Ephemeral });
@@ -83,20 +85,20 @@ module.exports = new Component({
             if (logChannel) {
                 const logEmbed = new EmbedBuilder()
                     .setColor('#5865F2')
-                    .setTitle(`📋 Ticket Transcript #${String(ticketInfo.ticketNumber).padStart(4,'0')}`)
-                    .setDescription(`Transcript saved by ${interaction.member}.`)
-                    .addFields({ name: '💬 Message Count', value: `${messages.length} messages`, inline: true })
+                    .setTitle(s.transcript_log_title(String(ticketInfo.ticketNumber).padStart(4,'0')))
+                    .setDescription(s.transcript_log_desc(interaction.member))
+                    .addFields({ name: s.transcript_log_msgs, value: s.log_msgs_val(messages.length), inline: true })
                     .setTimestamp();
                 await logChannel.send({ embeds: [logEmbed], files: [attachment] }).catch(() => null);
-                await interaction.editReply({ content: `✅ Transcript successfully saved to ${logChannel}!` });
+                await interaction.editReply({ content: s.transcript_saved_log(logChannel) });
             } else {
                 // Send directly to the user if there is no log channel
                 const attachCopy = new AttachmentBuilder(Buffer.from(transcriptText, 'utf-8'), { name: fileName });
-                await interaction.editReply({ content: '✅ Transcript successfully created!', files: [attachCopy] });
+                await interaction.editReply({ content: s.transcript_saved_here, files: [attachCopy] });
             }
         } catch (err) {
             console.error('[ticket-transcript]', err);
-            await interaction.editReply({ content: '❌ Failed to create transcript.' }).catch(() => null);
+            await interaction.editReply({ content: s.transcript_failed }).catch(() => null);
         }
     }
 }).toJSON();

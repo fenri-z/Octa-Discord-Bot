@@ -6,6 +6,7 @@ const {
 } = require("discord.js");
 const DiscordBot       = require("../../client/DiscordBot");
 const ApplicationCommand = require('../../structure/ApplicationCommand');
+const { getLang, getStrings } = require('../../utils/BotLang');
 const { checkBotPermissions } = require('../../utils/checkBotPermissions');
 const config           = require('../../config');
 
@@ -46,15 +47,11 @@ module.exports = new ApplicationCommand({
      * @param {ChatInputCommandInteraction} interaction
      */
     run: async (client, interaction) => {
+        const s = getStrings(getLang(client.database, interaction.guild?.id)).invites;
         // ── Cek permission ──────────────────────────────────────────────
         if (!hasInvitePermission(interaction)) {
             return interaction.reply({
-                content: [
-                    '❌ You do not have permission to use this command.',
-                    'Required one of:',
-                    '• **Administrator** · **Manage Server** · **Manage Channels**',
-                    '• Server Owner · Bot Owner · Bot Developer'
-                ].join('\n'),
+                content: s.no_permission,
                 flags: MessageFlags.Ephemeral
             });
         }
@@ -73,13 +70,11 @@ module.exports = new ApplicationCommand({
         try {
             guildInvites = await guild.invites.fetch();
         } catch {
-            return interaction.editReply({
-                content: '❌ Bot cannot read invites. Make sure the bot has **Manage Guild** permission.'
-            });
+            return interaction.editReply({ content: s.bot_no_perm });
         }
 
         if (guildInvites.size === 0) {
-            return interaction.editReply({ content: '📭 No active invite links in this server.' });
+            return interaction.editReply({ content: s.no_active });
         }
 
         // ── Urutkan berdasarkan uses terbanyak ─────────────────────────
@@ -89,36 +84,36 @@ module.exports = new ApplicationCommand({
         const slice      = sorted.slice((curPage - 1) * PER_PAGE, curPage * PER_PAGE);
 
         // ── Statistik ringkas ──────────────────────────────────────────
-        const totalUses      = sorted.reduce((s, inv) => s + (inv.uses ?? 0), 0);
+        const totalUses      = sorted.reduce((acc, inv) => acc + (inv.uses ?? 0), 0);
         const uniqueInviters = new Set(sorted.map(inv => inv.inviter?.id).filter(Boolean)).size;
 
         // ── Baris daftar invite ────────────────────────────────────────
         const lines = slice.map((inv, i) => {
-            const rank     = (curPage - 1) * PER_PAGE + i + 1;
-            const uses     = inv.uses ?? 0;
-            const maxUses  = inv.maxUses ? `/${inv.maxUses}` : '/∞';
-            const inviter  = inv.inviter ? `@${inv.inviter.username}` : '*Unknown*';
-            const ch       = inv.channel ? `#${inv.channel.name}` : '`-`';
-            const expiry   = inv.expiresTimestamp
+            const rank    = (curPage - 1) * PER_PAGE + i + 1;
+            const uses    = inv.uses ?? 0;
+            const maxUses = inv.maxUses ? `/${inv.maxUses}` : '/∞';
+            const inviter = inv.inviter ? `@${inv.inviter.username}` : `*${s.unknown_inviter}*`;
+            const ch      = inv.channel ? `#${inv.channel.name}` : '`-`';
+            const expiry  = inv.expiresTimestamp
                 ? `<t:${Math.floor(inv.expiresTimestamp / 1000)}:R>`
-                : 'permanent';
-            const temp     = inv.temporary ? ' · temporary' : '';
+                : s.permanent;
+            const temp    = inv.temporary ? ` · ${s.temporary}` : '';
             return `\`#${rank}\` **[${inv.code}](https://discord.gg/${inv.code})** — ${inviter} — ${ch}\n` +
-                   `   ​↳ **${uses}${maxUses}** uses · ${expiry}${temp}`;
+                   `   ​↳ **${uses}${maxUses}** uses · ${expiry}${temp}`;
         });
 
         // ── Embed ──────────────────────────────────────────────────────
         const embed = new EmbedBuilder()
             .setColor(0x5865F2)
-            .setTitle(`📋 All Invites — ${guild.name}`)
+            .setTitle(s.title(guild.name))
             .setDescription(lines.join('\n\n'))
             .addFields(
-                { name: '🔗 Total Invites',       value: `**${sorted.length}**`,       inline: true },
-                { name: '📊 Total Uses',     value: `**${totalUses}**×`,          inline: true },
-                { name: '👤 Unique Inviters',     value: `**${uniqueInviters}**`,      inline: true },
+                { name: s.field_total_invites,   value: `**${sorted.length}**`,  inline: true },
+                { name: s.field_total_uses,      value: `**${totalUses}**×`, inline: true },
+                { name: s.field_unique_inviters, value: `**${uniqueInviters}**`, inline: true },
             )
             .setFooter({
-                text: `Page ${curPage}/${totalPages}${totalPages > 1 ? ` · /invites page:${curPage + 1} for next` : ''} · ${interaction.user.tag}`,
+                text: s.footer(curPage, totalPages, curPage + 1, interaction.user.tag),
                 iconURL: interaction.user.displayAvatarURL({ dynamic: true })
             })
             .setTimestamp();

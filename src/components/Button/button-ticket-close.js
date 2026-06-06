@@ -4,6 +4,7 @@ const {
 } = require("discord.js");
 const DiscordBot = require("../../client/DiscordBot");
 const Component  = require("../../structure/Component");
+const { getLang, getStrings } = require('../../utils/BotLang');
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -85,21 +86,22 @@ module.exports = new Component({
         const { guild, member, channel } = interaction;
         const guildId   = guild.id;
         const channelId = channel.id;
+        const s = getStrings(getLang(client.database, guildId)).ticket;
 
         const ticketInfo = getTicketInfo(client, guildId, channelId);
         if (!ticketInfo) {
-            return interaction.reply({ content: '❌ This channel is not a valid ticket.', flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: s.not_a_ticket, flags: MessageFlags.Ephemeral });
         }
 
         // Check if already closed
         if (ticketInfo.status === 'closed') {
-            return interaction.reply({ content: '⚠️ This ticket is already closed.', flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: s.already_closed, flags: MessageFlags.Ephemeral });
         }
 
         // Only the creator or staff can close
         const canClose = member.id === ticketInfo.userId || isStaff(member, guildId, client);
         if (!canClose) {
-            return interaction.reply({ content: '❌ Only the ticket creator or staff can close this ticket.', flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: s.no_close_perm, flags: MessageFlags.Ephemeral });
         }
 
         await interaction.deferReply({ flags: MessageFlags.Ephemeral });
@@ -118,12 +120,12 @@ module.exports = new Component({
             if (logChannel) {
                 const logEmbed = new EmbedBuilder()
                     .setColor('#ED4245')
-                    .setTitle(`📋 Ticket Transcript #${String(ticketInfo.ticketNumber).padStart(4,'0')}`)
+                    .setTitle(s.log_title(String(ticketInfo.ticketNumber).padStart(4,'0')))
                     .addFields(
-                        { name: '👤 Created by', value: `<@${ticketInfo.userId}> (${ticketInfo.username})`, inline: true },
-                        { name: '🔒 Closed by', value: `${member} (${member.user.tag})`, inline: true },
-                        { name: '🕐 Duration', value: `<t:${Math.floor(ticketInfo.openedAt / 1000)}:R>`, inline: true },
-                        { name: '💬 Message Count', value: `${messages.length} messages`, inline: true },
+                        { name: s.log_field_by,       value: `<@${ticketInfo.userId}> (${ticketInfo.username})`, inline: true },
+                        { name: s.log_field_closed,   value: `${member} (${member.user.tag})`, inline: true },
+                        { name: s.log_field_duration, value: `<t:${Math.floor(ticketInfo.openedAt / 1000)}:R>`, inline: true },
+                        { name: s.log_field_msgs,     value: s.log_msgs_val(messages.length), inline: true },
                     )
                     .setTimestamp();
 
@@ -154,21 +156,18 @@ module.exports = new Component({
             // ── Send closing message in the ticket channel ────────────────
             const closedEmbed = new EmbedBuilder()
                 .setColor('#ED4245')
-                .setTitle('🔒 Ticket Closed')
-                .setDescription(
-                    `This ticket has been closed by ${member}.\n\n` +
-                    `This channel is now only visible to staff.${logChannel ? `\nTranscript has been saved to ${logChannel}.` : ''}`
-                )
+                .setTitle(s.close_title)
+                .setDescription(s.close_desc(member, logChannel))
                 .setTimestamp();
 
             const staffRow = new ActionRowBuilder().addComponents(
                 new ButtonBuilder()
                     .setCustomId('ticket-transcript')
-                    .setLabel('📋 Save Transcript')
+                    .setLabel(s.close_transcript_btn)
                     .setStyle(ButtonStyle.Secondary),
                 new ButtonBuilder()
                     .setCustomId('ticket-delete')
-                    .setLabel('🗑️ Delete Channel')
+                    .setLabel(s.close_delete_btn)
                     .setStyle(ButtonStyle.Danger),
             );
 
@@ -178,19 +177,19 @@ module.exports = new Component({
                 const botWelcome = welcomeMsg.find(m => m.author.id === guild.members.me.id && m.components.length > 0);
                 if (botWelcome) {
                     const disabledRow = new ActionRowBuilder().addComponents(
-                        new ButtonBuilder().setCustomId('ticket-transcript').setLabel('📋 Save Transcript').setStyle(ButtonStyle.Secondary).setDisabled(true),
-                        new ButtonBuilder().setCustomId('ticket-close').setLabel('🔒 Ticket Closed').setStyle(ButtonStyle.Danger).setDisabled(true),
+                        new ButtonBuilder().setCustomId('ticket-transcript').setLabel(s.close_transcript_btn).setStyle(ButtonStyle.Secondary).setDisabled(true),
+                        new ButtonBuilder().setCustomId('ticket-close').setLabel(s.close_closed_label).setStyle(ButtonStyle.Danger).setDisabled(true),
                     );
                     await botWelcome.edit({ components: [disabledRow] }).catch(() => null);
                 }
             } catch {}
 
             await channel.send({ embeds: [closedEmbed], components: [staffRow] });
-            await interaction.editReply({ content: '✅ Ticket successfully closed.' });
+            await interaction.editReply({ content: s.close_success });
 
         } catch (err) {
             console.error('[ticket-close]', err);
-            await interaction.editReply({ content: '❌ Failed to close ticket. Please try again.' }).catch(() => null);
+            await interaction.editReply({ content: s.close_failed }).catch(() => null);
         }
     }
 }).toJSON();

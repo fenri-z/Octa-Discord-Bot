@@ -4,6 +4,7 @@ const {
     MessageFlags,
 } = require('discord.js');
 const ApplicationCommand = require('../../structure/ApplicationCommand');
+const { getLang, getStrings } = require('../../utils/BotLang');
 
 async function sendModLog(client, guild, embed) {
     const logChId = client.database.get(`modlog-channel-${guild.id}`);
@@ -25,35 +26,35 @@ module.exports = new ApplicationCommand({
     },
 
     run: async (client, interaction) => {
+        const s      = getStrings(getLang(client.database, interaction.guild?.id)).kick;
         const target = interaction.options.getUser('user');
         const alasan = interaction.options.getString('reason') || 'No reason provided';
         const guild  = interaction.guild;
 
         if (target.id === interaction.user.id)
-            return interaction.reply({ content: '❌ You cannot kick yourself.', flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: s.cannot_self, flags: MessageFlags.Ephemeral });
 
         if (target.id === client.user.id)
-            return interaction.reply({ content: '❌ Cannot kick this bot.', flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: s.cannot_bot, flags: MessageFlags.Ephemeral });
 
         const member = guild.members.cache.get(target.id);
         if (!member)
-            return interaction.reply({ content: '❌ Member not found in this server.', flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: s.role_too_high_bot, flags: MessageFlags.Ephemeral });
 
         if (!member.kickable)
-            return interaction.reply({ content: '❌ Bot cannot kick this member (role too high).', flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: s.role_too_high_bot, flags: MessageFlags.Ephemeral });
 
         const userHighest = interaction.member.roles.highest.position ?? 0;
         if (member.roles.highest.position >= userHighest)
-            return interaction.reply({ content: '❌ You cannot kick a member with a higher or equal role than yours.', flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: s.role_too_high_user, flags: MessageFlags.Ephemeral });
 
-        // Send DM notification before kicking
         await target.send({
             embeds: [new EmbedBuilder()
                 .setColor('#FEE75C')
-                .setTitle(`👢 You have been kicked from ${guild.name}`)
+                .setTitle(s.dm_title(guild.name))
                 .addFields(
-                    { name: '📝 Reason',     value: alasan },
-                    { name: '🛡️ Moderator', value: interaction.user.tag },
+                    { name: s.dm_field_reason, value: alasan },
+                    { name: s.dm_field_mod,    value: interaction.user.tag },
                 )
                 .setTimestamp()],
         }).catch(() => null);
@@ -61,17 +62,17 @@ module.exports = new ApplicationCommand({
         try {
             await member.kick(`${interaction.user.tag}: ${alasan}`);
         } catch {
-            return interaction.reply({ content: '❌ Failed to kick member. Check bot permissions.', flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: s.failed, flags: MessageFlags.Ephemeral });
         }
 
         const embed = new EmbedBuilder()
             .setColor('#FEE75C')
-            .setTitle('👢 Member Kicked')
+            .setTitle(s.kicked_title)
             .setThumbnail(target.displayAvatarURL({ size: 64 }))
             .addFields(
                 { name: '👤 Member',     value: `${target} (${target.tag})`, inline: true },
                 { name: '🛡️ Moderator', value: `${interaction.user}`,       inline: true },
-                { name: '📝 Reason',     value: alasan },
+                { name: s.field_reason,  value: alasan },
             )
             .setTimestamp();
 
@@ -80,7 +81,7 @@ module.exports = new ApplicationCommand({
         return interaction.reply({
             embeds: [new EmbedBuilder()
                 .setColor('#FEE75C')
-                .setDescription(`✅ **${target.tag}** has been kicked.\n📝 Reason: ${alasan}`)],
+                .setDescription(`${s.kicked_desc(target.tag)}\n${s.field_reason}: ${alasan}`)],
             flags: MessageFlags.Ephemeral,
         });
     },

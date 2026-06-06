@@ -1,6 +1,7 @@
 const { ButtonInteraction, MessageFlags, EmbedBuilder } = require("discord.js");
 const DiscordBot = require("../../client/DiscordBot");
 const Component  = require("../../structure/Component");
+const { getLang, getStrings } = require('../../utils/BotLang');
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -33,12 +34,13 @@ module.exports = new Component({
      */
     run: async (client, interaction) => {
         const { guild, member, customId } = interaction;
+        const s = getStrings(getLang(client.database, guild.id)).autorole_button;
 
         // ── Parse customId ────────────────────────────────────────────────
         // Format: autobtn:<mode>:<panelName>:<roleId>
         const parts = customId.split(':');
         if (parts.length < 4) {
-            return interaction.reply({ content: '❌ Invalid button format.', flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: s.btn_invalid_format, flags: MessageFlags.Ephemeral });
         }
 
         const [, mode, panelName, roleId] = parts;
@@ -47,7 +49,7 @@ module.exports = new Component({
         const panel = getPanel(client, guild.id, panelName);
         if (!panel) {
             return interaction.reply({
-                content: `❌ Panel \`${panelName}\` not found in the database. It may have been deleted by an admin.`,
+                content: s.btn_panel_gone(panelName),
                 flags: MessageFlags.Ephemeral
             });
         }
@@ -56,7 +58,7 @@ module.exports = new Component({
         const buttonDef = panel.buttons.find(b => b.roleId === roleId);
         if (!buttonDef) {
             return interaction.reply({
-                content: '❌ This role is not registered in the panel. The panel may have been updated.',
+                content: s.btn_role_not_in,
                 flags: MessageFlags.Ephemeral
             });
         }
@@ -65,7 +67,7 @@ module.exports = new Component({
         const role = guild.roles.cache.get(roleId);
         if (!role) {
             return interaction.reply({
-                content: '❌ Role not found in the server. It may have been deleted.',
+                content: s.btn_role_gone,
                 flags: MessageFlags.Ephemeral
             });
         }
@@ -74,13 +76,13 @@ module.exports = new Component({
         const botMember = guild.members.me;
         if (!botMember?.permissions.has('ManageRoles')) {
             return interaction.reply({
-                content: '❌ The bot does not have the **Manage Roles** permission.',
+                content: s.btn_no_manage_roles,
                 flags: MessageFlags.Ephemeral
             });
         }
         if (botMember.roles.highest.comparePositionTo(role) <= 0) {
             return interaction.reply({
-                content: `❌ Role ${role} is above the bot's highest role. The bot cannot manage this role.`,
+                content: s.btn_role_too_high(role),
                 flags: MessageFlags.Ephemeral
             });
         }
@@ -97,7 +99,7 @@ module.exports = new Component({
                     embeds: [
                         new EmbedBuilder()
                             .setColor('#ED4245')
-                            .setDescription(`❌ Role ${role} has been **removed** from your account.`)
+                            .setDescription(s.btn_role_removed(role))
                     ],
                     flags: MessageFlags.Ephemeral
                 });
@@ -107,7 +109,7 @@ module.exports = new Component({
                     embeds: [
                         new EmbedBuilder()
                             .setColor('#57F287')
-                            .setDescription(`✅ Role ${role} has been successfully **given** to your account.`)
+                            .setDescription(s.btn_role_added(role))
                     ],
                     flags: MessageFlags.Ephemeral
                 });
@@ -133,7 +135,7 @@ module.exports = new Component({
                     embeds: [
                         new EmbedBuilder()
                             .setColor('#ED4245')
-                            .setDescription(`❌ Role ${role} has been **removed** from your account.`)
+                            .setDescription(s.btn_role_removed(role))
                     ],
                     flags: MessageFlags.Ephemeral
                 });
@@ -148,15 +150,18 @@ module.exports = new Component({
                 // Give the new role
                 await member.roles.add(role, `Autorole Button (single) – panel: ${panelName}`);
 
-                const replacedList = currentPanelRoles.size > 0
-                    ? `\n*(Replaced: ${[...currentPanelRoles.values()].map(r => `${r}`).join(', ')})*`
-                    : '';
+                const replacedStr = currentPanelRoles.size > 0
+                    ? [...currentPanelRoles.values()].map(r => `${r}`).join(', ')
+                    : null;
 
                 return interaction.reply({
                     embeds: [
                         new EmbedBuilder()
                             .setColor('#57F287')
-                            .setDescription(`✅ Role ${role} has been successfully **given** to your account.${replacedList}`)
+                            .setDescription(replacedStr
+                                ? s.btn_role_added_rep(role, replacedStr)
+                                : s.btn_role_added(role)
+                            )
                     ],
                     flags: MessageFlags.Ephemeral
                 });
@@ -165,7 +170,7 @@ module.exports = new Component({
 
         // Fallback: unknown mode
         return interaction.reply({
-            content: '❌ Unknown button mode.',
+            content: s.btn_unknown_mode,
             flags: MessageFlags.Ephemeral
         });
     }

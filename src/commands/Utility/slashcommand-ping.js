@@ -1,6 +1,7 @@
 const { ChatInputCommandInteraction } = require("discord.js");
 const DiscordBot = require("../../client/DiscordBot");
 const ApplicationCommand = require("../../structure/ApplicationCommand");
+const { getLang, getStrings } = require("../../utils/BotLang");
 
 module.exports = new ApplicationCommand({
     command: {
@@ -17,8 +18,9 @@ module.exports = new ApplicationCommand({
      * @param {ChatInputCommandInteraction} interaction
      */
     run: async (client, interaction) => {
+        const s = getStrings(getLang(client.database, interaction.guild?.id));
         await interaction.reply({
-            content: '**🎾Pong!** ' + client.ws.ping + 'ms'
+            content: s.ping.pong(client.ws.ping)
         });
     }
 }).toJSON();

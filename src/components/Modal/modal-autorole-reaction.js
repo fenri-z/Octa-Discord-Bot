@@ -1,6 +1,7 @@
 const { ModalSubmitInteraction, EmbedBuilder, MessageFlags } = require("discord.js");
 const DiscordBot = require("../../client/DiscordBot");
 const Component  = require("../../structure/Component");
+const { getLang, getStrings } = require('../../utils/BotLang');
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -56,11 +57,12 @@ module.exports = new Component({
     run: async (client, interaction) => {
         const guildId = interaction.guild.id;
         const userId  = interaction.user.id;
+        const s = getStrings(getLang(client.database, guildId)).autorole_reaction;
 
         const rawPending = client.database.get(`autoreact-pending-${guildId}-${userId}`);
         if (!rawPending) {
             return interaction.reply({
-                content: '❌ Session expired. Run `/autorole-reaction create` again.',
+                content: s.session_expired,
                 flags: MessageFlags.Ephemeral
             });
         }
@@ -69,7 +71,7 @@ module.exports = new Component({
 
         let pending;
         try { pending = JSON.parse(rawPending); }
-        catch { return interaction.reply({ content: '❌ Session data corrupted. Please try again.', flags: MessageFlags.Ephemeral }); }
+        catch { return interaction.reply({ content: s.session_corrupt, flags: MessageFlags.Ephemeral }); }
 
         const { nama, mode, isNew, pendingType } = pending;
         const existing = getPanel(client, guildId, nama);
@@ -79,7 +81,7 @@ module.exports = new Component({
         if (pendingType === 'plain') {
             let plainText = '';
             try { plainText = interaction.fields.getTextInputValue('autoreact-field-plaintext').trim(); } catch {}
-            if (!existing) return interaction.reply({ content: `❌ Panel \`${nama}\` not found.`, flags: MessageFlags.Ephemeral });
+            if (!existing) return interaction.reply({ content: s.panel_not_found(nama), flags: MessageFlags.Ephemeral });
 
             const panel = { ...existing, messageType: 'plain', plainText, updatedAt: now };
             savePanel(client, guildId, nama, panel);
@@ -95,14 +97,14 @@ module.exports = new Component({
                     if (message) {
                         try {
                             await message.edit({ content: plainText.slice(0, 2000), embeds: [] });
-                            statusStr = `\n✅ Discord message updated live!`;
-                        } catch { statusStr = `\n⚠️ Failed to update Discord message.`; }
+                            statusStr = `\n${s.modal_live_ok(guildId, sent.channelId, sent.messageId)}`;
+                        } catch { statusStr = `\n${s.modal_live_fail(nama)}`; }
                     }
                 }
             }
 
             return interaction.reply({
-                content: `✅ Panel \`${nama}\` switched to **Plain Text**.${statusStr}`,
+                content: s.modal_plain_ok(nama, statusStr),
                 flags: MessageFlags.Ephemeral
             });
         }
@@ -147,18 +149,18 @@ module.exports = new Component({
                         } else {
                             await message.edit({ embeds: [buildPanelEmbed(panel)], content: null });
                         }
-                        statusStr = `✅ Sent message updated live!\n🔗 https://discord.com/channels/${guildId}/${sent.channelId}/${sent.messageId}`;
+                        statusStr = s.modal_live_ok(guildId, sent.channelId, sent.messageId);
                     } catch {
-                        statusStr = `⚠️ Failed to update the message.`;
+                        statusStr = s.modal_live_fail(nama);
                     }
                 } else {
-                    statusStr = `📭 Message was deleted.`;
+                    statusStr = s.modal_msg_gone(nama);
                 }
             } else {
-                statusStr = `📭 Channel not found.`;
+                statusStr = s.modal_ch_gone(nama);
             }
         } else {
-            statusStr = `📭 Panel not sent yet. Use \`/autorole-reaction send ${nama}\` after adding reactions.`;
+            statusStr = s.modal_not_sent_yet(nama);
         }
 
         const isEmpty  = !embedTitle && !embedDescription;
@@ -196,7 +198,7 @@ module.exports = new Component({
             embeds: [
                 new EmbedBuilder()
                     .setColor(isNew ? '#57F287' : '#FEE75C')
-                    .setTitle(isNew ? `✅ Panel \`${nama}\` Created` : `✏️ Panel \`${nama}\` Updated`)
+                    .setTitle(isNew ? s.modal_created(nama) : s.modal_updated(nama))
                     .addFields(...fields)
                     .setTimestamp()
             ],

@@ -4,6 +4,7 @@ const {
 } = require("discord.js");
 const DiscordBot  = require("../../client/DiscordBot");
 const Component   = require("../../structure/Component");
+const { getLang, getStrings } = require('../../utils/BotLang');
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -30,10 +31,11 @@ module.exports = new Component({
     run: async (client, interaction) => {
         const { guild, member } = interaction;
         const guildId = guild.id;
+        const s = getStrings(getLang(client.database, guildId)).ticket;
 
         // Check if the ticket system is active
         if (!client.database.get(`ticket-enabled-${guildId}`)) {
-            return interaction.reply({ content: '❌ The ticket system is not active in this server.', flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: s.system_inactive, flags: MessageFlags.Ephemeral });
         }
 
         // Check if the user already has an open ticket
@@ -42,7 +44,7 @@ module.exports = new Component({
             const existingCh = guild.channels.cache.get(existingId);
             if (existingCh) {
                 return interaction.reply({
-                    content: `❌ You already have an active ticket: ${existingCh}\nPlease resolve that ticket first.`,
+                    content: s.already_open(existingCh),
                     flags: MessageFlags.Ephemeral
                 });
             }
@@ -143,15 +145,11 @@ module.exports = new Component({
             const colorHex = embedColor.startsWith('#') ? embedColor : `#${embedColor}`;
             const welcomeEmbed = new EmbedBuilder()
                 .setColor(colorHex)
-                .setTitle(`🎫 Ticket #${String(count).padStart(4, '0')}`)
-                .setDescription(
-                    `Hello ${member}! Your ticket has been created.\n\n` +
-                    `Please describe your issue and the staff team will assist you shortly.\n\n` +
-                    `> Click **🔒 Close Ticket** to close this ticket.`
-                )
+                .setTitle(s.open_welcome_title(String(count).padStart(4, '0')))
+                .setDescription(s.open_welcome_desc(member))
                 .addFields(
-                    { name: '👤 Created by', value: `${member} (${member.user.tag})`, inline: true },
-                    { name: '🕐 Opened at', value: `<t:${Math.floor(Date.now() / 1000)}:F>`, inline: true },
+                    { name: s.open_field_by, value: `${member} (${member.user.tag})`, inline: true },
+                    { name: s.open_field_at, value: `<t:${Math.floor(Date.now() / 1000)}:F>`, inline: true },
                 )
                 .setTimestamp();
 
@@ -159,7 +157,7 @@ module.exports = new Component({
             const actionRow = new ActionRowBuilder().addComponents(
                 new ButtonBuilder()
                     .setCustomId('ticket-close')
-                    .setLabel('🔒 Close Ticket')
+                    .setLabel(s.open_close_btn)
                     .setStyle(ButtonStyle.Danger),
             );
 
@@ -169,11 +167,11 @@ module.exports = new Component({
                 components: [actionRow],
             });
 
-            await interaction.editReply({ content: `✅ Ticket successfully created! ${ticketChannel}` });
+            await interaction.editReply({ content: s.open_success(ticketChannel) });
 
         } catch (err) {
             console.error('[ticket-open]', err);
-            await interaction.editReply({ content: '❌ Failed to create ticket. Make sure the bot has the Manage Channels permission.' }).catch(() => null);
+            await interaction.editReply({ content: s.open_failed }).catch(() => null);
         }
     }
 }).toJSON();

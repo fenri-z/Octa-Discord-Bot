@@ -6,6 +6,7 @@ const {
 } = require("discord.js");
 const DiscordBot = require("../../client/DiscordBot");
 const ApplicationCommand = require("../../structure/ApplicationCommand");
+const { getLang, getStrings } = require('../../utils/BotLang');
 
 module.exports = new ApplicationCommand({
     command: {
@@ -31,6 +32,7 @@ module.exports = new ApplicationCommand({
      * @param {ChatInputCommandInteraction} interaction
      */
     run: async (client, interaction) => {
+        const s           = getStrings(getLang(client.database, interaction.guild?.id)).set_nickname;
         const { guild } = interaction;
         const newNickname = interaction.options.getString('name')?.trim() || null;
 
@@ -38,7 +40,7 @@ module.exports = new ApplicationCommand({
         const botMember = guild.members.me ?? await guild.members.fetchMe().catch(() => null);
         if (!botMember) {
             return interaction.reply({
-                content: '❌ Failed to fetch bot data from the server. Please try again.',
+                content: s.fetch_failed,
                 flags: MessageFlags.Ephemeral
             });
         }
@@ -46,7 +48,7 @@ module.exports = new ApplicationCommand({
         // Check if bot has ChangeNickname permission (for itself)
         if (!botMember.permissions.has(PermissionFlagsBits.ChangeNickname)) {
             return interaction.reply({
-                content: '❌ Bot does not have **Change Nickname** permission in this server.',
+                content: s.no_perm,
                 flags: MessageFlags.Ephemeral
             });
         }
@@ -59,19 +61,12 @@ module.exports = new ApplicationCommand({
                 `Changed by ${interaction.user.tag} via /set-nickname`
             );
         } catch (err) {
-            // Bot cannot change its nickname if its role is below the highest admin/owner
             return interaction.reply({
                 embeds: [
                     new EmbedBuilder()
                         .setColor('#ED4245')
-                        .setTitle('❌ Failed to Change Nickname')
-                        .setDescription(
-                            'The bot cannot change its own nickname in this server.\n\n' +
-                            '**Possible reasons:**\n' +
-                            '• Bot role is below the Administrator/Owner role\n' +
-                            '• The server owner cannot be nicknamed by the bot\n\n' +
-                            `**Error details:** \`${err.message}\``
-                        )
+                        .setTitle(s.fail_title)
+                        .setDescription(s.fail_desc(err.message))
                         .setTimestamp()
                 ],
                 flags: MessageFlags.Ephemeral
@@ -86,26 +81,26 @@ module.exports = new ApplicationCommand({
             embeds: [
                 new EmbedBuilder()
                     .setColor(isReset ? '#5865F2' : '#57F287')
-                    .setTitle(isReset ? '🔄 Bot Nickname Reset' : '✏️ Bot Nickname Changed')
+                    .setTitle(isReset ? s.reset_title : s.changed_title)
                     .setThumbnail(client.user.displayAvatarURL({ dynamic: true }))
                     .addFields(
                         {
-                            name: '📛 Before',
+                            name: s.field_before,
                             value: `\`${oldNickname}\``,
                             inline: true
                         },
                         {
-                            name: isReset ? '🔄 After (Reset)' : '✅ After',
+                            name: isReset ? s.field_after_reset : s.field_after,
                             value: `\`${currentName}\``,
                             inline: true
                         },
                         {
-                            name: '👤 Changed by',
+                            name: s.field_changed_by,
                             value: `${interaction.user}`,
                             inline: false
                         }
                     )
-                    .setFooter({ text: isReset ? 'Nickname successfully reset to the bot\'s original name.' : 'Use /set-nickname without filling in a name to reset.' })
+                    .setFooter({ text: isReset ? s.footer_reset : s.footer_changed })
                     .setTimestamp()
             ],
             flags: MessageFlags.Ephemeral

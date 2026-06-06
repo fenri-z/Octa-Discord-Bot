@@ -4,6 +4,7 @@ const {
 } = require("discord.js");
 const DiscordBot       = require("../../client/DiscordBot");
 const ApplicationCommand = require("../../structure/ApplicationCommand");
+const { getLang, getStrings } = require('../../utils/BotLang');
 const { resolveRole, resolveChannel } = require('../../utils/resolveGuildOption');
 const { checkBotPermissions } = require('../../utils/checkBotPermissions');
 
@@ -99,6 +100,7 @@ module.exports = new ApplicationCommand({
      * @param {ChatInputCommandInteraction} interaction
      */
     run: async (client, interaction) => {
+        const s       = getStrings(getLang(client.database, interaction.guild?.id)).ticket;
         const { guild, options } = interaction;
         const sub     = options.getSubcommand();
         const guildId = guild.id;
@@ -115,7 +117,7 @@ module.exports = new ApplicationCommand({
         if (sub === 'send-panel') {
             if (!client.database.get(`ticket-enabled-${guildId}`)) {
                 return interaction.reply({
-                    content: '❌ The ticket system has not been enabled. Enable it first in **Dashboard → Ticket**.',
+                    content: s.not_enabled,
                     flags: MessageFlags.Ephemeral
                 });
             }
@@ -125,7 +127,7 @@ module.exports = new ApplicationCommand({
 
             if (channelStr) {
                 const resolved = resolveChannel(guild, channelStr);
-                if (!resolved) return interaction.reply({ content: '❌ Channel not found.', flags: MessageFlags.Ephemeral });
+                if (!resolved) return interaction.reply({ content: s.channel_not_found, flags: MessageFlags.Ephemeral });
                 targetChannel = resolved;
             }
 
@@ -154,14 +156,14 @@ module.exports = new ApplicationCommand({
             }));
             client.database.set(`ticket-panel-channel-${guildId}`, targetChannel.id);
 
-            return interaction.editReply({ content: `✅ Ticket panel successfully sent to ${targetChannel}!` });
+            return interaction.editReply({ content: s.panel_sent(targetChannel) });
         }
 
         // ── /ticket close ─────────────────────────────────────────────────
         if (sub === 'close') {
             const raw = client.database.get(`ticket-info-${guildId}-${interaction.channel.id}`);
             if (!raw) {
-                return interaction.reply({ content: '❌ This command can only be used inside a ticket channel.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: s.not_ticket_ch, flags: MessageFlags.Ephemeral });
             }
 
             // Trigger close button programmatically
@@ -174,12 +176,12 @@ module.exports = new ApplicationCommand({
         if (sub === 'add') {
             const raw = client.database.get(`ticket-info-${guildId}-${interaction.channel.id}`);
             if (!raw) {
-                return interaction.reply({ content: '❌ This command can only be used inside a ticket channel.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: s.not_ticket_ch, flags: MessageFlags.Ephemeral });
             }
 
             const target = options.getUser('user');
             const member = await guild.members.fetch(target.id).catch(() => null);
-            if (!member) return interaction.reply({ content: '❌ User not found in this server.', flags: MessageFlags.Ephemeral });
+            if (!member) return interaction.reply({ content: s.user_not_found, flags: MessageFlags.Ephemeral });
 
             await interaction.channel.permissionOverwrites.edit(member.id, {
                 [PermissionFlagsBits.ViewChannel]:     true,
@@ -191,7 +193,7 @@ module.exports = new ApplicationCommand({
                 embeds: [
                     new EmbedBuilder()
                         .setColor('#57F287')
-                        .setDescription(`✅ ${member} has been successfully added to this ticket.`)
+                        .setDescription(s.user_added(member))
                 ],
                 flags: MessageFlags.Ephemeral
             });
@@ -201,7 +203,7 @@ module.exports = new ApplicationCommand({
         if (sub === 'remove') {
             const raw = client.database.get(`ticket-info-${guildId}-${interaction.channel.id}`);
             if (!raw) {
-                return interaction.reply({ content: '❌ This command can only be used inside a ticket channel.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: s.not_ticket_ch, flags: MessageFlags.Ephemeral });
             }
 
             const target = options.getUser('user');
@@ -213,7 +215,7 @@ module.exports = new ApplicationCommand({
                 embeds: [
                     new EmbedBuilder()
                         .setColor('#ED4245')
-                        .setDescription(`✅ <@${target.id}>'s access to this ticket has been successfully removed.`)
+                        .setDescription(s.user_removed(target.id))
                 ],
                 flags: MessageFlags.Ephemeral
             });
@@ -225,7 +227,7 @@ module.exports = new ApplicationCommand({
 
             if (openList.length === 0) {
                 return interaction.reply({
-                    embeds: [new EmbedBuilder().setColor('#5865F2').setDescription('📭 There are no open tickets at the moment.')],
+                    embeds: [new EmbedBuilder().setColor('#5865F2').setDescription(s.no_open_tickets)],
                     flags: MessageFlags.Ephemeral
                 });
             }
@@ -245,7 +247,7 @@ module.exports = new ApplicationCommand({
                 embeds: [
                     new EmbedBuilder()
                         .setColor('#5865F2')
-                        .setTitle(`🎫 Active Tickets — ${openList.length} open`)
+                        .setTitle(s.list_title(openList.length))
                         .addFields(fields)
                         .setTimestamp()
                 ],

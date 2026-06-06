@@ -3,6 +3,7 @@ const {
     MessageFlags,
 } = require('discord.js');
 const ApplicationCommand = require('../../structure/ApplicationCommand');
+const { getLang, getStrings } = require('../../utils/BotLang');
 
 function timeAgo(date) {
     const diff = Date.now() - date.getTime();
@@ -24,6 +25,7 @@ module.exports = new ApplicationCommand({
     },
 
     run: async (client, interaction) => {
+        const s          = getStrings(getLang(client.database, interaction.guild?.id)).userinfo;
         const targetUser = interaction.options.getUser('user') ?? interaction.user;
         const guild      = interaction.guild;
 
@@ -56,7 +58,7 @@ module.exports = new ApplicationCommand({
             : [];
 
         const roleStr = roles.length
-            ? roles.slice(0, 10).map(r => `<@&${r.id}>`).join(' ') + (roles.length > 10 ? ` +${roles.length - 10} more` : '')
+            ? roles.slice(0, 10).map(r => `<@&${r.id}>`).join(' ') + (roles.length > 10 ? ` ${s.roles_more(roles.length - 10)}` : '')
             : '—';
 
         // ── Badges / flags ────────────────────────────────────────────────────
@@ -90,11 +92,11 @@ module.exports = new ApplicationCommand({
             .setThumbnail(fullUser.displayAvatarURL({ size: 256, dynamic: true }))
             .addFields(
                 {
-                    name:  '👤 Account Info',
+                    name:  s.field_account_info,
                     value: [
                         `**Username:** ${fullUser.tag}`,
                         `**ID:** \`${fullUser.id}\``,
-                        `**Bot:** ${fullUser.bot ? 'Yes' : 'No'}`,
+                        `**Bot:** ${fullUser.bot ? s.bot_yes : s.bot_no}`,
                         `**Created:** <t:${Math.floor(fullUser.createdTimestamp / 1000)}:D> (${timeAgo(fullUser.createdAt)})`,
                     ].join('\n'),
                     inline: false,
@@ -104,32 +106,32 @@ module.exports = new ApplicationCommand({
         if (member) {
             embed.addFields(
                 {
-                    name:  '🏠 Server Info',
+                    name:  s.field_server_info,
                     value: [
                         `**Joined:** <t:${Math.floor(member.joinedTimestamp / 1000)}:D> (${timeAgo(member.joinedAt)})`,
                         `**Nickname:** ${member.nickname ?? '—'}`,
                         `**Highest role:** ${roles[0] ?? '—'}`,
-                        `**Timeout status:** ${isMuted ? `Yes — expires <t:${Math.floor(member.communicationDisabledUntil.getTime() / 1000)}:R>` : 'No'}`,
+                        `**Timeout status:** ${isMuted ? s.timeout_yes(`<t:${Math.floor(member.communicationDisabledUntil.getTime() / 1000)}:R>`) : s.timeout_no}`,
                     ].join('\n'),
                     inline: false,
                 },
                 {
-                    name:   `🎭 Roles (${roles.length})`,
+                    name:   s.field_roles_count(roles.length),
                     value:  roleStr,
                     inline: false,
                 },
             );
         } else {
-            embed.addFields({ name: '🏠 Server Status', value: '❌ Not in this server', inline: false });
+            embed.addFields({ name: s.field_server_status, value: s.not_in_server, inline: false });
         }
 
-        embed.addFields({ name: '⚠️ Warnings', value: `${warnCount} warn`, inline: true });
+        embed.addFields({ name: s.field_warnings, value: s.warn_count(warnCount), inline: true });
 
-        if (badgeStr) embed.addFields({ name: '🏅 Badges', value: badgeStr, inline: true });
+        if (badgeStr) embed.addFields({ name: s.field_badges, value: badgeStr, inline: true });
 
         if (fullUser.bannerURL()) embed.setImage(fullUser.bannerURL({ size: 512 }));
 
-        embed.setFooter({ text: `Requested by ${interaction.user.tag}` }).setTimestamp();
+        embed.setFooter({ text: s.footer_req(interaction.user.tag) }).setTimestamp();
 
         await interaction.editReply({ embeds: [embed] });
     },

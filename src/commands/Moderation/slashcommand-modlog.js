@@ -4,6 +4,7 @@ const {
     MessageFlags,
 } = require('discord.js');
 const ApplicationCommand = require('../../structure/ApplicationCommand');
+const { getLang, getStrings } = require('../../utils/BotLang');
 
 const DEFAULT_EVENTS = { ban: true, unban: true, kick: true, timeout: true, warn: true };
 
@@ -42,6 +43,7 @@ module.exports = new ApplicationCommand({
     },
 
     run: async (client, interaction) => {
+        const s       = getStrings(getLang(client.database, interaction.guild?.id)).modlog;
         const sub     = interaction.options.getSubcommand();
         const guildId = interaction.guild.id;
 
@@ -77,7 +79,7 @@ module.exports = new ApplicationCommand({
         if (sub === 'test') {
             const logChId = client.database.get(`modlog-channel-${guildId}`);
             if (!logChId)
-                return interaction.reply({ content: '❌ Mod log has not been configured. Use `/modlog set` first.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: s.not_set, flags: MessageFlags.Ephemeral });
 
             const logChannel = interaction.guild.channels.cache.get(logChId);
             if (!logChannel?.isTextBased())
@@ -97,7 +99,7 @@ module.exports = new ApplicationCommand({
                     .setTimestamp()],
             });
 
-            return interaction.reply({ content: `✅ Test embed sent to ${logChannel}.`, flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: s.test_sent(logChannel), flags: MessageFlags.Ephemeral });
         }
     },
 }).toJSON();

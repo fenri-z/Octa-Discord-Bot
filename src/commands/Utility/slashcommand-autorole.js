@@ -6,6 +6,7 @@ const {
 } = require("discord.js");
 const DiscordBot = require("../../client/DiscordBot");
 const ApplicationCommand = require("../../structure/ApplicationCommand");
+const { getLang, getStrings } = require('../../utils/BotLang');
 const { resolveRole } = require('../../utils/resolveGuildOption');
 const { checkBotPermissions } = require('../../utils/checkBotPermissions');
 
@@ -33,15 +34,18 @@ function getConfig(client, guildId) {
 // Validate role — return error message or null if valid
 function validateRole(guild, role, interaction) {
     if (!role) {
-        interaction.reply({ content: '❌ Role not found. Use a mention `@role` or a role ID.', flags: MessageFlags.Ephemeral });
+        const sr = getStrings(getLang(interaction.client?.database, guild.id)).autorole;
+        interaction.reply({ content: sr.role_not_found, flags: MessageFlags.Ephemeral });
         return false;
     }
     if (role.managed) {
-        interaction.reply({ content: '❌ Roles managed by external integrations cannot be used as autoroles.', flags: MessageFlags.Ephemeral });
+        const sr = getStrings(getLang(interaction.client?.database, guild.id)).autorole;
+        interaction.reply({ content: sr.role_managed, flags: MessageFlags.Ephemeral });
         return false;
     }
     if (role.id === guild.id) {
-        interaction.reply({ content: '❌ The `@everyone` role cannot be used as an autorole.', flags: MessageFlags.Ephemeral });
+        const sr = getStrings(getLang(interaction.client?.database, guild.id)).autorole;
+        interaction.reply({ content: sr.role_everyone, flags: MessageFlags.Ephemeral });
         return false;
     }
     return true;
@@ -156,6 +160,7 @@ module.exports = new ApplicationCommand({
      * @param {ChatInputCommandInteraction} interaction
      */
     run: async (client, interaction) => {
+        const s        = getStrings(getLang(client.database, interaction.guild?.id)).autorole;
         const { guild, options } = interaction;
         const subGroup = options.getSubcommandGroup(false);
         const sub      = options.getSubcommand();
@@ -250,16 +255,10 @@ module.exports = new ApplicationCommand({
             // Validate if enabling but role is not yet set
             if (active) {
                 if ((type === 'member' || type === 'all') && !cfg.memberRoleId) {
-                    return interaction.reply({
-                        content: '❌ Member role is not set. Use `/autorole join set` first.',
-                        flags: MessageFlags.Ephemeral
-                    });
+                    return interaction.reply({ content: s.member_role_unset, flags: MessageFlags.Ephemeral });
                 }
                 if ((type === 'bot' || type === 'all') && !cfg.botRoleId) {
-                    return interaction.reply({
-                        content: '❌ Bot role is not set. Use `/autorole join set` first.',
-                        flags: MessageFlags.Ephemeral
-                    });
+                    return interaction.reply({ content: s.bot_role_unset, flags: MessageFlags.Ephemeral });
                 }
             }
 

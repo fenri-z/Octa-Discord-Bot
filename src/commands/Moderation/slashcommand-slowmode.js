@@ -4,6 +4,7 @@ const {
     MessageFlags,
 } = require('discord.js');
 const ApplicationCommand = require('../../structure/ApplicationCommand');
+const { getLang, getStrings } = require('../../utils/BotLang');
 
 const MAX_SLOWMODE = 21600; // 6 jam — batas Discord
 
@@ -69,6 +70,7 @@ module.exports = new ApplicationCommand({
     },
 
     run: async (client, interaction) => {
+        const s      = getStrings(getLang(client.database, interaction.guild?.id)).slowmode;
         const sub    = interaction.options.getSubcommand();
         const target = interaction.options.getChannel('channel') ?? interaction.channel;
         const guild  = interaction.guild;
@@ -115,9 +117,7 @@ module.exports = new ApplicationCommand({
             await sendModLog(client, guild, embed);
 
             return interaction.reply({
-                embeds: [new EmbedBuilder()
-                    .setColor('#57F287')
-                    .setDescription(`✅ Slowmode in ${target} has been **disabled**.`)],
+                embeds: [new EmbedBuilder().setColor('#57F287').setDescription(s.removed(target))],
                 flags: MessageFlags.Ephemeral,
             });
         }
@@ -134,7 +134,7 @@ module.exports = new ApplicationCommand({
                 });
 
             if (seconds > MAX_SLOWMODE)
-                return interaction.reply({ content: '❌ Maximum slowmode duration is **6 hours** (21600 seconds).', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: s.invalid(MAX_SLOWMODE), flags: MessageFlags.Ephemeral });
 
             await target.setRateLimitPerUser(seconds, `Slowmode set by ${interaction.user.tag}`);
 
@@ -151,9 +151,7 @@ module.exports = new ApplicationCommand({
             await sendModLog(client, guild, embed);
 
             return interaction.reply({
-                embeds: [new EmbedBuilder()
-                    .setColor('#FEE75C')
-                    .setDescription(`✅ Slowmode in ${target} set to **${formatSlowmode(seconds)}**.`)],
+                embeds: [new EmbedBuilder().setColor('#FEE75C').setDescription(s.set(formatSlowmode(seconds), target))],
                 flags: MessageFlags.Ephemeral,
             });
         }

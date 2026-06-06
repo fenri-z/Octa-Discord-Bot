@@ -1,6 +1,7 @@
 const { ModalSubmitInteraction, EmbedBuilder, MessageFlags } = require("discord.js");
 const DiscordBot = require("../../client/DiscordBot");
 const Component  = require("../../structure/Component");
+const { getLang, getStrings } = require('../../utils/BotLang');
 
 const KATEGORI = { UNIK: 'unik', BIASA: 'biasa' };
 
@@ -34,11 +35,12 @@ module.exports = new Component({
     run: async (client, interaction) => {
         const guildId = interaction.guild.id;
         const userId  = interaction.user.id;
+        const s = getStrings(getLang(client.database, guildId)).message;
 
         const rawPending = client.database.get(`pesan-pending-${guildId}-${userId}`);
         if (!rawPending) {
             return interaction.reply({
-                content: '❌ Session expired. Run the command again.',
+                content: s.msg_session_expired,
                 flags: MessageFlags.Ephemeral
             });
         }
@@ -80,7 +82,7 @@ module.exports = new Component({
             if (!list.includes(nama)) { list.push(nama); client.database.set(`pesan-list-${guildId}`, JSON.stringify(list)); }
 
             return interaction.reply({
-                content: `✅ Template \`${nama}\` changed to **Plain Text** type.\nUse \`/message preview ${nama}\` to preview, then \`/message send ${nama}\` to send.`,
+                content: s.msg_plain_ok(nama),
                 flags: MessageFlags.Ephemeral
             });
         }
@@ -130,14 +132,14 @@ module.exports = new Component({
             const rawSent = client.database.get(`pesan-unik-sent-${guildId}-${nama}`);
             if (!rawSent) {
                 return interaction.reply({
-                    content: `✏️ Template \`${nama}\` updated, but message data is missing. Resend with \`/message send ${nama}\`.`,
+                    content: s.msg_edit_data_gone(nama),
                     flags: MessageFlags.Ephemeral
                 });
             }
 
             let sentData;
             try { sentData = JSON.parse(rawSent); } catch {
-                return interaction.reply({ content: '❌ Unique message data is corrupted.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: s.msg_edit_corrupt, flags: MessageFlags.Ephemeral });
             }
 
             const targetChannel = interaction.guild.channels.cache.get(sentData.channelId)
@@ -146,7 +148,7 @@ module.exports = new Component({
             if (!targetChannel) {
                 client.database.delete(`pesan-unik-sent-${guildId}-${nama}`);
                 return interaction.reply({
-                    content: `❌ Channel not found. Data reset — resend with \`/message send ${nama}\`.`,
+                    content: s.msg_edit_ch_gone(nama),
                     flags: MessageFlags.Ephemeral
                 });
             }
@@ -157,14 +159,14 @@ module.exports = new Component({
             } catch {
                 client.database.delete(`pesan-unik-sent-${guildId}-${nama}`);
                 return interaction.reply({
-                    content: `❌ Message not found (may have been manually deleted). Data reset — resend with \`/message send ${nama}\`.`,
+                    content: s.msg_edit_msg_gone(nama),
                     flags: MessageFlags.Ephemeral
                 });
             }
 
             if (targetMessage.author.id !== interaction.client.user.id) {
                 return interaction.reply({
-                    content: '❌ The bot can only edit its own messages.',
+                    content: s.msg_edit_own_only,
                     flags: MessageFlags.Ephemeral
                 });
             }
@@ -176,11 +178,11 @@ module.exports = new Component({
                     await targetMessage.edit({ embeds: [buildEmbed(tmpl)], content: null });
                 }
                 return interaction.reply({
-                    content: `✅ Unique message \`${nama}\` successfully updated!\n🔗 [View message](${targetMessage.url})`,
+                    content: s.msg_edit_updated(nama, targetMessage.url),
                     flags: MessageFlags.Ephemeral
                 });
             } catch {
-                return interaction.reply({ content: '❌ Failed to edit the message in Discord.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: s.msg_edit_failed, flags: MessageFlags.Ephemeral });
             }
         }
 
@@ -192,8 +194,8 @@ module.exports = new Component({
         const embed = new EmbedBuilder()
             .setColor(isNew ? '#57F287' : '#FEE75C')
             .setTitle(isNew
-                ? `✅ Template \`${nama}\` Created [${badgeKat}]`
-                : `✏️ Template \`${nama}\` Updated [${badgeKat}]`)
+                ? `${s.msg_modal_created(nama)} [${badgeKat}]`
+                : `${s.msg_modal_updated(nama)} [${badgeKat}]`)
             .setDescription(
                 isEmpty
                     ? '⚠️ Title and description are both empty. Fill at least one so the embed can be sent.'

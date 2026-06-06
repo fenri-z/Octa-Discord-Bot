@@ -1,6 +1,7 @@
 const { ButtonInteraction, EmbedBuilder, MessageFlags } = require("discord.js");
 const DiscordBot = require("../../client/DiscordBot");
 const Component  = require("../../structure/Component");
+const { getLang, getStrings } = require('../../utils/BotLang');
 
 // ── Handler: ⏭️ Skip ─────────────────────────────────────────────────────────
 // customId format: autobtn-quickskip:<panelName>
@@ -15,18 +16,14 @@ module.exports = new Component({
      */
     run: async (client, interaction) => {
         const panelName = interaction.customId.split(':').slice(1).join(':');
+        const s = getStrings(getLang(client.database, interaction.guild?.id)).autorole_button;
 
         return interaction.update({
             embeds: [
                 new EmbedBuilder()
                     .setColor('#5865F2')
-                    .setTitle(`✅ Panel \`${panelName}\` Ready`)
-                    .setDescription(
-                        `Panel created successfully. Add buttons at any time with the following commands:\n\n` +
-                        `• \`/autorole-button add-button\` — add buttons one at a time\n` +
-                        `• \`/autorole-button add-bulk\` — add multiple buttons at once\n` +
-                        `• \`/autorole-button send ${panelName}\` — send the panel to a channel when ready`
-                    )
+                    .setTitle(s.qs_ready_title(panelName))
+                    .setDescription(s.qs_ready_desc(panelName))
                     .setTimestamp()
             ],
             components: []

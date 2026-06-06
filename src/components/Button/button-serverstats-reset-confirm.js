@@ -7,6 +7,7 @@ const DiscordBot  = require('../../client/DiscordBot');
 const Component   = require('../../structure/Component');
 const { getServerStatsConfig } = require('../../utils/serverStatsHelper');
 const { warn } = require('../../utils/Console');
+const { getLang, getStrings } = require('../../utils/BotLang');
 
 // ── Delete channel directly via REST API (more reliable than .delete() on the object) ──
 async function deleteChannelById(token, channelId, reason) {
@@ -41,12 +42,13 @@ module.exports = new Component({
 
         const guild   = interaction.guild;
         const guildId = guild.id;
+        const s = getStrings(getLang(client.database, guildId)).serverstats;
 
         // ── Check the permission of the user pressing the button ─────────
         const member = interaction.member ?? await guild.members.fetch(interaction.user.id).catch(() => null);
         if (!member || !member.permissions.has(PermissionFlagsBits.ManageGuild)) {
             return interaction.editReply({
-                content: '❌ You do not have the **Manage Server** permission to perform a reset.',
+                content: s.reset_no_perm,
                 embeds: [],
                 components: [],
             });
@@ -56,7 +58,7 @@ module.exports = new Component({
         const botMember = guild.members.me ?? await guild.members.fetchMe().catch(() => null);
         if (!botMember || !botMember.permissions.has(PermissionFlagsBits.ManageChannels)) {
             return interaction.editReply({
-                content: '❌ The bot does not have the **Manage Channels** permission in this server.\nGrant that permission and try again, or delete the stats channels manually.',
+                content: s.reset_bot_no_perm,
                 embeds: [],
                 components: [],
             });
@@ -72,12 +74,9 @@ module.exports = new Component({
         // ── Send initial feedback to the user ──────────────────────────────
         const embedPending = new EmbedBuilder()
             .setColor('#FEE75C')
-            .setTitle('⏳ Resetting Server Stats...')
-            .setDescription(
-                '> Deleting statistics channels and category from Discord...\n\n' +
-                '> Please wait a moment.'
-            )
-            .setFooter({ text: `Reset by ${interaction.user.tag}` })
+            .setTitle(s.reset_pending_title)
+            .setDescription(s.reset_pending_desc)
+            .setFooter({ text: s.reset_footer(interaction.user.tag) })
             .setTimestamp();
 
         await interaction.editReply({ embeds: [embedPending], components: [] });
@@ -134,15 +133,9 @@ module.exports = new Component({
             // Some channels failed to be deleted
             const embedPartial = new EmbedBuilder()
                 .setColor('#FFA500')
-                .setTitle('⚠️ Partial Reset Successful')
-                .setDescription(
-                    '> Database configuration has been deleted.\n\n' +
-                    '> However, some channels **failed to be deleted automatically** from Discord:\n' +
-                    failedChannels.map(f => `> • ${f}`).join('\n') + '\n\n' +
-                    '> **Please delete those channels manually.**\n\n' +
-                    '> Use `/serverstats setup` to start a new configuration.'
-                )
-                .setFooter({ text: `Reset by ${interaction.user.tag}` })
+                .setTitle(s.reset_partial_title)
+                .setDescription(s.reset_partial_desc(failedChannels.map(f => `> • ${f}`).join('\n')))
+                .setFooter({ text: s.reset_footer(interaction.user.tag) })
                 .setTimestamp();
 
             await interaction.editReply({ embeds: [embedPartial], components: [] });
@@ -150,13 +143,9 @@ module.exports = new Component({
             // All succeeded
             const embedSuccess = new EmbedBuilder()
                 .setColor('#57F287')
-                .setTitle('✅ Server Stats Successfully Reset')
-                .setDescription(
-                    '> All server stats configuration has been deleted.\n\n' +
-                    '> All statistics channels and category have been removed from Discord.\n\n' +
-                    '> Use `/serverstats setup` to start a new configuration.'
-                )
-                .setFooter({ text: `Reset by ${interaction.user.tag}` })
+                .setTitle(s.reset_done_title)
+                .setDescription(s.reset_done_desc)
+                .setFooter({ text: s.reset_footer(interaction.user.tag) })
                 .setTimestamp();
 
             await interaction.editReply({ embeds: [embedSuccess], components: [] });

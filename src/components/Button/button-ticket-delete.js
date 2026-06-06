@@ -4,6 +4,7 @@ const {
 } = require("discord.js");
 const DiscordBot = require("../../client/DiscordBot");
 const Component  = require("../../structure/Component");
+const { getLang, getStrings } = require('../../utils/BotLang');
 
 function isStaff(member, guildId, client) {
     if (member.id === member.guild.ownerId) return true;
@@ -24,24 +25,25 @@ module.exports = new Component({
     run: async (client, interaction) => {
         const { guild, member, channel } = interaction;
         const guildId = guild.id;
+        const s = getStrings(getLang(client.database, guildId)).ticket;
 
         if (!isStaff(member, guildId, client)) {
-            return interaction.reply({ content: '❌ Only staff can delete ticket channels.', flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: s.delete_no_perm, flags: MessageFlags.Ephemeral });
         }
 
         const confirmEmbed = new EmbedBuilder()
             .setColor('#ED4245')
-            .setTitle('⚠️ Confirm Channel Deletion')
-            .setDescription('This ticket channel will be **permanently deleted** in 5 seconds.\nClick **Cancel** to cancel.');
+            .setTitle(s.delete_confirm_title)
+            .setDescription(s.delete_confirm_desc);
 
         const row = new ActionRowBuilder().addComponents(
             new ButtonBuilder()
                 .setCustomId('ticket-delete-confirm')
-                .setLabel('🗑️ Yes, Delete')
+                .setLabel(s.delete_yes_btn)
                 .setStyle(ButtonStyle.Danger),
             new ButtonBuilder()
                 .setCustomId('ticket-delete-cancel')
-                .setLabel('✕ Cancel')
+                .setLabel(s.delete_cancel_btn)
                 .setStyle(ButtonStyle.Secondary),
         );
 
@@ -55,7 +57,7 @@ module.exports = new Component({
 
         collector.on('collect', async i => {
             if (i.customId === 'ticket-delete-cancel') {
-                await i.reply({ content: '✅ Deletion cancelled.', flags: MessageFlags.Ephemeral });
+                await i.reply({ content: s.delete_cancelled, flags: MessageFlags.Ephemeral });
                 return;
             }
 
@@ -69,7 +71,7 @@ module.exports = new Component({
                 client.database.delete(`ticket-info-${guildId}-${channel.id}`);
             }
 
-            await i.reply({ content: '🗑️ Deleting channel...', flags: MessageFlags.Ephemeral }).catch(() => null);
+            await i.reply({ content: s.delete_deleting, flags: MessageFlags.Ephemeral }).catch(() => null);
 
             // Delay 3 seconds then delete
             setTimeout(async () => {

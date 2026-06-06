@@ -4,6 +4,7 @@ const {
     MessageFlags,
 } = require('discord.js');
 const ApplicationCommand = require('../../structure/ApplicationCommand');
+const { getLang, getStrings } = require('../../utils/BotLang');
 
 async function sendModLog(client, guild, embed) {
     const logChId = client.database.get(`modlog-channel-${guild.id}`);
@@ -79,6 +80,7 @@ module.exports = new ApplicationCommand({
     },
 
     run: async (client, interaction) => {
+        const s          = getStrings(getLang(client.database, interaction.guild?.id)).lock;
         const sub        = interaction.options.getSubcommand();
         const target     = interaction.options.getChannel('channel') ?? interaction.channel;
         const alasan     = interaction.options.getString('reason') || 'No reason provided';
@@ -121,7 +123,7 @@ module.exports = new ApplicationCommand({
         if (sub === 'channel') {
             const existing = target.permissionOverwrites.cache.get(everyoneRole.id);
             if (existing?.deny?.has(PermissionFlagsBits.SendMessages)) {
-                return interaction.reply({ content: `❌ ${target} is already locked.`, flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: s.already_locked(target), flags: MessageFlags.Ephemeral });
             }
 
             await interaction.deferReply({ flags: MessageFlags.Ephemeral });
@@ -173,7 +175,7 @@ module.exports = new ApplicationCommand({
             return interaction.editReply({
                 embeds: [new EmbedBuilder()
                     .setColor('#ED4245')
-                    .setDescription(`🔒 ${target} has been **locked** (${strict ? 'strict mode' : 'normal mode'}).`)],
+                    .setDescription(s.locked(target))],
             });
         }
 
@@ -181,7 +183,7 @@ module.exports = new ApplicationCommand({
         if (sub === 'unlock') {
             const existing = target.permissionOverwrites.cache.get(everyoneRole.id);
             if (!existing?.deny?.has(PermissionFlagsBits.SendMessages)) {
-                return interaction.reply({ content: `❌ ${target} is not currently locked.`, flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: s.already_unlocked(target), flags: MessageFlags.Ephemeral });
             }
 
             await interaction.deferReply({ flags: MessageFlags.Ephemeral });
@@ -212,7 +214,7 @@ module.exports = new ApplicationCommand({
             return interaction.editReply({
                 embeds: [new EmbedBuilder()
                     .setColor('#57F287')
-                    .setDescription(`🔓 ${target} has been **unlocked**${wasStrict ? ' (permissions restored)' : ''}.`)],
+                    .setDescription(s.unlocked(target))],
             });
         }
     },

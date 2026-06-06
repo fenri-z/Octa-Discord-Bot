@@ -4,6 +4,7 @@ const {
     MessageFlags,
 } = require('discord.js');
 const ApplicationCommand = require('../../structure/ApplicationCommand');
+const { getLang, getStrings } = require('../../utils/BotLang');
 
 module.exports = new ApplicationCommand({
     command: {
@@ -41,6 +42,7 @@ module.exports = new ApplicationCommand({
     },
 
     run: async (client, interaction) => {
+        const s       = getStrings(getLang(client.database, interaction.guild?.id)).purge;
         const sub     = interaction.options.getSubcommand();
         const channel = interaction.channel;
 
@@ -78,7 +80,7 @@ module.exports = new ApplicationCommand({
             }
 
             if (!toDelete || toDelete.length === 0) {
-                return interaction.editReply({ content: '❌ No messages to delete (messages may be older than 14 days).' });
+                return interaction.editReply({ content: s.no_messages });
             }
 
             const deleted = await channel.bulkDelete(toDelete, true);
@@ -106,15 +108,20 @@ module.exports = new ApplicationCommand({
                 }
             }
 
+            const target = sub === 'user' ? interaction.options.getUser('user') : null;
+            const desc = sub === 'user'
+                ? s.deleted_user(deleted.size, target.tag)
+                : sub === 'bots'
+                    ? s.deleted_bots(deleted.size)
+                    : s.deleted(deleted.size);
+
             await interaction.editReply({
-                embeds: [new EmbedBuilder()
-                    .setColor('#57F287')
-                    .setDescription(`✅ Successfully deleted **${deleted.size}** message(s).`)],
+                embeds: [new EmbedBuilder().setColor('#57F287').setDescription(desc)],
             });
 
         } catch (err) {
             console.error('[purge]', err);
-            await interaction.editReply({ content: '❌ Failed to delete messages. Check bot permissions.' });
+            await interaction.editReply({ content: s.failed });
         }
     },
 }).toJSON();

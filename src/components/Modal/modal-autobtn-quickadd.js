@@ -9,6 +9,7 @@ const {
 const DiscordBot = require("../../client/DiscordBot");
 const Component  = require("../../structure/Component");
 const { resolveRole } = require('../../utils/resolveGuildOption');
+const { getLang, getStrings } = require('../../utils/BotLang');
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -59,6 +60,7 @@ module.exports = new Component({
         const guildId   = interaction.guild.id;
         const userId    = interaction.user.id;
         const panelName = interaction.customId.split(':').slice(1).join(':');
+        const s = getStrings(getLang(client.database, guildId)).autorole_button;
 
         // Clean up pending key
         client.database.delete(`autobtn-quickadd-${guildId}-${userId}`);
@@ -66,7 +68,7 @@ module.exports = new Component({
         const panel = getPanel(client, guildId, panelName);
         if (!panel) {
             return interaction.reply({
-                content: `❌ Panel \`${panelName}\` not found. It may have been deleted.`,
+                content: s.qa_panel_gone(panelName),
                 flags: MessageFlags.Ephemeral
             });
         }
@@ -83,27 +85,27 @@ module.exports = new Component({
 
         if (warnaRaw && !STYLE_MAP[warnaRaw]) {
             return interaction.reply({
-                content: `❌ Color \`${warnaRaw}\` is not valid. Use: \`primary\`, \`success\`, \`danger\`, or \`secondary\`.`,
+                content: s.qa_invalid_color(warnaRaw),
                 flags: MessageFlags.Ephemeral
             });
         }
 
         const role = resolveRole(interaction.guild, roleStr);
         if (!role) {
-            return interaction.reply({ content: '❌ Role not found. Try again with a role mention or ID.', flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: s.qa_role_gone, flags: MessageFlags.Ephemeral });
         }
         if (role.managed || role.id === interaction.guild.id) {
-            return interaction.reply({ content: '❌ This role cannot be used (managed or @everyone).', flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: s.qa_role_invalid, flags: MessageFlags.Ephemeral });
         }
         if (panel.buttons.some(b => b.roleId === role.id)) {
             return interaction.reply({
-                content: `⚠️ Role ${role} already has a button in panel \`${panelName}\`.`,
+                content: s.qa_role_exists(role, panelName),
                 flags: MessageFlags.Ephemeral
             });
         }
         if (panel.buttons.length >= 25) {
             return interaction.reply({
-                content: '❌ A panel can have a maximum of 25 buttons.',
+                content: s.qa_panel_full,
                 flags: MessageFlags.Ephemeral
             });
         }
@@ -121,11 +123,11 @@ module.exports = new Component({
         const actionRow = new ActionRowBuilder().addComponents(
             new ButtonBuilder()
                 .setCustomId(`autobtn-quickadd:${panelName}`)
-                .setLabel('➕ Add Another Button')
+                .setLabel(s.qa_add_another)
                 .setStyle(ButtonStyle.Success),
             new ButtonBuilder()
                 .setCustomId(`autobtn-quickskip:${panelName}`)
-                .setLabel('✅ Done')
+                .setLabel(s.qa_done_btn)
                 .setStyle(ButtonStyle.Primary)
         );
 
@@ -133,7 +135,7 @@ module.exports = new Component({
             embeds: [
                 new EmbedBuilder()
                     .setColor('#57F287')
-                    .setTitle(`✅ Button Added to Panel \`${panelName}\``)
+                    .setTitle(s.btn_added_title(panelName))
                     .addFields(
                         { name: '🎭 Role',  value: `${role}`,  inline: true },
                         { name: '🏷️ Label', value: label,      inline: true },
@@ -141,7 +143,7 @@ module.exports = new Component({
                         { name: '📊 Total', value: `${panel.buttons.length}/25 buttons`, inline: true },
                         {
                             name: '📤 Next Steps',
-                            value: `Click **➕ Add Another Button** to add more buttons, or **✅ Done** then send the panel with \`/autorole-button send ${panelName}\`.`,
+                            value: `Click **${s.qa_add_another}** to add more buttons, or **${s.qa_done_btn}** then send the panel with \`/autorole-button send ${panelName}\`.`,
                             inline: false
                         }
                     )

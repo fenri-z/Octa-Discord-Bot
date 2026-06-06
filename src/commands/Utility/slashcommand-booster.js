@@ -8,6 +8,7 @@ const {
 } = require("discord.js");
 const DiscordBot = require("../../client/DiscordBot");
 const ApplicationCommand = require("../../structure/ApplicationCommand");
+const { getLang, getStrings } = require('../../utils/BotLang');
 const { resolveChannel, resolveRole } = require('../../utils/resolveGuildOption');
 const { checkBotPermissions } = require('../../utils/checkBotPermissions');
 const { generateWelcomeCard } = require('../../utils/generateWelcomeCard');
@@ -252,6 +253,7 @@ required: true
      * @param {ChatInputCommandInteraction} interaction
      */
     run: async (client, interaction) => {
+        const s        = getStrings(getLang(client.database, interaction.guild?.id)).booster;
         const { guild, options } = interaction;
         const subGroup = options.getSubcommandGroup(false);
         const sub      = options.getSubcommand();
@@ -273,7 +275,7 @@ required: true
             const arRole    = cfg.autoroleRoleId   ? guild.roles.cache.get(cfg.autoroleRoleId)      : null;
 
             const embed = new EmbedBuilder()
-                .setTitle('⚙️ Booster Configuration')
+                .setTitle(s.status_title)
                 .setColor('#FF73FA')
                 .addFields(
                     {
@@ -347,7 +349,7 @@ required: true
                     embeds: [
                         new EmbedBuilder()
                             .setColor('#ED4245')
-                            .setDescription('❌ No members are currently boosting this server.')
+                            .setDescription(s.no_boosters)
                     ],
                     flags: MessageFlags.Ephemeral
                 });
@@ -367,7 +369,7 @@ required: true
             while (lines.length) chunks.push(lines.splice(0, 20));
 
             const embed = new EmbedBuilder()
-                .setTitle(`🚀 Server Boosters — ${guild.name}`)
+                .setTitle(s.list_title(guild.name))
                 .setColor('#FF73FA')
                 .setDescription(chunks[0].join('\n'))
                 .addFields({ name: '\u200b', value: `Total: **${boosters.size}** booster(s) · Level ${guild.premiumTier}`, inline: false })
@@ -388,7 +390,7 @@ required: true
             ];
             keys.forEach(k => client.database.delete(`booster-${k}-${guildId}`));
             return interaction.reply({
-                content: '🔄 All booster configurations have been **reset to default**.',
+                content: s.reset_done,
                 flags: MessageFlags.Ephemeral
             });
         }
@@ -404,76 +406,76 @@ required: true
 
             if (sub === 'boost-toggle') {
                 const active = options.getBoolean('active');
-                if (active && !cfg.boostChannelId) return interaction.reply({ content: '❌ Set the boost channel first with `/booster notif boost-channel`.', flags: MessageFlags.Ephemeral });
+                if (active && !cfg.boostChannelId) return interaction.reply({ content: s.boost_channel_unset, flags: MessageFlags.Ephemeral });
                 setBool(client, `booster-boost-enabled-${guildId}`, active);
-                return interaction.reply({ content: active ? '✅ Boost notification **enabled**.' : '❌ Boost notification **disabled**.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: active ? s.boost_toggle_on : s.boost_toggle_off, flags: MessageFlags.Ephemeral });
             }
 
             if (sub === 'boost-channel') {
                 const chStr = options.getString('channel');
                 const ch    = resolveChannel(interaction.guild, chStr);
-                if (!ch) return interaction.reply({ content: '❌ Channel not found. Use a mention `#channel` or channel ID.', flags: MessageFlags.Ephemeral });
+                if (!ch) return interaction.reply({ content: s.channel_not_found, flags: MessageFlags.Ephemeral });
                 const chPermsOkBoost = await checkBotPermissions(interaction, [
                     PermissionFlagsBits.SendMessages,
                     PermissionFlagsBits.EmbedLinks,
                 ], ch);
                 if (!chPermsOkBoost) return;
                 client.database.set(`booster-boost-channel-${guildId}`, ch.id);
-                return interaction.reply({ content: `✅ Boost notification channel set to <#${ch.id}>.`, flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: s.boost_channel_set(ch.id), flags: MessageFlags.Ephemeral });
             }
 
             if (sub === 'boost-title') {
                 client.database.set(`booster-boost-title-${guildId}`, options.getString('text'));
-                return interaction.reply({ content: `✅ Boost notification title updated.`, flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: s.boost_title_updated, flags: MessageFlags.Ephemeral });
             }
 
             if (sub === 'boost-description') {
                 client.database.set(`booster-boost-desc-${guildId}`, options.getString('text'));
-                return interaction.reply({ content: `✅ Boost notification description updated.`, flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: s.boost_desc_updated, flags: MessageFlags.Ephemeral });
             }
 
             if (sub === 'boost-color') {
                 const val = options.getString('hex').trim();
-                if (!validateHex(val)) return interaction.reply({ content: '❌ Invalid hex format. Example: `#FF73FA`', flags: MessageFlags.Ephemeral });
+                if (!validateHex(val)) return interaction.reply({ content: s.invalid_hex, flags: MessageFlags.Ephemeral });
                 client.database.set(`booster-boost-color-${guildId}`, toHex(val));
-                return interaction.reply({ content: `✅ Boost notification color updated to \`${toHex(val)}\`.`, flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: s.boost_color_updated(toHex(val)), flags: MessageFlags.Ephemeral });
             }
 
             if (sub === 'unboost-toggle') {
                 const active = options.getBoolean('active');
-                if (active && !cfg.unboostChannelId) return interaction.reply({ content: '❌ Set the unboost channel first with `/booster notif unboost-channel`.', flags: MessageFlags.Ephemeral });
+                if (active && !cfg.unboostChannelId) return interaction.reply({ content: s.unboost_channel_unset, flags: MessageFlags.Ephemeral });
                 setBool(client, `booster-unboost-enabled-${guildId}`, active);
-                return interaction.reply({ content: active ? '✅ Unboost notification **enabled**.' : '❌ Unboost notification **disabled**.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: active ? s.unboost_toggle_on : s.unboost_toggle_off, flags: MessageFlags.Ephemeral });
             }
 
             if (sub === 'unboost-channel') {
                 const chStr = options.getString('channel');
                 const ch    = resolveChannel(interaction.guild, chStr);
-                if (!ch) return interaction.reply({ content: '❌ Channel not found. Use a mention `#channel` or channel ID.', flags: MessageFlags.Ephemeral });
+                if (!ch) return interaction.reply({ content: s.channel_not_found, flags: MessageFlags.Ephemeral });
                 const chPermsOkUnboost = await checkBotPermissions(interaction, [
                     PermissionFlagsBits.SendMessages,
                     PermissionFlagsBits.EmbedLinks,
                 ], ch);
                 if (!chPermsOkUnboost) return;
                 client.database.set(`booster-unboost-channel-${guildId}`, ch.id);
-                return interaction.reply({ content: `✅ Unboost notification channel set to <#${ch.id}>.`, flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: s.unboost_channel_set(ch.id), flags: MessageFlags.Ephemeral });
             }
 
             if (sub === 'unboost-title') {
                 client.database.set(`booster-unboost-title-${guildId}`, options.getString('text'));
-                return interaction.reply({ content: `✅ Unboost notification title updated.`, flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: s.unboost_title_updated, flags: MessageFlags.Ephemeral });
             }
 
             if (sub === 'unboost-description') {
                 client.database.set(`booster-unboost-desc-${guildId}`, options.getString('text'));
-                return interaction.reply({ content: `✅ Unboost notification description updated.`, flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: s.unboost_desc_updated, flags: MessageFlags.Ephemeral });
             }
 
             if (sub === 'unboost-color') {
                 const val = options.getString('hex').trim();
-                if (!validateHex(val)) return interaction.reply({ content: '❌ Invalid hex format. Example: `#ED4245`', flags: MessageFlags.Ephemeral });
+                if (!validateHex(val)) return interaction.reply({ content: s.invalid_hex, flags: MessageFlags.Ephemeral });
                 client.database.set(`booster-unboost-color-${guildId}`, toHex(val));
-                return interaction.reply({ content: `✅ Unboost notification color updated to \`${toHex(val)}\`.`, flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: s.unboost_color_updated(toHex(val)), flags: MessageFlags.Ephemeral });
             }
 
             // ── Preview helper ─────────────────────────────────────────────
@@ -619,33 +621,31 @@ required: true
             if (sub === 'set') {
                 const roleStr = options.getString('role');
                 const role    = resolveRole(interaction.guild, roleStr);
-                if (!role) return interaction.reply({ content: '❌ Role not found. Use a mention `@role` or a role ID.', flags: MessageFlags.Ephemeral });
-                if (role.managed)   return interaction.reply({ content: '❌ Roles managed by external integrations cannot be used.', flags: MessageFlags.Ephemeral });
-                if (role.id === guildId) return interaction.reply({ content: '❌ The `@everyone` role cannot be used.', flags: MessageFlags.Ephemeral });
+                if (!role) return interaction.reply({ content: s.role_not_found, flags: MessageFlags.Ephemeral });
+                if (role.managed)   return interaction.reply({ content: s.role_managed, flags: MessageFlags.Ephemeral });
+                if (role.id === guildId) return interaction.reply({ content: s.role_everyone, flags: MessageFlags.Ephemeral });
 
                 client.database.set(`booster-autorole-role-${guildId}`, role.id);
                 setBool(client, `booster-autorole-enabled-${guildId}`, true);
 
                 return interaction.reply({
-                    embeds: [new EmbedBuilder().setColor('#57F287').setDescription(`✅ Booster autorole set to ${role}.\nStatus automatically **enabled**.`)],
+                    embeds: [new EmbedBuilder().setColor('#57F287').setDescription(s.autorole_set(role))],
                     flags: MessageFlags.Ephemeral
                 });
             }
 
             if (sub === 'toggle') {
                 const active = options.getBoolean('active');
-                if (active && !cfg.autoroleRoleId) return interaction.reply({ content: '❌ No role has been set. Use `/booster autorole set` first.', flags: MessageFlags.Ephemeral });
+                if (active && !cfg.autoroleRoleId) return interaction.reply({ content: s.autorole_unset, flags: MessageFlags.Ephemeral });
                 setBool(client, `booster-autorole-enabled-${guildId}`, active);
-                return interaction.reply({ content: active ? '✅ Booster autorole **enabled**.' : '❌ Booster autorole **disabled**.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: active ? s.autorole_enabled : s.autorole_disabled, flags: MessageFlags.Ephemeral });
             }
 
             if (sub === 'autoremove') {
                 const active = options.getBoolean('active');
                 setBool(client, `booster-autoremove-enabled-${guildId}`, active);
                 return interaction.reply({
-                    content: active
-                        ? '✅ Booster role will be **automatically removed** when a member unboosts.'
-                        : '❌ Automatic role removal **disabled**.',
+                    content: active ? s.autoremove_on : s.autoremove_off,
                     flags: MessageFlags.Ephemeral
                 });
             }
@@ -655,7 +655,7 @@ required: true
                 setBool(client, `booster-autorole-enabled-${guildId}`, false);
                 setBool(client, `booster-autoremove-enabled-${guildId}`, false);
                 return interaction.reply({
-                    embeds: [new EmbedBuilder().setColor('#ED4245').setDescription('🗑️ Booster autorole configuration has been removed.')],
+                    embeds: [new EmbedBuilder().setColor('#ED4245').setDescription(s.autorole_removed)],
                     flags: MessageFlags.Ephemeral
                 });
             }

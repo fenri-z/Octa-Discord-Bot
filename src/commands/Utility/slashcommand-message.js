@@ -6,6 +6,7 @@ const {
 } = require("discord.js");
 const DiscordBot = require("../../client/DiscordBot");
 const ApplicationCommand = require("../../structure/ApplicationCommand");
+const { getLang, getStrings } = require('../../utils/BotLang');
 const { resolveChannel } = require('../../utils/resolveGuildOption');
 const { checkBotPermissions } = require('../../utils/checkBotPermissions');
 
@@ -262,6 +263,7 @@ module.exports = new ApplicationCommand({
      * @param {ChatInputCommandInteraction} interaction
      */
     run: async (client, interaction) => {
+        const s       = getStrings(getLang(client.database, interaction.guild?.id)).message;
         const sub     = interaction.options.getSubcommand();
         const guildId = interaction.guild.id;
         const userId  = interaction.user.id;
@@ -281,7 +283,7 @@ module.exports = new ApplicationCommand({
 
             if (!isValidName(name)) {
                 return interaction.reply({
-                    content: '❌ Invalid template name. Use only letters, numbers, `-` and `_` (max. 32 characters).',
+                    content: s.invalid_name,
                     flags: MessageFlags.Ephemeral
                 });
             }
@@ -294,7 +296,7 @@ module.exports = new ApplicationCommand({
                 const sent = getSentUnik(client, guildId, name);
                 if (sent) {
                     return interaction.reply({
-                        content: `❌ Template \`${name}\` is a unique message that has already been sent. Cannot change to regular category.\nDelete the template first if you want to recreate it.`,
+                        content: s.unique_sent_locked(name),
                         flags: MessageFlags.Ephemeral
                     });
                 }
@@ -343,12 +345,12 @@ module.exports = new ApplicationCommand({
             const name = interaction.options.getString('name').trim().toLowerCase();
             const hex  = interaction.options.getString('hex').trim();
             const tmpl = getTemplate(client, guildId, name);
-            if (!tmpl) return interaction.reply({ content: `❌ Template \`${name}\` not found.`, flags: MessageFlags.Ephemeral });
-            if (!/^#?[0-9A-Fa-f]{6}$/.test(hex)) return interaction.reply({ content: '❌ Invalid color format. Example: `#FF5733` or `FF5733`.', flags: MessageFlags.Ephemeral });
+            if (!tmpl) return interaction.reply({ content: s.not_found(name), flags: MessageFlags.Ephemeral });
+            if (!/^#?[0-9A-Fa-f]{6}$/.test(hex)) return interaction.reply({ content: s.invalid_color, flags: MessageFlags.Ephemeral });
             tmpl.color = hex.startsWith('#') ? hex : `#${hex}`;
             tmpl.updatedAt = Date.now();
             saveTemplate(client, guildId, name, tmpl);
-            return interaction.reply({ content: `✅ Color of template \`${name}\` updated to \`${tmpl.color}\`.`, flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: s.color_updated(name, tmpl.color), flags: MessageFlags.Ephemeral });
         }
 
         // ── SET-IMAGE ─────────────────────────────────────────────────────
@@ -356,16 +358,16 @@ module.exports = new ApplicationCommand({
             const name = interaction.options.getString('name').trim().toLowerCase();
             const url  = interaction.options.getString('url').trim();
             const tmpl = getTemplate(client, guildId, name);
-            if (!tmpl) return interaction.reply({ content: `❌ Template \`${name}\` not found.`, flags: MessageFlags.Ephemeral });
+            if (!tmpl) return interaction.reply({ content: s.not_found(name), flags: MessageFlags.Ephemeral });
             if (url === '-') {
                 tmpl.image = ''; tmpl.updatedAt = Date.now();
                 saveTemplate(client, guildId, name, tmpl);
-                return interaction.reply({ content: `✅ Image of template \`${name}\` **removed**.`, flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: s.image_removed(name), flags: MessageFlags.Ephemeral });
             }
-            if (!/^https?:\/\/.+\..+/.test(url)) return interaction.reply({ content: '❌ Invalid URL. Must start with `https://`.', flags: MessageFlags.Ephemeral });
+            if (!/^https?:\/\/.+\..+/.test(url)) return interaction.reply({ content: s.invalid_url, flags: MessageFlags.Ephemeral });
             tmpl.image = url; tmpl.updatedAt = Date.now();
             saveTemplate(client, guildId, name, tmpl);
-            return interaction.reply({ content: `✅ Image of template \`${name}\` updated.`, flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: s.image_updated(name), flags: MessageFlags.Ephemeral });
         }
 
         // ── SET-THUMBNAIL ─────────────────────────────────────────────────
@@ -373,16 +375,16 @@ module.exports = new ApplicationCommand({
             const name = interaction.options.getString('name').trim().toLowerCase();
             const url  = interaction.options.getString('url').trim();
             const tmpl = getTemplate(client, guildId, name);
-            if (!tmpl) return interaction.reply({ content: `❌ Template \`${name}\` not found.`, flags: MessageFlags.Ephemeral });
+            if (!tmpl) return interaction.reply({ content: s.not_found(name), flags: MessageFlags.Ephemeral });
             if (url === '-') {
                 tmpl.thumbnail = ''; tmpl.updatedAt = Date.now();
                 saveTemplate(client, guildId, name, tmpl);
-                return interaction.reply({ content: `✅ Thumbnail of template \`${name}\` **removed**.`, flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: s.thumbnail_removed(name), flags: MessageFlags.Ephemeral });
             }
-            if (!/^https?:\/\/.+\..+/.test(url)) return interaction.reply({ content: '❌ Invalid URL. Must start with `https://`.', flags: MessageFlags.Ephemeral });
+            if (!/^https?:\/\/.+\..+/.test(url)) return interaction.reply({ content: s.invalid_url, flags: MessageFlags.Ephemeral });
             tmpl.thumbnail = url; tmpl.updatedAt = Date.now();
             saveTemplate(client, guildId, name, tmpl);
-            return interaction.reply({ content: `✅ Thumbnail of template \`${name}\` updated.`, flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: s.thumbnail_updated(name), flags: MessageFlags.Ephemeral });
         }
 
         // ── SET-AUTHOR ────────────────────────────────────────────────────
@@ -391,16 +393,16 @@ module.exports = new ApplicationCommand({
             const author = interaction.options.getString('author').trim();
             const icon   = interaction.options.getString('icon')?.trim() || '';
             const tmpl   = getTemplate(client, guildId, name);
-            if (!tmpl) return interaction.reply({ content: `❌ Template \`${name}\` not found.`, flags: MessageFlags.Ephemeral });
-            if (icon && !/^https?:\/\/.+\..+/.test(icon)) return interaction.reply({ content: '❌ Invalid icon URL.', flags: MessageFlags.Ephemeral });
+            if (!tmpl) return interaction.reply({ content: s.not_found(name), flags: MessageFlags.Ephemeral });
+            if (icon && !/^https?:\/\/.+\..+/.test(icon)) return interaction.reply({ content: s.invalid_icon_url, flags: MessageFlags.Ephemeral });
             if (author === '-') {
                 tmpl.authorName = ''; tmpl.authorIcon = ''; tmpl.updatedAt = Date.now();
                 saveTemplate(client, guildId, name, tmpl);
-                return interaction.reply({ content: `✅ Author of template \`${name}\` **removed**.`, flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: s.author_removed(name), flags: MessageFlags.Ephemeral });
             }
             tmpl.authorName = author; tmpl.authorIcon = icon; tmpl.updatedAt = Date.now();
             saveTemplate(client, guildId, name, tmpl);
-            return interaction.reply({ content: `✅ Author of template \`${name}\` updated to **${author}**.`, flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: s.author_updated(name, author), flags: MessageFlags.Ephemeral });
         }
 
         // ── TYPE ──────────────────────────────────────────────────────────
@@ -408,14 +410,14 @@ module.exports = new ApplicationCommand({
             const name = interaction.options.getString('name').trim().toLowerCase();
             const type = interaction.options.getString('type'); // 'embed' | 'plain'
             const tmpl = getTemplate(client, guildId, name);
-            if (!tmpl) return interaction.reply({ content: `❌ Template \`${name}\` not found.`, flags: MessageFlags.Ephemeral });
+            if (!tmpl) return interaction.reply({ content: s.not_found(name), flags: MessageFlags.Ephemeral });
 
             if (type === 'embed') {
                 tmpl.messageType = 'embed';
                 tmpl.updatedAt   = Date.now();
                 saveTemplate(client, guildId, name, tmpl);
                 return interaction.reply({
-                    content: `✅ Template \`${name}\` changed to **Embed** type.\nUse \`/message create ${name}\` to fill in the title & description.`,
+                    content: s.type_embed(name),
                     flags: MessageFlags.Ephemeral
                 });
             }
@@ -444,11 +446,11 @@ module.exports = new ApplicationCommand({
         if (sub === 'preview') {
             const name = interaction.options.getString('name').trim().toLowerCase();
             const tmpl = getTemplate(client, guildId, name);
-            if (!tmpl) return interaction.reply({ content: `❌ Template \`${name}\` not found.`, flags: MessageFlags.Ephemeral });
+            if (!tmpl) return interaction.reply({ content: s.not_found(name), flags: MessageFlags.Ephemeral });
 
             if (tmpl.messageType === 'plain') {
                 const plainText = (tmpl.plainText || '').trim();
-                if (!plainText) return interaction.reply({ content: `⚠️ Template \`${name}\` (plain text) is empty. Fill it with \`/message type ${name} type:plain\`.`, flags: MessageFlags.Ephemeral });
+                if (!plainText) return interaction.reply({ content: s.preview_empty_plain(name), flags: MessageFlags.Ephemeral });
                 const previewEmbed = new EmbedBuilder()
                     .setColor('#5865F2')
                     .setAuthor({ name: `👁️ Preview [💬 Plain] [${badgeCategory(tmpl.kategori)}]: ${name}` })
@@ -457,7 +459,7 @@ module.exports = new ApplicationCommand({
                 return interaction.reply({ embeds: [previewEmbed], flags: MessageFlags.Ephemeral });
             }
 
-            if (!tmpl.title && !tmpl.description) return interaction.reply({ content: `⚠️ Template \`${name}\` is empty.`, flags: MessageFlags.Ephemeral });
+            if (!tmpl.title && !tmpl.description) return interaction.reply({ content: s.preview_empty(name), flags: MessageFlags.Ephemeral });
             const embed = buildEmbed(tmpl);
             embed.setAuthor({ name: `👁️ Preview [🖼️ Embed] [${badgeCategory(tmpl.kategori)}]: ${name}` });
             return interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
@@ -467,7 +469,7 @@ module.exports = new ApplicationCommand({
         if (sub === 'info') {
             const name = interaction.options.getString('name').trim().toLowerCase();
             const tmpl = getTemplate(client, guildId, name);
-            if (!tmpl) return interaction.reply({ content: `❌ Template \`${name}\` not found.`, flags: MessageFlags.Ephemeral });
+            if (!tmpl) return interaction.reply({ content: s.not_found(name), flags: MessageFlags.Ephemeral });
 
             const colorHex  = (tmpl.color || '#5865F2').startsWith('#') ? (tmpl.color || '#5865F2') : `#${tmpl.color}`;
             const isPlain   = tmpl.messageType === 'plain';
@@ -510,7 +512,7 @@ module.exports = new ApplicationCommand({
         // ── LIST ──────────────────────────────────────────────────────────
         if (sub === 'list') {
             const list = getList(client, guildId);
-            if (list.length === 0) return interaction.reply({ content: '📭 No templates yet. Create one with `/message create <name>`.', flags: MessageFlags.Ephemeral });
+            if (list.length === 0) return interaction.reply({ content: s.no_templates, flags: MessageFlags.Ephemeral });
 
             const uniqueList  = [];
             const regularList = [];
@@ -549,16 +551,16 @@ module.exports = new ApplicationCommand({
             const chInput       = interaction.options.getString('channel');
             const targetChannel = resolveChannel(interaction.guild, chInput);
 
-            if (!targetChannel) return interaction.reply({ content: '❌ Channel not found.', flags: MessageFlags.Ephemeral });
+            if (!targetChannel) return interaction.reply({ content: s.send_channel_nf, flags: MessageFlags.Ephemeral });
 
             const tmpl = getTemplate(client, guildId, name);
-            if (!tmpl) return interaction.reply({ content: `❌ Template \`${name}\` not found.`, flags: MessageFlags.Ephemeral });
+            if (!tmpl) return interaction.reply({ content: s.not_found(name), flags: MessageFlags.Ephemeral });
 
             const isPlainType = tmpl.messageType === 'plain';
             if (isPlainType) {
-                if (!(tmpl.plainText || '').trim()) return interaction.reply({ content: `⚠️ Template \`${name}\` (plain text) is empty. Fill it with \`/message type ${name} type:plain\`.`, flags: MessageFlags.Ephemeral });
+                if (!(tmpl.plainText || '').trim()) return interaction.reply({ content: s.send_empty_plain(name), flags: MessageFlags.Ephemeral });
             } else {
-                if (!tmpl.title && !tmpl.description) return interaction.reply({ content: `⚠️ Template \`${name}\` is empty.`, flags: MessageFlags.Ephemeral });
+                if (!tmpl.title && !tmpl.description) return interaction.reply({ content: s.send_empty(name), flags: MessageFlags.Ephemeral });
             }
 
             const category = tmpl.kategori ?? KATEGORI.BIASA;
@@ -583,7 +585,7 @@ module.exports = new ApplicationCommand({
                         deleteSentUnik(client, guildId, name);
                     } else {
                         return interaction.reply({
-                            content: `❌ Template \`${name}\` is a unique message that has already been sent.\nUse \`/message edit ${name}\` to update its content.\n🔗 https://discord.com/channels/${guildId}/${sent.channelId}/${sent.messageId}`,
+                            content: s.already_sent(name, guildId, sent.channelId, sent.messageId),
                             flags: MessageFlags.Ephemeral
                         });
                     }
@@ -608,7 +610,7 @@ module.exports = new ApplicationCommand({
             }
 
             return interaction.reply({
-                content: `✅ Template \`${name}\` successfully sent to <#${targetChannel.id}>!\n🔗 [View message](${sent.url})`,
+                content: s.sent_success(name, targetChannel.id, sent.url),
                 flags: MessageFlags.Ephemeral
             });
         }
@@ -618,11 +620,11 @@ module.exports = new ApplicationCommand({
             const name = interaction.options.getString('name').trim().toLowerCase();
             const tmpl = getTemplate(client, guildId, name);
 
-            if (!tmpl) return interaction.reply({ content: `❌ Template \`${name}\` not found.`, flags: MessageFlags.Ephemeral });
+            if (!tmpl) return interaction.reply({ content: s.not_found(name), flags: MessageFlags.Ephemeral });
 
             if ((tmpl.kategori ?? KATEGORI.BIASA) !== KATEGORI.UNIK) {
                 return interaction.reply({
-                    content: `❌ Template \`${name}\` is a **regular** message — it cannot be edited via command.\nOnly messages with category 🔒 **Unique** can be edited.`,
+                    content: s.edit_not_unique(name),
                     flags: MessageFlags.Ephemeral
                 });
             }
@@ -630,7 +632,7 @@ module.exports = new ApplicationCommand({
             const sentData = getSentUnik(client, guildId, name);
             if (!sentData) {
                 return interaction.reply({
-                    content: `⚠️ Template \`${name}\` has not been sent yet. Send it first with \`/message send ${name}\`.`,
+                    content: s.edit_not_sent(name),
                     flags: MessageFlags.Ephemeral
                 });
             }
@@ -641,7 +643,7 @@ module.exports = new ApplicationCommand({
             if (!targetChannel) {
                 deleteSentUnik(client, guildId, name);
                 return interaction.reply({
-                    content: `❌ The channel where the message was sent could not be found. Data reset — you can resend with \`/message send ${name}\`.`,
+                    content: s.edit_channel_gone(name),
                     flags: MessageFlags.Ephemeral
                 });
             }
@@ -651,7 +653,7 @@ module.exports = new ApplicationCommand({
             } catch {
                 deleteSentUnik(client, guildId, name);
                 return interaction.reply({
-                    content: `❌ Unique message \`${name}\` not found (may have been manually deleted). Data reset — you can resend with \`/message send ${name}\`.`,
+                    content: s.edit_msg_gone(name),
                     flags: MessageFlags.Ephemeral
                 });
             }
@@ -719,10 +721,10 @@ module.exports = new ApplicationCommand({
         if (sub === 'copy') {
             const source = interaction.options.getString('source').trim().toLowerCase();
             const target = interaction.options.getString('target').trim().toLowerCase();
-            if (!isValidName(target)) return interaction.reply({ content: '❌ Invalid target template name.', flags: MessageFlags.Ephemeral });
+            if (!isValidName(target)) return interaction.reply({ content: s.copy_invalid_name, flags: MessageFlags.Ephemeral });
             const tmpl = getTemplate(client, guildId, source);
-            if (!tmpl) return interaction.reply({ content: `❌ Template \`${source}\` not found.`, flags: MessageFlags.Ephemeral });
-            if (getTemplate(client, guildId, target)) return interaction.reply({ content: `❌ Template \`${target}\` already exists.`, flags: MessageFlags.Ephemeral });
+            if (!tmpl) return interaction.reply({ content: s.copy_src_not_found(source), flags: MessageFlags.Ephemeral });
+            if (getTemplate(client, guildId, target)) return interaction.reply({ content: s.copy_exists(target), flags: MessageFlags.Ephemeral });
 
             saveTemplate(client, guildId, target, {
                 ...tmpl,
@@ -731,7 +733,7 @@ module.exports = new ApplicationCommand({
                 updatedAt: Date.now()
             });
             return interaction.reply({
-                content: `✅ Template \`${source}\` successfully copied to \`${target}\`.\n💡 The copy's category is set to **Regular**. Change it with \`/message create ${target} category:unique\` if needed.`,
+                content: s.copied(source, target),
                 flags: MessageFlags.Ephemeral
             });
         }
@@ -740,7 +742,7 @@ module.exports = new ApplicationCommand({
         if (sub === 'delete') {
             const name = interaction.options.getString('name').trim().toLowerCase();
             const tmpl = getTemplate(client, guildId, name);
-            if (!tmpl) return interaction.reply({ content: `❌ Template \`${name}\` not found.`, flags: MessageFlags.Ephemeral });
+            if (!tmpl) return interaction.reply({ content: s.delete_not_found(name), flags: MessageFlags.Ephemeral });
 
             deleteTemplate(client, guildId, name);
             deleteSentUnik(client, guildId, name);
@@ -767,11 +769,11 @@ module.exports = new ApplicationCommand({
             } catch { /* ignore cascade errors */ }
 
             const cascadeInfo = deletedPanels.length > 0
-                ? `\n🗑️ Linked autorole-button panels also deleted: ${deletedPanels.map(n => `\`${n}\``).join(', ')}`
+                ? s.deleted_cascade(deletedPanels.map(n => `\`${n}\``).join(', '))
                 : '';
 
             return interaction.reply({
-                content: `🗑️ Template \`${name}\` successfully deleted.${cascadeInfo}`,
+                content: s.deleted(name) + cascadeInfo,
                 flags: MessageFlags.Ephemeral
             });
         }

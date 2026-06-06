@@ -4,23 +4,17 @@ const {
     ActionRowBuilder,
     StringSelectMenuBuilder,
     StringSelectMenuOptionBuilder,
-    ButtonBuilder,
-    ButtonStyle,
-    ComponentType,
     PermissionFlagsBits,
-    MessageFlags
 } = require("discord.js");
 const DiscordBot = require("../../client/DiscordBot");
 const ApplicationCommand = require("../../structure/ApplicationCommand");
+const { getLang, getStrings } = require('../../utils/BotLang');
 const { isDeveloper } = require("../../utils/dmGuildProxy");
 
-// ═════════════════════════════════════════════════════════════════════════════
-// HELPER — detect user access level
-// ═════════════════════════════════════════════════════════════════════════════
+// ─── Permission level ────────────────────────────────────────────────────────
 function getUserLevel(interaction) {
     const userId = interaction.user.id;
     const isDM   = !interaction.guild;
-
     if (isDeveloper(userId))                                                             return 'dev';
     if (!isDM && interaction.member?.id === interaction.guild?.ownerId)                  return 'guild_owner';
     if (!isDM && interaction.member?.permissions.has(PermissionFlagsBits.Administrator)) return 'admin';
@@ -34,378 +28,313 @@ function getUserLevel(interaction) {
     return 'member';
 }
 
-// ═════════════════════════════════════════════════════════════════════════════
-// DATA COMMAND
-// ═════════════════════════════════════════════════════════════════════════════
-const COMMANDS = {
-    dev: [
-        // ── Server DM ──────────────────────────────────────────────────────
-        { name: '/server list',      desc: 'Show all servers the bot is in.',                                             example: '/server list' },
-        { name: '/server select',    desc: 'Select the active server from DM. Required before other commands via DM.',             example: '/server select id:123456789' },
-        { name: '/server info',      desc: 'View the currently active server and bot permission status.',                           example: '/server info' },
-        { name: '/server channels',  desc: 'View all channels + IDs in the active server. Useful for filling IDs in other commands.', example: '/server channels type:Text' },
-        { name: '/server roles',     desc: 'View all roles + IDs in the active server. Useful for filling role IDs in other commands.', example: '/server roles filter:Manual' },
-        { name: '/server commands',  desc: 'Show all commands along with their configuration status in the active server.',        example: '/server commands category:Utility' },
-        { name: '/server cancel',    desc: 'Cancel the active server selection.',                                                  example: '/server cancel' },
-        // ── Kontrol Bot ────────────────────────────────────────────────────
-        { name: '/eval',             desc: 'Run JavaScript code directly on the bot. For debugging.',                              example: '/eval code:client.guilds.cache.size' },
-        { name: '/reload',           desc: 'Reload all commands without restarting the bot.',                                      example: '/reload' },
-        { name: '/offline',          desc: 'Safely shut down the bot (database is closed first).',                                example: '/offline' },
-        { name: '/restart',          desc: 'Safely restart the bot (database is closed first).',                                  example: '/restart' },
-    ],
-    admin: [
-        // ── Welcome ────────────────────────────────────────────────────────
-        { name: '/welcome status',          desc: 'View the current welcome message configuration.',                                      example: '/welcome status' },
-        { name: '/welcome toggle',          desc: 'Enable/disable welcome messages for new members.',                                    example: '/welcome toggle active:true' },
-        { name: '/welcome channel',         desc: 'Set the channel where welcome messages are sent.',                                     example: '/welcome channel channel:#welcome' },
-        { name: '/welcome text',            desc: 'Edit the welcome embed title & description via modal. Placeholders: `{server}` `{member}` `{count}` `{tag}`', example: '/welcome text' },
-        { name: '/welcome color',           desc: 'Change the welcome embed border color (hex).',                                        example: '/welcome color hex:#5865F2' },
-        { name: '/welcome footer',          desc: 'Edit the welcome embed footer text.',                                                  example: '/welcome footer text:Welcome to the server!' },
-        { name: '/welcome thumbnail',       desc: 'Show/hide the member profile picture in the welcome embed.',                          example: '/welcome thumbnail show:true' },
-        { name: '/welcome fields',          desc: 'Show/hide info fields (new member, account created, total members, invited by, invite code, total invites).', example: '/welcome fields field:diundang_oleh show:true' },
-        { name: '/welcome reset',           desc: 'Reset all welcome settings to default.',                                              example: '/welcome reset' },
-        { name: '/welcome preview',         desc: 'Preview the welcome embed.',                                                          example: '/welcome preview' },
-        // ── Goodbye ────────────────────────────────────────────────────────
-        { name: '/goodbye status',    desc: 'View the goodbye message configuration.',                                          example: '/goodbye status' },
-        { name: '/goodbye toggle',    desc: 'Enable/disable goodbye messages.',                                                 example: '/goodbye toggle active:true' },
-        { name: '/goodbye channel',   desc: 'Set the goodbye message channel.',                                                 example: '/goodbye channel channel:#log-leave' },
-        { name: '/goodbye type',      desc: 'Choose the message type: embed or plain text.',                                    example: '/goodbye type type:embed' },
-        { name: '/goodbye text',      desc: 'Edit the embed title & description (embed) or plain text content (plain) via modal.', example: '/goodbye text' },
-        { name: '/goodbye color',     desc: 'Change the goodbye embed border color (hex).',                                     example: '/goodbye color hex:#ED4245' },
-        { name: '/goodbye footer',    desc: 'Edit the goodbye embed footer text.',                                               example: '/goodbye footer text:Goodbye!' },
-        { name: '/goodbye thumbnail', desc: 'Show/hide the profile picture in the goodbye embed.',                               example: '/goodbye thumbnail show:false' },
-        { name: '/goodbye fields',    desc: 'Show/hide info fields (member, joined, account created, total members).',           example: '/goodbye fields field:bergabung show:true' },
-        { name: '/goodbye card',      desc: 'Configure goodbye card: toggle on/off, edit text, edit colors.',                  example: '/goodbye card action:toggle' },
-        { name: '/goodbye reset',     desc: 'Reset all goodbye settings to default.',                                           example: '/goodbye reset' },
-        { name: '/goodbye preview',   desc: 'Preview the goodbye message with current settings.',                               example: '/goodbye preview' },
-        // ── Autorole (Otomatis) ────────────────────────────────────────────
-        { name: '/autorole status',         desc: 'View active automatic roles for humans and bots.',                             example: '/autorole status' },
-        { name: '/autorole human set',      desc: 'Auto-role for human members who join the server.',                             example: '/autorole human set role:@Member' },
-        { name: '/autorole human toggle',   desc: 'Enable/disable human autorole.',                                               example: '/autorole human toggle active:true' },
-        { name: '/autorole bot set',        desc: 'Auto-role for bots that are added.',                                           example: '/autorole bot set role:@Bot' },
-        // ── Autorole Button ────────────────────────────────────────────────
-        { name: '/autorole-button list',         desc: 'View all existing autorole button panels.',                              example: '/autorole-button list' },
-        { name: '/autorole-button create',       desc: 'Create a new panel or change the template/mode. Mode: Multi or Single.',   example: '/autorole-button create name:gaming mode:multi' },
-        { name: '/autorole-button add-button',   desc: 'Add a role button to a panel.',                                          example: '/autorole-button add-button panel:gaming role:@Gaming label:🎮 Gaming color:primary' },
-        { name: '/autorole-button add-bulk',     desc: 'Add multiple buttons at once. Format: `@Role | Label | color`',          example: '/autorole-button add-bulk panel:gaming' },
-        { name: '/autorole-button edit-button',  desc: 'Edit the label or color of an existing button in a panel.',              example: '/autorole-button edit-button panel:gaming role:@Gaming label:🎮 Gamer' },
-        { name: '/autorole-button edit-bulk',    desc: 'Edit multiple buttons at once in a panel.',                              example: '/autorole-button edit-bulk panel:gaming' },
-        { name: '/autorole-button delete-button', desc: 'Remove a single role button from a panel.',                             example: '/autorole-button delete-button panel:gaming role:@Gaming' },
-        { name: '/autorole-button delete-bulk',  desc: 'Remove multiple buttons at once from a panel.',                          example: '/autorole-button delete-bulk panel:gaming' },
-        { name: '/autorole-button send',         desc: 'Send the role button panel to a channel so members can click it.',       example: '/autorole-button send panel:gaming channel:#roles' },
-        // ── Autorole Reaction ──────────────────────────────────────────────
-        { name: '/autorole-reaction list',           desc: 'View all existing autorole reaction panels.',                            example: '/autorole-reaction list' },
-        { name: '/autorole-reaction create',         desc: 'Create a new panel or edit the embed appearance. Mode: Multi or Single.', example: '/autorole-reaction create name:color mode:multi' },
-        { name: '/autorole-reaction add-reaction',   desc: 'Add an emoji reaction + role to a panel.',                              example: '/autorole-reaction add-reaction panel:color emoji:🔴 role:@Red' },
-        { name: '/autorole-reaction delete-reaction', desc: 'Remove a reaction from a panel by role.',                              example: '/autorole-reaction delete-reaction panel:color role:@Red' },
-        { name: '/autorole-reaction delete-panel',   desc: 'Delete the entire panel from the database.',                            example: '/autorole-reaction delete-panel panel:color' },
-        { name: '/autorole-reaction set-color',      desc: 'Change the panel embed left border color (hex).',                       example: '/autorole-reaction set-color panel:color hex:#5865F2' },
-        { name: '/autorole-reaction preview',        desc: 'Preview the panel appearance (only visible to you).',                   example: '/autorole-reaction preview panel:color' },
-        { name: '/autorole-reaction send',           desc: 'Send the panel to a channel (can only be sent once).',                  example: '/autorole-reaction send panel:color channel:#roles' },
-        // ── Booster ────────────────────────────────────────────────────────
-        { name: '/booster status',               desc: 'View all booster feature configurations.',                                example: '/booster status' },
-        { name: '/booster list',                 desc: 'List all members currently boosting the server.',                         example: '/booster list' },
-        { name: '/booster notif boost-toggle',   desc: 'Enable/disable notifications when someone boosts.',                      example: '/booster notif boost-toggle active:true' },
-        { name: '/booster notif boost-channel',  desc: 'Set the notification channel when someone boosts.',                      example: '/booster notif boost-channel channel:#boost' },
-        { name: '/booster notif boost-title',    desc: 'Edit the boost notification embed title.',                               example: '/booster notif boost-title text:Thank you, {member}!' },
-        { name: '/booster notif boost-description', desc: 'Edit the boost notification embed description.',                      example: '/booster notif boost-description text:You have boosted the server!' },
-        { name: '/booster notif boost-color',    desc: 'Change the boost notification embed color (hex).',                       example: '/booster notif boost-color hex:#FF73FA' },
-        { name: '/booster notif unboost-toggle', desc: 'Enable/disable notifications when a boost ends.',                        example: '/booster notif unboost-toggle active:true' },
-        { name: '/booster notif unboost-channel',desc: 'Set the notification channel when a boost ends.',                        example: '/booster notif unboost-channel channel:#boost' },
-        { name: '/booster notif unboost-title',  desc: 'Edit the unboost notification embed title.',                             example: '/booster notif unboost-title text:See you, {member}!' },
-        { name: '/booster notif unboost-description', desc: 'Edit the unboost notification embed description.',                  example: '/booster notif unboost-description text:Your boost has ended.' },
-        { name: '/booster notif unboost-color',  desc: 'Change the unboost notification embed color (hex).',                     example: '/booster notif unboost-color hex:#ED4245' },
-        { name: '/booster notif preview-boost',  desc: 'Preview the boost notification embed.',                                  example: '/booster notif preview-boost' },
-        { name: '/booster notif preview-unboost',desc: 'Preview the unboost notification embed.',                                example: '/booster notif preview-unboost' },
-        { name: '/booster autorole set',         desc: 'Assign an auto-role to members who boost.',                              example: '/booster autorole set role:@Booster' },
-        { name: '/booster autorole toggle',      desc: 'Enable/disable automatic booster role assignment.',                      example: '/booster autorole toggle active:true' },
-        { name: '/booster autorole autoremove',  desc: 'Automatically remove the booster role when someone stops boosting.',     example: '/booster autorole autoremove active:true' },
-        { name: '/booster autorole remove',      desc: 'Remove the booster role configuration.',                                 example: '/booster autorole remove' },
-        { name: '/booster reset',                desc: 'Reset some or all booster configurations.',                              example: '/booster reset' },
-        // ── Server Stats ───────────────────────────────────────────────────
-        { name: '/serverstats setup',       desc: 'Create a category & voice channels for automatic stats (total members, users, bots).', example: '/serverstats setup category_name:📊 Stats' },
-        { name: '/serverstats status',      desc: 'Enable or disable the server stats feature.',                                  example: '/serverstats status active:true' },
-        { name: '/serverstats label',       desc: 'Change the stats channel text format. Use `{count}` as the number.',           example: '/serverstats label type:total format:👥 Members: {count}' },
-        { name: '/serverstats info',        desc: 'View the current server stats configuration.',                                 example: '/serverstats info' },
-        { name: '/serverstats reset',       desc: 'Delete all server stats configurations (channels are not deleted).',           example: '/serverstats reset' },
-        // ── Message / Embed ────────────────────────────────────────────────
-        { name: '/message create',        desc: 'Create a named embed message template that can be reused.',               example: '/message create name:welcome' },
-        { name: '/message set-color',     desc: 'Change the embed border color (hex).',                                    example: '/message set-color' },
-        { name: '/message set-image',     desc: 'Set the large image on a message template.',                              example: '/message set-image' },
-        { name: '/message set-thumbnail', desc: 'Set the thumbnail on a message template.',                                example: '/message set-thumbnail' },
-        { name: '/message set-author',    desc: 'Set the author name and icon on a message template.',                     example: '/message set-author' },
-        { name: '/message preview',       desc: 'Preview a message template.',                                             example: '/message preview' },
-        { name: '/message info',          desc: 'View the details of a message template.',                                 example: '/message info' },
-        { name: '/message list',          desc: 'List all saved message templates.',                                       example: '/message list' },
-        { name: '/message send',          desc: 'Send a message template to a channel.',                                   example: '/message send name:welcome channel:#general' },
-        { name: '/message edit',          desc: 'Edit a sent unique message template.',                                    example: '/message edit' },
-        { name: '/message copy',          desc: 'Duplicate a message template with a new name.',                           example: '/message copy' },
-        { name: '/message delete',        desc: 'Delete a message template.',                                              example: '/message delete name:welcome' },
-        // ── Invite Links ───────────────────────────────────────────────────
-        { name: '/invites',                 desc: 'Show all server invite links, sorted by most used. Supports pagination.',                         example: '/invites page:2' },
-        // ── Automod ────────────────────────────────────────────────────────
-        { name: '/automod config',             desc: 'View all current automod configurations.',                                      example: '/automod config' },
-        { name: '/automod guide',              desc: 'Complete guide on how to set up the automod system.',                           example: '/automod guide' },
-        { name: '/automod muteperms',          desc: 'Guide for setting up mute role permissions for the mute feature to work.',      example: '/automod muteperms' },
-        { name: '/automod action',             desc: 'Choose the action on violation: delete / warn / mute / kick / ban.',            example: '/automod action type:warn' },
-        { name: '/automod antilink',           desc: 'Enable/disable blocking of all URLs in messages.',                              example: '/automod antilink active:true' },
-        { name: '/automod antiinvite',         desc: 'Enable/disable blocking of Discord invite links.',                              example: '/automod antiinvite active:true' },
-        { name: '/automod spam',               desc: 'Configure anti-spam protection (message limit per interval).',                 example: '/automod spam active:true limit:5 interval:5' },
-        { name: '/automod massmention',        desc: 'Configure the maximum mention limit in a single message.',                      example: '/automod massmention active:true limit:5' },
-        { name: '/automod attachments',        desc: 'Enable/disable file/attachment filtering in messages.',                         example: '/automod attachments active:true' },
-        { name: '/automod mute',               desc: 'Set the mute role to be used when the mute action is active.',                  example: '/automod mute role:@Muted' },
-        { name: '/automod auditlog',           desc: 'Set the log channel for all automod activity.',                                 example: '/automod auditlog channel:#mod-log' },
-        { name: '/automod antiraid',           desc: 'Configure anti-raid: block mass joins in a short time.',                       example: '/automod antiraid active:true join_limit:10 interval:10' },
-        { name: '/automod words add',          desc: 'Add a banned word to the filter list.',                                         example: '/automod words add word:badword' },
-        { name: '/automod words list',         desc: 'View all words in the banned list.',                                           example: '/automod words list' },
-        { name: '/automod words delete',       desc: 'Remove a word from the banned list.',                                          example: '/automod words delete word:badword' },
-        { name: '/automod whitelist add',      desc: 'Add a channel or role to the whitelist (exempt from automod).',                 example: '/automod whitelist add channel:#bot-spam' },
-        { name: '/automod whitelist remove',   desc: 'Remove a channel or role from the whitelist.',                                  example: '/automod whitelist remove role:@Staff' },
-        { name: '/automod whitelist list',     desc: 'View all whitelisted channels and roles.',                                      example: '/automod whitelist list' },
-        // ── Ticket ─────────────────────────────────────────────────────────
-        { name: '/ticket send-panel',   desc: 'Send the ticket panel to a specific channel.',                               example: '/ticket send-panel channel:#tickets' },
-        { name: '/ticket list',         desc: 'View all currently open tickets in the server.',                             example: '/ticket list' },
-        { name: '/ticket close',        desc: 'Close the ticket in this ticket channel.',                                   example: '/ticket close' },
-        { name: '/ticket add',          desc: 'Add a user to the active ticket.',                                           example: '/ticket add user:@user' },
-        { name: '/ticket remove',       desc: 'Remove a user\'s access from the active ticket.',                           example: '/ticket remove user:@user' },
-        // ── Giveaway ───────────────────────────────────────────────────────
-        { name: '/giveaway start',  desc: 'Start a new giveaway with a prize, duration, and winner count.',                example: '/giveaway start prize:Nitro duration:1d channel:#giveaway winners:3' },
-        { name: '/giveaway end',    desc: 'End an active giveaway now and pick winners.',                                   example: '/giveaway end giveaway:id' },
-        { name: '/giveaway reroll', desc: 'Reroll the winner of a finished giveaway.',                                     example: '/giveaway reroll giveaway:id' },
-        { name: '/giveaway list',   desc: 'View all active giveaways in the server.',                                      example: '/giveaway list' },
-        // ── Modlog ─────────────────────────────────────────────────────────
-        { name: '/modlog set',      desc: 'Set the channel for logging moderation actions (ban, kick, timeout, warn).',    example: '/modlog set channel:#mod-log' },
-        { name: '/modlog disable',  desc: 'Disable and remove the mod log configuration.',                                 example: '/modlog disable' },
-        { name: '/modlog events',   desc: 'Choose which events to log: ban, unban, kick, timeout, warn.',                  example: '/modlog events' },
-        // ── Warning ────────────────────────────────────────────────────────
-        { name: '/warn add',    desc: 'Add a warning to a member with an optional reason.',                               example: '/warn add member:@user reason:spam' },
-        { name: '/warn remove', desc: 'Remove a single warning by ID (see IDs from /warn list).',                         example: '/warn remove member:@user id:abc123' },
-        { name: '/warn clear',  desc: 'Remove all warnings from a member.',                                               example: '/warn clear member:@user' },
-        { name: '/warn list',   desc: 'View all warnings for a member along with IDs and reasons.',                        example: '/warn list member:@user' },
-        // ── Ban / Kick / Mute ──────────────────────────────────────────────
-        { name: '/ban member',   desc: 'Ban a member from the server. Optional: reason and delete message history (0–7 days).', example: '/ban member user:@user reason:violation' },
-        { name: '/ban unban',    desc: 'Unban a user from the server by ID.',                                              example: '/ban unban user:123456789' },
-        { name: '/kick',         desc: 'Kick a member from the server with an optional reason.',                           example: '/kick user:@user reason:spam' },
-        { name: '/mute member',  desc: 'Timeout a member (e.g. 10m, 1h, 2d — max 28d).',                                 example: '/mute member user:@user duration:1h' },
-        { name: '/mute unmute',  desc: 'Remove timeout from a member.',                                                    example: '/mute unmute user:@user' },
-        // ── Purge / Lock / Slowmode ────────────────────────────────────────
-        { name: '/purge all',    desc: 'Delete a number of recent messages in the channel (1–100).',                      example: '/purge all amount:50' },
-        { name: '/purge user',   desc: 'Delete messages from a specific user in the channel (searches 1–100 messages).', example: '/purge user user:@user amount:20' },
-        { name: '/lock channel', desc: 'Lock the channel so members cannot send messages. Supports strict mode.',         example: '/lock channel reason:maintenance' },
-        { name: '/lock unlock',  desc: 'Unlock a previously locked channel.',                                             example: '/lock unlock' },
-        { name: '/slowmode',     desc: 'Set or remove slowmode in the channel (e.g. 30s, 5m, 1h — 0 to disable).',       example: '/slowmode duration:30s' },
-        // ── Lainnya ────────────────────────────────────────────────────────
-        { name: '/set-nickname',            desc: 'Change or reset the bot nickname in this server.',                             example: '/set-nickname name:OCTA' },
-    ],
-    manager: [
-        { name: '/welcome status',       desc: 'View the welcome message configuration.',               example: '/welcome status' },
-        { name: '/welcome toggle',       desc: 'Enable/disable welcome messages.',                     example: '/welcome toggle active:true' },
-        { name: '/welcome channel',      desc: 'Set the welcome message channel.',                     example: '/welcome channel channel:#welcome' },
-        { name: '/goodbye status',       desc: 'View the goodbye message configuration.',              example: '/goodbye status' },
-        { name: '/goodbye toggle',       desc: 'Enable/disable goodbye messages.',                     example: '/goodbye toggle active:true' },
-        { name: '/goodbye channel',      desc: 'Set the goodbye message channel.',                     example: '/goodbye channel channel:#log' },
-        { name: '/booster list',         desc: 'List members currently boosting the server.',          example: '/booster list' },
-        { name: '/booster notif boost-toggle',   desc: 'Enable/disable boost notifications.',          example: '/booster notif boost-toggle active:true' },
-        { name: '/booster notif unboost-toggle', desc: 'Enable/disable unboost notifications.',        example: '/booster notif unboost-toggle active:true' },
-        { name: '/serverstats info',     desc: 'View the current server stats configuration.',         example: '/serverstats info' },
-        { name: '/message create', desc: 'Create an embed message template.',              example: '/message create name:info' },
-        { name: '/message list',   desc: 'List all message templates.',                   example: '/message list' },
-        { name: '/message send',   desc: 'Send a message template to a channel.',         example: '/message send name:info channel:#general' },
-        { name: '/invites',              desc: 'Show all server invite links with inviter details, channel, and total usage.',                   example: '/invites' },
-        { name: '/automod config',       desc: 'View the current automod configuration.',                      example: '/automod config' },
-        { name: '/automod antilink',     desc: 'Enable/disable link filtering.',                              example: '/automod antilink active:true' },
-        { name: '/automod spam',         desc: 'Configure anti-spam.',                                        example: '/automod spam active:true' },
-        { name: '/automod words add',    desc: 'Add a banned word.',                                          example: '/automod words add word:badword' },
-        { name: '/automod whitelist add',desc: 'Whitelist a channel/role from automod.',                      example: '/automod whitelist add channel:#bot-spam' },
-    ],
-    moderator: [
-        { name: '/booster list',  desc: 'View the list of members currently boosting the server.',     example: '/booster list' },
-        // ── Warning ────────────────────────────────────────────────────────
-        { name: '/warn add',    desc: 'Add a warning to a member with an optional reason.',            example: '/warn add member:@user reason:spam' },
-        { name: '/warn remove', desc: 'Remove a single warning by ID.',                                example: '/warn remove member:@user id:abc123' },
-        { name: '/warn clear',  desc: 'Remove all warnings from a member.',                            example: '/warn clear member:@user' },
-        { name: '/warn list',   desc: 'View member warnings with IDs and reasons.',                    example: '/warn list member:@user' },
-        // ── Ban / Kick / Mute ──────────────────────────────────────────────
-        { name: '/ban member',   desc: 'Ban a member from the server with an optional reason.',        example: '/ban member user:@user reason:violation' },
-        { name: '/ban unban',    desc: 'Unban a user from the server.',                                example: '/ban unban user:123456789' },
-        { name: '/kick',         desc: 'Kick a member from the server with an optional reason.',       example: '/kick user:@user reason:spam' },
-        { name: '/mute member',  desc: 'Timeout a member (e.g. 10m, 1h, 2d — max 28d).',              example: '/mute member user:@user duration:1h' },
-        { name: '/mute unmute',  desc: 'Remove timeout from a member.',                                example: '/mute unmute user:@user' },
-        // ── Purge ──────────────────────────────────────────────────────────
-        { name: '/purge all',    desc: 'Delete a number of recent messages in the channel (1–100).',   example: '/purge all amount:50' },
-        { name: '/purge user',   desc: 'Delete messages from a specific user in the channel.',          example: '/purge user user:@user amount:20' },
-        // ── Info ───────────────────────────────────────────────────────────
-        { name: '/userinfo',     desc: 'Show detailed information about a member.',                    example: '/userinfo user:@user' },
-    ],
-    member: [
-        { name: '/help',      desc: 'Show this help menu.',                                            example: '/help' },
-        { name: '/ping',      desc: 'Check the bot connection latency.',                               example: '/ping' },
-        { name: '/userinfo',  desc: 'Show detailed information about yourself or another member.',     example: '/userinfo' },
-    ],
-};
+const LEVEL_ORDER = ['member', 'moderator', 'manager', 'admin', 'guild_owner', 'dev'];
+function hasAccess(userLevel, minLevel) {
+    return LEVEL_ORDER.indexOf(userLevel) >= LEVEL_ORDER.indexOf(minLevel);
+}
 
-// ═════════════════════════════════════════════════════════════════════════════
-// PAGINATION HELPER
-// Max ~12 commands per page to stay safely under 6000 char embed limit
-// ═════════════════════════════════════════════════════════════════════════════
-const CMDS_PER_PAGE = 5;
+// ─── Semantic categories & commands ─────────────────────────────────────────
+const CATEGORIES = [
+    {
+        id: 'information', emoji: '📖', label: 'Information',
+        optionDesc: 'General commands for all members.',
+        tip: '> ℹ️ Available to all server members.',
+        minLevel: 'member', color: '#EB459E',
+        commands: [
+            {
+                name: 'help', emoji: '📖',
+                short: 'Show the bot command help menu.',
+                usage: '/help — Show this help menu.',
+            },
+            {
+                name: 'ping', emoji: '🏓',
+                short: 'Check the bot connection latency.',
+                usage: '/ping — Check bot latency and API response time.',
+            },
+            {
+                name: 'userinfo', emoji: '👤',
+                short: 'Show detailed information about a member or yourself.',
+                usage: '/userinfo — Show your own info.\n/userinfo user:@user — Show info of another member.',
+            },
+        ]
+    },
+    {
+        id: 'moderation', emoji: '🛡️', label: 'Moderation',
+        optionDesc: 'Requires: Kick, Ban, Timeout, or Manage Messages.',
+        tip: '> 🛡️ Requires: Kick, Ban, Timeout, or Manage Messages.',
+        minLevel: 'moderator', color: '#5865F2',
+        commands: [
+            {
+                name: 'ban', emoji: '🔨',
+                short: 'Ban or unban members from the server.',
+                usage: '/ban member user:@user — Ban a member.\n  reason: — Optional reason.\n  delete_days: — Delete message history (0–7 days).\n/ban unban user:123456 — Unban a user by ID.',
+            },
+            {
+                name: 'kick', emoji: '👢',
+                short: 'Kick a member from the server.',
+                usage: '/kick user:@user — Kick a member.\n  reason: — Optional reason.',
+            },
+            {
+                name: 'mute', emoji: '🔇',
+                short: 'Timeout or remove timeout from a member.',
+                usage: '/mute member user:@user duration:1h — Timeout a member.\n  duration formats: 10m, 1h, 2d (max 28d)\n/mute unmute user:@user — Remove timeout.',
+            },
+            {
+                name: 'warn', emoji: '⚠️',
+                short: 'Manage member warnings.',
+                usage: '/warn add member:@user reason:spam — Add a warning.\n/warn remove member:@user id:abc123 — Remove a warning.\n/warn clear member:@user — Clear all warnings.\n/warn list member:@user — View all warnings.',
+            },
+            {
+                name: 'purge', emoji: '🗑️',
+                short: 'Delete messages in bulk.',
+                usage: '/purge all amount:50 — Delete up to 100 recent messages.\n/purge user user:@user amount:20 — Delete from a specific user.',
+            },
+            {
+                name: 'lock', emoji: '🔒',
+                short: 'Lock or unlock a channel.',
+                usage: '/lock channel reason:maintenance — Lock the channel.\n/lock unlock — Unlock the channel.',
+            },
+            {
+                name: 'slowmode', emoji: '⏱️',
+                short: 'Set or remove slowmode in the channel.',
+                usage: '/slowmode duration:30s — Set slowmode. (formats: 30s, 5m, 1h · 0 to disable)',
+            },
+        ]
+    },
+    {
+        id: 'automod', emoji: '🤖', label: 'AutoMod',
+        optionDesc: 'Requires: Manage Server.',
+        tip: '> ⚙️ Requires: Manage Server.',
+        minLevel: 'manager', color: '#57F287',
+        commands: [
+            {
+                name: 'automod', emoji: '🤖',
+                short: 'Configure the automatic moderation system.',
+                usage: '/automod config — View current settings.\n/automod action type:warn — Set violation action (delete/warn/mute/kick/ban).\n/automod antilink active:true — Enable link blocking.\n/automod antiinvite active:true — Block Discord invites.\n/automod spam active:true limit:5 interval:5 — Anti-spam.\n/automod massmention active:true limit:5 — Mention limit.\n/automod attachments active:true — Filter attachments.\n/automod mute role:@Muted — Set mute role.\n/automod auditlog channel:#mod-log — Set log channel.\n/automod antiraid active:true join_limit:10 interval:10 — Anti-raid.\n/automod words add word:badword — Add banned word.\n/automod words list — List banned words.\n/automod words delete word:badword — Remove banned word.\n/automod whitelist add channel:#bot-spam — Whitelist channel/role.\n/automod whitelist remove role:@Staff — Remove from whitelist.\n/automod whitelist list — View whitelist.',
+            },
+            {
+                name: 'modlog', emoji: '📋',
+                short: 'Configure moderation action logging.',
+                usage: '/modlog set channel:#mod-log — Set the mod log channel.\n/modlog disable — Disable modlog.\n/modlog events — Choose which events to log.',
+            },
+            {
+                name: 'invites', emoji: '📩',
+                short: 'Show all server invite links with usage statistics.',
+                usage: '/invites — Show invite list (sorted by most used).\n/invites page:2 — View a specific page.',
+            },
+        ]
+    },
+    {
+        id: 'notification', emoji: '🔔', label: 'Notification',
+        optionDesc: 'Requires: Administrator or Server Owner.',
+        tip: '> 👑 Requires: Administrator or Server Owner.',
+        minLevel: 'admin', color: '#FEE75C',
+        commands: [
+            {
+                name: 'welcome', emoji: '👋',
+                short: 'Configure welcome messages for new members.',
+                usage: '/welcome status — View configuration.\n/welcome toggle active:true — Enable/disable.\n/welcome channel channel:#welcome — Set the channel.\n/welcome text — Edit title & description (opens modal).\n/welcome color hex:#5865F2 — Set embed color.\n/welcome footer text:Welcome! — Set footer text.\n/welcome thumbnail show:true — Show/hide member avatar.\n/welcome fields field:... show:true — Toggle info fields.\n/welcome reset — Reset all settings.\n/welcome preview — Preview the welcome embed.',
+            },
+            {
+                name: 'goodbye', emoji: '🚪',
+                short: 'Configure goodbye messages when members leave.',
+                usage: '/goodbye status — View configuration.\n/goodbye toggle active:true — Enable/disable.\n/goodbye channel channel:#log-leave — Set the channel.\n/goodbye type type:embed — Choose embed or plain text.\n/goodbye text — Edit content (opens modal).\n/goodbye color hex:#ED4245 — Set embed color.\n/goodbye reset — Reset all settings.\n/goodbye preview — Preview.',
+            },
+            {
+                name: 'booster', emoji: '🚀',
+                short: 'Configure server booster notifications and autorole.',
+                usage: '/booster status — View all configurations.\n/booster list — List current server boosters.\n/booster notif boost-toggle active:true — Enable boost notification.\n/booster notif boost-channel channel:#boost — Set boost channel.\n/booster notif boost-title text:... — Set boost embed title.\n/booster notif boost-color hex:#FF73FA — Set boost embed color.\n/booster notif unboost-toggle active:true — Enable unboost notification.\n/booster notif unboost-channel channel:#boost — Set unboost channel.\n/booster autorole set role:@Booster — Set booster auto-role.\n/booster autorole toggle active:true — Enable/disable.\n/booster autorole autoremove active:true — Auto-remove when unboost.\n/booster reset — Reset all booster configuration.',
+            },
+        ]
+    },
+    {
+        id: 'autorole', emoji: '🎭', label: 'Autorole',
+        optionDesc: 'Requires: Administrator or Server Owner.',
+        tip: '> 👑 Requires: Administrator or Server Owner.',
+        minLevel: 'admin', color: '#FEE75C',
+        commands: [
+            {
+                name: 'autorole', emoji: '🎭',
+                short: 'Configure automatic roles for members and bots.',
+                usage: '/autorole status — View autorole configuration.\n/autorole human set role:@Member — Set auto-role for humans.\n/autorole human toggle active:true — Enable/disable human autorole.\n/autorole bot set role:@Bot — Set auto-role for bots.',
+            },
+            {
+                name: 'autorole-button', emoji: '🔘',
+                short: 'Role selection panels with clickable buttons.',
+                usage: '/autorole-button list — View all panels.\n/autorole-button create name:gaming mode:multi — Create/edit a panel.\n  mode: multi (any combo) or single (radio-style)\n/autorole-button add-button panel:gaming role:@Gaming label:🎮 Gaming — Add button.\n/autorole-button add-bulk panel:gaming — Add multiple buttons (modal).\n/autorole-button edit-button panel:gaming role:@Gaming label:New — Edit button.\n/autorole-button delete-button panel:gaming role:@Gaming — Remove button.\n/autorole-button send panel:gaming channel:#roles — Send panel to channel.',
+            },
+            {
+                name: 'autorole-reaction', emoji: '✨',
+                short: 'Role assignment via emoji reactions.',
+                usage: '/autorole-reaction list — View all panels.\n/autorole-reaction create name:color mode:multi — Create/edit a panel.\n/autorole-reaction add-reaction panel:color emoji:🔴 role:@Red — Add reaction.\n/autorole-reaction delete-reaction panel:color role:@Red — Remove reaction.\n/autorole-reaction preview panel:color — Preview the panel.\n/autorole-reaction send panel:color channel:#roles — Send panel to channel.',
+            },
+        ]
+    },
+    {
+        id: 'ticket', emoji: '🎫', label: 'Ticket',
+        optionDesc: 'Requires: Administrator or Server Owner.',
+        tip: '> 👑 Requires: Administrator or Server Owner.',
+        minLevel: 'admin', color: '#FEE75C',
+        commands: [
+            {
+                name: 'ticket', emoji: '🎫',
+                short: 'Manage the server support ticket system.',
+                usage: '/ticket send-panel channel:#tickets — Send the ticket open button.\n/ticket list — View all currently open tickets.\n/ticket close — Close the current ticket.\n/ticket add user:@user — Add a user to the ticket.\n/ticket remove user:@user — Remove a user from the ticket.',
+            },
+        ]
+    },
+    {
+        id: 'giveaway', emoji: '🎉', label: 'Giveaway',
+        optionDesc: 'Requires: Administrator or Server Owner.',
+        tip: '> 👑 Requires: Administrator or Server Owner.',
+        minLevel: 'admin', color: '#FEE75C',
+        commands: [
+            {
+                name: 'giveaway', emoji: '🎉',
+                short: 'Create and manage server giveaways.',
+                usage: '/giveaway start prize:Nitro duration:1d channel:#giveaway winners:3 — Start a giveaway.\n  duration formats: 30m, 1h, 1d, 7d\n/giveaway end giveaway:id — End a giveaway now.\n/giveaway reroll giveaway:id — Reroll the winner.\n/giveaway list — View all active giveaways.',
+            },
+        ]
+    },
+    {
+        id: 'utility', emoji: '🔧', label: 'Utility',
+        optionDesc: 'Requires: Administrator or Server Owner.',
+        tip: '> 👑 Requires: Administrator or Server Owner.',
+        minLevel: 'admin', color: '#FEE75C',
+        commands: [
+            {
+                name: 'serverstats', emoji: '📊',
+                short: 'Live voice channels displaying server statistics.',
+                usage: '/serverstats setup category_name:📊 Stats — Create stats channels.\n/serverstats status active:true — Enable/disable.\n/serverstats label type:total format:👥 Members: {count} — Customize label.\n  type: total, human, bot, category\n/serverstats info — View configuration.\n/serverstats reset — Delete all stats configuration.',
+            },
+            {
+                name: 'message', emoji: '📝',
+                short: 'Create and manage reusable embed message templates.',
+                usage: '/message create name:welcome — Create a new template.\n/message set-color name:welcome hex:#5865F2 — Set embed color.\n/message set-image name:welcome url:... — Set large image.\n/message set-thumbnail name:welcome url:... — Set thumbnail.\n/message preview name:welcome — Preview the template.\n/message list — List all saved templates.\n/message send name:welcome channel:#general — Send template.\n/message edit name:welcome — Edit a sent unique message.\n/message copy name:welcome newname:welcome2 — Duplicate template.\n/message delete name:welcome — Delete template.',
+            },
+            {
+                name: 'set-nickname', emoji: '✏️',
+                short: 'Change or reset the bot\'s nickname in this server.',
+                usage: '/set-nickname name:OCTA — Set the bot nickname.\n/set-nickname — Reset to default (leave name field empty).',
+            },
+            {
+                name: 'language', emoji: '🌐',
+                short: 'Set the bot language for this server.',
+                usage: '/language language:English — Set language to English.\n/language language:Indonesian — Set language to Indonesian.',
+            },
+        ]
+    },
+    {
+        id: 'developer', emoji: '🛠️', label: 'Developer',
+        optionDesc: 'Restricted to bot owner and developers.',
+        tip: '> 🔒 Restricted to bot owner and developers.',
+        minLevel: 'dev', color: '#FF73FA',
+        commands: [
+            {
+                name: 'server', emoji: '🌐',
+                short: 'Manage the bot from DMs by selecting an active server.',
+                usage: '/server list — List all servers the bot is in.\n/server select id:123456789 — Select the active server.\n/server info — View the active server status.\n/server channels type:Text — View channels in active server.\n/server roles filter:Manual — View roles in active server.\n/server commands category:Utility — View commands in active server.\n/server cancel — Cancel the active server selection.',
+            },
+            {
+                name: 'eval', emoji: '💻',
+                short: 'Execute JavaScript code directly on the bot.',
+                usage: '/eval code:client.guilds.cache.size — Run JS code for debugging.',
+            },
+            {
+                name: 'reload', emoji: '🔄',
+                short: 'Reload all commands without restarting the bot.',
+                usage: '/reload — Reload all commands.',
+            },
+            {
+                name: 'offline', emoji: '🔴',
+                short: 'Safely shut down the bot.',
+                usage: '/offline — Shut down the bot (database closed first).',
+            },
+            {
+                name: 'restart', emoji: '🔁',
+                short: 'Safely restart the bot.',
+                usage: '/restart — Restart the bot (database closed first).',
+            },
+        ]
+    },
+];
 
-/**
- * Split commands into pages and build a single embed for one page.
- */
-function buildPagedEmbed(category, isDM, guildName, userLevel, page = 0) {
-    const COLOR = { dev:'#FF73FA', guild_owner:'#FEE75C', admin:'#FEE75C', manager:'#57F287', moderator:'#5865F2', member:'#EB459E', overview:'#99AAB5' };
-    const TITLE = { dev:'🛠️ Developer / Bot Owner', guild_owner:'👑 Server Owner & Admin', admin:'👑 Server Owner & Admin', manager:'⚙️ Server Manager', moderator:'🛡️ Server Moderator', member:'👤 Member' };
+function getAccessible(userLevel) {
+    return CATEGORIES.filter(cat => hasAccess(userLevel, cat.minLevel));
+}
 
-    if (category === 'overview') {
-        const ORDER = ['dev', 'guild_owner', 'admin', 'manager', 'moderator', 'member'];
-        const idx   = ORDER.indexOf(userLevel);
-
-        const lines = [];
-        if (idx <= ORDER.indexOf('dev'))       lines.push('🛠️ **Developer** — Bot control, eval, reload, offline, restart, server DM');
-        if (idx <= ORDER.indexOf('admin'))     lines.push('👑 **Admin** — Welcome, goodbye, autorole, booster, serverstats, message, ticket, giveaway, modlog, warn, ban, kick, mute, purge, lock, slowmode');
-        if (idx <= ORDER.indexOf('manager'))   lines.push('⚙️ **Manager** — Server settings without administrator, invites');
-        if (idx <= ORDER.indexOf('moderator')) lines.push('🛡️ **Moderator** — Warn, ban, kick, mute, purge, userinfo, booster list');
-        lines.push('👤 **Member** — /help, /ping, /userinfo');
-
-        if (isDM && userLevel === 'member') {
-            return new EmbedBuilder()
-                .setColor(COLOR.member)
-                .setTitle('📖 Help Menu — DM Bot')
-                .setDescription([
-                    '> You are accessing help from the **DM Bot**.',
-                    '',
-                    '**📂 Available commands:**',
-                    '👤 **Member** — /help and /ping',
-                ].join('\n'))
-                .setFooter({ text: 'Menu active for 3 minutes · Select a category from the menu below.' })
-                .setTimestamp();
-        }
-
-        return new EmbedBuilder()
-            .setColor(COLOR.overview)
-            .setTitle(`📖 Help Menu${guildName ? ` — ${guildName}` : ' — DM Bot'}`)
-            .setDescription([
-                isDM
-                    ? '> You are accessing help from the **DM Bot**. Use the menu below to view commands.'
-                    : '> Select a category from the menu below to view commands and examples.',
-                '',
-                '**📂 Available categories:**',
-                ...lines,
-            ].join('\n'))
-            .setFooter({ text: 'Menu active for 3 minutes · Select a category from the menu below.' })
-            .setTimestamp();
-    }
-
-    // guild_owner category uses admin data
-    const dataKey = category === 'guild_owner' ? 'admin' : category;
-    const allCmds = COMMANDS[dataKey] ?? [];
-    const totalPages = Math.ceil(allCmds.length / CMDS_PER_PAGE);
-    const safePage   = Math.max(0, Math.min(page, totalPages - 1));
-
-    const pageCmds = allCmds.slice(safePage * CMDS_PER_PAGE, (safePage + 1) * CMDS_PER_PAGE);
-
-    const NOTE = {
-        dev:         isDM
-            ? '> 💡 From DM: use `/server select` first, then other commands will run on that server.'
-            : '> 💡 These commands can also be used from the **bot DM** after `/server select`.',
-        guild_owner: '> 💡 Requires **Administrator** permission or **Server Owner**.',
-        admin:       '> 💡 Requires **Administrator** permission or **Server Owner**.',
-        manager:     '> 💡 Requires **Manage Server** permission (without Administrator).',
-        moderator:   '> 💡 Requires one of: Kick, Ban, Timeout, or Manage Messages.',
-        member:      '> ℹ️ Commands available to all members.',
-    };
-
-    const fieldValue = pageCmds.map(c =>
-        `**${c.name}**\n> ${c.desc}\n> 📌 \`${c.example}\``
-    ).join('\n\n');
-
+// ─── Embed builders ──────────────────────────────────────────────────────────
+function buildMainEmbed(client, s) {
     return new EmbedBuilder()
-        .setColor(COLOR[category] ?? '#99AAB5')
-        .setTitle(TITLE[category] ?? '📋 Command')
-        .setDescription(NOTE[category] ?? null)
-        .addFields({
-            name: `📋 Commands (${allCmds.length} total) — Page ${safePage + 1}/${totalPages}`,
-            value: fieldValue,
-            inline: false
-        })
-        .setFooter({ text: `${guildName ?? 'DM Bot'} · Page ${safePage + 1}/${totalPages} · Select another category from the menu.` })
+        .setColor('#5865F2')
+        .setThumbnail(client.user.displayAvatarURL())
+        .setTitle(client.user.username)
+        .setDescription(s.main_desc(`@${client.user.username}`))
+        .addFields({ name: s.main_commands_title, value: s.main_commands_val })
+        .setFooter({ text: s.footer_main })
         .setTimestamp();
 }
 
-function getTotalPages(category) {
-    const dataKey = (category === 'guild_owner') ? 'admin' : category;
-    const cmds = COMMANDS[dataKey] ?? [];
-    return Math.max(1, Math.ceil(cmds.length / CMDS_PER_PAGE));
+function buildCategoryEmbed(cat, s) {
+    const list = cat.commands.map(cmd => `/${cmd.name} — ${cmd.emoji} ${cmd.short}`).join('\n');
+    return new EmbedBuilder()
+        .setColor(cat.color)
+        .setTitle(s.cat_view_title(`${cat.emoji} ${cat.label}`))
+        .setDescription(cat.tip)
+        .addFields({ name: s.field_commands, value: list })
+        .setFooter({ text: s.footer_cat(cat.label, cat.commands.length) })
+        .setTimestamp();
 }
 
-// ═════════════════════════════════════════════════════════════════════════════
-// SELECT MENU
-// ═════════════════════════════════════════════════════════════════════════════
-function buildMenu(userLevel, isDM) {
-    const ORDER  = ['dev', 'guild_owner', 'admin', 'manager', 'moderator', 'member'];
-    const idx    = ORDER.indexOf(userLevel);
-    const options = [];
+function buildCommandEmbed(cat, cmd, s) {
+    return new EmbedBuilder()
+        .setColor(cat.color)
+        .setTitle(s.cmd_view_title(cmd.name))
+        .setDescription(`${cmd.emoji} ${cmd.short}`)
+        .addFields({ name: s.field_usage, value: `\`\`\`\n${cmd.usage}\n\`\`\`` })
+        .setFooter({ text: s.footer_cmd(cat.label) })
+        .setTimestamp();
+}
 
-    if (isDM && userLevel === 'member') {
-        options.push(new StringSelectMenuOptionBuilder()
-            .setLabel('👤 Member').setDescription('/help and /ping for everyone.').setValue('member').setEmoji('👤'));
-
-        return new ActionRowBuilder().addComponents(
-            new StringSelectMenuBuilder()
-                .setCustomId('help-menu')
-                .setPlaceholder('Select a command category…')
-                .addOptions(options)
-        );
-    }
-
-    options.push(new StringSelectMenuOptionBuilder()
-        .setLabel('📋 Category Overview').setDescription('View all available categories.').setValue('overview').setEmoji('📋'));
-
-    if (idx <= ORDER.indexOf('dev')) options.push(new StringSelectMenuOptionBuilder()
-        .setLabel('🛠️ Developer / Bot Owner').setDescription('Eval, reload, offline, restart, server control via DM.').setValue('dev').setEmoji('🛠️'));
-
-    if (idx <= ORDER.indexOf('admin')) options.push(new StringSelectMenuOptionBuilder()
-        .setLabel('👑 Server Owner & Admin').setDescription('Welcome, autorole, booster, ticket, giveaway, modlog, warn, and more.').setValue('admin').setEmoji('👑'));
-
-    if (idx <= ORDER.indexOf('manager')) options.push(new StringSelectMenuOptionBuilder()
-        .setLabel('⚙️ Server Manager').setDescription('Server settings without administrator.').setValue('manager').setEmoji('⚙️'));
-
-    if (idx <= ORDER.indexOf('moderator')) options.push(new StringSelectMenuOptionBuilder()
-        .setLabel('🛡️ Server Moderator').setDescription('Warn, ban, kick, mute, purge, userinfo, and more.').setValue('moderator').setEmoji('🛡️'));
-
-    options.push(new StringSelectMenuOptionBuilder()
-        .setLabel('👤 Member').setDescription('/help and /ping for everyone.').setValue('member').setEmoji('👤'));
-
+// ─── Select menu builders ────────────────────────────────────────────────────
+function buildCategoryRow(accessCats, selectedId, s) {
+    const selectedCat = accessCats.find(c => c.id === selectedId);
+    const options = accessCats.map(cat =>
+        new StringSelectMenuOptionBuilder()
+            .setLabel(cat.label)
+            .setDescription(cat.optionDesc.slice(0, 100))
+            .setValue(cat.id)
+            .setEmoji(cat.emoji)
+            .setDefault(cat.id === selectedId)
+    );
     return new ActionRowBuilder().addComponents(
         new StringSelectMenuBuilder()
-            .setCustomId('help-menu')
-            .setPlaceholder('Select a command category…')
+            .setCustomId('help-category')
+            .setPlaceholder(selectedCat ? `${selectedCat.emoji} ${selectedCat.label}` : s.cat_placeholder)
             .addOptions(options)
     );
 }
 
-// ═════════════════════════════════════════════════════════════════════════════
-// PAGINATION BUTTONS
-// ═════════════════════════════════════════════════════════════════════════════
-function buildNavRow(page, totalPages, disabled = false) {
+function buildCommandRow(cat, selectedCmdName, s) {
+    const options = cat.commands.map(cmd =>
+        new StringSelectMenuOptionBuilder()
+            .setLabel(`/${cmd.name}`)
+            .setDescription(cmd.short.slice(0, 100))
+            .setValue(cmd.name)
+            .setEmoji(cmd.emoji)
+            .setDefault(cmd.name === selectedCmdName)
+    );
     return new ActionRowBuilder().addComponents(
-        new ButtonBuilder()
-            .setCustomId('help-prev')
-            .setLabel('◀ Previous')
-            .setStyle(ButtonStyle.Secondary)
-            .setDisabled(disabled || page <= 0),
-        new ButtonBuilder()
-            .setCustomId('help-next')
-            .setLabel('Next ▶')
-            .setStyle(ButtonStyle.Secondary)
-            .setDisabled(disabled || page >= totalPages - 1),
+        new StringSelectMenuBuilder()
+            .setCustomId('help-command')
+            .setPlaceholder(s.cmd_placeholder)
+            .addOptions(options)
     );
 }
 
-// ═════════════════════════════════════════════════════════════════════════════
+// ─────────────────────────────────────────────────────────────────────────────
 // COMMAND
-// ═════════════════════════════════════════════════════════════════════════════
+// ─────────────────────────────────────────────────────────────────────────────
 module.exports = new ApplicationCommand({
     command: {
         name: 'help',
@@ -420,69 +349,58 @@ module.exports = new ApplicationCommand({
      * @param {ChatInputCommandInteraction} interaction
      */
     run: async (client, interaction) => {
-        const isDM      = !interaction.guild;
-        const guildName = interaction.guild?.name ?? null;
-        const userLevel = getUserLevel(interaction);
+        const s          = getStrings(getLang(client.database, interaction.guild?.id)).help;
+        const userLevel  = getUserLevel(interaction);
+        const accessCats = getAccessible(userLevel);
 
         await interaction.deferReply();
 
-        // State for this session
-        let currentCategory = 'overview';
-        let currentPage     = 0;
-
-        const overviewEmbed = buildPagedEmbed('overview', isDM, guildName, userLevel, 0);
-        const menu          = buildMenu(userLevel, isDM);
-        const totalPages    = getTotalPages(currentCategory);
-        const navRow        = buildNavRow(0, totalPages);
-
-        // Show nav buttons only if not overview and there's >1 page
-        const components = currentCategory === 'overview' || totalPages <= 1
-            ? [menu]
-            : [menu, navRow];
+        let currentCatId   = null;
+        let currentCmdName = null;
 
         const reply = await interaction.editReply({
-            embeds: [overviewEmbed],
-            components: [menu]  // overview tidak perlu nav
+            embeds:     [buildMainEmbed(client, s)],
+            components: [buildCategoryRow(accessCats, null, s)]
         });
 
-        // ── Collector for select menu AND navigation buttons ────────────
         const collector = reply.createMessageComponentCollector({
             filter: i => i.user.id === interaction.user.id &&
-                (i.customId === 'help-menu' || i.customId === 'help-prev' || i.customId === 'help-next'),
+                (i.customId === 'help-category' || i.customId === 'help-command'),
             time: 3 * 60 * 1000
         });
 
         collector.on('collect', async i => {
-            if (i.customId === 'help-menu') {
-                // Change category, reset page
-                currentCategory = i.values[0];
-                currentPage     = 0;
-            } else if (i.customId === 'help-prev') {
-                currentPage = Math.max(0, currentPage - 1);
-            } else if (i.customId === 'help-next') {
-                const tp = getTotalPages(currentCategory);
-                currentPage = Math.min(tp - 1, currentPage + 1);
+            if (i.customId === 'help-category') {
+                currentCatId   = i.values[0];
+                currentCmdName = null;
+            } else {
+                currentCmdName = i.values[0];
             }
 
-            const embed      = buildPagedEmbed(currentCategory, isDM, guildName, userLevel, currentPage);
-            const tp         = getTotalPages(currentCategory);
-            const newNavRow  = buildNavRow(currentPage, tp);
+            const cat = CATEGORIES.find(c => c.id === currentCatId);
+            if (!cat) return i.update({});
 
-            // Show nav only if there's more than 1 page and it's not overview
-            const newComponents = (currentCategory === 'overview' || tp <= 1)
-                ? [menu]
-                : [menu, newNavRow];
+            const catRow = buildCategoryRow(accessCats, currentCatId, s);
+            const cmdRow = buildCommandRow(cat, currentCmdName, s);
 
-            await i.update({ embeds: [embed], components: newComponents });
+            let embed;
+            if (currentCmdName) {
+                const cmd = cat.commands.find(c => c.name === currentCmdName);
+                embed = cmd ? buildCommandEmbed(cat, cmd, s) : buildCategoryEmbed(cat, s);
+            } else {
+                embed = buildCategoryEmbed(cat, s);
+            }
+
+            await i.update({ embeds: [embed], components: [catRow, cmdRow] });
         });
 
         collector.on('end', async () => {
-            const disabledMenu = new ActionRowBuilder().addComponents(
-                StringSelectMenuBuilder.from(menu.components[0])
+            const disabledRow = new ActionRowBuilder().addComponents(
+                StringSelectMenuBuilder.from(buildCategoryRow(accessCats, currentCatId, s).components[0])
                     .setDisabled(true)
-                    .setPlaceholder('Menu is no longer active.')
+                    .setPlaceholder(s.menu_expired)
             );
-            await reply.edit({ components: [disabledMenu] }).catch(() => null);
+            await reply.edit({ components: [disabledRow] }).catch(() => null);
         });
     }
 }).toJSON();

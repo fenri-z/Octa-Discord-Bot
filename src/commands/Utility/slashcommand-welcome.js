@@ -11,6 +11,7 @@ const {
 } = require("discord.js");
 const DiscordBot = require("../../client/DiscordBot");
 const ApplicationCommand = require("../../structure/ApplicationCommand");
+const { getLang, getStrings } = require('../../utils/BotLang');
 const { resolveChannel } = require('../../utils/resolveGuildOption');
 const { checkBotPermissions } = require('../../utils/checkBotPermissions');
 const { generateWelcomeCard } = require('../../utils/generateWelcomeCard');
@@ -177,6 +178,7 @@ module.exports = new ApplicationCommand({
      * @param {ChatInputCommandInteraction} interaction
      */
     run: async (client, interaction) => {
+        const s       = getStrings(getLang(client.database, interaction.guild?.id)).welcome;
         const sub     = interaction.options.getSubcommand();
         const guildId = interaction.guild.id;
 
@@ -229,7 +231,7 @@ module.exports = new ApplicationCommand({
                 return interaction.reply({ content: '❌ Set the welcome channel first using `/welcome channel`.', flags: MessageFlags.Ephemeral });
             setBool(client, `welcome-enabled-${guildId}`, val);
             return interaction.reply({
-                content: val ? '✅ Welcome message **enabled**.' : '❌ Welcome message **disabled**.',
+                content: val ? s.toggled_on : s.toggled_off,
                 flags: MessageFlags.Ephemeral
             });
         }
@@ -241,7 +243,7 @@ module.exports = new ApplicationCommand({
             const chOk = await checkBotPermissions(interaction, [PermissionFlagsBits.SendMessages, PermissionFlagsBits.EmbedLinks], ch);
             if (!chOk) return;
             client.database.set(`welcome-channel-${guildId}`, ch.id);
-            return interaction.reply({ content: `✅ Welcome channel set to <#${ch.id}>.`, flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: s.channel_set(`<#${ch.id}>`), flags: MessageFlags.Ephemeral });
         }
 
         // ── TIPE ─────────────────────────────────────────────────────────
@@ -333,10 +335,10 @@ module.exports = new ApplicationCommand({
         if (sub === 'color') {
             const val = interaction.options.getString('hex').trim();
             if (!/^#?[0-9A-Fa-f]{6}$/.test(val))
-                return interaction.reply({ content: '❌ Invalid color format. Use hex like `#5865F2`.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: s.invalid_color, flags: MessageFlags.Ephemeral });
             const clean = val.startsWith('#') ? val : `#${val}`;
             client.database.set(`welcome-color-${guildId}`, clean);
-            return interaction.reply({ content: `✅ Embed color updated to \`${clean}\`.`, flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: s.color_set(clean), flags: MessageFlags.Ephemeral });
         }
 
         // ── FOOTER ────────────────────────────────────────────────────────
@@ -344,10 +346,10 @@ module.exports = new ApplicationCommand({
             const val = interaction.options.getString('text').trim();
             if (val === '-') {
                 client.database.delete(`welcome-footer-${guildId}`);
-                return interaction.reply({ content: '✅ Embed footer **removed**.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: s.footer_removed, flags: MessageFlags.Ephemeral });
             }
             client.database.set(`welcome-footer-${guildId}`, val);
-            return interaction.reply({ content: `✅ Embed footer updated:\n> ${val}`, flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: s.footer_set, flags: MessageFlags.Ephemeral });
         }
 
         // ── THUMBNAIL ─────────────────────────────────────────────────────
@@ -355,7 +357,7 @@ module.exports = new ApplicationCommand({
             const val = interaction.options.getBoolean('show');
             setBool(client, `welcome-thumbnail-${guildId}`, val);
             return interaction.reply({
-                content: val ? '✅ Profile picture thumbnail **shown**.' : '✅ Profile picture thumbnail **hidden**.',
+                content: val ? s.thumbnail_on : s.thumbnail_off,
                 flags: MessageFlags.Ephemeral
             });
         }
@@ -545,7 +547,7 @@ module.exports = new ApplicationCommand({
              'showMemberNew', 'showAkunDibuat', 'showTotalMember',
              'showDiundangOleh', 'showKodeInvite', 'showTotalUndangan']
                 .forEach(k => client.database.delete(`welcome-${k}-${guildId}`));
-            return interaction.reply({ content: '🔄 All welcome settings have been **reset to default**.', flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: s.reset_done, flags: MessageFlags.Ephemeral });
         }
 
         // ── PREVIEW ───────────────────────────────────────────────────────

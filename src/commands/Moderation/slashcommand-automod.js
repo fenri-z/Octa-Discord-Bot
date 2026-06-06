@@ -6,6 +6,7 @@ const {
 } = require("discord.js");
 const DiscordBot = require("../../client/DiscordBot");
 const ApplicationCommand = require("../../structure/ApplicationCommand");
+const { getLang, getStrings } = require('../../utils/BotLang');
 
 function getBool(client, key, def = false) {
     const raw = client.database.get(key);
@@ -233,6 +234,7 @@ module.exports = new ApplicationCommand({
      * @param {ChatInputCommandInteraction} interaction
      */
     run: async (client, interaction) => {
+        const s        = getStrings(getLang(client.database, interaction.guild?.id)).automod;
         const { guild, options } = interaction;
         const subGroup = options.getSubcommandGroup(false);
         const sub      = options.getSubcommand();
@@ -256,7 +258,7 @@ module.exports = new ApplicationCommand({
             const wlRl = cfg.wlRoles.map(id => `<@&${id}>`).join(', ')     || '`None`';
 
             const embed = new EmbedBuilder()
-                .setTitle('🛡️ Automod Configuration')
+                .setTitle(s.config_title)
                 .setColor('#5865F2')
                 .addFields(
                     { name: '⚔️ Violation Action', value: actionMap[cfg.action] ?? cfg.action,                                      inline: true },
@@ -375,8 +377,8 @@ module.exports = new ApplicationCommand({
                 embeds: [
                     new EmbedBuilder()
                         .setColor('#57F287')
-                        .setTitle('✅ Automod Action Set')
-                        .setDescription(`Violation action changed to: **${actionMap[type]}**`)
+                        .setTitle(s.action_title)
+                        .setDescription(s.action_desc(actionMap[type] ?? type))
                 ],
                 flags: MessageFlags.Ephemeral
             });
@@ -390,8 +392,8 @@ module.exports = new ApplicationCommand({
                 embeds: [
                     new EmbedBuilder()
                         .setColor(active ? '#57F287' : '#ED4245')
-                        .setTitle(`${active ? '✅' : '❌'} Anti-Link ${active ? 'Enabled' : 'Disabled'}`)
-                        .setDescription(`Anti-link protection is now **${active ? 'active' : 'inactive'}**.\nAll URLs sent by members will be deleted.`)
+                        .setTitle(active ? s.toggle_on('Anti-Link') : s.toggle_off('Anti-Link'))
+                        .setDescription(active ? s.antilink_on_desc : s.protection_now_off)
                 ],
                 flags: MessageFlags.Ephemeral
             });
@@ -405,8 +407,8 @@ module.exports = new ApplicationCommand({
                 embeds: [
                     new EmbedBuilder()
                         .setColor(active ? '#57F287' : '#ED4245')
-                        .setTitle(`${active ? '✅' : '❌'} Anti-Invite ${active ? 'Enabled' : 'Disabled'}`)
-                        .setDescription(`Anti Discord invite protection is now **${active ? 'active' : 'inactive'}**.`)
+                        .setTitle(active ? s.toggle_on('Anti-Invite') : s.toggle_off('Anti-Invite'))
+                        .setDescription(active ? s.antiinvite_on_desc : s.protection_now_off)
                 ],
                 flags: MessageFlags.Ephemeral
             });
@@ -424,10 +426,8 @@ module.exports = new ApplicationCommand({
                 embeds: [
                     new EmbedBuilder()
                         .setColor(active ? '#57F287' : '#ED4245')
-                        .setTitle(`${active ? '✅' : '❌'} Anti-Spam ${active ? 'Enabled' : 'Disabled'}`)
-                        .setDescription(active
-                            ? `Limit: **${limit}** messages every **${interval}** second(s).`
-                            : 'Anti-spam protection disabled.')
+                        .setTitle(active ? s.toggle_on('Anti-Spam') : s.toggle_off('Anti-Spam'))
+                        .setDescription(active ? s.spam_on_desc(limit, interval) : s.spam_off_desc)
                 ],
                 flags: MessageFlags.Ephemeral
             });
@@ -444,10 +444,8 @@ module.exports = new ApplicationCommand({
                 embeds: [
                     new EmbedBuilder()
                         .setColor(active ? '#57F287' : '#ED4245')
-                        .setTitle(`${active ? '✅' : '❌'} Anti Mass-Mention ${active ? 'Enabled' : 'Disabled'}`)
-                        .setDescription(active
-                            ? `Limit: **${limit}** mentions per message.`
-                            : 'Anti mass-mention protection disabled.')
+                        .setTitle(active ? s.toggle_on('Anti Mass-Mention') : s.toggle_off('Anti Mass-Mention'))
+                        .setDescription(active ? s.massmention_on_desc(limit) : s.massmention_off_desc)
                 ],
                 flags: MessageFlags.Ephemeral
             });
@@ -461,8 +459,8 @@ module.exports = new ApplicationCommand({
                 embeds: [
                     new EmbedBuilder()
                         .setColor(active ? '#57F287' : '#ED4245')
-                        .setTitle(`${active ? '✅' : '❌'} Anti-Attachment ${active ? 'Enabled' : 'Disabled'}`)
-                        .setDescription(`File/attachment filter is now **${active ? 'active' : 'inactive'}**.`)
+                        .setTitle(active ? s.toggle_on('Anti-Attachment') : s.toggle_off('Anti-Attachment'))
+                        .setDescription(active ? s.attachments_on_desc : s.protection_now_off)
                 ],
                 flags: MessageFlags.Ephemeral
             });
@@ -481,12 +479,8 @@ module.exports = new ApplicationCommand({
                 embeds: [
                     new EmbedBuilder()
                         .setColor('#57F287')
-                        .setTitle('✅ Timeout Duration Set')
-                        .setDescription(
-                            `Timeout duration set to: **${durationLabel[durationMs] ?? durasi}**\n\n` +
-                            `Bot uses **Discord native Timeout** — no mute role needed.\n` +
-                            `Make sure the bot has **Moderate Members** permission. See \`/automod muteperms\`.`
-                        )
+                        .setTitle(s.mute_title)
+                        .setDescription(s.mute_desc(durationLabel[durationMs] ?? durasi))
                 ],
                 flags: MessageFlags.Ephemeral
             });
@@ -500,8 +494,8 @@ module.exports = new ApplicationCommand({
                 embeds: [
                     new EmbedBuilder()
                         .setColor('#57F287')
-                        .setTitle('✅ Automod Log Channel Set')
-                        .setDescription(`All automod activity will be logged in: ${channel}`)
+                        .setTitle(s.auditlog_title)
+                        .setDescription(s.auditlog_desc(channel))
                 ],
                 flags: MessageFlags.Ephemeral
             });
@@ -519,10 +513,8 @@ module.exports = new ApplicationCommand({
                 embeds: [
                     new EmbedBuilder()
                         .setColor(active ? '#57F287' : '#ED4245')
-                        .setTitle(`${active ? '✅' : '❌'} Anti-Raid ${active ? 'Enabled' : 'Disabled'}`)
-                        .setDescription(active
-                            ? `Triggers when **${joinLimit}** or more members join within **${interval}** second(s).\nServer verification will be automatically increased for 5 minutes.`
-                            : 'Anti-raid protection disabled.')
+                        .setTitle(active ? s.toggle_on('Anti-Raid') : s.toggle_off('Anti-Raid'))
+                        .setDescription(active ? s.antiraid_on_desc(joinLimit, interval) : s.antiraid_off_desc)
                 ],
                 flags: MessageFlags.Ephemeral
             });
@@ -533,10 +525,10 @@ module.exports = new ApplicationCommand({
             const word  = options.getString('word').toLowerCase().trim();
             const words = getJSON(client, `automod-words-${guildId}`, []);
             if (words.includes(word)) {
-                return interaction.reply({ content: `❌ The word \`${word}\` is already in the banned list.`, flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: s.words_exists(word), flags: MessageFlags.Ephemeral });
             }
             if (words.length >= 100) {
-                return interaction.reply({ content: '❌ The banned words list has reached the maximum limit (100 words).', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: s.words_max, flags: MessageFlags.Ephemeral });
             }
             words.push(word);
             client.database.set(`automod-words-${guildId}`, JSON.stringify(words));
@@ -544,8 +536,8 @@ module.exports = new ApplicationCommand({
                 embeds: [
                     new EmbedBuilder()
                         .setColor('#57F287')
-                        .setTitle('✅ Banned Word Added')
-                        .setDescription(`Word \`${word}\` has been added to the banned list.\nTotal: **${words.length}** / 100 words`)
+                        .setTitle(s.words_add_title)
+                        .setDescription(s.words_add_desc(word, words.length))
                 ],
                 flags: MessageFlags.Ephemeral
             });
@@ -555,13 +547,10 @@ module.exports = new ApplicationCommand({
         if (subGroup === 'words' && sub === 'list') {
             const words = getJSON(client, `automod-words-${guildId}`, []);
             if (words.length === 0) {
-                return interaction.reply({
-                    content: '📭 No banned words have been added yet. Use `/automod words add` to add one.',
-                    flags: MessageFlags.Ephemeral
-                });
+                return interaction.reply({ content: s.words_empty, flags: MessageFlags.Ephemeral });
             }
             const embed = new EmbedBuilder()
-                .setTitle(`🚫 Banned Words List (${words.length} / 100)`)
+                .setTitle(s.words_list_title(words.length))
                 .setColor('#ED4245')
                 .setDescription(words.map((w, i) => `\`${String(i + 1).padStart(2, '0')}.\` ${w}`).join('\n'));
             return interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
@@ -573,7 +562,7 @@ module.exports = new ApplicationCommand({
             const words = getJSON(client, `automod-words-${guildId}`, []);
             const idx   = words.indexOf(word);
             if (idx === -1) {
-                return interaction.reply({ content: `❌ The word \`${word}\` was not found in the banned list.`, flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: s.words_not_found(word), flags: MessageFlags.Ephemeral });
             }
             words.splice(idx, 1);
             client.database.set(`automod-words-${guildId}`, JSON.stringify(words));
@@ -581,8 +570,8 @@ module.exports = new ApplicationCommand({
                 embeds: [
                     new EmbedBuilder()
                         .setColor('#57F287')
-                        .setTitle('✅ Banned Word Removed')
-                        .setDescription(`Word \`${word}\` has been removed.\nRemaining: **${words.length}** / 100 words`)
+                        .setTitle(s.words_delete_title)
+                        .setDescription(s.words_delete_desc(word, words.length))
                 ],
                 flags: MessageFlags.Ephemeral
             });
@@ -593,7 +582,7 @@ module.exports = new ApplicationCommand({
             const channel = options.getChannel('channel');
             const role    = options.getRole('role');
             if (!channel && !role) {
-                return interaction.reply({ content: '❌ Please provide at least one channel or role.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: s.wl_need_input, flags: MessageFlags.Ephemeral });
             }
             const lines = [];
             if (channel) {
@@ -601,9 +590,9 @@ module.exports = new ApplicationCommand({
                 if (!chs.includes(channel.id)) {
                     chs.push(channel.id);
                     client.database.set(`automod-wl-channels-${guildId}`, JSON.stringify(chs));
-                    lines.push(`📌 Channel ${channel} added to whitelist.`);
+                    lines.push(s.wl_ch_added(channel));
                 } else {
-                    lines.push(`⚠️ Channel ${channel} is already in the whitelist.`);
+                    lines.push(s.wl_ch_exists(channel));
                 }
             }
             if (role) {
@@ -611,16 +600,16 @@ module.exports = new ApplicationCommand({
                 if (!rls.includes(role.id)) {
                     rls.push(role.id);
                     client.database.set(`automod-wl-roles-${guildId}`, JSON.stringify(rls));
-                    lines.push(`🎭 Role ${role} added to whitelist.`);
+                    lines.push(s.wl_role_added(role));
                 } else {
-                    lines.push(`⚠️ Role ${role} is already in the whitelist.`);
+                    lines.push(s.wl_role_exists(role));
                 }
             }
             return interaction.reply({
                 embeds: [
                     new EmbedBuilder()
                         .setColor('#57F287')
-                        .setTitle('✅ Whitelist Updated')
+                        .setTitle(s.wl_update_title)
                         .setDescription(lines.join('\n'))
                 ],
                 flags: MessageFlags.Ephemeral
@@ -632,7 +621,7 @@ module.exports = new ApplicationCommand({
             const channel = options.getChannel('channel');
             const role    = options.getRole('role');
             if (!channel && !role) {
-                return interaction.reply({ content: '❌ Please provide at least one channel or role.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: s.wl_need_input, flags: MessageFlags.Ephemeral });
             }
             const lines = [];
             if (channel) {
@@ -641,9 +630,9 @@ module.exports = new ApplicationCommand({
                 if (idx !== -1) {
                     chs.splice(idx, 1);
                     client.database.set(`automod-wl-channels-${guildId}`, JSON.stringify(chs));
-                    lines.push(`📌 Channel ${channel} removed from whitelist.`);
+                    lines.push(s.wl_ch_removed(channel));
                 } else {
-                    lines.push(`⚠️ Channel ${channel} is not in the whitelist.`);
+                    lines.push(s.wl_ch_not_in(channel));
                 }
             }
             if (role) {
@@ -652,16 +641,16 @@ module.exports = new ApplicationCommand({
                 if (idx !== -1) {
                     rls.splice(idx, 1);
                     client.database.set(`automod-wl-roles-${guildId}`, JSON.stringify(rls));
-                    lines.push(`🎭 Role ${role} removed from whitelist.`);
+                    lines.push(s.wl_role_removed(role));
                 } else {
-                    lines.push(`⚠️ Role ${role} is not in the whitelist.`);
+                    lines.push(s.wl_role_not_in(role));
                 }
             }
             return interaction.reply({
                 embeds: [
                     new EmbedBuilder()
                         .setColor('#57F287')
-                        .setTitle('✅ Whitelist Updated')
+                        .setTitle(s.wl_update_title)
                         .setDescription(lines.join('\n'))
                 ],
                 flags: MessageFlags.Ephemeral
@@ -673,12 +662,12 @@ module.exports = new ApplicationCommand({
             const chs = getJSON(client, `automod-wl-channels-${guildId}`, []);
             const rls = getJSON(client, `automod-wl-roles-${guildId}`, []);
             const embed = new EmbedBuilder()
-                .setTitle('✅ Automod Whitelist')
+                .setTitle(s.wl_list_title)
                 .setColor('#5865F2')
-                .setDescription('The following channels and roles are **exempt** from automod.')
+                .setDescription(s.wl_list_desc)
                 .addFields(
-                    { name: '📌 Channel', value: chs.length > 0 ? chs.map(id => `<#${id}>`).join('\n')   : '`None`', inline: true },
-                    { name: '🎭 Role',    value: rls.length > 0 ? rls.map(id => `<@&${id}>`).join('\n')  : '`None`', inline: true }
+                    { name: s.wl_field_channel, value: chs.length > 0 ? chs.map(id => `<#${id}>`).join('\n')   : '`None`', inline: true },
+                    { name: s.wl_field_role,    value: rls.length > 0 ? rls.map(id => `<@&${id}>`).join('\n')  : '`None`', inline: true }
                 )
                 .setFooter({ text: guild.name, iconURL: guild.iconURL({ dynamic: true }) ?? undefined });
             return interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });

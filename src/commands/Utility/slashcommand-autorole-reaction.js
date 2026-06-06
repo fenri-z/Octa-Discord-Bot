@@ -6,6 +6,7 @@ const {
 } = require("discord.js");
 const DiscordBot = require("../../client/DiscordBot");
 const ApplicationCommand = require("../../structure/ApplicationCommand");
+const { getLang, getStrings } = require('../../utils/BotLang');
 const { resolveRole, resolveChannel } = require('../../utils/resolveGuildOption');
 const { checkBotPermissions } = require('../../utils/checkBotPermissions');
 
@@ -269,6 +270,7 @@ module.exports = new ApplicationCommand({
      * @param {ChatInputCommandInteraction} interaction
      */
     run: async (client, interaction) => {
+        const s   = getStrings(getLang(client.database, interaction.guild?.id)).autorole_reaction;
         const { guild, options } = interaction;
         const sub = options.getSubcommand();
 
@@ -286,7 +288,7 @@ module.exports = new ApplicationCommand({
             const list = getPanelList(client, guild.id);
             if (list.length === 0) {
                 return interaction.reply({
-                    content: '📭 No autorole reaction panels yet. Create one with `/autorole-reaction create`.',
+                    content: s.no_panels,
                     flags: MessageFlags.Ephemeral
                 });
             }
@@ -315,7 +317,7 @@ module.exports = new ApplicationCommand({
             return interaction.reply({
                 embeds: [
                     new EmbedBuilder()
-                        .setTitle('🗂️ Autorole Reaction Panel List')
+                        .setTitle(s.list_title)
                         .setColor('#5865F2')
                         .addFields(fields)
                         .setFooter({ text: `${list.length} panel · ${guild.name}` })
@@ -330,14 +332,14 @@ module.exports = new ApplicationCommand({
             const panelName = options.getString('panel');
             const tipe      = options.getString('type');
             const panel     = getPanel(client, guild.id, panelName);
-            if (!panel) return interaction.reply({ content: `❌ Panel \`${panelName}\` not found.`, flags: MessageFlags.Ephemeral });
+            if (!panel) return interaction.reply({ content: s.panel_not_found(panelName), flags: MessageFlags.Ephemeral });
 
             if (tipe === 'embed') {
                 panel.messageType = 'embed';
                 panel.updatedAt   = Date.now();
                 savePanel(client, guild.id, panelName, panel);
                 return interaction.reply({
-                    content: `✅ Panel \`${panelName}\` type changed to **Embed**.`,
+                    content: s.type_embed(panelName),
                     flags: MessageFlags.Ephemeral
                 });
             }
@@ -369,7 +371,7 @@ module.exports = new ApplicationCommand({
 
             if (!isValidName(name)) {
                 return interaction.reply({
-                    content: '❌ Panel name may only contain letters, numbers, `-`, and `_` (1–32 characters)',
+                    content: s.invalid_name,
                     flags: MessageFlags.Ephemeral
                 });
             }
@@ -377,7 +379,7 @@ module.exports = new ApplicationCommand({
             const existing = getPanel(client, guild.id, name);
             if (!existing && !mode) {
                 return interaction.reply({
-                    content: '❌ A new panel requires the `mode` option. Choose `multi` or `single`.',
+                    content: s.mode_required,
                     flags: MessageFlags.Ephemeral
                 });
             }
@@ -429,26 +431,26 @@ module.exports = new ApplicationCommand({
             const panelName = options.getString('panel');
             const hex       = options.getString('hex').trim();
             const panel     = getPanel(client, guild.id, panelName);
-            if (!panel) return interaction.reply({ content: `❌ Panel \`${panelName}\` not found.`, flags: MessageFlags.Ephemeral });
-            if (!/^#?[0-9A-Fa-f]{6}$/.test(hex)) return interaction.reply({ content: '❌ Invalid color format. Example: `#FF5733` or `FF5733`.', flags: MessageFlags.Ephemeral });
+            if (!panel) return interaction.reply({ content: s.panel_not_found(panelName), flags: MessageFlags.Ephemeral });
+            if (!/^#?[0-9A-Fa-f]{6}$/.test(hex)) return interaction.reply({ content: s.invalid_color, flags: MessageFlags.Ephemeral });
 
             panel.embedColor = hex.startsWith('#') ? hex : `#${hex}`;
             panel.updatedAt  = Date.now();
             savePanel(client, guild.id, panelName, panel);
 
             const sentResult = await resolveSentMessage(client, guild, panelName);
-            let statusStr = '📭 Panel not sent yet.';
+            let statusStr = s.not_sent_info(panelName);
             if (sentResult) {
                 try {
                     await sentResult.message.edit({ embeds: [buildPanelEmbed(panel)] });
-                    statusStr = `✅ Sent message updated live!\n🔗 https://discord.com/channels/${guild.id}/${sentResult.sent.channelId}/${sentResult.sent.messageId}`;
+                    statusStr = s.msg_updated(guild.id, sentResult.sent.channelId, sentResult.sent.messageId);
                 } catch {
-                    statusStr = '⚠️ Failed to update the message.';
+                    statusStr = s.msg_update_failed;
                 }
             }
 
             return interaction.reply({
-                content: `✅ Panel \`${panelName}\` embed color updated to \`${panel.embedColor}\`.\n${statusStr}`,
+                content: s.color_updated(panelName, panel.embedColor, statusStr),
                 flags: MessageFlags.Ephemeral
             });
         }
@@ -458,27 +460,28 @@ module.exports = new ApplicationCommand({
             const panelName = options.getString('panel');
             const url       = options.getString('url').trim();
             const panel     = getPanel(client, guild.id, panelName);
-            if (!panel) return interaction.reply({ content: `❌ Panel \`${panelName}\` not found.`, flags: MessageFlags.Ephemeral });
+            if (!panel) return interaction.reply({ content: s.panel_not_found(panelName), flags: MessageFlags.Ephemeral });
 
             if (url === '-') { panel.embedImage = ''; }
             else {
-                if (!/^https?:\/\/.+\..+/.test(url)) return interaction.reply({ content: '❌ Invalid URL.', flags: MessageFlags.Ephemeral });
+                if (!/^https?:\/\/.+\..+/.test(url)) return interaction.reply({ content: s.invalid_url, flags: MessageFlags.Ephemeral });
                 panel.embedImage = url;
             }
             panel.updatedAt = Date.now();
             savePanel(client, guild.id, panelName, panel);
 
             const sentResult = await resolveSentMessage(client, guild, panelName);
-            let statusStr = '📭 Panel not sent yet.';
+            let statusStr = s.not_sent_info(panelName);
             if (sentResult) {
                 try {
                     await sentResult.message.edit({ embeds: [buildPanelEmbed(panel)] });
-                    statusStr = `✅ Message updated!\n🔗 https://discord.com/channels/${guild.id}/${sentResult.sent.channelId}/${sentResult.sent.messageId}`;
-                } catch { statusStr = '⚠️ Failed to update the message.'; }
+                    statusStr = s.msg_updated_short(guild.id, sentResult.sent.channelId, sentResult.sent.messageId);
+                } catch { statusStr = s.msg_update_failed; }
             }
 
+            const imageAction = url === '-' ? '**removed**' : 'updated';
             return interaction.reply({
-                content: `✅ Panel \`${panelName}\` embed image ${url === '-' ? '**removed**' : 'updated'}.\n${statusStr}`,
+                content: s.image_updated(panelName, imageAction, statusStr),
                 flags: MessageFlags.Ephemeral
             });
         }
@@ -488,27 +491,28 @@ module.exports = new ApplicationCommand({
             const panelName = options.getString('panel');
             const url       = options.getString('url').trim();
             const panel     = getPanel(client, guild.id, panelName);
-            if (!panel) return interaction.reply({ content: `❌ Panel \`${panelName}\` not found.`, flags: MessageFlags.Ephemeral });
+            if (!panel) return interaction.reply({ content: s.panel_not_found(panelName), flags: MessageFlags.Ephemeral });
 
             if (url === '-') { panel.embedThumbnail = ''; }
             else {
-                if (!/^https?:\/\/.+\..+/.test(url)) return interaction.reply({ content: '❌ Invalid URL.', flags: MessageFlags.Ephemeral });
+                if (!/^https?:\/\/.+\..+/.test(url)) return interaction.reply({ content: s.invalid_url, flags: MessageFlags.Ephemeral });
                 panel.embedThumbnail = url;
             }
             panel.updatedAt = Date.now();
             savePanel(client, guild.id, panelName, panel);
 
             const sentResult = await resolveSentMessage(client, guild, panelName);
-            let statusStr = '📭 Panel not sent yet.';
+            let statusStr = s.not_sent_info(panelName);
             if (sentResult) {
                 try {
                     await sentResult.message.edit({ embeds: [buildPanelEmbed(panel)] });
-                    statusStr = `✅ Message updated!\n🔗 https://discord.com/channels/${guild.id}/${sentResult.sent.channelId}/${sentResult.sent.messageId}`;
-                } catch { statusStr = '⚠️ Failed to update the message.'; }
+                    statusStr = s.msg_updated_short(guild.id, sentResult.sent.channelId, sentResult.sent.messageId);
+                } catch { statusStr = s.msg_update_failed; }
             }
 
+            const thumbAction = url === '-' ? '**removed**' : 'updated';
             return interaction.reply({
-                content: `✅ Panel \`${panelName}\` embed thumbnail ${url === '-' ? '**removed**' : 'updated'}.\n${statusStr}`,
+                content: s.thumbnail_updated(panelName, thumbAction, statusStr),
                 flags: MessageFlags.Ephemeral
             });
         }
@@ -520,29 +524,29 @@ module.exports = new ApplicationCommand({
             const roleStr   = options.getString('role');
 
             const panel = getPanel(client, guild.id, panelName);
-            if (!panel) return interaction.reply({ content: `❌ Panel \`${panelName}\` not found.`, flags: MessageFlags.Ephemeral });
+            if (!panel) return interaction.reply({ content: s.panel_not_found(panelName), flags: MessageFlags.Ephemeral });
 
             if ((panel.reactions || []).length >= 20) {
-                return interaction.reply({ content: '❌ A panel can have a maximum of 20 reactions (Discord limit).', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: s.max_reactions, flags: MessageFlags.Ephemeral });
             }
 
             const emojiNorm = normalizeEmoji(emojiRaw);
-            if (!emojiNorm) return interaction.reply({ content: '❌ Invalid emoji.', flags: MessageFlags.Ephemeral });
+            if (!emojiNorm) return interaction.reply({ content: s.invalid_emoji, flags: MessageFlags.Ephemeral });
 
             const role = resolveRole(guild, roleStr);
-            if (!role) return interaction.reply({ content: '❌ Role not found.', flags: MessageFlags.Ephemeral });
+            if (!role) return interaction.reply({ content: s.role_not_found, flags: MessageFlags.Ephemeral });
             if (role.managed || role.id === guild.id) {
-                return interaction.reply({ content: '❌ This role cannot be used (managed or @everyone).', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: s.role_managed, flags: MessageFlags.Ephemeral });
             }
             if (panel.reactions.some(r => r.roleId === role.id)) {
                 return interaction.reply({
-                    content: `⚠️ Role ${role} already has a reaction in panel \`${panelName}\`.`,
+                    content: s.role_has_react(role, panelName),
                     flags: MessageFlags.Ephemeral
                 });
             }
             if (panel.reactions.some(r => normalizeEmoji(r.emoji) === emojiNorm)) {
                 return interaction.reply({
-                    content: `⚠️ That emoji is already used in panel \`${panelName}\`.`,
+                    content: s.emoji_used(panelName),
                     flags: MessageFlags.Ephemeral
                 });
             }
@@ -567,7 +571,7 @@ module.exports = new ApplicationCommand({
                 embeds: [
                     new EmbedBuilder()
                         .setColor('#57F287')
-                        .setTitle(`✅ Reaction Added to Panel \`${panelName}\``)
+                        .setTitle(s.react_added_title(panelName))
                         .addFields(
                             { name: '✨ Emoji',   value: emojiDisplay,  inline: true },
                             { name: '🎭 Role',   value: `${role}`,       inline: true },
@@ -586,15 +590,15 @@ module.exports = new ApplicationCommand({
             const roleStr   = options.getString('role');
 
             const panel = getPanel(client, guild.id, panelName);
-            if (!panel) return interaction.reply({ content: `❌ Panel \`${panelName}\` not found.`, flags: MessageFlags.Ephemeral });
+            if (!panel) return interaction.reply({ content: s.panel_not_found(panelName), flags: MessageFlags.Ephemeral });
 
             const role = resolveRole(guild, roleStr);
-            if (!role) return interaction.reply({ content: '❌ Role not found.', flags: MessageFlags.Ephemeral });
+            if (!role) return interaction.reply({ content: s.role_not_found, flags: MessageFlags.Ephemeral });
 
             const idx = panel.reactions.findIndex(r => r.roleId === role.id);
             if (idx === -1) {
                 return interaction.reply({
-                    content: `⚠️ No reaction found for role ${role} in panel \`${panelName}\`.`,
+                    content: s.react_role_nf(role, panelName),
                     flags: MessageFlags.Ephemeral
                 });
             }
@@ -623,8 +627,8 @@ module.exports = new ApplicationCommand({
                 embeds: [
                     new EmbedBuilder()
                         .setColor('#ED4245')
-                        .setTitle(`🗑️ Reaction Removed from Panel \`${panelName}\``)
-                        .setDescription(`Reaction for role ${role} has been removed.\nRemaining: **${panel.reactions.length}** reactions.`)
+                        .setTitle(s.react_removed_title(panelName))
+                        .setDescription(s.react_removed_desc(role, panel.reactions.length))
                         .addFields({ name: '📤 Status', value: statusStr, inline: false })
                         .setTimestamp()
                 ],
@@ -636,10 +640,10 @@ module.exports = new ApplicationCommand({
         if (sub === 'preview') {
             const panelName = options.getString('panel');
             const panel     = getPanel(client, guild.id, panelName);
-            if (!panel) return interaction.reply({ content: `❌ Panel \`${panelName}\` not found.`, flags: MessageFlags.Ephemeral });
+            if (!panel) return interaction.reply({ content: s.panel_not_found(panelName), flags: MessageFlags.Ephemeral });
             if (!panel.reactions || panel.reactions.length === 0) {
                 return interaction.reply({
-                    content: `⚠️ Panel \`${panelName}\` has no reactions yet. Add one with \`/autorole-reaction add-reaction\`.`,
+                    content: s.preview_no_react(panelName),
                     flags: MessageFlags.Ephemeral
                 });
             }
@@ -676,10 +680,10 @@ module.exports = new ApplicationCommand({
             const channelStr = options.getString('channel');
 
             const panel = getPanel(client, guild.id, panelName);
-            if (!panel) return interaction.reply({ content: `❌ Panel \`${panelName}\` not found.`, flags: MessageFlags.Ephemeral });
+            if (!panel) return interaction.reply({ content: s.panel_not_found(panelName), flags: MessageFlags.Ephemeral });
             if (!panel.reactions || panel.reactions.length === 0) {
                 return interaction.reply({
-                    content: `⚠️ Panel \`${panelName}\` has no reactions yet. Add one first with \`/autorole-reaction add-reaction\`.`,
+                    content: s.send_no_react(panelName),
                     flags: MessageFlags.Ephemeral
                 });
             }
@@ -687,17 +691,7 @@ module.exports = new ApplicationCommand({
             const existingSent = await resolveSentMessage(client, guild, panelName);
             if (existingSent) {
                 return interaction.reply({
-                    content: [
-                        `❌ Panel \`${panelName}\` has already been sent and is still active.`,
-                        `The autorole-reaction panel is **unique** — it can only be sent once.`,
-                        ``,
-                        `To change the appearance or reactions:`,
-                        `• \`/autorole-reaction create ${panelName}\` — edit embed title/description`,
-                        `• \`/autorole-reaction add-reaction\` — add a new reaction`,
-                        `• \`/autorole-reaction delete-reaction\` — remove a reaction`,
-                        ``,
-                        `🔗 https://discord.com/channels/${guild.id}/${existingSent.sent.channelId}/${existingSent.sent.messageId}`
-                    ].join('\n'),
+                    content: s.already_sent(panelName, guild.id, existingSent.sent.channelId, existingSent.sent.messageId),
                     flags: MessageFlags.Ephemeral
                 });
             }
@@ -705,7 +699,7 @@ module.exports = new ApplicationCommand({
             let targetChannel = interaction.channel;
             if (channelStr) {
                 const resolved = resolveChannel(guild, channelStr);
-                if (!resolved) return interaction.reply({ content: '❌ Channel not found.', flags: MessageFlags.Ephemeral });
+                if (!resolved) return interaction.reply({ content: s.channel_not_found, flags: MessageFlags.Ephemeral });
                 targetChannel = resolved;
             }
 
@@ -718,7 +712,7 @@ module.exports = new ApplicationCommand({
 
             if (isPlain && !panel.plainText) {
                 return interaction.reply({
-                    content: `❌ Panel \`${panelName}\` has no text set. Use \`/autorole-reaction type plain\` to set it.`,
+                    content: s.no_text(panelName),
                     flags: MessageFlags.Ephemeral
                 });
             }
@@ -734,12 +728,12 @@ module.exports = new ApplicationCommand({
                 embeds: [
                     new EmbedBuilder()
                         .setColor('#57F287')
-                        .setTitle('📤 Panel Sent!')
-                        .setDescription(`Panel \`${panelName}\` successfully sent to ${targetChannel}.`)
+                        .setTitle(s.sent_title)
+                        .setDescription(s.sent_desc(panelName, targetChannel))
                         .addFields(
                             { name: '🔧 Mode',      value: panel.mode === 'single' ? '🔘 Single (radio)' : '✅ Multi', inline: true },
                             { name: '✨ Reactions', value: `${panel.reactions.length} reaction`, inline: true },
-                            { name: '🔒 Note',   value: 'The panel is **unique** — it cannot be resent.\nUse add/delete-reaction to update it.', inline: false }
+                            { name: '🔒 Note',   value: s.sent_note, inline: false }
                         )
                         .setTimestamp()
                 ],
@@ -751,16 +745,16 @@ module.exports = new ApplicationCommand({
         if (sub === 'delete-panel') {
             const panelName = options.getString('panel');
             const panel     = getPanel(client, guild.id, panelName);
-            if (!panel) return interaction.reply({ content: `❌ Panel \`${panelName}\` not found.`, flags: MessageFlags.Ephemeral });
+            if (!panel) return interaction.reply({ content: s.panel_not_found(panelName), flags: MessageFlags.Ephemeral });
 
             let sentNote = '';
             const sentResult = await resolveSentMessage(client, guild, panelName);
             if (sentResult) {
                 try {
                     await sentResult.message.delete();
-                    sentNote = `\n\n✅ Panel message in <#${sentResult.sent.channelId}> successfully deleted.`;
+                    sentNote = s.deleted_in_ch(sentResult.sent.channelId);
                 } catch {
-                    sentNote = `\n\n⚠️ Failed to delete the panel message.\n🔗 https://discord.com/channels/${guild.id}/${sentResult.sent.channelId}/${sentResult.sent.messageId}`;
+                    sentNote = s.delete_failed_ch(guild.id, sentResult.sent.channelId, sentResult.sent.messageId);
                 }
             }
 
@@ -771,8 +765,8 @@ module.exports = new ApplicationCommand({
                 embeds: [
                     new EmbedBuilder()
                         .setColor('#ED4245')
-                        .setTitle('🗑️ Panel Deleted')
-                        .setDescription(`Panel \`${panelName}\` and all its configuration have been deleted.${sentNote}`)
+                        .setTitle(s.delete_panel_title)
+                        .setDescription(s.delete_panel_desc(panelName, sentNote))
                         .setTimestamp()
                 ],
                 flags: MessageFlags.Ephemeral

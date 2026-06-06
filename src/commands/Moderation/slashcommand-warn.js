@@ -4,6 +4,7 @@ const {
     MessageFlags,
 } = require('discord.js');
 const ApplicationCommand = require('../../structure/ApplicationCommand');
+const { getLang, getStrings } = require('../../utils/BotLang');
 
 function getWarns(client, guildId, userId) {
     const raw = client.database.get(`warn-${guildId}-${userId}`);
@@ -135,6 +136,7 @@ module.exports = new ApplicationCommand({
     },
 
     run: async (client, interaction) => {
+        const s       = getStrings(getLang(client.database, interaction.guild?.id)).warn;
         const sub     = interaction.options.getSubcommand();
         const guildId = interaction.guild.id;
 
@@ -146,9 +148,9 @@ module.exports = new ApplicationCommand({
             if (!target)
                 return interaction.reply({ content: '❌ Member not found.', flags: MessageFlags.Ephemeral });
             if (target.id === interaction.user.id)
-                return interaction.reply({ content: '❌ You cannot warn yourself.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: s.cannot_self, flags: MessageFlags.Ephemeral });
             if (target.permissions.has(PermissionFlagsBits.Administrator))
-                return interaction.reply({ content: '❌ Cannot warn an Administrator.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: s.cannot_bot, flags: MessageFlags.Ephemeral });
 
             const warns  = getWarns(client, guildId, target.id);
             const warnId = Date.now().toString(36).toUpperCase();
@@ -169,10 +171,11 @@ module.exports = new ApplicationCommand({
             await target.user.send({
                 embeds: [new EmbedBuilder()
                     .setColor('#FEE75C')
-                    .setTitle('⚠️ You Have Received a Warning')
-                    .setDescription(
-                        `You received a warning in **${interaction.guild.name}**.\n` +
-                        `**Reason:** ${alasan}\n**Total warnings:** ${warns.length}`
+                    .setTitle(s.dm_title(interaction.guild.name))
+                    .addFields(
+                        { name: s.dm_field_reason, value: alasan },
+                        { name: s.dm_field_mod,    value: interaction.user.tag },
+                        { name: s.dm_field_count,  value: String(warns.length) },
                     )
                     .setTimestamp()]
             }).catch(() => null);
@@ -185,11 +188,11 @@ module.exports = new ApplicationCommand({
                 .setColor('#FEE75C')
                 .setTitle('⚠️ Warning Issued')
                 .addFields(
-                    { name: '👤 Member',     value: `${target} (${target.user.tag})`, inline: true },
-                    { name: '🛡️ Moderator', value: `${interaction.user}`,            inline: true },
-                    { name: '📊 Total',      value: `${warns.length} warning(s)`,     inline: true },
-                    { name: '📝 Reason',     value: alasan },
-                    { name: '🔖 Warn ID',    value: `\`${warnId}\`` },
+                    { name: '👤 Member',        value: `${target} (${target.user.tag})`, inline: true },
+                    { name: '🛡️ Moderator',    value: `${interaction.user}`,            inline: true },
+                    { name: '📊 Total',          value: `${warns.length} warning(s)`,     inline: true },
+                    { name: s.field_reason,      value: alasan },
+                    { name: s.field_warn_id,     value: `\`${warnId}\`` },
                 )
                 .setTimestamp();
 
@@ -216,7 +219,7 @@ module.exports = new ApplicationCommand({
             const warns = getWarns(client, guildId, target.id);
             const idx   = warns.findIndex(w => w.id === warnId);
             if (idx === -1)
-                return interaction.reply({ content: `❌ Warning \`${warnId}\` not found.`, flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: s.warn_not_found, flags: MessageFlags.Ephemeral });
 
             warns.splice(idx, 1);
             setWarns(client, guildId, target.id, warns);
@@ -225,7 +228,7 @@ module.exports = new ApplicationCommand({
                 embeds: [new EmbedBuilder()
                     .setColor('#57F287')
                     .setTitle('✅ Warning Removed')
-                    .setDescription(`Warning \`${warnId}\` from ${target} has been removed.\nRemaining warnings: **${warns.length}**`)
+                    .setDescription(s.warn_removed(warnId, target.user.tag))
                     .setTimestamp()]
             });
         }
@@ -238,7 +241,7 @@ module.exports = new ApplicationCommand({
 
             const warns = getWarns(client, guildId, target.id);
             if (warns.length === 0)
-                return interaction.reply({ content: `${target} has no warnings.`, flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: s.no_warnings(target.user.tag), flags: MessageFlags.Ephemeral });
 
             client.database.delete(`warn-${guildId}-${target.id}`);
 
@@ -246,7 +249,7 @@ module.exports = new ApplicationCommand({
                 embeds: [new EmbedBuilder()
                     .setColor('#57F287')
                     .setTitle('✅ All Warnings Cleared')
-                    .setDescription(`All **${warns.length}** warning(s) from ${target} have been cleared.`)
+                    .setDescription(s.warns_cleared(target.user.tag))
                     .setTimestamp()]
             });
         }
@@ -264,7 +267,7 @@ module.exports = new ApplicationCommand({
                     embeds: [new EmbedBuilder()
                         .setColor('#57F287')
                         .setTitle('📋 Warning List')
-                        .setDescription(`${target} has no warnings. ✅`)
+                        .setDescription(s.no_warnings(target.user.tag))
                         .setTimestamp()],
                     flags: MessageFlags.Ephemeral,
                 });
@@ -280,7 +283,7 @@ module.exports = new ApplicationCommand({
             return interaction.reply({
                 embeds: [new EmbedBuilder()
                     .setColor('#FEE75C')
-                    .setTitle(`⚠️ Warnings — ${target.user.tag}`)
+                    .setTitle(s.list_title(target.user.tag))
                     .setDescription(list)
                     .setFooter({ text: `Total: ${warns.length} warning(s)${warns.length > 10 ? ' (10 most recent)' : ''}` })
                     .setTimestamp()],

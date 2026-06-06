@@ -7,6 +7,7 @@ const {
 } = require("discord.js");
 const DiscordBot = require("../../client/DiscordBot");
 const ApplicationCommand = require('../../structure/ApplicationCommand');
+const { getLang, getStrings } = require('../../utils/BotLang');
 const { checkBotPermissions } = require('../../utils/checkBotPermissions');
 const {
     updateStats,
@@ -104,6 +105,7 @@ module.exports = new ApplicationCommand({
      * @param {ChatInputCommandInteraction} interaction
      */
     run: async (client, interaction) => {
+        const s       = getStrings(getLang(client.database, interaction.guild?.id)).serverstats;
         const sub     = interaction.options.getSubcommand();
         const guild   = interaction.guild;
         const guildId = guild.id;
@@ -130,12 +132,9 @@ module.exports = new ApplicationCommand({
             if (cfg.categoryId && cfg.totalId && cfg.humanId && cfg.botId) {
                 const embed = new EmbedBuilder()
                     .setColor('#ED4245')
-                    .setTitle('❌ Server Stats Already Set Up!')
+                    .setTitle(s.already_setup_title)
                     .setThumbnail(guild.iconURL({ dynamic: true }) ?? null)
-                    .setDescription(
-                        '> Server Stats is already active in this server and cannot be set up again.\n\n' +
-                        '> If you want to **start over from scratch**, use `/serverstats reset` first, then run setup again.'
-                    )
+                    .setDescription(s.already_setup_desc)
                     .addFields(
                         { name: '📁 Category',     value: `<#${cfg.categoryId}>`, inline: true },
                         { name: '👥 Total Members', value: `<#${cfg.totalId}>`,   inline: true },
@@ -188,7 +187,7 @@ module.exports = new ApplicationCommand({
 
             if (!category) {
                 return interaction.editReply({
-                    content: '❌ Failed to create category. Make sure the bot has **Manage Channels** permission and its role is high enough.'
+                    content: s.setup_failed_category
                 });
             }
 
@@ -249,7 +248,7 @@ module.exports = new ApplicationCommand({
                 ].filter(Boolean).join(', ');
 
                 return interaction.editReply({
-                    content: `❌ Failed to create channel: **${channelFailed}**.\nCheck the bot console for error details and make sure the bot has sufficient permissions.`
+                    content: s.setup_failed_channels(channelFailed)
                 });
             }
 
@@ -263,12 +262,9 @@ module.exports = new ApplicationCommand({
 
             const embed = new EmbedBuilder()
                 .setColor('#57F287')
-                .setTitle('✅ Server Stats Set Up Successfully!')
+                .setTitle(s.setup_success_title)
                 .setThumbnail(guild.iconURL({ dynamic: true }) ?? null)
-                .setDescription(
-                    '> Statistics channels have been created and will be **automatically updated** whenever a member joins or leaves.\n\n' +
-                    '> ⚠️ These channels cannot be joined by regular members — they are for display only.'
-                )
+                .setDescription(s.setup_success_desc)
                 .addFields(
                     { name: '📁 Category',       value: `<#${category.id}>`,  inline: true },
                     { name: '👥 Total Members',  value: `<#${totalCh.id}>`,   inline: true },
@@ -289,7 +285,7 @@ module.exports = new ApplicationCommand({
                         inline: false
                     }
                 )
-                .setFooter({ text: 'Use /serverstats label to customize channel text.' })
+                .setFooter({ text: s.setup_footer })
                 .setTimestamp();
 
             return interaction.editReply({ embeds: [embed] });
@@ -304,7 +300,7 @@ module.exports = new ApplicationCommand({
 
             if (active && (!cfg.categoryId || !cfg.totalId || !cfg.humanId || !cfg.botId)) {
                 return interaction.reply({
-                    content: '⚠️ Server stats has not been set up.\nUse `/serverstats setup` first.',
+                    content: s.not_setup,
                     flags: MessageFlags.Ephemeral
                 });
             }
@@ -317,12 +313,8 @@ module.exports = new ApplicationCommand({
                 embeds: [
                     new EmbedBuilder()
                         .setColor(active ? '#57F287' : '#ED4245')
-                        .setTitle(active ? '✅ Server Stats Enabled' : '🔴 Server Stats Disabled')
-                        .setDescription(
-                            active
-                                ? '> Stats channels will be updated automatically whenever a member joins or leaves.'
-                                : '> Stats channels will not be updated until re-enabled.\n> Existing channels are **not deleted** automatically.'
-                        )
+                        .setTitle(active ? s.status_enabled_title : s.status_disabled_title)
+                        .setDescription(active ? s.status_enabled_desc : s.status_disabled_desc)
                         .setTimestamp()
                 ],
                 flags: MessageFlags.Ephemeral
@@ -338,14 +330,14 @@ module.exports = new ApplicationCommand({
 
             if (tipe !== 'category' && !format.includes('{count}')) {
                 return interaction.reply({
-                    content: '❌ The format must contain `{count}` to display the number.\nExample: `👥 Members: {count}`',
+                    content: s.label_no_count,
                     flags: MessageFlags.Ephemeral
                 });
             }
 
             if (format.length > 90) {
                 return interaction.reply({
-                    content: `❌ Format is too long (${format.length} characters). Maximum is 90 characters.`,
+                    content: s.label_too_long(format.length),
                     flags: MessageFlags.Ephemeral
                 });
             }
@@ -369,7 +361,7 @@ module.exports = new ApplicationCommand({
             if (tipe === 'category') {
                 if (!cfg.categoryId) {
                     return interaction.reply({
-                        content: '❌ Category has not been set up. Run `/serverstats setup` first.',
+                        content: s.label_no_category,
                         flags: MessageFlags.Ephemeral
                     });
                 }
@@ -378,7 +370,7 @@ module.exports = new ApplicationCommand({
 
                 if (!catCh) {
                     return interaction.reply({
-                        content: '❌ Category channel not found in Discord. It may have been manually deleted.',
+                        content: s.label_category_missing,
                         flags: MessageFlags.Ephemeral
                     });
                 }
@@ -402,7 +394,7 @@ module.exports = new ApplicationCommand({
                 embeds: [
                     new EmbedBuilder()
                         .setColor('#FEE75C')
-                        .setTitle('✏️ Label Updated')
+                        .setTitle(s.label_updated_title)
                         .addFields(
                             { name: 'Channel',     value: `**${namaLabel}**`,   inline: true },
                             { name: 'New Format',  value: `\`${format}\``,      inline: true },
@@ -444,7 +436,7 @@ module.exports = new ApplicationCommand({
                 embeds: [
                     new EmbedBuilder()
                         .setColor('#5865F2')
-                        .setTitle('📊 Server Stats Configuration')
+                        .setTitle(s.info_title)
                         .setThumbnail(guild.iconURL({ dynamic: true }) ?? null)
                         .addFields(
                             { name: '⚡ Status',         value: tick(cfg.enabled),  inline: true  },
@@ -461,7 +453,7 @@ module.exports = new ApplicationCommand({
                                 inline: false
                             },
                         )
-                        .setFooter({ text: 'Use /serverstats label to change the text format.' })
+                        .setFooter({ text: s.info_footer })
                         .setTimestamp()
                 ],
                 flags: MessageFlags.Ephemeral
@@ -480,8 +472,8 @@ module.exports = new ApplicationCommand({
                     embeds: [
                         new EmbedBuilder()
                             .setColor('#FEE75C')
-                            .setTitle('⚠️ No Configuration Found')
-                            .setDescription('> Server Stats has never been set up in this server.\n> Use `/serverstats setup` to get started.')
+                            .setTitle(s.reset_not_setup_title)
+                            .setDescription(s.reset_not_setup_desc)
                             .setTimestamp()
                     ],
                     flags: MessageFlags.Ephemeral
@@ -494,12 +486,12 @@ module.exports = new ApplicationCommand({
             const row = new ActionRowBuilder().addComponents(
                 new ButtonBuilder()
                     .setCustomId(`serverstats-reset-confirm:${guildId}`)
-                    .setLabel('Yes, Delete Everything')
+                    .setLabel(s.reset_confirm_btn)
                     .setStyle(ButtonStyle.Danger)
                     .setEmoji('🗑️'),
                 new ButtonBuilder()
                     .setCustomId(`serverstats-reset-cancel:${guildId}`)
-                    .setLabel('Cancel')
+                    .setLabel(s.reset_cancel_btn)
                     .setStyle(ButtonStyle.Secondary)
                     .setEmoji('✖️')
             );
@@ -513,18 +505,15 @@ module.exports = new ApplicationCommand({
 
             const confirmEmbed = new EmbedBuilder()
                 .setColor('#ED4245')
-                .setTitle('🗑️ Confirm Server Stats Reset')
-                .setDescription(
-                    '> Are you sure you want to reset Server Stats?\n\n' +
-                    '> ⚠️ **The following channels and category will be permanently deleted from Discord:**'
-                )
+                .setTitle(s.reset_confirm_title)
+                .setDescription(s.reset_confirm_desc)
                 .addFields(
                     { name: '📁 Category',     value: mention(catCh),   inline: true },
                     { name: '👥 Total Members', value: mention(totalCh), inline: true },
                     { name: '👤 User',         value: mention(humanCh), inline: true },
                     { name: '🤖 Bot',          value: mention(botCh),   inline: true },
                 )
-                .setFooter({ text: 'This action cannot be undone after confirmation.' })
+                .setFooter({ text: s.reset_confirm_footer })
                 .setTimestamp();
 
             return interaction.reply({

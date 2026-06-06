@@ -4,6 +4,7 @@ const {
     MessageFlags,
 } = require('discord.js');
 const ApplicationCommand = require('../../structure/ApplicationCommand');
+const { getLang, getStrings } = require('../../utils/BotLang');
 
 async function sendModLog(client, guild, embed) {
     const logChId = client.database.get(`modlog-channel-${guild.id}`);
@@ -60,6 +61,7 @@ module.exports = new ApplicationCommand({
     },
 
     run: async (client, interaction) => {
+        const s     = getStrings(getLang(client.database, interaction.guild?.id)).mute;
         const sub   = interaction.options.getSubcommand();
         const guild = interaction.guild;
 
@@ -80,54 +82,54 @@ module.exports = new ApplicationCommand({
                 return interaction.reply({ content: '❌ Maximum timeout duration is **28 days**.', flags: MessageFlags.Ephemeral });
 
             if (target.id === interaction.user.id)
-                return interaction.reply({ content: '❌ You cannot mute yourself.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: s.cannot_self, flags: MessageFlags.Ephemeral });
 
             if (target.id === client.user.id)
-                return interaction.reply({ content: '❌ Cannot mute this bot.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: s.cannot_bot, flags: MessageFlags.Ephemeral });
 
             const member = guild.members.cache.get(target.id);
             if (!member)
                 return interaction.reply({ content: '❌ Member not found in this server.', flags: MessageFlags.Ephemeral });
 
             if (!member.moderatable)
-                return interaction.reply({ content: '❌ Bot cannot timeout this member (role too high).', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: s.role_too_high_bot, flags: MessageFlags.Ephemeral });
 
             const userHighest = interaction.member.roles.highest.position ?? 0;
             if (member.roles.highest.position >= userHighest)
-                return interaction.reply({ content: '❌ You cannot mute a member with a higher or equal role than yours.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: s.role_too_high_user, flags: MessageFlags.Ephemeral });
 
             const until = new Date(Date.now() + durationMs);
 
             try {
                 await member.timeout(durationMs, `${interaction.user.tag}: ${alasan}`);
             } catch {
-                return interaction.reply({ content: '❌ Failed to mute member. Check bot permissions.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: s.failed, flags: MessageFlags.Ephemeral });
             }
 
             // DM notification
             await target.send({
                 embeds: [new EmbedBuilder()
                     .setColor('#EB459E')
-                    .setTitle(`🔇 You have been muted in ${guild.name}`)
+                    .setTitle(s.dm_muted_title(guild.name))
                     .addFields(
-                        { name: '⏱️ Duration',   value: formatDuration(durationMs) },
-                        { name: '📅 Expires',    value: `<t:${Math.floor(until.getTime() / 1000)}:R>` },
-                        { name: '📝 Reason',     value: alasan },
-                        { name: '🛡️ Moderator', value: interaction.user.tag },
+                        { name: s.dm_field_duration, value: formatDuration(durationMs) },
+                        { name: s.dm_field_expires,  value: `<t:${Math.floor(until.getTime() / 1000)}:R>` },
+                        { name: s.dm_field_reason,   value: alasan },
+                        { name: s.dm_field_mod,      value: interaction.user.tag },
                     )
                     .setTimestamp()],
             }).catch(() => null);
 
             const embed = new EmbedBuilder()
                 .setColor('#EB459E')
-                .setTitle('🔇 Member Muted')
+                .setTitle(s.muted_title)
                 .setThumbnail(target.displayAvatarURL({ size: 64 }))
                 .addFields(
-                    { name: '👤 Member',     value: `${target} (${target.tag})`,                         inline: true },
-                    { name: '🛡️ Moderator', value: `${interaction.user}`,                               inline: true },
-                    { name: '⏱️ Duration',  value: formatDuration(durationMs),                          inline: true },
-                    { name: '📅 Expires',   value: `<t:${Math.floor(until.getTime() / 1000)}:R>`,       inline: true },
-                    { name: '📝 Reason',    value: alasan },
+                    { name: '👤 Member',        value: `${target} (${target.tag})`,                   inline: true },
+                    { name: '🛡️ Moderator',    value: `${interaction.user}`,                         inline: true },
+                    { name: s.field_duration,   value: formatDuration(durationMs),                    inline: true },
+                    { name: s.field_expires,    value: `<t:${Math.floor(until.getTime() / 1000)}:R>`, inline: true },
+                    { name: s.field_reason,     value: alasan },
                 )
                 .setTimestamp();
 
@@ -136,7 +138,7 @@ module.exports = new ApplicationCommand({
             return interaction.reply({
                 embeds: [new EmbedBuilder()
                     .setColor('#EB459E')
-                    .setDescription(`✅ **${target.tag}** has been muted for **${formatDuration(durationMs)}**.\n📝 Reason: ${alasan}`)],
+                    .setDescription(`${s.muted_desc(target.tag)}\n${s.field_reason}: ${alasan}`)],
                 flags: MessageFlags.Ephemeral,
             });
         }
@@ -151,34 +153,34 @@ module.exports = new ApplicationCommand({
                 return interaction.reply({ content: '❌ Member not found in this server.', flags: MessageFlags.Ephemeral });
 
             if (!member.communicationDisabledUntil || member.communicationDisabledUntil < new Date())
-                return interaction.reply({ content: `❌ **${target.tag}** is not currently muted.`, flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: s.not_muted, flags: MessageFlags.Ephemeral });
 
             try {
                 await member.timeout(null, `${interaction.user.tag}: ${alasan}`);
             } catch {
-                return interaction.reply({ content: '❌ Failed to unmute member. Check bot permissions.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: s.unmute_failed, flags: MessageFlags.Ephemeral });
             }
 
             // DM notification
             await target.send({
                 embeds: [new EmbedBuilder()
                     .setColor('#57F287')
-                    .setTitle(`🔊 Your mute in ${guild.name} has been removed`)
+                    .setTitle(s.dm_unmuted_title(guild.name))
                     .addFields(
-                        { name: '📝 Reason',     value: alasan },
-                        { name: '🛡️ Moderator', value: interaction.user.tag },
+                        { name: s.dm_field_reason, value: alasan },
+                        { name: s.dm_field_mod,    value: interaction.user.tag },
                     )
                     .setTimestamp()],
             }).catch(() => null);
 
             const embed = new EmbedBuilder()
                 .setColor('#57F287')
-                .setTitle('🔊 Member Unmuted')
+                .setTitle(s.unmuted_title)
                 .setThumbnail(target.displayAvatarURL({ size: 64 }))
                 .addFields(
-                    { name: '👤 Member',     value: `${target} (${target.tag})`, inline: true },
-                    { name: '🛡️ Moderator', value: `${interaction.user}`,       inline: true },
-                    { name: '📝 Reason',     value: alasan },
+                    { name: '👤 Member',    value: `${target} (${target.tag})`, inline: true },
+                    { name: '🛡️ Moderator', value: `${interaction.user}`,      inline: true },
+                    { name: s.field_reason, value: alasan },
                 )
                 .setTimestamp();
 
@@ -187,7 +189,7 @@ module.exports = new ApplicationCommand({
             return interaction.reply({
                 embeds: [new EmbedBuilder()
                     .setColor('#57F287')
-                    .setDescription(`✅ **${target.tag}** has been unmuted.\n📝 Reason: ${alasan}`)],
+                    .setDescription(`${s.unmuted_desc(target.tag)}\n${s.field_reason}: ${alasan}`)],
                 flags: MessageFlags.Ephemeral,
             });
         }

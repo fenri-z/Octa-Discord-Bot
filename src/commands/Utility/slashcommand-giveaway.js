@@ -3,6 +3,7 @@
 const { ChatInputCommandInteraction, EmbedBuilder, PermissionFlagsBits, MessageFlags } = require('discord.js');
 const DiscordBot         = require('../../client/DiscordBot');
 const ApplicationCommand = require('../../structure/ApplicationCommand');
+const { getLang, getStrings } = require('../../utils/BotLang');
 
 // ── Duration parser ────────────────────────────────────────────────────────────
 // Example: "1h30m", "2d", "30m", "1h", "7200" (seconds)
@@ -155,6 +156,7 @@ module.exports = new ApplicationCommand({
      * @param {DiscordBot} client
      */
     run: async (client, interaction) => {
+        const s       = getStrings(getLang(client.database, interaction.guild?.id)).giveaway;
         const sub     = interaction.options.getSubcommand();
         const manager = client.giveawayManager;
 
@@ -222,16 +224,16 @@ module.exports = new ApplicationCommand({
             const gw = manager._get(id);
 
             if (!gw || gw.guildId !== interaction.guildId) {
-                return interaction.reply({ content: '❌ Giveaway not found.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: s.not_found, flags: MessageFlags.Ephemeral });
             }
             if (gw.ended) {
-                return interaction.reply({ content: '❌ This giveaway has already ended.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: s.already_ended, flags: MessageFlags.Ephemeral });
             }
 
             await interaction.deferReply({ flags: MessageFlags.Ephemeral });
             try {
                 await manager.endGiveaway(id);
-                await interaction.editReply({ content: `✅ Giveaway **${gw.prize}** ended successfully!` });
+                await interaction.editReply({ content: s.ended(id) });
             } catch (err) {
                 await interaction.editReply({ content: `❌ Failed: ${err.message}` });
             }
@@ -244,7 +246,7 @@ module.exports = new ApplicationCommand({
             const gw = manager._get(id);
 
             if (!gw || gw.guildId !== interaction.guildId) {
-                return interaction.reply({ content: '❌ Giveaway not found.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: s.not_found, flags: MessageFlags.Ephemeral });
             }
             if (!gw.ended) {
                 return interaction.reply({ content: '❌ Giveaway has not ended yet.', flags: MessageFlags.Ephemeral });
@@ -259,7 +261,7 @@ module.exports = new ApplicationCommand({
                 const mention = winners.map(u => `<@${u.id}>`).join(', ');
                 await interaction.editReply({
                     content: winners.length
-                        ? `✅ Reroll complete! New winner(s): ${mention}`
+                        ? `${s.rerolled(id)}\n🏆 ${mention}`
                         : '⚠️ No eligible participants found.',
                 });
             } catch (err) {
