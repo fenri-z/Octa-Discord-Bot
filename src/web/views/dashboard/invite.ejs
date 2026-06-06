@@ -4,14 +4,14 @@
 <main class="page-container" style="text-align:center; padding-top:4rem">
     <div class="invite-card">
         <div style="font-size:4rem">🤖</div>
-        <h1>Bot Belum Ada di <%= guild.name %></h1>
-        <p>Undang OCTA BOT ke server ini untuk mulai mengatur settings.</p>
+        <h1><%= t('invite_page.title', { name: guild.name }) %></h1>
+        <p><%= t('invite_page.desc', { botName: locals.botNavName || 'Bot' }) %></p>
         <a href="https://discord.com/oauth2/authorize?client_id=<%= clientId %>&permissions=8&scope=bot+applications.commands&guild_id=<%= guild.id %>"
            target="_blank" class="btn btn-primary btn-lg">
-            Undang Bot ke Server Ini
+            <%= t('invite_page.invite_btn') %>
         </a>
         <br><br>
-        <a href="/dashboard" class="btn btn-outline">← Kembali</a>
+        <a href="/dashboard" class="btn btn-outline"><%= t('invite_page.back') %></a>
     </div>
 </main>
 

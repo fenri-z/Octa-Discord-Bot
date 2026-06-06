@@ -212,12 +212,12 @@
         <%- include('../partials/perm-notice') %>
         <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
             <div>
-                <h1>YouTube Notification</h1>
-                <p>Monitor YouTube channels and send automatic Discord notifications for new Videos, Shorts, or Live baru.</p>
+                <h1><%= t('youtube.page_title') %></h1>
+                <p><%= t('youtube.page_desc') %></p>
             </div>
             <% if (ytChannels.length > 0) { %>
-            <button class="btn btn-secondary" onclick="forcePoll(this)" style="flex-shrink:0;margin-top:.25rem;" title="Paksa cek video baru sekarang (tanpa menunggu 5 menit)">
-                <i data-lucide="refresh-cw" style="width:14px;height:14px;"></i> Poll Sekarang
+            <button class="btn btn-secondary" onclick="forcePoll(this)" style="flex-shrink:0;margin-top:.25rem;">
+                <i data-lucide="refresh-cw" style="width:14px;height:14px;"></i> <%= t('youtube.poll_now') %>
             </button>
             <% } %>
         </div>
@@ -229,28 +229,28 @@
                 <div class="stat-icon" style="color:#FF0000;"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></div>
                 <div class="stat-info">
                     <div class="stat-value" id="statChannels"><%= ytChannels.length %></div>
-                    <div class="stat-label">Channel Dipantau</div>
+                    <div class="stat-label"><%= t('youtube.stat_monitored') %></div>
                 </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon" style="color:#57F287;"><i data-lucide="video"></i></div>
                 <div class="stat-info">
                     <div class="stat-value"><%= ytChannels.filter(c => c.videoEnabled).length %></div>
-                    <div class="stat-label">Video Diaktifkan</div>
+                    <div class="stat-label"><%= t('youtube.stat_video_enabled') %></div>
                 </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon" style="color:#FF6B35;"><i data-lucide="film"></i></div>
                 <div class="stat-info">
                     <div class="stat-value"><%= ytChannels.filter(c => c.shortEnabled).length %></div>
-                    <div class="stat-label">Short Diaktifkan</div>
+                    <div class="stat-label"><%= t('youtube.stat_short_enabled') %></div>
                 </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon" style="color:#ED4245;"><i data-lucide="radio"></i></div>
                 <div class="stat-info">
                     <div class="stat-value"><%= ytChannels.filter(c => c.liveEnabled).length %></div>
-                    <div class="stat-label">Live Diaktifkan</div>
+                    <div class="stat-label"><%= t('youtube.stat_live_enabled') %></div>
                 </div>
             </div>
         </div>
@@ -260,19 +260,19 @@
         <div class="settings-card" style="margin-bottom:1.5rem;">
             <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:1rem;">
                 <i data-lucide="plus-circle" style="color:#FF0000;width:18px;height:18px;flex-shrink:0;"></i>
-                <h2 style="margin:0;font-size:1rem;font-weight:600;">Add YouTube Channel</h2>
+                <h2 style="margin:0;font-size:1rem;font-weight:600;"><%= t('youtube.add_title') %></h2>
             </div>
             <p style="font-size:.85rem;color:var(--text-muted);margin:0 0 1rem 0;">
-                Masukkan Channel ID, handle, atau URL YouTube. Sisa slot: <strong><%= maxChannels - ytChannels.length %></strong> dari <%= maxChannels %>.
+                <%- t('youtube.add_desc', { remaining: maxChannels - ytChannels.length, max: maxChannels }) %>
             </p>
             <div class="form-group" style="margin-bottom:0;">
-                <label class="label">Channel ID / Handle / URL YouTube</label>
+                <label class="label"><%= t('youtube.search_label') %></label>
                 <div class="yt-search-row" style="display:flex;gap:.6rem;">
                     <input type="text" id="ytLookupInput" class="input"
-                           placeholder="UCxxxxxx  atau  @namaChannel  atau  https://youtube.com/@namaChannel"
+                           placeholder="<%= t('youtube.input_placeholder') %>"
                            style="flex:1;min-width:0;" maxlength="200">
                     <button class="btn btn-primary" onclick="lookupYtChannel()" style="white-space:nowrap;flex-shrink:0;">
-                        <i data-lucide="search" style="width:14px;height:14px;"></i> Cari Channel
+                        <i data-lucide="search" style="width:14px;height:14px;"></i> <%= t('youtube.search_btn') %>
                     </button>
                 </div>
             </div>
@@ -287,7 +287,7 @@
                         <div id="ytLookupId" style="display:none;"></div>
                     </div>
                     <button class="btn btn-success" onclick="addYtChannel()" style="flex-shrink:0;">
-                        <i data-lucide="plus" style="width:14px;height:14px;"></i> Add
+                        <i data-lucide="plus" style="width:14px;height:14px;"></i> <%= t('youtube.add_btn') %>
                     </button>
                 </div>
             </div>
@@ -295,7 +295,7 @@
         <% } else { %>
         <div class="perm-card perm-warn" style="margin-bottom:1.5rem;">
             <i data-lucide="info"></i>
-            <span>Sudah mencapai batas maksimal <strong><%= maxChannels %> channel YouTube</strong> per server.</span>
+            <span><%- t('youtube.max_reached', { max: maxChannels }) %></span>
         </div>
         <% } %>
 
@@ -305,7 +305,7 @@
         <% if (ytChannels.length === 0) { %>
             <div class="settings-card" style="text-align:center;padding:3rem 1.5rem;">
                 <svg viewBox="0 0 24 24" fill="currentColor" style="width:48px;height:48px;color:#FF0000;opacity:.4;display:block;margin:0 auto .75rem;"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
-                <p style="color:var(--text-muted);margin:0;">No YouTube channels being monitored yet.</p>
+                <p style="color:var(--text-muted);margin:0;"><%= t('youtube.no_channels') %></p>
             </div>
         <% } else { %>
         <% ytChannels.forEach(function(ytCh) { %>
@@ -332,13 +332,13 @@
                         <%= ytCh.handle || ytCh.id %>
                     </div>
                 </div>
-                <a href="https://www.youtube.com/channel/<%= ytCh.id %>" target="_blank" class="btn btn-sm" style="flex-shrink:0;" title="Buka di YouTube">
+                <a href="https://www.youtube.com/channel/<%= ytCh.id %>" target="_blank" class="btn btn-sm" style="flex-shrink:0;" title="<%= t('youtube.btn_open_youtube') %>">
                     <i data-lucide="external-link" style="width:13px;height:13px;"></i>
                 </a>
-                <button class="btn btn-sm" onclick="resetLastVideo('<%= ytCh.id %>')" style="flex-shrink:0;" title="Reset last video position (usekan jika bot tidak mendeteksi video baru)">
+                <button class="btn btn-sm" onclick="resetLastVideo('<%= ytCh.id %>')" style="flex-shrink:0;" title="<%= t('youtube.btn_reset_position') %>">
                     <i data-lucide="rotate-ccw" style="width:13px;height:13px;"></i>
                 </button>
-                <button class="btn btn-sm btn-danger" data-id="<%= ytCh.id %>" data-name="<%= ytCh.name.replace(/"/g, '&quot;') %>" onclick="deleteYtChannel(this.dataset.id, this.dataset.name)" style="flex-shrink:0;" title="Hapus channel">
+                <button class="btn btn-sm btn-danger" data-id="<%= ytCh.id %>" data-name="<%= ytCh.name.replace(/"/g, '&quot;') %>" onclick="deleteYtChannel(this.dataset.id, this.dataset.name)" style="flex-shrink:0;" title="<%= t('youtube.btn_delete_channel') %>">
                     <i data-lucide="trash-2" style="width:13px;height:13px;"></i>
                 </button>
             </div>
@@ -347,15 +347,15 @@
             <div class="yt-tabs-row" style="margin-bottom:1.1rem;border-bottom:1px solid var(--border,rgba(255,255,255,.06));padding-bottom:.75rem;">
                 <button class="yt-tab-btn active" onclick="switchYtTab(this,'<%= ytCh.id %>','video')"
                         style="border-radius:20px;font-size:.82rem;font-weight:500;cursor:pointer;border:none;background:rgba(255,0,0,.18);color:#FF0000;transition:all .15s;">
-                    📹 Video
+                    <%= t('youtube.tab_video') %>
                 </button>
                 <button class="yt-tab-btn" onclick="switchYtTab(this,'<%= ytCh.id %>','short')"
                         style="border-radius:20px;font-size:.82rem;font-weight:500;cursor:pointer;border:none;background:transparent;color:var(--text-muted);transition:all .15s;">
-                    🎬 Short
+                    <%= t('youtube.tab_short') %>
                 </button>
                 <button class="yt-tab-btn" onclick="switchYtTab(this,'<%= ytCh.id %>','live')"
                         style="border-radius:20px;font-size:.82rem;font-weight:500;cursor:pointer;border:none;background:transparent;color:var(--text-muted);transition:all .15s;">
-                    🔴 Live
+                    <%= t('youtube.tab_live') %>
                 </button>
             </div>
 
@@ -369,14 +369,14 @@
                             <input type="checkbox" class="toggle-input" id="videoEnabled-<%= ytCh.id %>"
                                    <%= ytCh.videoEnabled ? 'checked' : '' %>>
                             <span class="toggle-slider"></span>
-                            <span>Enable Video notifications</span>
+                            <span><%= t('youtube.enable_video') %></span>
                         </label>
                     </div>
                     <div class="form-group">
-                        <label class="label">Channel Discord</label>
+                        <label class="label"><%= t('common.channel') %></label>
                         <select class="select" id="videoChannel-<%= ytCh.id %>"
                                 onchange="updateYtPreview('<%= ytCh.id %>','video')">
-                            <option value="">— Select channel —</option>
+                            <option value=""><%= t('common.select_channel') %></option>
                             <% channels.forEach(ch => { %>
                             <option value="<%= ch.id %>" <%= ytCh.videoChannelId === ch.id ? 'selected' : '' %>>#<%= ch.name %></option>
                             <% }) %>
@@ -384,28 +384,28 @@
                     </div>
                     <div class="form-group">
                         <div class="label-with-picker">
-                            <label class="label" style="margin-bottom:0;">Additional message <span style="font-weight:400;color:var(--text-muted);">(optional)</span></label>
+                            <label class="label" style="margin-bottom:0;"><%= t('youtube.additional_msg') %> <span style="font-weight:400;color:var(--text-muted);">(<%= t('giveaway.required_role_hint') %>)</span></label>
                             <div class="ph-picker-anchor">
-                                <button type="button" class="ph-toggle-btn" onclick="togglePicker('ytVideoPicker-<%= ytCh.id %>',event)">{…} Placeholder</button>
+                                <button type="button" class="ph-toggle-btn" onclick="togglePicker('ytVideoPicker-<%= ytCh.id %>',event)"><%= t('youtube.placeholder_btn') %></button>
                                 <div class="ph-dropdown" id="ytVideoPicker-<%= ytCh.id %>" style="display:none;"></div>
                             </div>
                         </div>
                         <textarea class="textarea" id="videoMessage-<%= ytCh.id %>" rows="3"
-                                  placeholder="Video baru dari {channel}: {title}&#10;{url}"
+                                  placeholder="<%- t('youtube.msg_ph_video') %>"
                                   oninput="updateYtPreview('<%= ytCh.id %>','video')"><%= ytCh.videoMessage %></textarea>
                     </div>
                     <div class="yt-action-row" style="display:flex;justify-content:flex-end;gap:.5rem;padding-top:.25rem;">
-                        <button class="btn btn-secondary" onclick="testYtNotif(this,'<%= ytCh.id %>')" title="Kirim test notifikasi ke Discord">
-                            <i data-lucide="send" style="width:14px;height:14px;"></i> Test Notif
+                        <button class="btn btn-secondary" onclick="testYtNotif(this,'<%= ytCh.id %>')">
+                            <i data-lucide="send" style="width:14px;height:14px;"></i> <%= t('youtube.test_notif_btn') %>
                         </button>
                         <button class="btn btn-primary" onclick="saveYtSettings('<%= ytCh.id %>')">
-                            <i data-lucide="save" style="width:14px;height:14px;"></i> Save
+                            <i data-lucide="save" style="width:14px;height:14px;"></i> <%= t('common.save') %>
                         </button>
                     </div>
                 </div>
                 <!-- Preview -->
                 <div class="yt-preview-col">
-                    <div class="preview-label">Preview</div>
+                    <div class="preview-label"><%= t('common.preview') %></div>
                     <%- include('../partials/yt-preview-mock', { ytCh, type: 'video', botNavAvatar: locals.botNavAvatar, botNavName: locals.botNavName }) %>
                 </div>
             </div>
@@ -420,14 +420,14 @@
                             <input type="checkbox" class="toggle-input" id="shortEnabled-<%= ytCh.id %>"
                                    <%= ytCh.shortEnabled ? 'checked' : '' %>>
                             <span class="toggle-slider"></span>
-                            <span>Enable Short notifications</span>
+                            <span><%= t('youtube.enable_short') %></span>
                         </label>
                     </div>
                     <div class="form-group">
-                        <label class="label">Channel Discord</label>
+                        <label class="label"><%= t('common.channel') %></label>
                         <select class="select" id="shortChannel-<%= ytCh.id %>"
                                 onchange="updateYtPreview('<%= ytCh.id %>','short')">
-                            <option value="">— Select channel —</option>
+                            <option value=""><%= t('common.select_channel') %></option>
                             <% channels.forEach(ch => { %>
                             <option value="<%= ch.id %>" <%= ytCh.shortChannelId === ch.id ? 'selected' : '' %>>#<%= ch.name %></option>
                             <% }) %>
@@ -435,27 +435,27 @@
                     </div>
                     <div class="form-group">
                         <div class="label-with-picker">
-                            <label class="label" style="margin-bottom:0;">Additional message <span style="font-weight:400;color:var(--text-muted);">(optional)</span></label>
+                            <label class="label" style="margin-bottom:0;"><%= t('youtube.additional_msg') %> <span style="font-weight:400;color:var(--text-muted);">(<%= t('giveaway.required_role_hint') %>)</span></label>
                             <div class="ph-picker-anchor">
-                                <button type="button" class="ph-toggle-btn" onclick="togglePicker('ytShortPicker-<%= ytCh.id %>',event)">{…} Placeholder</button>
+                                <button type="button" class="ph-toggle-btn" onclick="togglePicker('ytShortPicker-<%= ytCh.id %>',event)"><%= t('youtube.placeholder_btn') %></button>
                                 <div class="ph-dropdown" id="ytShortPicker-<%= ytCh.id %>" style="display:none;"></div>
                             </div>
                         </div>
                         <textarea class="textarea" id="shortMessage-<%= ytCh.id %>" rows="3"
-                                  placeholder="Short baru dari {channel}: {title}&#10;{url}"
+                                  placeholder="<%- t('youtube.msg_ph_short') %>"
                                   oninput="updateYtPreview('<%= ytCh.id %>','short')"><%= ytCh.shortMessage %></textarea>
                     </div>
                     <div class="yt-action-row" style="display:flex;justify-content:flex-end;gap:.5rem;padding-top:.25rem;">
-                        <button class="btn btn-secondary" onclick="testYtNotif(this,'<%= ytCh.id %>')" title="Kirim test notifikasi ke Discord">
-                            <i data-lucide="send" style="width:14px;height:14px;"></i> Test Notif
+                        <button class="btn btn-secondary" onclick="testYtNotif(this,'<%= ytCh.id %>')">
+                            <i data-lucide="send" style="width:14px;height:14px;"></i> <%= t('youtube.test_notif_btn') %>
                         </button>
                         <button class="btn btn-primary" onclick="saveYtSettings('<%= ytCh.id %>')">
-                            <i data-lucide="save" style="width:14px;height:14px;"></i> Save
+                            <i data-lucide="save" style="width:14px;height:14px;"></i> <%= t('common.save') %>
                         </button>
                     </div>
                 </div>
                 <div class="yt-preview-col">
-                    <div class="preview-label">Preview</div>
+                    <div class="preview-label"><%= t('common.preview') %></div>
                     <%- include('../partials/yt-preview-mock', { ytCh, type: 'short', botNavAvatar: locals.botNavAvatar, botNavName: locals.botNavName }) %>
                 </div>
             </div>
@@ -470,14 +470,14 @@
                             <input type="checkbox" class="toggle-input" id="liveEnabled-<%= ytCh.id %>"
                                    <%= ytCh.liveEnabled ? 'checked' : '' %>>
                             <span class="toggle-slider"></span>
-                            <span>Enable Live notifications</span>
+                            <span><%= t('youtube.enable_live') %></span>
                         </label>
                     </div>
                     <div class="form-group">
-                        <label class="label">Channel Discord</label>
+                        <label class="label"><%= t('common.channel') %></label>
                         <select class="select" id="liveChannel-<%= ytCh.id %>"
                                 onchange="updateYtPreview('<%= ytCh.id %>','live')">
-                            <option value="">— Select channel —</option>
+                            <option value=""><%= t('common.select_channel') %></option>
                             <% channels.forEach(ch => { %>
                             <option value="<%= ch.id %>" <%= ytCh.liveChannelId === ch.id ? 'selected' : '' %>>#<%= ch.name %></option>
                             <% }) %>
@@ -485,27 +485,27 @@
                     </div>
                     <div class="form-group">
                         <div class="label-with-picker">
-                            <label class="label" style="margin-bottom:0;">Additional message <span style="font-weight:400;color:var(--text-muted);">(optional)</span></label>
+                            <label class="label" style="margin-bottom:0;"><%= t('youtube.additional_msg') %> <span style="font-weight:400;color:var(--text-muted);">(<%= t('giveaway.required_role_hint') %>)</span></label>
                             <div class="ph-picker-anchor">
-                                <button type="button" class="ph-toggle-btn" onclick="togglePicker('ytLivePicker-<%= ytCh.id %>',event)">{…} Placeholder</button>
+                                <button type="button" class="ph-toggle-btn" onclick="togglePicker('ytLivePicker-<%= ytCh.id %>',event)"><%= t('youtube.placeholder_btn') %></button>
                                 <div class="ph-dropdown" id="ytLivePicker-<%= ytCh.id %>" style="display:none;"></div>
                             </div>
                         </div>
                         <textarea class="textarea" id="liveMessage-<%= ytCh.id %>" rows="3"
-                                  placeholder="{channel} is LIVE! {title}&#10;{url}"
+                                  placeholder="<%- t('youtube.msg_ph_live') %>"
                                   oninput="updateYtPreview('<%= ytCh.id %>','live')"><%= ytCh.liveMessage %></textarea>
                     </div>
                     <div class="yt-action-row" style="display:flex;justify-content:flex-end;gap:.5rem;padding-top:.25rem;">
-                        <button class="btn btn-secondary" onclick="testYtNotif(this,'<%= ytCh.id %>')" title="Kirim test notifikasi ke Discord">
-                            <i data-lucide="send" style="width:14px;height:14px;"></i> Test Notif
+                        <button class="btn btn-secondary" onclick="testYtNotif(this,'<%= ytCh.id %>')">
+                            <i data-lucide="send" style="width:14px;height:14px;"></i> <%= t('youtube.test_notif_btn') %>
                         </button>
                         <button class="btn btn-primary" onclick="saveYtSettings('<%= ytCh.id %>')">
-                            <i data-lucide="save" style="width:14px;height:14px;"></i> Save
+                            <i data-lucide="save" style="width:14px;height:14px;"></i> <%= t('common.save') %>
                         </button>
                     </div>
                 </div>
                 <div class="yt-preview-col">
-                    <div class="preview-label">Preview</div>
+                    <div class="preview-label"><%= t('common.preview') %></div>
                     <%- include('../partials/yt-preview-mock', { ytCh, type: 'live', botNavAvatar: locals.botNavAvatar, botNavName: locals.botNavName }) %>
                 </div>
             </div>
@@ -524,14 +524,27 @@
 <%- include('../partials/footer') %>
 
 <script>
-const GUILD_ID = '<%= guild.id %>';
+const GUILD_ID               = '<%= guild.id %>';
+const I18N_YT_CONFIRM_DELETE = '<%= t("youtube.confirm_delete") %>';
+const I18N_YT_CONFIRM_RESET  = '<%= t("youtube.confirm_reset") %>';
+const I18N_YT_ERR_INPUT      = '<%= t("youtube.err_enter_input") %>';
+const I18N_YT_ERR_CONN       = '<%= t("youtube.err_connection") %>';
+const I18N_YT_SENDING        = '<%= t("youtube.sending") %>';
+const I18N_YT_POLLING        = '<%= t("youtube.polling") %>';
+const I18N_YT_DEF_VIDEO      = '<%- t("youtube.default_video_desc") %>';
+const I18N_YT_DEF_SHORT      = '<%- t("youtube.default_short_desc") %>';
+const I18N_YT_DEF_LIVE       = '<%- t("youtube.default_live_desc") %>';
+const I18N_YT_PH_CHANNEL     = '<%= t("youtube.ph_channel_desc") %>';
+const I18N_YT_PH_TITLE       = '<%= t("youtube.ph_title_desc") %>';
+const I18N_YT_PH_URL         = '<%= t("youtube.ph_url_desc") %>';
+const I18N_YT_PH_ID          = '<%= t("youtube.ph_id_desc") %>';
 
 // ── Lookup & Tambah Channel ────────────────────────────────────────────────────
 let _lookupData = null;
 
 async function lookupYtChannel() {
     const input = document.getElementById('ytLookupInput').value.trim();
-    if (!input) return showMsg(null, 'Masukkan Channel ID atau handle YouTube.', 'error');
+    if (!input) return showMsg(null, I18N_YT_ERR_INPUT, 'error');
 
     const resultEl = document.getElementById('ytLookupResult');
     resultEl.style.display = 'none';
@@ -555,7 +568,7 @@ async function lookupYtChannel() {
         resultEl.style.display = '';
         if (window.lucide) lucide.createIcons();
     } catch {
-        showMsg(null, 'Gagal terhubung ke server.', 'error');
+        showMsg(null, I18N_YT_ERR_CONN, 'error');
     }
 }
 
@@ -575,7 +588,7 @@ async function addYtChannel() {
             showMsg(null, data.message, 'error');
         }
     } catch {
-        showMsg(null, 'Gagal terhubung ke server.', 'error');
+        showMsg(null, I18N_YT_ERR_CONN, 'error');
     }
 }
 
@@ -649,9 +662,9 @@ function updateYtPreview(chId, type) {
     const rawMsg    = msgArea?.value?.trim() || '';
 
     const defaultDescs = {
-        video: `Hey, <strong>${ytChName}</strong> just uploaded a new video on YouTube!<br>Don't miss it, watch now! 🎉`,
-        short: `<strong>${ytChName}</strong> just posted a new Short!<br>Check out their quick video, don't miss out! ⚡`,
-        live:  `Hey, <strong>${ytChName}</strong> is <strong>LIVE</strong> on YouTube right now!<br>Come join and watch the stream~ 🎉`,
+        video: I18N_YT_DEF_VIDEO.replace('{ytChName}', ytChName),
+        short: I18N_YT_DEF_SHORT.replace('{ytChName}', ytChName),
+        live:  I18N_YT_DEF_LIVE.replace('{ytChName}', ytChName),
     };
 
     if (rawMsg) {
@@ -688,7 +701,7 @@ async function testYtNotif(btn, chId) {
 
     const orig = btn.innerHTML;
     btn.disabled = true;
-    btn.innerHTML = '<i data-lucide="loader" style="width:13px;height:13px;"></i> Mengirim...';
+    btn.innerHTML = `<i data-lucide="loader" style="width:13px;height:13px;"></i> ${I18N_YT_SENDING}`;
     if (window.lucide) lucide.createIcons();
 
     try {
@@ -700,7 +713,7 @@ async function testYtNotif(btn, chId) {
         const data = await r.json();
         showMsg(null, data.message, data.success ? 'success' : 'error');
     } catch {
-        showMsg(null, 'Gagal terhubung ke server.', 'error');
+        showMsg(null, I18N_YT_ERR_CONN, 'error');
     } finally {
         btn.disabled  = false;
         btn.innerHTML = orig;
@@ -739,13 +752,13 @@ async function saveYtSettings(chId) {
         const data = await r.json();
         showMsg(null, data.message, data.success ? 'success' : 'error');
     } catch {
-        showMsg(null, 'Gagal terhubung ke server.', 'error');
+        showMsg(null, I18N_YT_ERR_CONN, 'error');
     }
 }
 
 // ── Delete channel ─────────────────────────────────────────────────────────────
 async function deleteYtChannel(chId, chName) {
-    if (!confirm(`Remove channel "${chName}" from monitoring?\nAll notification settings for it will also be deleted.`)) return;
+    if (!confirm(I18N_YT_CONFIRM_DELETE.replace('{{name}}', chName))) return;
     try {
         const r    = await fetch(`/api/guild/${GUILD_ID}/youtube/channels/${chId}`, { method: 'DELETE' });
         const data = await r.json();
@@ -760,16 +773,16 @@ async function deleteYtChannel(chId, chName) {
             showMsg(null, data.message, 'error');
         }
     } catch {
-        showMsg(null, 'Gagal terhubung ke server.', 'error');
+        showMsg(null, I18N_YT_ERR_CONN, 'error');
     }
 }
 
 // ── Placeholder picker ─────────────────────────────────────────────────────────
 const YT_PLACEHOLDERS = [
-    { key: '{channel}', desc: 'Nama channel YouTube' },
-    { key: '{title}',   desc: 'Title of video / short / live' },
-    { key: '{url}',     desc: 'Link video' },
-    { key: '{id}',      desc: 'Video ID' },
+    { key: '{channel}', desc: I18N_YT_PH_CHANNEL },
+    { key: '{title}',   desc: I18N_YT_PH_TITLE },
+    { key: '{url}',     desc: I18N_YT_PH_URL },
+    { key: '{id}',      desc: I18N_YT_PH_ID },
 ];
 document.querySelectorAll('.ph-dropdown[id^="ytVideo"], .ph-dropdown[id^="ytShort"], .ph-dropdown[id^="ytLive"]').forEach(dd => {
     // Tentukan tipe dari prefix ID: ytVideoPicker-* | ytShortPicker-* | ytLivePicker-*
@@ -803,7 +816,7 @@ document.querySelectorAll('.ph-dropdown[id^="ytVideo"], .ph-dropdown[id^="ytShor
 async function forcePoll(btn) {
     const orig = btn.innerHTML;
     btn.disabled = true;
-    btn.innerHTML = '<i data-lucide="loader" style="width:13px;height:13px;"></i> Polling...';
+    btn.innerHTML = `<i data-lucide="loader" style="width:13px;height:13px;"></i> ${I18N_YT_POLLING}`;
     if (window.lucide) lucide.createIcons();
     try {
         const r    = await fetch(`/api/guild/${GUILD_ID}/youtube/force-poll`, { method: 'POST' });
@@ -811,7 +824,7 @@ async function forcePoll(btn) {
         showMsg(null, data.message, data.success ? 'success' : 'error');
         if (data.success) setTimeout(() => location.reload(), 1500);
     } catch {
-        showMsg(null, 'Gagal terhubung ke server.', 'error');
+        showMsg(null, I18N_YT_ERR_CONN, 'error');
     } finally {
         btn.disabled  = false;
         btn.innerHTML = orig;
@@ -821,13 +834,13 @@ async function forcePoll(btn) {
 
 // ── Reset Last Video ───────────────────────────────────────────────────────────
 async function resetLastVideo(chId) {
-    if (!confirm('Reset last video position?\n\nThe next poll will treat the current latest video as "already sent" and only notify for newer videos.')) return;
+    if (!confirm(I18N_YT_CONFIRM_RESET)) return;
     try {
         const r    = await fetch(`/api/guild/${GUILD_ID}/youtube/channels/${chId}/reset`, { method: 'POST' });
         const data = await r.json();
         showMsg(null, data.message, data.success ? 'success' : 'error');
     } catch {
-        showMsg(null, 'Gagal terhubung ke server.', 'error');
+        showMsg(null, I18N_YT_ERR_CONN, 'error');
     }
 }
 

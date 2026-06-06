@@ -8,8 +8,8 @@
     <div class="dash-content-wide">
         <%- include('../partials/perm-notice') %>
         <div class="page-header">
-            <h1>Server Stats</h1>
-            <p>Automatically display server member statistics via voice channels.</p>
+            <h1><%= t('serverstats.page_title') %></h1>
+            <p><%= t('serverstats.page_desc') %></p>
         </div>
 
         <!-- ── Stats Overview ──────────────────────────────────────────── -->
@@ -18,42 +18,42 @@
                 <div class="stat-icon"><i data-lucide="users"></i></div>
                 <div class="stat-info">
                     <div class="stat-value"><%= totalCount %></div>
-                    <div class="stat-label">Total Member</div>
+                    <div class="stat-label"><%= t('serverstats.total_member') %></div>
                 </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon" style="color:#57F287;"><i data-lucide="user"></i></div>
                 <div class="stat-info">
                     <div class="stat-value"><%= humanCount %></div>
-                    <div class="stat-label">User</div>
+                    <div class="stat-label"><%= t('serverstats.user_label') %></div>
                 </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon" style="color:#5865F2;"><i data-lucide="bot"></i></div>
                 <div class="stat-info">
                     <div class="stat-value"><%= botCount %></div>
-                    <div class="stat-label">Bot</div>
+                    <div class="stat-label"><%= t('serverstats.bot_label') %></div>
                 </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon" style="color:<%= serverstatsData.enabled ? '#57F287' : '#ED4245' %>;"><i data-lucide="<%= serverstatsData.enabled ? 'check-circle' : 'x-circle' %>"></i></div>
                 <div class="stat-info">
-                    <div class="stat-value" style="font-size:1rem;color:<%= serverstatsData.enabled ? '#57F287' : '#ED4245' %>"><%= serverstatsData.enabled ? 'Aktif' : 'Nonaktif' %></div>
-                    <div class="stat-label">Status</div>
+                    <div class="stat-value" style="font-size:1rem;color:<%= serverstatsData.enabled ? '#57F287' : '#ED4245' %>"><%= serverstatsData.enabled ? t('serverstats.status_active') : t('serverstats.status_inactive') %></div>
+                    <div class="stat-label"><%= t('serverstats.status_label') %></div>
                 </div>
             </div>
         </div>
 
         <!-- ── Status Toggle ───────────────────────────────────────────── -->
         <div class="settings-card">
-            <h2>Status Server Stats</h2>
-            <p class="section-desc" style="margin-bottom:1rem;">Enable to automatically update voice channels when a member joins or leaves.</p>
+            <h2><%= t('serverstats.status_title') %></h2>
+            <p class="section-desc" style="margin-bottom:1rem;"><%= t('serverstats.status_desc') %></p>
             <div class="form-group">
                 <label class="toggle-label">
                     <input type="checkbox" id="ssEnabled" class="toggle-input" <%= serverstatsData.enabled ? 'checked' : '' %>
-                           <% if (!serverstatsData.categoryId || !serverstatsData.totalId) { %>disabled title="Lakukan Setup terlebih dahulu"<% } %>>
+                           <% if (!serverstatsData.categoryId || !serverstatsData.totalId) { %>disabled title="<%= t('serverstats.setup_first') %>"<% } %>>
                     <span class="toggle-slider"></span>
-                    <span>Enable Server Stats</span>
+                    <span><%= t('serverstats.enable_toggle') %></span>
                 </label>
             </div>
             <div id="statusMsg" class="form-message"></div>
@@ -62,11 +62,11 @@
         <% if (serverstatsData.categoryId && serverstatsData.totalId && serverstatsData.humanId && serverstatsData.botId) { %>
         <!-- ── Label Format ────────────────────────────────────────────── -->
         <div class="settings-card">
-            <h2>Format Label Channel</h2>
-            <p class="section-desc">Gunakan <code>{count}</code> sebagai placeholder angka. Maksimal 90 karakter per label.</p>
+            <h2><%= t('serverstats.label_format_title') %></h2>
+            <p class="section-desc"><%- t('serverstats.label_format_desc') %></p>
 
             <div class="form-group" style="margin-top:1.25rem;">
-                <label class="label">Category Name</label>
+                <label class="label"><%= t('serverstats.category_name') %></label>
                 <input type="text" id="lblCategory" class="input" maxlength="90"
                        value="<%= serverstatsData.categoryLabel %>" placeholder="📊 Server Stats">
                 <div style="font-size:.78rem;color:var(--text-muted);margin-top:.3rem;">
@@ -75,7 +75,7 @@
             </div>
 
             <div class="form-group">
-                <label class="label">Total Members Format</label>
+                <label class="label"><%= t('serverstats.total_format') %></label>
                 <input type="text" id="lblTotal" class="input" maxlength="90"
                        value="<%= serverstatsData.totalLabel %>" placeholder="👥 Total Member: {count}">
                 <div style="font-size:.78rem;color:var(--text-muted);margin-top:.3rem;">
@@ -84,7 +84,7 @@
             </div>
 
             <div class="form-group">
-                <label class="label">Users Format</label>
+                <label class="label"><%= t('serverstats.users_format') %></label>
                 <input type="text" id="lblHuman" class="input" maxlength="90"
                        value="<%= serverstatsData.humanLabel %>" placeholder="👤 User: {count}">
                 <div style="font-size:.78rem;color:var(--text-muted);margin-top:.3rem;">
@@ -93,7 +93,7 @@
             </div>
 
             <div class="form-group">
-                <label class="label">Bots Format</label>
+                <label class="label"><%= t('serverstats.bots_format') %></label>
                 <input type="text" id="lblBot" class="input" maxlength="90"
                        value="<%= serverstatsData.botLabel %>" placeholder="🤖 Bot: {count}">
                 <div style="font-size:.78rem;color:var(--text-muted);margin-top:.3rem;">
@@ -102,38 +102,37 @@
             </div>
 
             <div class="form-row" style="gap:.75rem;margin-top:.5rem;">
-                <button class="btn btn-primary" onclick="saveLabels('<%= guild.id %>')">Save Labels</button>
+                <button class="btn btn-primary" onclick="saveLabels('<%= guild.id %>')"><%= t('common.save') %></button>
             </div>
             <div id="labelsMsg" class="form-message"></div>
         </div>
 
         <!-- ── Danger Zone ─────────────────────────────────────────────── -->
         <div class="settings-card" style="border:1px solid rgba(237,66,69,.3);">
-            <h2 style="color:#ED4245;">Reset Server Stats</h2>
-            <p class="section-desc" style="margin-bottom:1.25rem;">Deletes all configuration <strong>and</strong> removes the category &amp; stats channels created by the bot.</p>
+            <h2 style="color:#ED4245;"><%= t('serverstats.reset_title') %></h2>
+            <p class="section-desc" style="margin-bottom:1.25rem;"><%- t('serverstats.reset_desc') %></p>
             <button class="btn" style="background:#ED4245;color:#fff;" onclick="openResetModal('<%= guild.id %>')">
-                <i data-lucide="trash-2"></i> Reset Server Stats
+                <i data-lucide="trash-2"></i> <%= t('serverstats.reset_btn') %>
             </button>
         </div>
 
         <% } else { %>
         <!-- ── Setup ───────────────────────────────────────────────────── -->
         <div class="settings-card">
-            <h2>Setup Server Stats</h2>
-            <p class="section-desc" style="margin-bottom:1.25rem;">Server Stats is not set up. Click the button below to create the category and stats channels.</p>
+            <h2><%= t('serverstats.setup_title') %></h2>
+            <p class="section-desc" style="margin-bottom:1.25rem;"><%= t('serverstats.setup_desc') %></p>
             <div style="background:rgba(88,101,242,.08);border:1px solid rgba(88,101,242,.25);border-radius:8px;padding:.9rem 1rem;margin-bottom:1.2rem;">
                 <div style="font-size:.85rem;color:var(--text-secondary);line-height:1.6;">
-                    <strong style="color:#5865F2;">Yang akan dibuat:</strong><br>
-                    📁 1 Category &nbsp;·&nbsp; 👥 Total Members Channel &nbsp;·&nbsp; 👤 Users Channel &nbsp;·&nbsp; 🤖 Bhannel Bot
+                    <%- t('serverstats.setup_will_create') %>
                 </div>
             </div>
             <div class="form-group">
-                <label class="label">Category Name <span style="color:var(--text-muted);font-weight:400;">(optional)</span></label>
+                <label class="label"><%= t('serverstats.category_name') %> <span style="color:var(--text-muted);font-weight:400;"><%= t('giveaway.required_role_hint') %></span></label>
                 <input type="text" id="setupCategoryName" class="input" maxlength="90"
                        placeholder="📊 Server Stats" style="max-width:320px;">
             </div>
             <div class="form-row">
-                <button class="btn btn-primary" onclick="doSetup('<%= guild.id %>')">+ Create Stats Channels</button>
+                <button class="btn btn-primary" onclick="doSetup('<%= guild.id %>')"><%= t('serverstats.setup_btn') %></button>
             </div>
             <div id="setupMsg" class="form-message"></div>
         </div>
@@ -147,13 +146,13 @@
 <!-- ── Reset Confirmation Modal ───────────────────────────────────────── -->
 <div id="resetModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.6);align-items:center;justify-content:center;">
     <div style="background:var(--bg-2,#2b2d31);border-radius:12px;padding:1.75rem 2rem;max-width:420px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,.4);">
-        <h3 style="margin:0 0 .6rem;color:#ED4245;display:flex;align-items:center;gap:.5rem;"><i data-lucide="alert-triangle"></i> Konfirmasi Reset</h3>
-        <p style="color:var(--text-secondary);font-size:.9rem;margin:0 0 1.25rem;">This action will <strong>permanently delete</strong> all stats channels created by the bot.</p>
+        <h3 style="margin:0 0 .6rem;color:#ED4245;display:flex;align-items:center;gap:.5rem;"><i data-lucide="alert-triangle"></i> <%= t('serverstats.confirm_reset_title') %></h3>
+        <p style="color:var(--text-secondary);font-size:.9rem;margin:0 0 1.25rem;"><%- t('serverstats.confirm_reset_desc') %></p>
         <div style="display:flex;gap:.75rem;">
             <button class="btn" style="background:#ED4245;color:#fff;flex:1;" id="resetConfirmBtn" onclick="confirmReset()">
-                <i data-lucide="trash-2"></i> Yes, Delete All
+                <i data-lucide="trash-2"></i> <%= t('serverstats.confirm_yes') %>
             </button>
-            <button class="btn" style="background:var(--bg-3);color:var(--text-secondary);flex:1;" onclick="closeResetModal()">Batal</button>
+            <button class="btn" style="background:var(--bg-3);color:var(--text-secondary);flex:1;" onclick="closeResetModal()"><%= t('serverstats.confirm_cancel') %></button>
         </div>
         <div id="resetMsg" class="form-message" style="margin-top:.75rem;"></div>
     </div>

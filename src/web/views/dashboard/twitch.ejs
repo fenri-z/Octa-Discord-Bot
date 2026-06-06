@@ -158,8 +158,8 @@
         <!-- Header -->
         <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
             <div>
-                <h1>Twitch Notification</h1>
-                <p>Monitor Twitch streamers and automatically send notifications to Discord when they go Live.</p>
+                <h1><%= t('twitch.page_title') %></h1>
+                <p><%= t('twitch.page_desc') %></p>
             </div>
         </div>
 
@@ -190,7 +190,7 @@
                 </div>
                 <div class="stat-info">
                     <div class="stat-value" id="statAccounts"><%= twAccounts.length %></div>
-                    <div class="stat-label">Streamer Dipantau</div>
+                    <div class="stat-label"><%= t('twitch.stat_monitored') %></div>
                 </div>
             </div>
             <div class="stat-card">
@@ -199,7 +199,7 @@
                 </div>
                 <div class="stat-info">
                     <div class="stat-value"><%= twAccounts.filter(a => a.enabled).length %></div>
-                    <div class="stat-label">Active Notifications</div>
+                    <div class="stat-label"><%= t('twitch.stat_active') %></div>
                 </div>
             </div>
             <div class="stat-card">
@@ -208,7 +208,7 @@
                 </div>
                 <div class="stat-info">
                     <div class="stat-value"><%= maxAccounts - twAccounts.length %></div>
-                    <div class="stat-label">Slot Tersisa</div>
+                    <div class="stat-label"><%= t('twitch.stat_slots') %></div>
                 </div>
             </div>
         </div>
@@ -218,13 +218,13 @@
         <div class="settings-card" style="margin-bottom:1.5rem;">
             <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:1rem;">
                 <i data-lucide="plus-circle" style="color:#9146FF;width:18px;height:18px;flex-shrink:0;"></i>
-                <h2 style="margin:0;font-size:1rem;font-weight:600;">Add Twitch Streamer</h2>
+                <h2 style="margin:0;font-size:1rem;font-weight:600;"><%= t('twitch.add_title') %></h2>
             </div>
             <p style="font-size:.85rem;color:var(--text-muted);margin:0 0 1rem 0;">
-                Masukkan username atau URL Twitch. Sisa slot: <strong><%= maxAccounts - twAccounts.length %></strong> dari <%= maxAccounts %>.
+                <%- t('twitch.add_desc', { remaining: maxAccounts - twAccounts.length, max: maxAccounts }) %>
             </p>
             <div class="form-group" style="margin-bottom:0;">
-                <label class="label">Username / URL Twitch</label>
+                <label class="label"><%= t('twitch.search_label') %></label>
                 <div class="tw-search-row" style="display:flex;gap:.6rem;">
                     <input type="text" id="twLookupInput" class="input"
                            placeholder="username  atau  https://twitch.tv/username"
@@ -233,7 +233,7 @@
                     <button class="btn btn-primary" onclick="lookupTwitch()" id="twLookupBtn"
                             style="white-space:nowrap;flex-shrink:0;<% if (!isConfigured) { %>opacity:.5;cursor:not-allowed;<% } %>"
                             <%= !isConfigured ? 'disabled' : '' %>>
-                        <i data-lucide="search" style="width:14px;height:14px;"></i> Cari
+                        <i data-lucide="search" style="width:14px;height:14px;"></i> <%= t('twitch.search_btn') %>
                     </button>
                 </div>
             </div>
@@ -246,7 +246,7 @@
                         <span id="twStatusText" style="font-size:.83rem;color:#9146FF;font-weight:600;"></span>
                         <span class="tw-dot-row"><span></span><span></span><span></span></span>
                     </div>
-                    <div style="font-size:.74rem;color:var(--text-muted);margin-top:.15rem;">Mohon tunggu sebentar</div>
+                    <div style="font-size:.74rem;color:var(--text-muted);margin-top:.15rem;"><%= t('twitch.searching_wait') %></div>
                 </div>
             </div>
 
@@ -284,7 +284,7 @@
         <% } else { %>
         <div class="perm-card perm-warn" style="margin-bottom:1.5rem;">
             <i data-lucide="info"></i>
-            <span>Sudah mencapai batas maksimal <strong><%= maxAccounts %> streamer Twitch</strong> per server.</span>
+            <span><%- t('twitch.max_reached', { max: maxAccounts }) %></span>
         </div>
         <% } %>
 
@@ -293,7 +293,7 @@
         <% if (twAccounts.length === 0) { %>
             <div class="settings-card" style="text-align:center;padding:3rem 1.5rem;">
                 <svg viewBox="0 0 24 24" fill="currentColor" style="width:48px;height:48px;color:#9146FF;opacity:.4;display:block;margin:0 auto .75rem;"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"/></svg>
-                <p style="color:var(--text-muted);margin:0;">No Twitch streamers being monitored yet.</p>
+                <p style="color:var(--text-muted);margin:0;"><%= t('twitch.no_streamers') %></p>
             </div>
         <% } else { %>
         <% twAccounts.forEach(function(acc) { %>
@@ -340,13 +340,13 @@
                                    <%= acc.enabled ? 'checked' : '' %>
                                    onchange="updatePreview('<%= acc.userId %>')">
                             <span class="toggle-slider"></span>
-                            <span>Enable Live notifications</span>
+                            <span><%= t('twitch.enable_live') %></span>
                         </label>
                     </div>
                     <div class="form-group">
-                        <label class="label">Channel Discord</label>
+                        <label class="label"><%= t('common.channel') %></label>
                         <select class="select" id="twChannel-<%= acc.userId %>" onchange="updatePreview('<%= acc.userId %>')">
-                            <option value="">— Select channel —</option>
+                            <option value=""><%= t('common.select_channel') %></option>
                             <% (locals.channels||[]).forEach(ch => { %>
                             <option value="<%= ch.id %>" <%= acc.channelId===ch.id?'selected':'' %>>#<%= ch.name %></option>
                             <% }) %>
@@ -354,7 +354,7 @@
                     </div>
                     <div class="form-group" style="margin-bottom:0;">
                         <div class="label-with-picker">
-                            <label class="label" style="margin-bottom:0;">Custom message <span style="font-weight:400;color:var(--text-muted);">(optional)</span></label>
+                            <label class="label" style="margin-bottom:0;"><%= t('twitch.custom_msg_label') %> <span style="font-weight:400;color:var(--text-muted);">(<%= t('common.footer_optional') %>)</span></label>
                             <div class="ph-picker-anchor">
                                 <button type="button" class="ph-toggle-btn" onclick="togglePicker('twPicker-<%= acc.userId %>',event)">{…} Placeholder</button>
                                 <div class="ph-dropdown" id="twPicker-<%= acc.userId %>" style="display:none;"></div>
@@ -370,10 +370,10 @@
                     <!-- Tombol aksi -->
                     <div class="tw-action-row" style="display:flex;justify-content:flex-end;gap:.5rem;padding-top:.85rem;">
                         <button class="btn btn-secondary" onclick="testNotif('<%= acc.userId %>')">
-                            <i data-lucide="send" style="width:14px;height:14px;"></i> Test Notif
+                            <i data-lucide="send" style="width:14px;height:14px;"></i> <%= t('twitch.test_notif_btn') %>
                         </button>
                         <button class="btn btn-primary" onclick="saveStreamer('<%= acc.userId %>')">
-                            <i data-lucide="save" style="width:14px;height:14px;"></i> Save
+                            <i data-lucide="save" style="width:14px;height:14px;"></i> <%= t('common.save') %>
                         </button>
                     </div>
                     <div id="msg-<%= acc.userId %>" class="form-message" style="margin-top:.4rem;"></div>
@@ -385,7 +385,7 @@
                     <div class="dc-window">
                         <div class="dc-channel-bar">
                             <span class="dc-channel-hash">#</span>
-                            <span id="prevCh-<%= acc.userId %>">pilih-channel</span>
+                            <span id="prevCh-<%= acc.userId %>"><%= t('twitch.preview_no_channel') %></span>
                         </div>
                         <div class="dc-messages">
                             <div class="dc-message">
@@ -410,10 +410,10 @@
                                                         <% if (acc.thumbnail) { %>
                                                         <img src="<%= acc.thumbnail %>" referrerpolicy="no-referrer" onerror="this.style.display='none'">
                                                         <% } %>
-                                                        <span><%= acc.displayName||acc.login %> sedang LIVE di Twitch!</span>
+                                                        <span><%= acc.displayName||acc.login %> <%= t('twitch.preview_live_on') %></span>
                                                     </div>
                                                     <div class="dc-embed-title" id="prevTitle-<%= acc.userId %>">
-                                                        [TEST] Contoh judul stream
+                                                        <%= t('twitch.preview_stream_title') %>
                                                     </div>
                                                     <div class="dc-embed-desc" id="prevDesc-<%= acc.userId %>"></div>
                                                     <div class="dc-embed-field">
@@ -421,8 +421,8 @@
                                                         <div class="dc-field-value" style="color:#dbdee1;">Just Chatting</div>
                                                     </div>
                                                     <div class="dc-embed-field">
-                                                        <div class="dc-field-name">🔗 Tonton</div>
-                                                        <div class="dc-field-value" style="color:#9146FF;">Buka Twitch ▶</div>
+                                                        <div class="dc-field-name"><%= t('twitch.preview_field_watch') %></div>
+                                                        <div class="dc-field-value" style="color:#9146FF;"><%= t('twitch.preview_open_twitch') %></div>
                                                     </div>
                                                 </div>
                                                 <% if (acc.thumbnail) { %>
@@ -467,6 +467,16 @@
 const GUILD_ID = '<%= guild.id %>';
 const CHANNELS = <%- JSON.stringify(Object.fromEntries((locals.channels||[]).map(ch=>[ch.id,ch.name]))) %>;
 
+const I18N_TW_TIPS       = ['<%= t("twitch.tip_1") %>', '<%= t("twitch.tip_2") %>', '<%= t("twitch.tip_3") %>', '<%= t("twitch.tip_4") %>'];
+const I18N_TW_SEARCHING  = '<%= t("twitch.searching") %>';
+const I18N_TW_SEARCH_BTN = '<%= t("twitch.search_btn") %>';
+const I18N_TW_ERR_NO_CH  = '<%= t("twitch.err_no_channel") %>';
+const I18N_TW_ERR_CONN   = '<%= t("twitch.err_conn") %>';
+const I18N_TW_SENDING    = '<%= t("twitch.sending_test") %>';
+const I18N_TW_NO_CH      = '<%= t("twitch.preview_no_channel") %>';
+const I18N_TW_CONFIRM_DEL   = '<%= t("twitch.confirm_delete") %>';
+const I18N_TW_STREAM_TITLE  = '<%= t("twitch.preview_stream_title") %>';
+
 // ── Lookup ────────────────────────────────────────────────────────────────────
 let _lookupData = null;
 
@@ -486,9 +496,9 @@ async function lookupTwitch() {
     _lookupData = null;
 
     btn.disabled  = true;
-    btn.innerHTML = '<span class="tw-spinner"></span> Mencari...';
+    btn.innerHTML = `<span class="tw-spinner"></span> ${I18N_TW_SEARCHING}`;
 
-    const tips       = ['Mencari streamer...', 'Memverifikasi akun', 'Mengambil info profil', 'Hampir selesai'];
+    const tips       = I18N_TW_TIPS;
     let tipIdx       = 0;
     const statusTextEl = document.getElementById('twStatusText');
     if (statusTextEl) statusTextEl.textContent = tips[0];
@@ -518,13 +528,13 @@ async function lookupTwitch() {
         document.getElementById('twLookupLogin').textContent = 'twitch.tv/' + _lookupData.login;
         resEl.style.display = 'block';
     } catch (err) {
-        if (msgEl) showMsg(msgEl, 'Gagal terhubung ke server: ' + err.message, 'error', true);
+        if (msgEl) showMsg(msgEl, I18N_TW_ERR_CONN + err.message, 'error', true);
     } finally {
         clearInterval(tipTimer);
         statusEl.style.display   = 'none';
         skeletonEl.style.display = 'none';
         btn.disabled  = false;
-        btn.innerHTML = '<i data-lucide="search" style="width:14px;height:14px;"></i> Cari';
+        btn.innerHTML = `<i data-lucide="search" style="width:14px;height:14px;"></i> ${I18N_TW_SEARCH_BTN}`;
         if (window.lucide) lucide.createIcons();
     }
 }
@@ -548,7 +558,7 @@ async function saveStreamer(userId) {
     const message  = document.getElementById(`twMessage-${userId}`)?.value?.trim() || '';
 
     if (enabled && !channelId) {
-        showMsg(msgEl, 'Notification is enabled but no Discord channel has been selected.', 'error');
+        showMsg(msgEl, I18N_TW_ERR_NO_CH, 'error');
         document.getElementById(`twChannel-${userId}`)?.focus();
         return;
     }
@@ -564,7 +574,7 @@ async function saveStreamer(userId) {
 // ── Test notif ────────────────────────────────────────────────────────────────
 async function testNotif(userId) {
     const msgEl = document.getElementById(`msg-${userId}`);
-    showMsg(msgEl, 'Mengirim test notifikasi...', 'info');
+    showMsg(msgEl, I18N_TW_SENDING, 'info');
     const r    = await fetch(`/api/guild/${GUILD_ID}/twitch/accounts/${encodeURIComponent(userId)}/test`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
     });
@@ -574,7 +584,7 @@ async function testNotif(userId) {
 
 // ── Hapus streamer ────────────────────────────────────────────────────────────
 async function removeStreamer(userId, name) {
-    if (!confirm(`Delete streamer "${name}"?`)) return;
+    if (!confirm(I18N_TW_CONFIRM_DEL.replace('{{name}}', name))) return;
     const r    = await fetch(`/api/guild/${GUILD_ID}/twitch/accounts/${encodeURIComponent(userId)}`, { method: 'DELETE' });
     const data = await r.json();
     if (data.success) location.reload();
@@ -584,7 +594,7 @@ async function removeStreamer(userId, name) {
 // ── Update preview ────────────────────────────────────────────────────────────
 function updatePreview(userId) {
     const chanId = document.getElementById(`twChannel-${userId}`)?.value || '';
-    document.getElementById(`prevCh-${userId}`).textContent = chanId && CHANNELS[chanId] ? CHANNELS[chanId] : 'pilih-channel';
+    document.getElementById(`prevCh-${userId}`).textContent = chanId && CHANNELS[chanId] ? CHANNELS[chanId] : I18N_TW_NO_CH;
 
     const accName  = document.getElementById(`twCard-${userId}`)?.querySelector('.tw-card-name')?.textContent?.trim() || userId;
     const msgRaw   = (document.getElementById(`twMessage-${userId}`)?.value || '').trim();
@@ -595,7 +605,7 @@ function updatePreview(userId) {
             .replace(/{login}/g,    userId)
             .replace(/{url}/g,      `https://twitch.tv/${userId}`)
             .replace(/{game}/g,     'Just Chatting')
-            .replace(/{title}/g,    'Contoh judul stream')
+            .replace(/{title}/g,    I18N_TW_STREAM_TITLE)
             .replace(/{viewers}/g,  '1234');
         descEl.innerHTML = ph(msgRaw).replace(/\n/g, '<br>');
     } else if (descEl) {
@@ -613,12 +623,12 @@ function showMsg(el, text, type, persist) {
 
 // ── Placeholder picker ────────────────────────────────────────────────────────
 const PH_TWITCH = [
-    ['{account}',  'Nama tampilan streamer'],
-    ['{login}',    'Username Twitch'],
-    ['{url}',      'Link stream'],
-    ['{game}',     'Nama game yang dimainkan'],
-    ['{title}',    'Stream title'],
-    ['{viewers}',  'Jumlah penonton'],
+    ['{account}',  '<%= t("twitch.ph_account") %>'],
+    ['{login}',    '<%= t("twitch.ph_login") %>'],
+    ['{url}',      '<%= t("twitch.ph_url") %>'],
+    ['{game}',     '<%= t("twitch.ph_game") %>'],
+    ['{title}',    '<%= t("twitch.ph_title") %>'],
+    ['{viewers}',  '<%= t("twitch.ph_viewers") %>'],
 ];
 
 function buildPickers() {

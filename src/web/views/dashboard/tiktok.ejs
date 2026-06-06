@@ -205,12 +205,12 @@
         <!-- Header -->
         <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
             <div>
-                <h1>TikTok Notification</h1>
-                <p>Monitor TikTok accounts and send automatic Discord notifications when a new Video is posted or a Live starts.</p>
+                <h1><%= t('tiktok.page_title') %></h1>
+                <p><%= t('tiktok.page_desc') %></p>
             </div>
             <% if (ttAccounts.length > 0) { %>
             <button class="btn btn-secondary" onclick="forcePoll(this)" style="flex-shrink:0;margin-top:.25rem;" title="Paksa cek video baru sekarang">
-                <i data-lucide="refresh-cw" style="width:14px;height:14px;"></i> Poll Sekarang
+                <i data-lucide="refresh-cw" style="width:14px;height:14px;"></i> <%= t('tiktok.poll_now') %>
             </button>
             <% } %>
         </div>
@@ -231,28 +231,28 @@
                 </div>
                 <div class="stat-info">
                     <div class="stat-value" id="statAccounts"><%= ttAccounts.length %></div>
-                    <div class="stat-label">Akun Dipantau</div>
+                    <div class="stat-label"><%= t('tiktok.stat_monitored') %></div>
                 </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon" style="color:#57F287;"><i data-lucide="video"></i></div>
                 <div class="stat-info">
                     <div class="stat-value"><%= ttAccounts.filter(a => a.videoEnabled).length %></div>
-                    <div class="stat-label">Active Videos</div>
+                    <div class="stat-label"><%= t('tiktok.stat_video') %></div>
                 </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon" style="color:#FE2C55;"><i data-lucide="radio"></i></div>
                 <div class="stat-info">
                     <div class="stat-value"><%= ttAccounts.filter(a => a.liveEnabled).length %></div>
-                    <div class="stat-label">Active Live</div>
+                    <div class="stat-label"><%= t('tiktok.stat_live') %></div>
                 </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon" style="color:#80848e;"><i data-lucide="list"></i></div>
                 <div class="stat-info">
                     <div class="stat-value"><%= maxAccounts - ttAccounts.length %></div>
-                    <div class="stat-label">Slot Tersisa</div>
+                    <div class="stat-label"><%= t('tiktok.stat_slots') %></div>
                 </div>
             </div>
         </div>
@@ -262,20 +262,20 @@
         <div class="settings-card" style="margin-bottom:1.5rem;">
             <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:1rem;">
                 <i data-lucide="plus-circle" style="color:#FE2C55;width:18px;height:18px;flex-shrink:0;"></i>
-                <h2 style="margin:0;font-size:1rem;font-weight:600;">Add TikTok Account</h2>
+                <h2 style="margin:0;font-size:1rem;font-weight:600;"><%= t('tiktok.add_title') %></h2>
             </div>
             <p style="font-size:.85rem;color:var(--text-muted);margin:0 0 1rem 0;">
-                Masukkan username atau URL TikTok. Sisa slot: <strong><%= maxAccounts - ttAccounts.length %></strong> dari <%= maxAccounts %>.
+                <%- t('tiktok.add_desc', { remaining: maxAccounts - ttAccounts.length, max: maxAccounts }) %>
             </p>
             <div class="form-group" style="margin-bottom:0;">
-                <label class="label">Username / URL TikTok</label>
+                <label class="label"><%= t('tiktok.search_label') %></label>
                 <div class="tt-search-row" style="display:flex;gap:.6rem;">
                     <input type="text" id="ttLookupInput" class="input"
                            placeholder="@username  atau  https://tiktok.com/@username"
                            style="flex:1;min-width:0;" maxlength="200"
                            onkeydown="if(event.key==='Enter') lookupTikTok()">
                     <button class="btn btn-primary" onclick="lookupTikTok()" id="ttLookupBtn" style="white-space:nowrap;flex-shrink:0;">
-                        <i data-lucide="search" style="width:14px;height:14px;"></i> Cari
+                        <i data-lucide="search" style="width:14px;height:14px;"></i> <%= t('tiktok.search_btn') %>
                     </button>
                 </div>
             </div>
@@ -317,7 +317,7 @@
                         <div id="ttLookupUsername" style="font-size:.78rem;color:var(--text-muted);"></div>
                     </div>
                     <button class="btn btn-success" onclick="addAccount()" style="flex-shrink:0;">
-                        <i data-lucide="plus" style="width:14px;height:14px;"></i> Add
+                        <i data-lucide="plus" style="width:14px;height:14px;"></i> <%= t('tiktok.add_btn') %>
                     </button>
                 </div>
             </div>
@@ -325,7 +325,7 @@
         <% } else { %>
         <div class="perm-card perm-warn" style="margin-bottom:1.5rem;">
             <i data-lucide="info"></i>
-            <span>Sudah mencapai batas maksimal <strong><%= maxAccounts %> akun TikTok</strong> per server.</span>
+            <span><%- t('tiktok.max_reached', { max: maxAccounts }) %></span>
         </div>
         <% } %>
 
@@ -334,7 +334,7 @@
         <% if (ttAccounts.length === 0) { %>
             <div class="settings-card" style="text-align:center;padding:3rem 1.5rem;">
                 <svg viewBox="0 0 24 24" fill="currentColor" style="width:48px;height:48px;color:var(--text-muted);opacity:.5;display:block;margin:0 auto .75rem;"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg>
-                <p style="color:var(--text-muted);margin:0;">No TikTok accounts being monitored yet.</p>
+                <p style="color:var(--text-muted);margin:0;"><%= t('tiktok.no_accounts') %></p>
             </div>
         <% } else { %>
         <% ttAccounts.forEach(function(acc) {
@@ -388,7 +388,7 @@
                         onclick="switchTab('<%= key %>','video')">🎬 Video</button>
                 <button class="tt-tab-btn" id="tab-live-<%= key %>"
                         onclick="switchTab('<%= key %>','live')">
-                    🔴 Live<% if (!liveSupported) { %> <span style="font-size:.65rem;opacity:.5;">(inactive)</span><% } %>
+                    🔴 Live<% if (!liveSupported) { %> <span style="font-size:.65rem;opacity:.5;"><%= t('tiktok.live_inactive') %></span><% } %>
                 </button>
             </div>
 
@@ -405,13 +405,13 @@
                                        <%= acc.videoEnabled ? 'checked' : '' %>
                                        onchange="updatePreview('<%= key %>')">
                                 <span class="toggle-slider"></span>
-                                <span>Enable Video notifications</span>
+                                <span><%= t('tiktok.enable_video') %></span>
                             </label>
                         </div>
                         <div class="form-group">
-                            <label class="label">Channel Discord</label>
+                            <label class="label"><%= t('common.channel') %></label>
                             <select class="select" id="vidChannel-<%= key %>" onchange="updatePreview('<%= key %>')">
-                                <option value="">— Select channel —</option>
+                                <option value=""><%= t('common.select_channel') %></option>
                                 <% (locals.channels||[]).forEach(ch => { %>
                                 <option value="<%= ch.id %>" <%= acc.videoChannelId===ch.id?'selected':'' %>>#<%= ch.name %></option>
                                 <% }) %>
@@ -419,7 +419,7 @@
                         </div>
                         <div class="form-group" style="margin-bottom:0;">
                             <div class="label-with-picker">
-                                <label class="label" style="margin-bottom:0;">Custom message <span style="font-weight:400;color:var(--text-muted);">(optional)</span></label>
+                                <label class="label" style="margin-bottom:0;"><%= t('tiktok.additional_msg') %> <span style="font-weight:400;color:var(--text-muted);">(<%= t('giveaway.required_role_hint') %>)</span></label>
                                 <div class="ph-picker-anchor">
                                     <button type="button" class="ph-toggle-btn" onclick="togglePicker('vidPicker-<%= key %>',event)">{…} Placeholder</button>
                                     <div class="ph-dropdown" id="vidPicker-<%= key %>" style="display:none;"></div>
@@ -447,13 +447,13 @@
                                        <%= !liveSupported?'disabled':'' %>
                                        onchange="updatePreview('<%= key %>')">
                                 <span class="toggle-slider"></span>
-                                <span>Enable Live notifications</span>
+                                <span><%= t('tiktok.enable_live') %></span>
                             </label>
                         </div>
                         <div class="form-group">
-                            <label class="label">Channel Discord</label>
+                            <label class="label"><%= t('common.channel') %></label>
                             <select class="select" id="liveChannel-<%= key %>" <%= !liveSupported?'disabled':'' %> onchange="updatePreview('<%= key %>')">
-                                <option value="">— Select channel —</option>
+                                <option value=""><%= t('common.select_channel') %></option>
                                 <% (locals.channels||[]).forEach(ch => { %>
                                 <option value="<%= ch.id %>" <%= acc.liveChannelId===ch.id?'selected':'' %>>#<%= ch.name %></option>
                                 <% }) %>
@@ -461,7 +461,7 @@
                         </div>
                         <div class="form-group" style="margin-bottom:0;">
                             <div class="label-with-picker">
-                                <label class="label" style="margin-bottom:0;">Custom message <span style="font-weight:400;color:var(--text-muted);">(optional)</span></label>
+                                <label class="label" style="margin-bottom:0;"><%= t('tiktok.additional_msg') %> <span style="font-weight:400;color:var(--text-muted);">(<%= t('giveaway.required_role_hint') %>)</span></label>
                                 <% if (liveSupported) { %>
                                 <div class="ph-picker-anchor">
                                     <button type="button" class="ph-toggle-btn" onclick="togglePicker('livePicker-<%= key %>',event)">{…} Placeholder</button>
@@ -481,10 +481,10 @@
                     <!-- Tombol aksi -->
                     <div class="tt-action-row" style="display:flex;justify-content:flex-end;gap:.5rem;padding-top:.25rem;">
                         <button class="btn btn-secondary" id="testBtn-<%= key %>" onclick="testNotif('<%= acc.username %>','<%= key %>')">
-                            <i data-lucide="send" style="width:14px;height:14px;"></i> Test Notif
+                            <i data-lucide="send" style="width:14px;height:14px;"></i> <%= t('tiktok.test_notif_btn') %>
                         </button>
                         <button class="btn btn-primary" onclick="saveAccount('<%= acc.username %>')">
-                            <i data-lucide="save" style="width:14px;height:14px;"></i> Save
+                            <i data-lucide="save" style="width:14px;height:14px;"></i> <%= t('common.save') %>
                         </button>
                     </div>
                     <div id="msg-<%= key %>" class="form-message" style="margin-top:.4rem;"></div>
@@ -599,6 +599,11 @@
 const GUILD_ID  = '<%= guild.id %>';
 const CHANNELS  = <%- JSON.stringify(Object.fromEntries((locals.channels||[]).map(ch=>[ch.id,ch.name]))) %>;
 
+const I18N_TT_CONFIRM_DEL  = '<%= t("tiktok.confirm_delete") %>';
+const I18N_TT_ERR_VIDEO_CH = '<%= t("tiktok.err_no_video_channel") %>';
+const I18N_TT_ERR_LIVE_CH  = '<%= t("tiktok.err_no_live_channel") %>';
+const I18N_TT_SEARCH_BTN   = '<%= t("tiktok.search_btn") %>';
+
 // ── Lookup ────────────────────────────────────────────────────────────────────
 let _lookupData = null;
 
@@ -664,7 +669,7 @@ async function lookupTikTok() {
         statusEl.style.display   = 'none';
         skeletonEl.style.display = 'none';
         btn.disabled  = false;
-        btn.innerHTML = '<i data-lucide="search" style="width:14px;height:14px;"></i> Cari';
+        btn.innerHTML = `<i data-lucide="search" style="width:14px;height:14px;"></i> ${I18N_TT_SEARCH_BTN}`;
         if (window.lucide) lucide.createIcons();
     }
 }
@@ -746,13 +751,13 @@ async function saveAccount(username) {
     // Validasi client-side
     if (videoEnabled && !videoChannelId) {
         switchTab(key, 'video');
-        showMsg(msgEl, 'Video notification is enabled but no Discord channel has been selected.', 'error');
+        showMsg(msgEl, I18N_TT_ERR_VIDEO_CH, 'error');
         document.getElementById(`vidChannel-${key}`)?.focus();
         return;
     }
     if (liveEnabled && !liveChannelId) {
         switchTab(key, 'live');
-        showMsg(msgEl, 'Live notification is enabled but no Discord channel has been selected.', 'error');
+        showMsg(msgEl, I18N_TT_ERR_LIVE_CH, 'error');
         document.getElementById(`liveChannel-${key}`)?.focus();
         return;
     }
@@ -830,7 +835,7 @@ async function resetLastVideo(username) {
 
 // ── Hapus akun ────────────────────────────────────────────────────────────────
 async function removeAccount(username, name) {
-    if (!confirm(`Delete account "${name}"?`)) return;
+    if (!confirm(I18N_TT_CONFIRM_DEL.replace('{{name}}', name))) return;
     const r    = await fetch(`/api/guild/${GUILD_ID}/tiktok/accounts/${encodeURIComponent(username)}`, { method: 'DELETE' });
     const data = await r.json();
     if (data.success) location.reload();

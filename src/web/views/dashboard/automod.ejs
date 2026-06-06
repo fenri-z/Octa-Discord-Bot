@@ -9,8 +9,8 @@
         <%- include('../partials/perm-notice') %>
 
         <div class="page-header">
-            <h1>🛡️ Automod</h1>
-            <p>Automatic moderation system to protect the server from spam, harmful links, profanity, and other violations.</p>
+            <h1>🛡️ <%= t('automod.page_title') %></h1>
+            <p><%= t('automod.page_desc') %></p>
         </div>
 
         <!-- ── Stats Overview ──────────────────────────────────────────────────── -->
@@ -19,78 +19,78 @@
                 <div class="stat-icon" style="color:#5865F2;"><i data-lucide="shield-check"></i></div>
                 <div class="stat-info">
                     <div class="stat-value"><%= activeCount %></div>
-                    <div class="stat-label">Active Protection</div>
+                    <div class="stat-label"><%= t('automod.active_protection') %></div>
                 </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon" style="color:#ED4245;"><i data-lucide="ban"></i></div>
                 <div class="stat-info">
                     <div class="stat-value"><%= automodData.words.length %></div>
-                    <div class="stat-label">Kata Terlarang</div>
+                    <div class="stat-label"><%= t('automod.banned_words') %></div>
                 </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon" style="color:#FEE75C;"><i data-lucide="hash"></i></div>
                 <div class="stat-info">
                     <div class="stat-value"><%= automodData.wlChannels.length %></div>
-                    <div class="stat-label">Channel Whitelist</div>
+                    <div class="stat-label"><%= t('automod.channel_whitelist') %></div>
                 </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon" style="color:#57F287;"><i data-lucide="users"></i></div>
                 <div class="stat-info">
                     <div class="stat-value"><%= automodData.wlRoles.length %></div>
-                    <div class="stat-label">Role Whitelist</div>
+                    <div class="stat-label"><%= t('automod.role_whitelist') %></div>
                 </div>
             </div>
         </div>
 
         <!-- ── General Configuration ───────────────────────────────────────────── -->
         <div class="settings-card">
-            <h2>General Configuration</h2>
-            <p class="section-desc" style="margin-bottom:1.25rem;">Configure bot actions when a violation is detected, mute role, and audit log channel.</p>
+            <h2><%= t('automod.general_config') %></h2>
+            <p class="section-desc" style="margin-bottom:1.25rem;"><%= t('automod.general_config_desc') %></p>
 
             <div class="form-row am-cfg-row" style="gap:1.5rem;flex-wrap:wrap;align-items:flex-start;">
 
                 <div class="form-group am-cfg-group">
-                    <label class="label">Violation Action</label>
+                    <label class="label"><%= t('automod.violation_action') %></label>
                     <select id="automodAction" class="select">
-                        <option value="delete" <%= automodData.action === 'delete' ? 'selected' : '' %>>🗑️ Delete — Delete message only</option>
-                        <option value="warn"   <%= automodData.action === 'warn'   ? 'selected' : '' %>>⚠️ Warn — Delete + warn via DM</option>
-                        <option value="mute"   <%= automodData.action === 'mute'   ? 'selected' : '' %>>🔇 Mute — Delete + mute 10 minutes</option>
-                        <option value="kick"   <%= automodData.action === 'kick'   ? 'selected' : '' %>>👢 Kick — Delete + kick member</option>
-                        <option value="ban"    <%= automodData.action === 'ban'    ? 'selected' : '' %>>🔨 Ban — Delete + ban member</option>
+                        <option value="delete" <%= automodData.action === 'delete' ? 'selected' : '' %>>🗑️ <%= t('automod.action_delete') %></option>
+                        <option value="warn"   <%= automodData.action === 'warn'   ? 'selected' : '' %>>⚠️ <%= t('automod.action_warn') %></option>
+                        <option value="mute"   <%= automodData.action === 'mute'   ? 'selected' : '' %>>🔇 <%= t('automod.action_mute') %></option>
+                        <option value="kick"   <%= automodData.action === 'kick'   ? 'selected' : '' %>>👢 <%= t('automod.action_kick') %></option>
+                        <option value="ban"    <%= automodData.action === 'ban'    ? 'selected' : '' %>>🔨 <%= t('automod.action_ban') %></option>
                     </select>
                     <div style="font-size:.78rem;color:var(--text-muted);margin-top:.35rem;">
-                        Choose what the bot does when a violation is detected.
+                        <%= t('automod.action_choose_hint') %>
                     </div>
                 </div>
 
                 <div class="form-group am-cfg-group">
-                    <label class="label">Timeout Duration <span style="font-weight:400;color:var(--text-muted);">(for Mute action)</span></label>
+                    <label class="label"><%= t('automod.timeout_duration') %> <span style="font-weight:400;color:var(--text-muted);">(<%= t('automod.timeout_for_mute') %>)</span></label>
                     <select id="automodMuteDuration" class="select">
-                        <option value="60000"    <%= automodData.muteDuration === '60000'    ? 'selected' : '' %>>⏱️ 1 minute</option>
-                        <option value="300000"   <%= automodData.muteDuration === '300000'   ? 'selected' : '' %>>⏱️ 5 minutes</option>
-                        <option value="600000"   <%= automodData.muteDuration === '600000'   || !automodData.muteDuration ? 'selected' : '' %>>⏱️ 10 minutes (default)</option>
-                        <option value="1800000"  <%= automodData.muteDuration === '1800000'  ? 'selected' : '' %>>⏱️ 30 minutes</option>
-                        <option value="3600000"  <%= automodData.muteDuration === '3600000'  ? 'selected' : '' %>>⏱️ 1 hour</option>
-                        <option value="86400000" <%= automodData.muteDuration === '86400000' ? 'selected' : '' %>>⏱️ 1 day</option>
+                        <option value="60000"    <%= automodData.muteDuration === '60000'    ? 'selected' : '' %>>⏱️ <%= t('automod.dur_1min') %></option>
+                        <option value="300000"   <%= automodData.muteDuration === '300000'   ? 'selected' : '' %>>⏱️ <%= t('automod.dur_5min') %></option>
+                        <option value="600000"   <%= automodData.muteDuration === '600000'   || !automodData.muteDuration ? 'selected' : '' %>>⏱️ <%= t('automod.dur_10min') %></option>
+                        <option value="1800000"  <%= automodData.muteDuration === '1800000'  ? 'selected' : '' %>>⏱️ <%= t('automod.dur_30min') %></option>
+                        <option value="3600000"  <%= automodData.muteDuration === '3600000'  ? 'selected' : '' %>>⏱️ <%= t('automod.dur_1hour') %></option>
+                        <option value="86400000" <%= automodData.muteDuration === '86400000' ? 'selected' : '' %>>⏱️ <%= t('automod.dur_1day') %></option>
                     </select>
                     <div style="font-size:.78rem;color:var(--text-muted);margin-top:.35rem;">
-                        Uses Discord's built-in timeout. Bot requires the <strong>Moderate Members</strong> permission.
+                        <%- t('automod.timeout_uses_discord') %>
                     </div>
                 </div>
 
                 <div class="form-group am-cfg-group">
-                    <label class="label">Audit Log Channel <span style="font-weight:400;color:var(--text-muted);">(optional)</span></label>
+                    <label class="label"><%= t('automod.audit_log_channel') %> <span style="font-weight:400;color:var(--text-muted);">(<%= t('common.footer_optional') %>)</span></label>
                     <select id="automodAuditLog" class="select">
-                        <option value="">— None —</option>
+                        <option value=""><%= t('automod.audit_log_none') %></option>
                         <% textChannels.forEach(function(c) { %>
                             <option value="<%= c.id %>" <%= automodData.auditLogId === c.id ? 'selected' : '' %>>#<%= c.name %></option>
                         <% }); %>
                     </select>
                     <div style="font-size:.78rem;color:var(--text-muted);margin-top:.35rem;">
-                        All automod activity will be logged here.
+                        <%= t('automod.audit_log_hint') %>
                     </div>
                 </div>
 
@@ -98,7 +98,7 @@
 
             <div class="form-row" style="margin-top:.5rem;">
                 <button class="btn btn-primary" onclick="saveGeneral()">
-                    <i data-lucide="save"></i> Save Configuration
+                    <i data-lucide="save"></i> <%= t('automod.save_config') %>
                 </button>
             </div>
             <div id="generalMsg" class="form-message"></div>
@@ -106,28 +106,28 @@
 
         <!-- ── Link & Attachment Protection ────────────────────────────────────── -->
         <div class="settings-card">
-            <h2>Link &amp; Attachment Protection</h2>
-            <p class="section-desc" style="margin-bottom:1.25rem;">Automatically block messages containing URLs, Discord invites, or file attachments. Changes are saved immediately.</p>
+            <h2><%= t('automod.link_title') %></h2>
+            <p class="section-desc" style="margin-bottom:1.25rem;"><%= t('automod.link_desc') %></p>
 
             <div class="form-group">
                 <label class="toggle-label">
                     <input type="checkbox" id="toggleAntilink" class="toggle-input" <%= automodData.antilink ? 'checked' : '' %>>
                     <span class="toggle-slider"></span>
-                    <span><strong>Anti-Link</strong> — Block all URLs (http, https, www)</span>
+                    <span><%= t('automod.antilink_label') %></span>
                 </label>
             </div>
             <div class="form-group">
                 <label class="toggle-label">
                     <input type="checkbox" id="toggleAntiinvite" class="toggle-input" <%= automodData.antiinvite ? 'checked' : '' %>>
                     <span class="toggle-slider"></span>
-                    <span><strong>Anti-Invite</strong> — Block Discord invite links (discord.gg/...)</span>
+                    <span><%= t('automod.antiinvite_label') %></span>
                 </label>
             </div>
             <div class="form-group">
                 <label class="toggle-label">
                     <input type="checkbox" id="toggleAttachments" class="toggle-input" <%= automodData.attachments ? 'checked' : '' %>>
                     <span class="toggle-slider"></span>
-                    <span><strong>Anti-Attachment</strong> — Block messages containing files or images</span>
+                    <span><%= t('automod.antiattach_label') %></span>
                 </label>
             </div>
             <div id="toggleMsg" class="form-message"></div>
@@ -135,35 +135,35 @@
 
         <!-- ── Anti-Spam ───────────────────────────────────────────────────────── -->
         <div class="settings-card">
-            <h2>Anti-Spam</h2>
-            <p class="section-desc" style="margin-bottom:1.25rem;">Take action against members who send messages too quickly in a short time.</p>
+            <h2><%= t('automod.spam_title') %></h2>
+            <p class="section-desc" style="margin-bottom:1.25rem;"><%= t('automod.spam_desc') %></p>
 
             <div class="form-group">
                 <label class="toggle-label">
                     <input type="checkbox" id="spamEnabled" class="toggle-input" <%= automodData.spam.enabled ? 'checked' : '' %>>
                     <span class="toggle-slider"></span>
-                    <span>Enable Anti-Spam</span>
+                    <span><%= t('automod.spam_enable') %></span>
                 </label>
             </div>
 
             <div id="spamConfig" class="am-num-row" style="display:<%= automodData.spam.enabled ? 'flex' : 'none' %>;">
                 <div class="form-group am-num-group">
-                    <label class="label">Message Limit</label>
+                    <label class="label"><%= t('automod.msg_limit') %></label>
                     <input type="number" id="spamLimit" class="input am-num-input" min="2" max="20"
                            value="<%= automodData.spam.limit %>" placeholder="5">
-                    <div style="font-size:.78rem;color:var(--text-muted);margin-top:.3rem;">Max. messages per interval (2–20)</div>
+                    <div style="font-size:.78rem;color:var(--text-muted);margin-top:.3rem;"><%= t('automod.msg_limit_hint') %></div>
                 </div>
                 <div class="form-group am-num-group">
-                    <label class="label">Interval (seconds)</label>
+                    <label class="label"><%= t('automod.interval_label') %></label>
                     <input type="number" id="spamInterval" class="input am-num-input" min="1" max="30"
                            value="<%= automodData.spam.interval %>" placeholder="5">
-                    <div style="font-size:.78rem;color:var(--text-muted);margin-top:.3rem;">Check time window (1–30 seconds)</div>
+                    <div style="font-size:.78rem;color:var(--text-muted);margin-top:.3rem;"><%= t('automod.spam_interval_hint') %></div>
                 </div>
             </div>
 
             <div class="form-row" style="margin-top:.75rem;">
                 <button class="btn btn-primary" onclick="saveSpam()">
-                    <i data-lucide="save"></i> Save
+                    <i data-lucide="save"></i> <%= t('automod.save') %>
                 </button>
             </div>
             <div id="spamMsg" class="form-message"></div>
@@ -171,29 +171,29 @@
 
         <!-- ── Anti Mass-Mention ───────────────────────────────────────────────── -->
         <div class="settings-card">
-            <h2>Anti Mass-Mention</h2>
-            <p class="section-desc" style="margin-bottom:1.25rem;">Take action against members who mention many people or roles in a single message.</p>
+            <h2><%= t('automod.mention_title') %></h2>
+            <p class="section-desc" style="margin-bottom:1.25rem;"><%= t('automod.mention_desc') %></p>
 
             <div class="form-group">
                 <label class="toggle-label">
                     <input type="checkbox" id="mentionEnabled" class="toggle-input" <%= automodData.massmention.enabled ? 'checked' : '' %>>
                     <span class="toggle-slider"></span>
-                    <span>Enable Anti Mass-Mention</span>
+                    <span><%= t('automod.mention_enable') %></span>
                 </label>
             </div>
 
             <div id="mentionConfig" style="display:<%= automodData.massmention.enabled ? 'block' : 'none' %>;margin-top:.75rem;">
                 <div class="form-group am-num-group">
-                    <label class="label">Mention Limit per Message</label>
+                    <label class="label"><%= t('automod.mention_limit') %></label>
                     <input type="number" id="mentionLimit" class="input am-num-input" min="2" max="20"
                            value="<%= automodData.massmention.limit %>" placeholder="5">
-                    <div style="font-size:.78rem;color:var(--text-muted);margin-top:.3rem;">Max. mention count (@user + @role) per message (2–20)</div>
+                    <div style="font-size:.78rem;color:var(--text-muted);margin-top:.3rem;"><%= t('automod.mention_limit_hint') %></div>
                 </div>
             </div>
 
             <div class="form-row" style="margin-top:.75rem;">
                 <button class="btn btn-primary" onclick="saveMassMention()">
-                    <i data-lucide="save"></i> Save
+                    <i data-lucide="save"></i> <%= t('automod.save') %>
                 </button>
             </div>
             <div id="mentionMsg" class="form-message"></div>
@@ -201,35 +201,35 @@
 
         <!-- ── Anti-Raid ───────────────────────────────────────────────────────── -->
         <div class="settings-card">
-            <h2>Anti-Raid</h2>
-            <p class="section-desc" style="margin-bottom:1.25rem;">Detect mass joins in a short time. Bot will automatically raise the server verification level.</p>
+            <h2><%= t('automod.raid_title') %></h2>
+            <p class="section-desc" style="margin-bottom:1.25rem;"><%= t('automod.raid_desc') %></p>
 
             <div class="form-group">
                 <label class="toggle-label">
                     <input type="checkbox" id="raidEnabled" class="toggle-input" <%= automodData.antiraid.enabled ? 'checked' : '' %>>
                     <span class="toggle-slider"></span>
-                    <span>Enable Anti-Raid</span>
+                    <span><%= t('automod.raid_enable') %></span>
                 </label>
             </div>
 
             <div id="raidConfig" class="am-num-row" style="display:<%= automodData.antiraid.enabled ? 'flex' : 'none' %>;">
                 <div class="form-group am-num-group">
-                    <label class="label">Join Limit</label>
+                    <label class="label"><%= t('automod.join_limit') %></label>
                     <input type="number" id="raidJoinLimit" class="input am-num-input" min="2" max="50"
                            value="<%= automodData.antiraid.joinLimit %>" placeholder="10">
-                    <div style="font-size:.78rem;color:var(--text-muted);margin-top:.3rem;">Joins considered a raid within 1 interval (2–50)</div>
+                    <div style="font-size:.78rem;color:var(--text-muted);margin-top:.3rem;"><%= t('automod.join_limit_hint') %></div>
                 </div>
                 <div class="form-group am-num-group">
-                    <label class="label">Interval (seconds)</label>
+                    <label class="label"><%= t('automod.interval_label') %></label>
                     <input type="number" id="raidInterval" class="input am-num-input" min="5" max="60"
                            value="<%= automodData.antiraid.interval %>" placeholder="10">
-                    <div style="font-size:.78rem;color:var(--text-muted);margin-top:.3rem;">Monitoring time window (5–60 seconds)</div>
+                    <div style="font-size:.78rem;color:var(--text-muted);margin-top:.3rem;"><%= t('automod.raid_interval_hint') %></div>
                 </div>
             </div>
 
             <div class="form-row" style="margin-top:.75rem;">
                 <button class="btn btn-primary" onclick="saveAntiRaid()">
-                    <i data-lucide="save"></i> Save
+                    <i data-lucide="save"></i> <%= t('automod.save') %>
                 </button>
             </div>
             <div id="raidMsg" class="form-message"></div>
@@ -237,12 +237,12 @@
 
         <!-- ── Banned Words ────────────────────────────────────────────────────── -->
         <div class="settings-card">
-            <h2>Kata Terlarang <span id="wordCountBadge" style="font-size:.8rem;font-weight:500;color:var(--text-muted);margin-left:.4rem;"><%= automodData.words.length %> / 100</span></h2>
-            <p class="section-desc" style="margin-bottom:1.25rem;">Messages containing the following words will be automatically deleted (case-insensitive).</p>
+            <h2><%= t('automod.words_title') %> <span id="wordCountBadge" style="font-size:.8rem;font-weight:500;color:var(--text-muted);margin-left:.4rem;"><%= automodData.words.length %> / 100</span></h2>
+            <p class="section-desc" style="margin-bottom:1.25rem;"><%= t('automod.words_desc') %></p>
 
             <div id="wordsList" style="display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1.25rem;min-height:2rem;">
                 <% if (automodData.words.length === 0) { %>
-                    <span id="wordsEmpty" style="color:var(--text-muted);font-size:.875rem;">No banned words yet.</span>
+                    <span id="wordsEmpty" style="color:var(--text-muted);font-size:.875rem;"><%= t('automod.words_empty') %></span>
                 <% } %>
                 <% automodData.words.forEach(function(w) { %>
                     <span class="am-word-chip" data-word="<%= w %>">
@@ -253,11 +253,11 @@
             </div>
 
             <div class="form-row am-words-add-row">
-                <input type="text" id="newWord" class="input am-words-input" placeholder="Ketik kata terlarang…"
+                <input type="text" id="newWord" class="input am-words-input" placeholder="<%= t('automod.words_placeholder') %>"
                        maxlength="50"
                        onkeydown="if(event.key==='Enter')addWord()">
                 <button class="btn btn-primary am-words-btn" onclick="addWord()">
-                    <i data-lucide="plus"></i> Add
+                    <i data-lucide="plus"></i> <%= t('automod.words_add') %>
                 </button>
             </div>
             <div id="wordsMsg" class="form-message"></div>
@@ -265,8 +265,8 @@
 
         <!-- ── Whitelist ───────────────────────────────────────────────────────── -->
         <div class="settings-card">
-            <h2>Whitelist</h2>
-            <p class="section-desc" style="margin-bottom:1.5rem;">The following channels and roles will be <strong>excluded</strong> from all Automod checks.</p>
+            <h2><%= t('automod.whitelist_title') %></h2>
+            <p class="section-desc" style="margin-bottom:1.5rem;"><%- t('automod.whitelist_desc') %></p>
 
             <div class="form-row am-wl-row" style="gap:2rem;flex-wrap:wrap;align-items:flex-start;">
 
@@ -275,7 +275,7 @@
                     <h3 style="font-size:.9rem;font-weight:600;margin:0 0 .75rem;color:var(--text-secondary);">📌 Channel</h3>
                     <div id="wlChannelList" style="display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:.9rem;min-height:1.5rem;">
                         <% if (automodData.wlChannels.length === 0) { %>
-                            <span id="wlChEmpty" style="color:var(--text-muted);font-size:.875rem;">None.</span>
+                            <span id="wlChEmpty" style="color:var(--text-muted);font-size:.875rem;"><%= t('automod.whitelist_none') %></span>
                         <% } %>
                         <% automodData.wlChannels.forEach(function(id) {
                             var ch = textChannels.find(function(c){ return c.id === id; });
@@ -289,13 +289,13 @@
                     </div>
                     <div class="am-wl-add-row">
                         <select id="wlAddChannel" class="select am-wl-select">
-                            <option value="">— Select channel —</option>
+                            <option value=""><%= t('automod.whitelist_select_channel') %></option>
                             <% textChannels.forEach(function(c) { %>
                                 <option value="<%= c.id %>">#<%= c.name %></option>
                             <% }); %>
                         </select>
                         <button class="btn btn-primary" onclick="addWhitelistChannel()">
-                            <i data-lucide="plus"></i> Add
+                            <i data-lucide="plus"></i> <%= t('automod.words_add') %>
                         </button>
                     </div>
                     <div id="wlChMsg" class="form-message"></div>
@@ -306,7 +306,7 @@
                     <h3 style="font-size:.9rem;font-weight:600;margin:0 0 .75rem;color:var(--text-secondary);">🎭 Role</h3>
                     <div id="wlRoleList" style="display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:.9rem;min-height:1.5rem;">
                         <% if (automodData.wlRoles.length === 0) { %>
-                            <span id="wlRlEmpty" style="color:var(--text-muted);font-size:.875rem;">None.</span>
+                            <span id="wlRlEmpty" style="color:var(--text-muted);font-size:.875rem;"><%= t('automod.whitelist_none') %></span>
                         <% } %>
                         <% automodData.wlRoles.forEach(function(id) {
                             var r = roles.find(function(x){ return x.id === id; });
@@ -320,13 +320,13 @@
                     </div>
                     <div class="am-wl-add-row">
                         <select id="wlAddRole" class="select am-wl-select">
-                            <option value="">— Select role —</option>
+                            <option value=""><%= t('automod.whitelist_select_role') %></option>
                             <% roles.forEach(function(r) { %>
                                 <option value="<%= r.id %>" style="color:<%= r.color || 'inherit' %>;">@<%= r.name %></option>
                             <% }); %>
                         </select>
                         <button class="btn btn-primary" onclick="addWhitelistRole()">
-                            <i data-lucide="plus"></i> Add
+                            <i data-lucide="plus"></i> <%= t('automod.words_add') %>
                         </button>
                     </div>
                     <div id="wlRlMsg" class="form-message"></div>
@@ -520,6 +520,10 @@
 
 <script>
 const GUILD_ID = '<%= guild.id %>';
+const I18N_WORDS_EMPTY = '<%= t("automod.words_empty") %>';
+const I18N_WL_NONE     = '<%= t("automod.whitelist_none") %>';
+const I18N_AM_ERR_CH   = '<%= t("automod.err_select_channel") %>';
+const I18N_AM_ERR_ROLE = '<%= t("automod.err_select_role") %>';
 
 // ── Util ──────────────────────────────────────────────────────────────────────
 function showMsg(el, text, type) {
@@ -666,7 +670,7 @@ async function deleteWord(word) {
         const empty = document.createElement('span');
         empty.id        = 'wordsEmpty';
         empty.style.cssText = 'color:var(--text-muted);font-size:.875rem;';
-        empty.textContent   = 'No banned words yet.';
+        empty.textContent   = I18N_WORDS_EMPTY;
         list.appendChild(empty);
     }
 }
@@ -695,7 +699,7 @@ async function addWhitelistChannel() {
     const sel  = document.getElementById('wlAddChannel');
     const msg  = document.getElementById('wlChMsg');
     const id   = sel.value;
-    if (!id) { showMsg(msg, 'Please select a channel first.', 'error'); return; }
+    if (!id) { showMsg(msg, I18N_AM_ERR_CH, 'error'); return; }
 
     const data = await apiFetch('/automod/whitelist', 'POST', { type: 'channel', id });
     showMsg(msg, data.message, data.success ? 'success' : 'error');
@@ -712,7 +716,7 @@ async function addWhitelistRole() {
     const sel  = document.getElementById('wlAddRole');
     const msg  = document.getElementById('wlRlMsg');
     const id   = sel.value;
-    if (!id) { showMsg(msg, 'Please select a role first.', 'error'); return; }
+    if (!id) { showMsg(msg, I18N_AM_ERR_ROLE, 'error'); return; }
 
     const data = await apiFetch('/automod/whitelist', 'POST', { type: 'role', id });
     showMsg(msg, data.message, data.success ? 'success' : 'error');
@@ -744,7 +748,7 @@ async function removeWhitelist(type, id) {
         const empty = document.createElement('span');
         empty.id        = emptyId;
         empty.style.cssText = 'color:var(--text-muted);font-size:.875rem;';
-        empty.textContent   = 'None.';
+        empty.textContent   = I18N_WL_NONE;
         list.appendChild(empty);
     }
 }

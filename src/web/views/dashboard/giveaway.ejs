@@ -132,8 +132,8 @@
 
         <!-- Header -->
         <div class="page-header">
-            <h1>Giveaway</h1>
-            <p>Buat dan kelola giveaway langsung dari dashboard. Bot akan mengirim embed ke channel Discord dan otomatis memilih pemenang.</p>
+            <h1><%= t('giveaway.page_title') %></h1>
+            <p><%= t('giveaway.page_desc') %></p>
         </div>
 
         <!-- Stats -->
@@ -142,21 +142,21 @@
                 <div class="stat-icon" style="color:#F0A032;background:rgba(240,160,50,.15);"><i data-lucide="gift"></i></div>
                 <div class="stat-info">
                     <div class="stat-value"><%= giveaways.filter(g => !g.ended && !g.cancelled).length %></div>
-                    <div class="stat-label">Active</div>
+                    <div class="stat-label"><%= t('giveaway.stat_active') %></div>
                 </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon" style="color:#5865F2;background:rgba(88,101,242,.15);"><i data-lucide="trophy"></i></div>
                 <div class="stat-info">
                     <div class="stat-value"><%= giveaways.filter(g => g.ended && !g.cancelled).length %></div>
-                    <div class="stat-label">Ended</div>
+                    <div class="stat-label"><%= t('giveaway.stat_ended') %></div>
                 </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon" style="color:#80848e;background:rgba(128,132,142,.12);"><i data-lucide="list"></i></div>
                 <div class="stat-info">
                     <div class="stat-value"><%= giveaways.length %></div>
-                    <div class="stat-label">Total</div>
+                    <div class="stat-label"><%= t('giveaway.stat_total') %></div>
                 </div>
             </div>
         </div>
@@ -165,29 +165,27 @@
         <div class="settings-card" style="margin-bottom:1.5rem;">
             <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.25rem;">
                 <i data-lucide="book-open" style="color:#F0A032;width:18px;height:18px;flex-shrink:0;"></i>
-                <h2 style="margin:0;font-size:1rem;font-weight:600;">How to Use</h2>
+                <h2 style="margin:0;font-size:1rem;font-weight:600;"><%= t('giveaway.how_to_use') %></h2>
             </div>
             <div class="gw-guide-grid">
                 <div class="gw-guide-step">
                     <div class="gw-guide-num">1</div>
-                    <div class="gw-guide-title">Isi Form Giveaway</div>
-                    <div class="gw-guide-desc">Tentukan hadiah, channel tujuan, durasi, dan jumlah pemenang di form di bawah.</div>
+                    <div class="gw-guide-title"><%= t('giveaway.step1_title') %></div>
+                    <div class="gw-guide-desc"><%= t('giveaway.step1_desc') %></div>
                 </div>
                 <div class="gw-guide-step">
                     <div class="gw-guide-num">2</div>
-                    <div class="gw-guide-title">Bot Kirim Embed</div>
-                    <div class="gw-guide-desc">The bot automatically sends a giveaway embed to the selected channel and adds a 🎉 reaction.</div>
+                    <div class="gw-guide-title"><%= t('giveaway.step2_title') %></div>
+                    <div class="gw-guide-desc"><%= t('giveaway.step2_desc') %></div>
                 </div>
                 <div class="gw-guide-step">
                     <div class="gw-guide-num">3</div>
-                    <div class="gw-guide-title">Member Ikut & Pemenang Dipilih</div>
-                    <div class="gw-guide-desc">Member klik 🎉 untuk ikut. Saat waktu habis, bot otomatis pilih pemenang secara acak dan umumkan hasilnya.</div>
+                    <div class="gw-guide-title"><%= t('giveaway.step3_title') %></div>
+                    <div class="gw-guide-desc"><%= t('giveaway.step3_desc') %></div>
                 </div>
             </div>
             <div style="margin-top:.75rem;padding:.6rem .85rem;background:rgba(240,160,50,.07);border-radius:7px;border:1px solid rgba(240,160,50,.2);font-size:.8rem;color:var(--text-muted);">
-                💡 Kamu bisa mengakhiri giveaway lebih awal, reroll pemenang, atau membatalkan dari daftar di bawah.
-                Giveaway yang sudah berakhir tersimpan otomatis (maks. 30 riwayat).
-                Bisa juga dibuat via slash command <strong style="color:var(--text);">/giveaway start</strong> langsung di Discord.
+                💡 <%- t('giveaway.tip') %>
             </div>
         </div>
 
@@ -195,46 +193,46 @@
         <div class="settings-card" style="margin-bottom:1.5rem;">
             <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:1.1rem;">
                 <i data-lucide="plus-circle" style="color:#F0A032;width:18px;height:18px;flex-shrink:0;"></i>
-                <h2 style="margin:0;font-size:1rem;font-weight:600;">Buat Giveaway Baru</h2>
+                <h2 style="margin:0;font-size:1rem;font-weight:600;"><%= t('giveaway.create_title') %></h2>
             </div>
             <div class="gw-form-grid">
-                <!-- Hadiah -->
+                <!-- Prize -->
                 <div class="form-group" style="grid-column:1/-1;margin-bottom:0;">
-                    <label class="label">🎁 Hadiah <span style="color:#ed4245;">*</span></label>
-                    <input type="text" id="gwPrize" class="input" placeholder="Contoh: Discord Nitro 1 Bulan" maxlength="200">
+                    <label class="label"><%= t('giveaway.prize_label') %> <span style="color:#ed4245;">*</span></label>
+                    <input type="text" id="gwPrize" class="input" placeholder="<%= t('giveaway.prize_placeholder') %>" maxlength="200">
                 </div>
                 <!-- Channel -->
                 <div class="form-group" style="margin-bottom:0;">
                     <label class="label">📢 Channel <span style="color:#ed4245;">*</span></label>
                     <select id="gwChannel" class="select">
-                        <option value="">— Select channel —</option>
+                        <option value=""><%= t('common.select_channel') %></option>
                         <% (channels||[]).forEach(ch => { %>
                         <option value="<%= ch.id %>">#<%= ch.name %></option>
                         <% }) %>
                     </select>
                 </div>
-                <!-- Jumlah pemenang -->
+                <!-- Winners -->
                 <div class="form-group" style="margin-bottom:0;">
-                    <label class="label">🏆 Jumlah Pemenang <span style="color:#ed4245;">*</span></label>
+                    <label class="label"><%= t('giveaway.winners_label') %> <span style="color:#ed4245;">*</span></label>
                     <input type="number" id="gwWinnerCount" class="input" value="1" min="1" max="20" placeholder="1">
                 </div>
                 <!-- Duration -->
                 <div class="form-group" style="margin-bottom:0;">
-                    <label class="label">⏰ Duration <span style="color:#ed4245;">*</span></label>
+                    <label class="label"><%= t('giveaway.duration_label') %> <span style="color:#ed4245;">*</span></label>
                     <div class="gw-duration-row">
                         <input type="number" id="gwDurValue" class="input" value="1" min="1" max="999" placeholder="1">
                         <select id="gwDurUnit" class="select" style="flex:1;">
-                            <option value="60000">Minutes</option>
-                            <option value="3600000" selected>Hours</option>
-                            <option value="86400000">Days</option>
+                            <option value="60000"><%= t('giveaway.dur_minutes') %></option>
+                            <option value="3600000" selected><%= t('giveaway.dur_hours') %></option>
+                            <option value="86400000"><%= t('giveaway.dur_days') %></option>
                         </select>
                     </div>
                 </div>
-                <!-- Role syarat (opsional) -->
+                <!-- Required Role (optional) -->
                 <div class="form-group" style="margin-bottom:0;">
-                    <label class="label">🔒 Wajib Role <span style="font-weight:400;color:var(--text-muted);">(opsional)</span></label>
+                    <label class="label"><%= t('giveaway.required_role') %> <span style="font-weight:400;color:var(--text-muted);"><%= t('giveaway.required_role_hint') %></span></label>
                     <select id="gwRole" class="select">
-                        <option value="">— Semua member —</option>
+                        <option value=""><%= t('giveaway.all_members') %></option>
                         <% (roles||[]).forEach(r => { %>
                         <option value="<%= r.id %>"><%= r.name %></option>
                         <% }) %>
@@ -244,7 +242,7 @@
             <div class="gw-form-action-row" style="margin-top:1.1rem;display:flex;justify-content:flex-end;gap:.5rem;align-items:center;">
                 <div id="gwCreateMsg" class="form-message"></div>
                 <button class="btn btn-primary" onclick="createGiveaway(this)" style="background:#F0A032;border-color:#F0A032;white-space:nowrap;">
-                    <i data-lucide="gift" style="width:14px;height:14px;"></i> Mulai Giveaway
+                    <i data-lucide="gift" style="width:14px;height:14px;"></i> <%= t('giveaway.start_btn') %>
                 </button>
             </div>
         </div>
@@ -255,33 +253,33 @@
         <% const cancelGws  = giveaways.filter(g => g.cancelled); %>
 
         <% if (activeGws.length > 0) { %>
-        <div class="gw-section-label">🎉 Sedang Berlangsung</div>
+        <div class="gw-section-label"><%= t('giveaway.section_active') %></div>
         <% activeGws.forEach(function(gw) { %>
         <div class="gw-card" id="gwRow-<%= gw.id %>">
             <div class="gw-card-icon active">🎉</div>
             <div class="gw-card-body">
                 <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;">
                     <div class="gw-prize"><%= gw.prize %></div>
-                    <span class="gw-badge active">Active</span>
+                    <span class="gw-badge active"><%= t('giveaway.badge_active') %></span>
                 </div>
                 <div class="gw-meta">
-                    <span>🏆 <%= gw.winnerCount %> pemenang</span>
-                    <span>⏰ Berakhir <strong><span data-endat="<%= gw.endsAt %>"></span></strong></span>
+                    <span>🏆 <%= gw.winnerCount %> <%= t('giveaway.meta_winners') %></span>
+                    <span>⏰ <%= t('giveaway.meta_ends') %> <strong><span data-endat="<%= gw.endsAt %>"></span></strong></span>
                     <% const ch = channels.find(c => c.id === gw.channelId); %>
                     <% if (ch) { %><span>📢 #<%= ch.name %></span><% } %>
-                    <% if (gw.requiredRoleId) { %><span>🔒 Role wajib</span><% } %>
+                    <% if (gw.requiredRoleId) { %><span>🔒 <%= t('giveaway.required_role_badge') %></span><% } %>
                 </div>
                 <div id="gwMsg-<%= gw.id %>" class="form-message" style="margin-top:.3rem;"></div>
             </div>
             <div class="gw-actions">
                 <a href="https://discord.com/channels/<%= gw.guildId %>/<%= gw.channelId %>/<%= gw.messageId %>"
-                   target="_blank" class="btn btn-sm btn-icon" title="Lihat di Discord">
+                   target="_blank" class="btn btn-sm btn-icon" title="<%= t('common.view_in_discord') %>">
                     <i data-lucide="external-link" style="width:12px;height:12px;"></i>
                 </a>
-                <button class="btn btn-sm btn-primary" onclick="endGiveaway('<%= gw.id %>')" title="Akhiri sekarang">
-                    <i data-lucide="flag" style="width:12px;height:12px;"></i> Akhiri
+                <button class="btn btn-sm btn-primary" onclick="endGiveaway('<%= gw.id %>')" title="<%= t('giveaway.end_btn') %>">
+                    <i data-lucide="flag" style="width:12px;height:12px;"></i> <%= t('giveaway.end_btn') %>
                 </button>
-                <button class="btn btn-sm btn-danger btn-icon" onclick="cancelGiveaway('<%= gw.id %>')" title="Batalkan">
+                <button class="btn btn-sm btn-danger btn-icon" onclick="cancelGiveaway('<%= gw.id %>')" title="<%= t('common.cancel') %>">
                     <i data-lucide="x" style="width:12px;height:12px;"></i>
                 </button>
             </div>
@@ -290,14 +288,14 @@
         <% } %>
 
         <% if (endedGws.length > 0) { %>
-        <div class="gw-section-label">🏆 Riwayat Selesai</div>
+        <div class="gw-section-label"><%= t('giveaway.section_ended') %></div>
         <% endedGws.forEach(function(gw) { %>
         <div class="gw-card" id="gwRow-<%= gw.id %>">
             <div class="gw-card-icon ended">🏆</div>
             <div class="gw-card-body">
                 <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;">
                     <div class="gw-prize"><%= gw.prize %></div>
-                    <span class="gw-badge ended">Selesai</span>
+                    <span class="gw-badge ended"><%= t('giveaway.badge_ended') %></span>
                 </div>
                 <div class="gw-meta">
                     <% if (gw.winners && gw.winners.length > 0) { %>
@@ -307,21 +305,21 @@
                         <% }); %>
                     </span>
                     <% } else { %>
-                    <span style="color:#ed4245;">No participants</span>
+                    <span style="color:#ed4245;"><%= t('giveaway.no_participants') %></span>
                     <% } %>
-                    <span>⏰ Berakhir: <%= new Date(gw.endsAt).toLocaleString('id-ID') %></span>
+                    <span>⏰ <%= t('giveaway.meta_ends') %>: <%= new Date(gw.endsAt).toLocaleString('id-ID') %></span>
                 </div>
                 <div id="gwMsg-<%= gw.id %>" class="form-message" style="margin-top:.3rem;"></div>
             </div>
             <div class="gw-actions">
                 <a href="https://discord.com/channels/<%= gw.guildId %>/<%= gw.channelId %>/<%= gw.messageId %>"
-                   target="_blank" class="btn btn-sm btn-icon" title="Lihat di Discord">
+                   target="_blank" class="btn btn-sm btn-icon" title="<%= t('common.view_in_discord') %>">
                     <i data-lucide="external-link" style="width:12px;height:12px;"></i>
                 </a>
-                <button class="btn btn-sm btn-secondary" onclick="rerollGiveaway('<%= gw.id %>')" title="Reroll pemenang">
+                <button class="btn btn-sm btn-secondary" onclick="rerollGiveaway('<%= gw.id %>')" title="Reroll">
                     <i data-lucide="refresh-cw" style="width:12px;height:12px;"></i> Reroll
                 </button>
-                <button class="btn btn-sm btn-danger btn-icon" onclick="deleteGiveaway('<%= gw.id %>')" title="Hapus dari riwayat">
+                <button class="btn btn-sm btn-danger btn-icon" onclick="deleteGiveaway('<%= gw.id %>')" title="<%= t('common.delete') %>">
                     <i data-lucide="trash-2" style="width:12px;height:12px;"></i>
                 </button>
             </div>
@@ -330,14 +328,14 @@
         <% } %>
 
         <% if (cancelGws.length > 0) { %>
-        <div class="gw-section-label" style="color:var(--text-muted);">🚫 Cancelled</div>
+        <div class="gw-section-label" style="color:var(--text-muted);"><%= t('giveaway.section_cancelled') %></div>
         <% cancelGws.forEach(function(gw) { %>
         <div class="gw-card" id="gwRow-<%= gw.id %>" style="opacity:.6;">
             <div class="gw-card-icon cancelled">🚫</div>
             <div class="gw-card-body">
                 <div style="display:flex;align-items:center;gap:.5rem;">
                     <div class="gw-prize"><%= gw.prize %></div>
-                    <span class="gw-badge cancelled">Cancelled</span>
+                    <span class="gw-badge cancelled"><%= t('giveaway.badge_cancelled') %></span>
                 </div>
                 <div class="gw-meta">
                     <span>⏰ <%= new Date(gw.endsAt).toLocaleString('id-ID') %></span>
@@ -345,7 +343,7 @@
                 <div id="gwMsg-<%= gw.id %>" class="form-message" style="margin-top:.3rem;"></div>
             </div>
             <div class="gw-actions">
-                <button class="btn btn-sm btn-danger btn-icon" onclick="deleteGiveaway('<%= gw.id %>')" title="Hapus dari riwayat">
+                <button class="btn btn-sm btn-danger btn-icon" onclick="deleteGiveaway('<%= gw.id %>')" title="<%= t('common.delete') %>">
                     <i data-lucide="trash-2" style="width:12px;height:12px;"></i>
                 </button>
             </div>
@@ -356,7 +354,7 @@
         <% if (giveaways.length === 0) { %>
         <div class="settings-card" style="text-align:center;padding:3rem 1.5rem;">
             <i data-lucide="gift" style="width:48px;height:48px;color:#F0A032;opacity:.4;display:block;margin:0 auto .75rem;"></i>
-            <p style="color:var(--text-muted);margin:0;">No giveaways yet. Create the first one using the form above!</p>
+            <p style="color:var(--text-muted);margin:0;"><%= t('giveaway.no_giveaways') %></p>
         </div>
         <% } %>
 
@@ -368,24 +366,41 @@
 <%- include('../partials/bottom-nav') %>
 
 <script>
-const GUILD_ID = '<%= guild.id %>';
+const GUILD_ID         = '<%= guild.id %>';
+const I18N_GW_CONFIRM_END    = '<%= t("giveaway.confirm_end") %>';
+const I18N_GW_CONFIRM_REROLL = '<%= t("giveaway.confirm_reroll") %>';
+const I18N_GW_CONFIRM_DEL    = '<%= t("giveaway.confirm_delete") %>';
+const I18N_GW_CONFIRM_CANCEL = '<%= t("giveaway.confirm_cancel") %>';
+const I18N_GW_ERR_PRIZE    = '<%= t("giveaway.err_prize") %>';
+const I18N_GW_ERR_CHANNEL  = '<%= t("giveaway.err_channel") %>';
+const I18N_GW_ERR_WINNERS  = '<%= t("giveaway.err_winners") %>';
+const I18N_GW_ERR_DURATION = '<%= t("giveaway.err_duration") %>';
+const I18N_GW_ERR_CONNECT  = '<%= t("giveaway.err_connect") %>';
+const I18N_GW_SOON      = '<%= t("giveaway.countdown_soon") %>';
+const I18N_GW_DHM       = '<%= t("giveaway.countdown_dhm") %>';
+const I18N_GW_HM        = '<%= t("giveaway.countdown_hm") %>';
+const I18N_GW_MS        = '<%= t("giveaway.countdown_ms") %>';
+const I18N_GW_S         = '<%= t("giveaway.countdown_s") %>';
+const I18N_GW_REROLLING = '<%= t("giveaway.rerolling") %>';
+const I18N_GW_DELETING  = '<%= t("giveaway.deleting") %>';
 
 // ── Countdown timer ───────────────────────────────────────────────────────────
 function updateCountdowns() {
     document.querySelectorAll('[data-endat]').forEach(el => {
         const endsAt    = parseInt(el.dataset.endat);
         const remaining = endsAt - Date.now();
-        if (remaining <= 0) { el.textContent = 'Sebentar lagi...'; return; }
+        if (remaining <= 0) { el.textContent = I18N_GW_SOON; return; }
 
         const d = Math.floor(remaining / 86400000);
         const h = Math.floor((remaining % 86400000) / 3600000);
         const m = Math.floor((remaining % 3600000) / 60000);
         const s = Math.floor((remaining % 60000) / 1000);
 
-        if (d > 0)      el.textContent = `${d}h ${h}j lagi`;
-        else if (h > 0) el.textContent = `${h}j ${m}m lagi`;
-        else if (m > 0) el.textContent = `${m}m ${s}d lagi`;
-        else            el.textContent = `${s}d lagi`;
+        const _fmt = (tpl, vars) => tpl.replace(/\{\{(\w+)\}\}/g, (_,k) => vars[k] ?? _);
+        if (d > 0)      el.textContent = _fmt(I18N_GW_DHM, {d, h});
+        else if (h > 0) el.textContent = _fmt(I18N_GW_HM,  {h, m});
+        else if (m > 0) el.textContent = _fmt(I18N_GW_MS,  {m, s});
+        else            el.textContent = _fmt(I18N_GW_S,   {s});
     });
 }
 updateCountdowns();
@@ -401,10 +416,10 @@ async function createGiveaway(btn) {
     const roleId      = document.getElementById('gwRole').value;
     const msgEl       = document.getElementById('gwCreateMsg');
 
-    if (!prize)                       return showMsg(msgEl, 'Prize cannot be empty.', 'error');
-    if (!channelId)                   return showMsg(msgEl, 'Please select a channel first.', 'error');
-    if (!winnerCount || winnerCount < 1) return showMsg(msgEl, 'Jumlah pemenang minimal 1.', 'error');
-    if (!durValue || durValue < 1)    return showMsg(msgEl, 'Invalid duration.', 'error');
+    if (!prize)                       return showMsg(msgEl, I18N_GW_ERR_PRIZE, 'error');
+    if (!channelId)                   return showMsg(msgEl, I18N_GW_ERR_CHANNEL, 'error');
+    if (!winnerCount || winnerCount < 1) return showMsg(msgEl, I18N_GW_ERR_WINNERS, 'error');
+    if (!durValue || durValue < 1)    return showMsg(msgEl, I18N_GW_ERR_DURATION, 'error');
 
     const durationMs = durValue * durUnit;
 
@@ -425,7 +440,7 @@ async function createGiveaway(btn) {
             showMsg(msgEl, data.message, 'error');
         }
     } catch (err) {
-        showMsg(msgEl, 'Gagal terhubung ke server.', 'error');
+        showMsg(msgEl, I18N_GW_ERR_CONNECT, 'error');
     } finally {
         btn.disabled  = false;
         btn.innerHTML = orig;
@@ -435,7 +450,7 @@ async function createGiveaway(btn) {
 
 // ── End ───────────────────────────────────────────────────────────────────────
 async function endGiveaway(id) {
-    if (!confirm('Akhiri giveaway sekarang dan pilih pemenang?')) return;
+    if (!confirm(I18N_GW_CONFIRM_END)) return;
     const msgEl = document.getElementById(`gwMsg-${id}`);
     showMsg(msgEl, 'Mengakhiri giveaway...', 'info');
     const r    = await fetch(`/api/guild/${GUILD_ID}/giveaway/${id}/end`, { method: 'POST' });
@@ -446,9 +461,9 @@ async function endGiveaway(id) {
 
 // ── Reroll ────────────────────────────────────────────────────────────────────
 async function rerollGiveaway(id) {
-    if (!confirm('Pick new winners for this giveaway?')) return;
+    if (!confirm(I18N_GW_CONFIRM_REROLL)) return;
     const msgEl = document.getElementById(`gwMsg-${id}`);
-    showMsg(msgEl, 'Memilih pemenang baru...', 'info');
+    showMsg(msgEl, I18N_GW_REROLLING, 'info');
     const r    = await fetch(`/api/guild/${GUILD_ID}/giveaway/${id}/reroll`, { method: 'POST' });
     const data = await r.json();
     showMsg(msgEl, data.message, data.success ? 'success' : 'error');
@@ -456,9 +471,9 @@ async function rerollGiveaway(id) {
 
 // ── Delete from history ───────────────────────────────────────────────────────
 async function deleteGiveaway(id) {
-    if (!confirm('Delete this giveaway from history? This action cannot be undone.')) return;
+    if (!confirm(I18N_GW_CONFIRM_DEL)) return;
     const msgEl = document.getElementById(`gwMsg-${id}`);
-    showMsg(msgEl, 'Menghapus...', 'info');
+    showMsg(msgEl, I18N_GW_DELETING, 'info');
     const r    = await fetch(`/api/guild/${GUILD_ID}/giveaway/${id}/remove`, { method: 'POST' });
     const data = await r.json();
     if (data.success) {
@@ -471,7 +486,7 @@ async function deleteGiveaway(id) {
 
 // ── Cancel ────────────────────────────────────────────────────────────────────
 async function cancelGiveaway(id) {
-    if (!confirm('Cancel this giveaway? No winners will be selected.')) return;
+    if (!confirm(I18N_GW_CONFIRM_CANCEL)) return;
     const msgEl = document.getElementById(`gwMsg-${id}`);
     const r     = await fetch(`/api/guild/${GUILD_ID}/giveaway/${id}`, { method: 'DELETE' });
     const data  = await r.json();

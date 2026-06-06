@@ -8,8 +8,8 @@
     <div class="dash-content-wide">
         <%- include('../partials/perm-notice') %>
         <div class="page-header">
-            <h1>Autorole Join</h1>
-            <p>Role automatically assigned when a member or bot joins the server.</p>
+            <h1><%= t('autorole.join_title') %></h1>
+            <p><%= t('autorole.join_desc') %></p>
         </div>
 
 
@@ -18,7 +18,7 @@
         ══════════════════════════════════════ -->
         <div id="tab-join" class="ar-tab-content">
             <div class="settings-card">
-                <p class="section-desc">Role automatically assigned when a <strong>member</strong> or <strong>bot</strong> joins the server.</p>
+                <p class="section-desc"><%- t('autorole.join_desc_full') %></p>
 
                 <!-- Member -->
                 <div class="ar-section">
@@ -28,13 +28,13 @@
                             <input type="checkbox" id="joinMemberEnabled" class="toggle-input"
                                    <%= joinData.memberEnabled ? 'checked' : '' %>>
                             <span class="toggle-slider"></span>
-                            <span>Enable for Members</span>
+                            <span><%= t('autorole.enable_members') %></span>
                         </label>
                     </div>
                     <div class="form-group">
-                        <label class="label">Role untuk Member</label>
+                        <label class="label"><%= t('autorole.role_for_member') %></label>
                         <select id="joinMemberRole" class="select">
-                            <option value="">— Select role —</option>
+                            <option value=""><%= t('common.select_role') %></option>
                             <% roles.forEach(role => { %>
                                 <option value="<%= role.id %>"
                                         style="color: <%= role.color %>"
@@ -56,13 +56,13 @@
                             <input type="checkbox" id="joinBotEnabled" class="toggle-input"
                                    <%= joinData.botEnabled ? 'checked' : '' %>>
                             <span class="toggle-slider"></span>
-                            <span>Enable for Bots</span>
+                            <span><%= t('autorole.enable_bots') %></span>
                         </label>
                     </div>
                     <div class="form-group">
-                        <label class="label">Role untuk Bot</label>
+                        <label class="label"><%= t('autorole.role_for_bot') %></label>
                         <select id="joinBotRole" class="select">
-                            <option value="">— Select role —</option>
+                            <option value=""><%= t('common.select_role') %></option>
                             <% roles.forEach(role => { %>
                                 <option value="<%= role.id %>"
                                         style="color: <%= role.color %>"
@@ -71,12 +71,12 @@
                                 </option>
                             <% }) %>
                         </select>
-                        <div class="hint">Only roles that can be assigned by the bot are shown.</div>
+                        <div class="hint"><%= t('common.roles_hint') %></div>
                     </div>
                 </div>
 
                 <div class="form-actions">
-                    <button class="btn btn-primary" onclick="saveJoin()">Save</button>
+                    <button class="btn btn-primary" onclick="saveJoin()"><%= t('common.save') %></button>
                 </div>
                 <div id="joinMsg" class="form-message"></div>
             </div>
@@ -87,22 +87,22 @@
         ══════════════════════════════════════ -->
         <div id="tab-booster" class="ar-tab-content" style="display:none;">
             <div class="settings-card">
-                <p class="section-desc">Role automatically assigned when a member <strong>boosts</strong> the server, and removed wheat mereka <strong>unboost</strong>.</p>
+                <p class="section-desc"><%- t('autorole.booster_tab_desc') %></p>
 
                 <div class="ar-section">
-                    <div class="ar-section-title">Autorole Booster</div>
+                    <div class="ar-section-title"><%= t('autorole.booster_section_title') %></div>
                     <div class="form-group">
                         <label class="toggle-label">
                             <input type="checkbox" id="boosterAutoroleEnabled" class="toggle-input"
                                    <%= boosterData.autoroleEnabled ? 'checked' : '' %>>
                             <span class="toggle-slider"></span>
-                            <span>Enable Autorole Booster</span>
+                            <span><%= t('autorole.enable_booster') %></span>
                         </label>
                     </div>
                     <div class="form-group">
-                        <label class="label">Role untuk Booster</label>
+                        <label class="label"><%= t('autorole.role_for_booster') %></label>
                         <select id="boosterAutoroleRole" class="select">
-                            <option value="">— Select role —</option>
+                            <option value=""><%= t('common.select_role') %></option>
                             <% roles.forEach(role => { %>
                                 <option value="<%= role.id %>"
                                         style="color: <%= role.color %>"
@@ -117,20 +117,20 @@
                 <div class="ar-divider"></div>
 
                 <div class="ar-section">
-                    <div class="ar-section-title">Autoremove on Unboost</div>
+                    <div class="ar-section-title"><%= t('autorole.autoremove_title') %></div>
                     <div class="form-group">
                         <label class="toggle-label">
                             <input type="checkbox" id="boosterAutoremoveEnabled" class="toggle-input"
                                    <%= boosterData.autoremoveEnabled ? 'checked' : '' %>>
                             <span class="toggle-slider"></span>
-                            <span>Automatically remove role when member stops boosting</span>
+                            <span><%= t('autorole.autoremove_toggle') %></span>
                         </label>
-                        <div class="hint" style="margin-top:.5rem;">If enabled, the booster role will be immediately removed when a member removes their boost.</div>
+                        <div class="hint" style="margin-top:.5rem;"><%= t('autorole.autoremove_hint') %></div>
                     </div>
                 </div>
 
                 <div class="form-actions">
-                    <button class="btn btn-primary" onclick="saveBooster()">Save</button>
+                    <button class="btn btn-primary" onclick="saveBooster()"><%= t('common.save') %></button>
                 </div>
                 <div id="boosterMsg" class="form-message"></div>
             </div>
@@ -144,7 +144,7 @@
             <!-- Toolbar -->
             <div class="mb-toolbar">
                 <button class="btn btn-primary" onclick="openCreatePanel()">＋ New Panel</button>
-                <input type="text" class="input mb-search" placeholder="🔍 Cari panel..." oninput="filterPanels(this.value)">
+                <input type="text" class="input mb-search" placeholder="<%= t('autorole.search_panel_ph') %>" oninput="filterPanels(this.value)">
             </div>
 
             <!-- Layout 2 kolom: list kiri + preview kanan -->
@@ -156,7 +156,7 @@
                 <% if (panels.length === 0) { %>
                     <div class="empty-state" id="emptyPanels">
                         <p style="font-size:2rem;margin-bottom:.5rem">🔘</p>
-                        <p>No panels yet. Click <strong>＋ New Panel</strong> to create an autorole button panel.</p>
+                        <p><%- t('autorole.btn_no_panels') %></p>
                         <p style="color:var(--text-muted);font-size:.85rem;margin-top:.5rem">
                             Panel juga bisa dibuat lewat Discord dengan perintah
                             <code>/autorole-button create</code>.
@@ -172,7 +172,7 @@
                             </span>
                             <% const sentP = sentPanels[p.name]; %>
                             <span class="ar-panel-status <%= sentP ? 'status-sent' : 'status-unsent' %>">
-                                <%= sentP ? '📤 Terkirim' : '⏳ Belum dikirim' %>
+                                <%= sentP ? t('autorole.status_sent') : t('autorole.status_unsent') %>
                             </span>
                         </div>
 
@@ -183,7 +183,7 @@
                           if (isPlainPanel) {
                               previewText = p.plainText
                                   ? p.plainText.slice(0, 80) + (p.plainText.length > 80 ? '…' : '')
-                                  : '(teks kosong)';
+                                  : t('autorole.text_empty');
                           } else {
                               previewText = p.embedTitle || (p.embedDescription
                                   ? p.embedDescription.slice(0, 60) + (p.embedDescription.length > 60 ? '…' : '')
@@ -193,7 +193,7 @@
                         <% if (previewText) { %>
                         <div class="ar-panel-embed-preview" style="border-left:3px solid <%= isPlainPanel ? '#8e9297' : embedColor %>;">
                             <span class="ar-panel-embed-text" style="<%= isPlainPanel ? 'color:var(--text-muted);font-style:italic;' : '' %>"><%= previewText %></span>
-                            <% if (isPlainPanel) { %><span style="font-size:.7rem;color:var(--text-muted);margin-left:.4rem;"> — Teks Biasa</span><% } %>
+                            <% if (isPlainPanel) { %><span style="font-size:.7rem;color:var(--text-muted);margin-left:.4rem;"> — <%= t('common.plain_text') %></span><% } %>
                         </div>
                         <% } %>
 
@@ -235,7 +235,7 @@
                 <div class="ap-preview-body">
                     <div id="apPreviewPlaceholder" class="ap-preview-placeholder">
                         <div style="font-size:1.75rem">👆</div>
-                        <div>Click a panel to see preview</div>
+                        <div><%= t('autorole.click_panel_preview') %></div>
                     </div>
                     <div id="apPreviewContent" style="display:none;">
                         <div class="dc-window">
@@ -282,7 +282,7 @@
             <!-- Toolbar -->
             <div class="mb-toolbar">
                 <button class="btn btn-primary" onclick="openCreateReactPanel()">＋ New Panel</button>
-                <input type="text" class="input mb-search" placeholder="🔍 Cari panel..." oninput="filterReactPanels(this.value)">
+                <input type="text" class="input mb-search" placeholder="<%= t('autorole.search_panel_ph') %>" oninput="filterReactPanels(this.value)">
             </div>
 
             <!-- Layout 2 kolom: list kiri + preview kanan -->
@@ -294,7 +294,7 @@
                 <% if (reactPanels.length === 0) { %>
                     <div class="empty-state" id="emptyReactPanels">
                         <p style="font-size:2rem;margin-bottom:.5rem">✨</p>
-                        <p>No panels yet. Click <strong>＋ New Panel</strong> to create an autorole reaction panel.</p>
+                        <p><%- t('autorole.react_no_panels') %></p>
                         <p style="color:var(--text-muted);font-size:.85rem;margin-top:.5rem">
                             Panel juga bisa dibuat lewat Discord dengan perintah
                             <code>/autorole-reaction create</code>.
@@ -310,7 +310,7 @@
                             </span>
                             <% const sentRP = sentReactPanels[p.name]; %>
                             <span class="ar-panel-status <%= sentRP ? 'status-sent' : 'status-unsent' %>">
-                                <%= sentRP ? '📤 Terkirim' : '⏳ Belum dikirim' %>
+                                <%= sentRP ? t('autorole.status_sent') : t('autorole.status_unsent') %>
                             </span>
                         </div>
 
@@ -321,7 +321,7 @@
                           if (isPlainRP) {
                               previewTextRP = p.plainText
                                   ? p.plainText.slice(0, 80) + (p.plainText.length > 80 ? '…' : '')
-                                  : '(teks kosong)';
+                                  : t('autorole.text_empty');
                           } else {
                               previewTextRP = p.embedTitle || (p.embedDescription
                                   ? p.embedDescription.slice(0, 60) + (p.embedDescription.length > 60 ? '…' : '')
@@ -331,7 +331,7 @@
                         <% if (previewTextRP) { %>
                         <div class="ar-panel-embed-preview" style="border-left:3px solid <%= isPlainRP ? '#8e9297' : embedColorRP %>;">
                             <span class="ar-panel-embed-text" style="<%= isPlainRP ? 'color:var(--text-muted);font-style:italic;' : '' %>"><%= previewTextRP %></span>
-                            <% if (isPlainRP) { %><span style="font-size:.7rem;color:var(--text-muted);margin-left:.4rem;"> — Teks Biasa</span><% } %>
+                            <% if (isPlainRP) { %><span style="font-size:.7rem;color:var(--text-muted);margin-left:.4rem;"> — <%= t('common.plain_text') %></span><% } %>
                         </div>
                         <% } %>
 
@@ -375,7 +375,7 @@
                 <div class="ap-preview-body">
                     <div id="apReactPreviewPlaceholder" class="ap-preview-placeholder">
                         <div style="font-size:1.75rem">✨</div>
-                        <div>Click a panel to see preview</div>
+                        <div><%= t('autorole.click_panel_preview') %></div>
                     </div>
                     <div id="apReactPreviewContent" style="display:none;">
                         <div class="dc-window">
@@ -477,7 +477,7 @@
                         </label>
                         <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;">
                             <input type="radio" name="panelMessageType" id="panelTypePlain" value="plain">
-                            <span>Teks Biasa</span>
+                            <span><%= t('common.plain_text') %></span>
                         </label>
                     </div>
                 </div>
@@ -785,7 +785,7 @@
                         </label>
                         <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;">
                             <input type="radio" name="reactPanelMessageType" id="reactPanelTypePlain" value="plain">
-                            <span>Teks Biasa</span>
+                            <span><%= t('common.plain_text') %></span>
                         </label>
                     </div>
                 </div>
@@ -1502,10 +1502,10 @@ function resolveHtmlMentions(html){
 
 // ── Tab ──────────────────────────────────────────────────────────────────────
 const TAB_META = {
-    join:     { title: 'Autorole Join',     desc: 'Role automatically assigned when a member or bot joins the server.' },
-    booster:  { title: 'Autorole Booster',  desc: 'Role otomatis diberikan saat member melakukan boost server.' },
-    button:   { title: 'Autorole Button',   desc: 'Interactive button panel for members to choose their own roles.' },
-    reaction: { title: 'Autorole Reaction', desc: 'Panel reaction emoji untuk member memilih role dengan klik emoji.' },
+    join:     { title: '<%= t("autorole.join_title") %>',     desc: '<%- t("autorole.join_desc") %>' },
+    booster:  { title: '<%= t("autorole.booster_title") %>',  desc: '<%- t("autorole.booster_desc") %>' },
+    button:   { title: '<%= t("autorole.button_title") %>',   desc: '<%- t("autorole.button_desc") %>' },
+    reaction: { title: '<%= t("autorole.reaction_title") %>', desc: '<%- t("autorole.reaction_desc") %>' },
 };
 
 function switchTab(tab) {
@@ -1938,7 +1938,7 @@ async function savePanel() {
         const inlineChannelId = document.getElementById('panelSendChannelInline').value;
         if (inlineChannelId) {
             // Auto-kirim ke channel yang sudah dipilih
-            showMsg(msg, '✅ Panel disimpan! Mengirim ke channel...', 'success');
+            showMsg(msg, '<%= t("autorole.panel_saved_sending") %>', 'success');
             try {
                 const sendRes  = await fetch(`/api/guild/${GUILD_ID}/autorole-button/${encodeURIComponent(name)}/send`, {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -2563,7 +2563,7 @@ async function saveReactPanel() {
     } else {
         const inlineChannelId = document.getElementById('reactPanelSendChannelInline').value;
         if (inlineChannelId) {
-            showMsg(msg, '✅ Panel disimpan! Mengirim ke channel...', 'success');
+            showMsg(msg, '<%= t("autorole.panel_saved_sending") %>', 'success');
             try {
                 const sendRes  = await fetch(`/api/guild/${GUILD_ID}/autorole-reaction/${encodeURIComponent(name)}/send`, {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },

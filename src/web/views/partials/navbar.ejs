@@ -13,6 +13,8 @@
 
     <!-- Kanan: avatar user + dropdown atau tombol login -->
     <div class="navbar-right">
+        <% const _lang = locals.currentLang || 'en'; const _t = typeof t === 'function' ? t : (k) => k; %>
+
         <% if (user) { %>
             <div class="nav-user" id="navUser" onclick="toggleUserMenu()">
                 <img class="user-avatar"
@@ -30,14 +32,44 @@
                     <span class="nav-dropdown-name"><%= user.username %></span>
                 </div>
                 <div class="nav-dropdown-divider"></div>
-                <a href="/dashboard" class="nav-dropdown-item"><i data-lucide="layout-grid"></i> Dashboard</a>
-                <a href="/auth/logout" class="nav-dropdown-item nav-dropdown-logout"><i data-lucide="log-out"></i> Logout</a>
+                <a href="/dashboard" class="nav-dropdown-item"><i data-lucide="layout-grid"></i> <%= _t('nav.dashboard') %></a>
+                <div class="nav-dropdown-divider"></div>
+                <div class="nav-dropdown-label"><i data-lucide="languages"></i> Language</div>
+                <a href="/lang/en" class="nav-dropdown-item<%= _lang === 'en' ? ' active' : '' %>">
+                    <span class="nav-lang-flag">🇬🇧</span> English
+                    <% if (_lang === 'en') { %><i data-lucide="check" style="width:13px;height:13px;margin-left:auto;"></i><% } %>
+                </a>
+                <a href="/lang/id" class="nav-dropdown-item<%= _lang === 'id' ? ' active' : '' %>">
+                    <span class="nav-lang-flag">🇮🇩</span> Indonesia
+                    <% if (_lang === 'id') { %><i data-lucide="check" style="width:13px;height:13px;margin-left:auto;"></i><% } %>
+                </a>
+                <div class="nav-dropdown-divider"></div>
+                <a href="/auth/logout" class="nav-dropdown-item nav-dropdown-logout"><i data-lucide="log-out"></i> <%= _t('nav.logout') %></a>
             </div>
         <% } else { %>
-            <a href="/auth/login" class="btn btn-primary btn-sm">Login dengan Discord</a>
+            <!-- Language switcher untuk state belum login -->
+            <div class="nav-lang" id="navLang" onclick="toggleLangMenu()">
+                <span class="nav-lang-flag"><%= _lang === 'id' ? '🇮🇩' : '🇬🇧' %></span>
+                <span class="nav-lang-code"><%= _lang === 'id' ? 'ID' : 'EN' %></span>
+                <span class="nav-chevron">▾</span>
+            </div>
+            <div class="nav-lang-dropdown" id="navLangDropdown">
+                <a href="/lang/en" class="nav-lang-item<%= _lang === 'en' ? ' active' : '' %>">
+                    <span>🇬🇧</span> English
+                    <% if (_lang === 'en') { %><i data-lucide="check" style="width:13px;height:13px;margin-left:auto;"></i><% } %>
+                </a>
+                <a href="/lang/id" class="nav-lang-item<%= _lang === 'id' ? ' active' : '' %>">
+                    <span>🇮🇩</span> Indonesia
+                    <% if (_lang === 'id') { %><i data-lucide="check" style="width:13px;height:13px;margin-left:auto;"></i><% } %>
+                </a>
+            </div>
+            <a href="/auth/login" class="btn btn-primary btn-sm"><%= _t('nav.login') %></a>
         <% } %>
     </div>
 </nav>
+
+<!-- Spacer so content doesn't go under fixed navbar -->
+<div class="navbar-spacer"></div>
 
 <!-- Overlay sidebar -->
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
@@ -152,4 +184,42 @@ document.addEventListener('click', (e) => {
         dd.classList.remove('open');
     }
 });
+
+/* ── Language dropdown ── */
+function toggleLangMenu() {
+    const dd = document.getElementById('navLangDropdown');
+    dd.classList.toggle('open');
+}
+document.addEventListener('click', (e) => {
+    const lang = document.getElementById('navLang');
+    const dd   = document.getElementById('navLangDropdown');
+    if (dd && lang && !lang.contains(e.target) && !dd.contains(e.target)) {
+        dd.classList.remove('open');
+    }
+});
+
+/* ── Auto-hide navbar on scroll ── */
+(function () {
+    const nav = document.querySelector('.navbar');
+    if (!nav) return;
+    let lastY = window.scrollY, ticking = false;
+    nav.classList.toggle('nav-scrolled', window.scrollY > 20);
+
+    function setNavHidden(hidden) {
+        nav.classList.toggle('nav-hidden', hidden);
+        document.body.classList.toggle('nav-is-hidden', hidden);
+    }
+
+    window.addEventListener('scroll', () => {
+        if (ticking) return;
+        ticking = true;
+        requestAnimationFrame(() => {
+            const y = window.scrollY;
+            nav.classList.toggle('nav-scrolled', y > 20);
+            setNavHidden(y > 80 && y > lastY);
+            lastY = y;
+            ticking = false;
+        });
+    }, { passive: true });
+})();
 </script>

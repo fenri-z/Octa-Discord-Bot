@@ -7,8 +7,8 @@
     <main class="dash-main" style="max-width:100%;">
         <%- include('../partials/perm-notice') %>
         <div class="page-header">
-            <h1>Boost Notification</h1>
-            <p>Automatic notification when a member boosts the server.</p>
+            <h1><%= t('booster.page_title') %></h1>
+            <p><%= t('booster.page_desc') %></p>
         </div>
 
         <!-- ══════════════════════════════════════
@@ -24,14 +24,14 @@
                         <input type="checkbox" id="boostEnabled" class="toggle-input"
                                <%= boostData.enabled ? 'checked' : '' %>>
                         <span class="toggle-slider"></span>
-                        <span>Enable Boost Notification</span>
+                        <span><%= t('booster.boost_enable') %></span>
                     </label>
                 </div>
 
                 <div class="form-group">
-                    <label class="label">Notification Channel</label>
+                    <label class="label"><%= t('common.notification_channel') %></label>
                     <select id="boostChannel" class="select">
-                        <option value="">— Select channel —</option>
+                        <option value=""><%= t('common.select_channel') %></option>
                         <% (locals.channels || []).forEach(ch => { %>
                             <option value="<%= ch.id %>" <%= boostData.channelId === ch.id ? 'selected' : '' %>>#<%= ch.name %></option>
                         <% }) %>
@@ -39,17 +39,17 @@
                 </div>
 
                 <div class="form-group">
-                    <label class="label">Message Type</label>
+                    <label class="label"><%= t('common.message_type') %></label>
                     <div style="display:flex;gap:.75rem;">
                         <label class="radio-label" style="display:flex;align-items:center;gap:.5rem;cursor:pointer;">
                             <input type="radio" name="boostMessageType" id="boostTypeEmbed" value="embed"
                                    <%= (boostData.messageType || 'plain') === 'embed' ? 'checked' : '' %>>
-                            <span>Embed</span>
+                            <span><%= t('common.embed') %></span>
                         </label>
                         <label class="radio-label" style="display:flex;align-items:center;gap:.5rem;cursor:pointer;">
                             <input type="radio" name="boostMessageType" id="boostTypePlain" value="plain"
                                    <%= (boostData.messageType || 'plain') === 'plain' ? 'checked' : '' %>>
-                            <span>Teks Biasa</span>
+                            <span><%= t('common.plain_text') %></span>
                         </label>
                     </div>
                 </div>
@@ -57,9 +57,9 @@
                 <!-- Panel Teks Biasa -->
                 <div id="boostPlainPanel" class="form-group" style="display:none;">
                     <div class="label-with-picker">
-                        <label class="label" style="margin-bottom:0;">Plain Text Message</label>
+                        <label class="label" style="margin-bottom:0;"><%= t('common.plain_text_message') %></label>
                         <div class="ph-picker-anchor">
-                            <button type="button" class="ph-toggle-btn" onclick="togglePicker('boostPlainPicker',event)">{…} Placeholder</button>
+                            <button type="button" class="ph-toggle-btn" onclick="togglePicker('boostPlainPicker',event)"><%= t('booster.placeholder_btn') %></button>
                             <div class="ph-dropdown" id="boostPlainPicker" style="display:none;"></div>
                         </div>
                     </div>
@@ -72,13 +72,13 @@
                 <div id="boostEmbedPanel">
                     <div style="display:flex;justify-content:flex-end;margin-bottom:.35rem;">
                         <div class="ph-picker-anchor">
-                            <button type="button" class="ph-toggle-btn" onclick="togglePicker('boostEmbedPicker',event)">{…} Placeholder</button>
+                            <button type="button" class="ph-toggle-btn" onclick="togglePicker('boostEmbedPicker',event)"><%= t('booster.placeholder_btn') %></button>
                             <div class="ph-dropdown" id="boostEmbedPicker" style="display:none;"></div>
                         </div>
                     </div>
 
                     <div class="form-group">
-                        <label class="label">Embed Title</label>
+                        <label class="label"><%= t('common.embed_title') %></label>
                         <input type="text" id="boostTitle" class="input"
                                placeholder="🚀 New Server Boost!"
                                value="<%= boostData.title %>"
@@ -86,13 +86,13 @@
                     </div>
 
                     <div class="form-group">
-                        <label class="label">Embed Description</label>
+                        <label class="label"><%= t('common.embed_description') %></label>
                         <textarea id="boostDesc" class="textarea" rows="4"
                                   placeholder="Thank you {member} for boosting this server! 💖" oninput="updateBoostPreview()"><%= boostData.description %></textarea>
                     </div>
 
                     <div class="form-group">
-                        <label class="label">Embed Color</label>
+                        <label class="label"><%= t('common.embed_color') %></label>
                         <div style="display:flex;gap:.75rem;align-items:center;">
                             <input type="color" id="boostColorPicker" value="<%= boostData.color || '#FF73FA' %>"
                                    style="width:44px;height:36px;border:none;border-radius:6px;cursor:pointer;padding:0;background:none;"
@@ -105,9 +105,9 @@
                     </div>
 
                     <div class="form-group">
-                        <label class="label">Footer <span style="font-weight:400;color:var(--text-muted)">(optional)</span></label>
+                        <label class="label"><%= t('booster.footer_label') %> <span style="font-weight:400;color:var(--text-muted)">(<%= t('booster.footer_optional') %>)</span></label>
                         <input type="text" id="boostFooter" class="input"
-                               placeholder="Leave blank to remove"
+                               placeholder="<%= t('booster.footer_placeholder') %>"
                                value="<%= boostData.footerText || '' %>"
                                oninput="updateBoostPreview()">
                     </div>
@@ -117,32 +117,32 @@
                             <input type="checkbox" id="boostShowThumbnail" class="toggle-input"
                                    <%= boostData.showThumbnail !== false ? 'checked' : '' %> onchange="updateBoostPreview()">
                             <span class="toggle-slider"></span>
-                            <span>Show member profile picture (thumbnail)</span>
+                            <span><%= t('booster.show_thumbnail') %></span>
                         </label>
                     </div>
 
                     <div class="form-group" style="border-top:1px solid var(--border);padding-top:1rem;margin-top:.5rem;">
-                        <label class="label" style="margin-bottom:.75rem;">Field Info</label>
+                        <label class="label" style="margin-bottom:.75rem;"><%= t('booster.field_info') %></label>
                         <div style="display:flex;flex-direction:column;gap:.6rem;">
                             <label class="toggle-label">
                                 <input type="checkbox" id="boostShowMember" class="toggle-input"
                                        <%= boostData.showMember ? 'checked' : '' %> onchange="updateBoostPreview()">
-                                <span class="toggle-slider"></span><span>👤 Member</span>
+                                <span class="toggle-slider"></span><span><%= t('booster.field_member') %></span>
                             </label>
                             <label class="toggle-label">
                                 <input type="checkbox" id="boostShowMulaiBoost" class="toggle-input"
                                        <%= boostData.showMulaiBoost ? 'checked' : '' %> onchange="updateBoostPreview()">
-                                <span class="toggle-slider"></span><span>🚀 Boost Start</span>
+                                <span class="toggle-slider"></span><span><%= t('booster.field_boost_start') %></span>
                             </label>
                             <label class="toggle-label">
                                 <input type="checkbox" id="boostShowTotalBoost" class="toggle-input"
                                        <%= boostData.showTotalBoost ? 'checked' : '' %> onchange="updateBoostPreview()">
-                                <span class="toggle-slider"></span><span>✨ Total Boost</span>
+                                <span class="toggle-slider"></span><span><%= t('booster.field_total_boost') %></span>
                             </label>
                             <label class="toggle-label">
                                 <input type="checkbox" id="boostShowLevelServer" class="toggle-input"
                                        <%= boostData.showLevelServer ? 'checked' : '' %> onchange="updateBoostPreview()">
-                                <span class="toggle-slider"></span><span>🏅 Level Server</span>
+                                <span class="toggle-slider"></span><span><%= t('booster.field_level_server') %></span>
                             </label>
                         </div>
                     </div>
@@ -150,31 +150,31 @@
 
                 <!-- ── Boost Card ── -->
                 <div class="form-group" style="margin-top:1.5rem;border-top:1px solid var(--border);padding-top:1.25rem;">
-                    <label class="label" style="margin-bottom:.75rem;">Boost Card</label>
+                    <label class="label" style="margin-bottom:.75rem;"><%= t('booster.boost_card_label') %></label>
                     <label class="toggle-label">
                         <input type="checkbox" id="boostCardEnabled" class="toggle-input"
                                <%= boostData.cardEnabled ? 'checked' : '' %>>
                         <span class="toggle-slider"></span>
-                        <span>Send boost card image</span>
+                        <span><%= t('booster.send_boost_card') %></span>
                     </label>
                 </div>
                 <div id="boostCardPanel" style="display:none;">
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;">
                         <div class="form-group">
-                            <label class="label">Avatar Shape</label>
+                            <label class="label"><%= t('booster.card_avatar_shape') %></label>
                             <div style="display:flex;gap:.6rem;margin-top:.2rem;">
                                 <label style="display:flex;align-items:center;gap:.4rem;cursor:pointer;font-size:.85rem;">
                                     <input type="radio" name="boostCardAvatarShape" value="circle" <%= (boostData.cardAvatarShape||'circle')==='circle'?'checked':'' %>>
-                                    <span>Circle</span>
+                                    <span><%= t('booster.card_avatar_circle') %></span>
                                 </label>
                                 <label style="display:flex;align-items:center;gap:.4rem;cursor:pointer;font-size:.85rem;">
                                     <input type="radio" name="boostCardAvatarShape" value="square" <%= boostData.cardAvatarShape==='square'?'checked':'' %>>
-                                    <span>Square</span>
+                                    <span><%= t('booster.card_avatar_square') %></span>
                                 </label>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label class="label">Font</label>
+                            <label class="label"><%= t('booster.card_font') %></label>
                             <select id="boostCardFont" class="select" style="font-size:.82rem;">
                                 <% [['impact','Impact'],['arial','Arial'],['georgia','Georgia'],['courier','Courier New'],['verdana','Verdana']].forEach(function(f){ %>
                                     <option value="<%= f[0] %>" <%= (boostData.cardFont||'impact')===f[0]?'selected':'' %>><%= f[1] %></option>
@@ -183,9 +183,9 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="label">Background Type</label>
+                        <label class="label"><%= t('booster.card_bg_type') %></label>
                         <div style="display:flex;gap:.75rem;flex-wrap:wrap;margin-top:.2rem;">
-                            <% [['gradient','Gradient'],['solid','Solid'],['image','Image URL'],['transparent','Transparent']].forEach(function(bt){ %>
+                            <% [['gradient',t('booster.card_bg_gradient')],['solid',t('booster.card_bg_solid')],['image',t('booster.card_bg_image_url_opt')],['transparent',t('booster.card_bg_transparent')]].forEach(function(bt){ %>
                             <label style="display:flex;align-items:center;gap:.4rem;cursor:pointer;font-size:.85rem;">
                                 <input type="radio" name="boostCardBgType" value="<%= bt[0] %>" <%= (boostData.cardBgType||'gradient')===bt[0]?'checked':'' %>>
                                 <span><%= bt[1] %></span>
@@ -195,14 +195,14 @@
                     </div>
                     <div id="boostCardBgGradientPanel" style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;">
                         <div class="form-group">
-                            <label class="label" id="boostCardBgColor1Label">Left Background</label>
+                            <label class="label" id="boostCardBgColor1Label"><%= t('booster.card_left_bg') %></label>
                             <div style="display:flex;gap:.5rem;align-items:center;">
                                 <input type="color" id="boostCardBgColorPicker" value="<%= boostData.cardBgColor||'#0a0a1e' %>" style="width:38px;height:32px;border:none;border-radius:5px;cursor:pointer;padding:0;background:none;" oninput="bcSync('boostCardBgColor','boostCardBgColorPicker');drawBoostCard()">
                                 <input type="text" id="boostCardBgColor" class="input" style="max-width:110px;" maxlength="7" value="<%= boostData.cardBgColor||'#0a0a1e' %>" oninput="bcSyncP('boostCardBgColor','boostCardBgColorPicker');drawBoostCard()">
                             </div>
                         </div>
                         <div class="form-group" id="boostCardBgColor2Group">
-                            <label class="label">Right Background</label>
+                            <label class="label"><%= t('booster.card_right_bg') %></label>
                             <div style="display:flex;gap:.5rem;align-items:center;">
                                 <input type="color" id="boostCardBgColor2Picker" value="<%= boostData.cardBgColor2||'#1e0a2e' %>" style="width:38px;height:32px;border:none;border-radius:5px;cursor:pointer;padding:0;background:none;" oninput="bcSync('boostCardBgColor2','boostCardBgColor2Picker');drawBoostCard()">
                                 <input type="text" id="boostCardBgColor2" class="input" style="max-width:110px;" maxlength="7" value="<%= boostData.cardBgColor2||'#1e0a2e' %>" oninput="bcSyncP('boostCardBgColor2','boostCardBgColor2Picker');drawBoostCard()">
@@ -210,46 +210,46 @@
                         </div>
                     </div>
                     <div id="boostCardBgImagePanel" style="display:none;" class="form-group">
-                        <label class="label">Background Image URL</label>
+                        <label class="label"><%= t('booster.card_bg_image_url') %></label>
                         <input type="text" id="boostCardBgImageUrl" class="input" placeholder="https://..." value="<%= boostData.cardBgImageUrl||'' %>">
                     </div>
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;">
                         <div class="form-group">
-                            <label class="label">Overlay Color</label>
+                            <label class="label"><%= t('booster.card_overlay_color') %></label>
                             <div style="display:flex;gap:.5rem;align-items:center;">
                                 <input type="color" id="boostCardOverlayColorPicker" value="<%= boostData.cardOverlayColor||'#000000' %>" style="width:38px;height:32px;border:none;border-radius:5px;cursor:pointer;padding:0;background:none;" oninput="bcSync('boostCardOverlayColor','boostCardOverlayColorPicker');drawBoostCard()">
                                 <input type="text" id="boostCardOverlayColor" class="input" style="max-width:110px;" maxlength="7" value="<%= boostData.cardOverlayColor||'#000000' %>" oninput="bcSyncP('boostCardOverlayColor','boostCardOverlayColorPicker');drawBoostCard()">
                             </div>
                         </div>
                         <div class="form-group">
-                            <label class="label" style="display:flex;justify-content:space-between;"><span>Overlay Opacity</span><span id="boostCardOverlayOpacityVal" style="color:var(--text-muted);font-weight:400;"><%= boostData.cardOverlayOpacity||'0' %>%</span></label>
+                            <label class="label" style="display:flex;justify-content:space-between;"><span><%= t('booster.card_overlay_opacity') %></span><span id="boostCardOverlayOpacityVal" style="color:var(--text-muted);font-weight:400;"><%= boostData.cardOverlayOpacity||'0' %>%</span></label>
                             <input type="range" id="boostCardOverlayOpacity" min="0" max="100" value="<%= boostData.cardOverlayOpacity||'0' %>" style="width:100%;margin-top:.45rem;accent-color:var(--accent,#5865f2);" oninput="document.getElementById('boostCardOverlayOpacityVal').textContent=this.value+'%';drawBoostCard()">
                         </div>
                     </div>
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;">
                         <div class="form-group">
-                            <label class="label">Title Color</label>
+                            <label class="label"><%= t('booster.card_title_color') %></label>
                             <div style="display:flex;gap:.5rem;align-items:center;">
                                 <input type="color" id="boostCardTitleColorPicker" value="<%= boostData.cardTitleColor||'#ffffff' %>" style="width:38px;height:32px;border:none;border-radius:5px;cursor:pointer;padding:0;background:none;" oninput="bcSync('boostCardTitleColor','boostCardTitleColorPicker');drawBoostCard()">
                                 <input type="text" id="boostCardTitleColor" class="input" style="max-width:110px;" maxlength="7" value="<%= boostData.cardTitleColor||'#ffffff' %>" oninput="bcSyncP('boostCardTitleColor','boostCardTitleColorPicker');drawBoostCard()">
                             </div>
                         </div>
                         <div class="form-group">
-                            <label class="label">Username Color</label>
+                            <label class="label"><%= t('booster.card_username_color') %></label>
                             <div style="display:flex;gap:.5rem;align-items:center;">
                                 <input type="color" id="boostCardUsernameColorPicker" value="<%= boostData.cardUsernameColor||'#FF73FA' %>" style="width:38px;height:32px;border:none;border-radius:5px;cursor:pointer;padding:0;background:none;" oninput="bcSync('boostCardUsernameColor','boostCardUsernameColorPicker');drawBoostCard()">
                                 <input type="text" id="boostCardUsernameColor" class="input" style="max-width:110px;" maxlength="7" value="<%= boostData.cardUsernameColor||'#FF73FA' %>" oninput="bcSyncP('boostCardUsernameColor','boostCardUsernameColorPicker');drawBoostCard()">
                             </div>
                         </div>
                         <div class="form-group">
-                            <label class="label">Message Color (sub text)</label>
+                            <label class="label"><%= t('booster.card_msg_color') %></label>
                             <div style="display:flex;gap:.5rem;align-items:center;">
                                 <input type="color" id="boostCardMsgColorPicker" value="<%= boostData.cardMsgColor||'#cccccc' %>" style="width:38px;height:32px;border:none;border-radius:5px;cursor:pointer;padding:0;background:none;" oninput="bcSync('boostCardMsgColor','boostCardMsgColorPicker');drawBoostCard()">
                                 <input type="text" id="boostCardMsgColor" class="input" style="max-width:110px;" maxlength="7" value="<%= boostData.cardMsgColor||'#cccccc' %>" oninput="bcSyncP('boostCardMsgColor','boostCardMsgColorPicker');drawBoostCard()">
                             </div>
                         </div>
                         <div class="form-group">
-                            <label class="label">Avatar Border Color</label>
+                            <label class="label"><%= t('booster.card_avatar_border') %></label>
                             <div style="display:flex;gap:.5rem;align-items:center;">
                                 <input type="color" id="boostCardAccentPicker" value="<%= boostData.cardAccentColor||'#FF73FA' %>" style="width:38px;height:32px;border:none;border-radius:5px;cursor:pointer;padding:0;background:none;" oninput="bcSync('boostCardAccentColor','boostCardAccentPicker');drawBoostCard()">
                                 <input type="text" id="boostCardAccentColor" class="input" style="max-width:110px;" maxlength="7" value="<%= boostData.cardAccentColor||'#FF73FA' %>" oninput="bcSyncP('boostCardAccentColor','boostCardAccentPicker');drawBoostCard()">
@@ -257,25 +257,25 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="label">Large Text</label>
+                        <label class="label"><%= t('booster.card_large_text') %></label>
                         <input type="text" id="boostCardWelcomeText" class="input" maxlength="20" placeholder="BOOST!" value="<%= boostData.cardWelcomeText||'BOOST!' %>">
                     </div>
                     <div class="form-group">
-                        <label class="label">Small Text Below</label>
+                        <label class="label"><%= t('booster.card_small_text') %></label>
                         <input type="text" id="boostCardSubText" class="input" maxlength="60" placeholder="Thank you for boosting!" value="<%= boostData.cardSubText||'Thank you for boosting!' %>">
                         <div class="hint" style="margin-top:.3rem;"><code>{server}</code> · <code>{boosts}</code> · <code>{level}</code></div>
                     </div>
                 </div>
 
                 <div class="form-actions">
-                    <button class="btn btn-primary" onclick="saveBoost()">Save</button>
+                    <button class="btn btn-primary" onclick="saveBoost()"><%= t('common.save') %></button>
                 </div>
                 <div id="boostMsg" class="form-message"></div>
             </div>
 
             <!-- Kolom kanan: preview -->
             <div class="preview-panel">
-                <div class="preview-label">Preview</div>
+                <div class="preview-label"><%= t('common.preview') %></div>
                 <div class="dc-window">
                     <div class="dc-channel-bar">
                         <span class="dc-channel-hash">#</span>
@@ -332,14 +332,14 @@
                         <input type="checkbox" id="unboostEnabled" class="toggle-input"
                                <%= unboostData.enabled ? 'checked' : '' %>>
                         <span class="toggle-slider"></span>
-                        <span>Enable Unboost Notification</span>
+                        <span><%= t('booster.unboost_enable') %></span>
                     </label>
                 </div>
 
                 <div class="form-group">
-                    <label class="label">Channel Notifikasi</label>
+                    <label class="label"><%= t('common.notification_channel') %></label>
                     <select id="unboostChannel" class="select">
-                        <option value="">— Select channel —</option>
+                        <option value=""><%= t('common.select_channel') %></option>
                         <% (locals.channels || []).forEach(ch => { %>
                             <option value="<%= ch.id %>" <%= unboostData.channelId === ch.id ? 'selected' : '' %>>#<%= ch.name %></option>
                         <% }) %>
@@ -347,17 +347,17 @@
                 </div>
 
                 <div class="form-group">
-                    <label class="label">Message Type</label>
+                    <label class="label"><%= t('common.message_type') %></label>
                     <div style="display:flex;gap:.75rem;">
                         <label class="radio-label" style="display:flex;align-items:center;gap:.5rem;cursor:pointer;">
                             <input type="radio" name="unboostMessageType" id="unboostTypeEmbed" value="embed"
                                    <%= (unboostData.messageType || 'plain') === 'embed' ? 'checked' : '' %>>
-                            <span>Embed</span>
+                            <span><%= t('common.embed') %></span>
                         </label>
                         <label class="radio-label" style="display:flex;align-items:center;gap:.5rem;cursor:pointer;">
                             <input type="radio" name="unboostMessageType" id="unboostTypePlain" value="plain"
                                    <%= (unboostData.messageType || 'plain') === 'plain' ? 'checked' : '' %>>
-                            <span>Teks Biasa</span>
+                            <span><%= t('common.plain_text') %></span>
                         </label>
                     </div>
                 </div>
@@ -365,9 +365,9 @@
                 <!-- Panel Teks Biasa -->
                 <div id="unboostPlainPanel" class="form-group" style="display:none;">
                     <div class="label-with-picker">
-                        <label class="label" style="margin-bottom:0;">Plain Text Message</label>
+                        <label class="label" style="margin-bottom:0;"><%= t('common.plain_text_message') %></label>
                         <div class="ph-picker-anchor">
-                            <button type="button" class="ph-toggle-btn" onclick="togglePicker('unboostPlainPicker',event)">{…} Placeholder</button>
+                            <button type="button" class="ph-toggle-btn" onclick="togglePicker('unboostPlainPicker',event)"><%= t('booster.placeholder_btn') %></button>
                             <div class="ph-dropdown" id="unboostPlainPicker" style="display:none;"></div>
                         </div>
                     </div>
@@ -380,13 +380,13 @@
                 <div id="unboostEmbedPanel">
                     <div style="display:flex;justify-content:flex-end;margin-bottom:.35rem;">
                         <div class="ph-picker-anchor">
-                            <button type="button" class="ph-toggle-btn" onclick="togglePicker('unboostEmbedPicker',event)">{…} Placeholder</button>
+                            <button type="button" class="ph-toggle-btn" onclick="togglePicker('unboostEmbedPicker',event)"><%= t('booster.placeholder_btn') %></button>
                             <div class="ph-dropdown" id="unboostEmbedPicker" style="display:none;"></div>
                         </div>
                     </div>
 
                     <div class="form-group">
-                        <label class="label">Embed Title</label>
+                        <label class="label"><%= t('common.embed_title') %></label>
                         <input type="text" id="unboostTitle" class="input"
                                placeholder="💔 Boost Ended"
                                value="<%= unboostData.title %>"
@@ -394,13 +394,13 @@
                     </div>
 
                     <div class="form-group">
-                        <label class="label">Embed Description</label>
+                        <label class="label"><%= t('common.embed_description') %></label>
                         <textarea id="unboostDesc" class="textarea" rows="4"
                                   placeholder="{member} has removed their boost from the server." oninput="updateUnboostPreview()"><%= unboostData.description %></textarea>
                     </div>
 
                     <div class="form-group">
-                        <label class="label">Embed Color</label>
+                        <label class="label"><%= t('common.embed_color') %></label>
                         <div style="display:flex;gap:.75rem;align-items:center;">
                             <input type="color" id="unboostColorPicker" value="<%= unboostData.color || '#ED4245' %>"
                                    style="width:44px;height:36px;border:none;border-radius:6px;cursor:pointer;padding:0;background:none;"
@@ -413,9 +413,9 @@
                     </div>
 
                     <div class="form-group">
-                        <label class="label">Footer <span style="font-weight:400;color:var(--text-muted)">(optional)</span></label>
+                        <label class="label"><%= t('booster.footer_label') %> <span style="font-weight:400;color:var(--text-muted)">(<%= t('booster.footer_optional') %>)</span></label>
                         <input type="text" id="unboostFooter" class="input"
-                               placeholder="Leave blank to remove"
+                               placeholder="<%= t('booster.footer_placeholder') %>"
                                value="<%= unboostData.footerText || '' %>"
                                oninput="updateUnboostPreview()">
                     </div>
@@ -425,27 +425,27 @@
                             <input type="checkbox" id="unboostShowThumbnail" class="toggle-input"
                                    <%= unboostData.showThumbnail !== false ? 'checked' : '' %> onchange="updateUnboostPreview()">
                             <span class="toggle-slider"></span>
-                            <span>Show member profile picture (thumbnail)</span>
+                            <span><%= t('booster.show_thumbnail') %></span>
                         </label>
                     </div>
 
                     <div class="form-group" style="border-top:1px solid var(--border);padding-top:1rem;margin-top:.5rem;">
-                        <label class="label" style="margin-bottom:.75rem;">Field Info</label>
+                        <label class="label" style="margin-bottom:.75rem;"><%= t('booster.field_info') %></label>
                         <div style="display:flex;flex-direction:column;gap:.6rem;">
                             <label class="toggle-label">
                                 <input type="checkbox" id="unboostShowMember" class="toggle-input"
                                        <%= unboostData.showMember ? 'checked' : '' %> onchange="updateUnboostPreview()">
-                                <span class="toggle-slider"></span><span>👤 Member</span>
+                                <span class="toggle-slider"></span><span><%= t('booster.field_member') %></span>
                             </label>
                             <label class="toggle-label">
                                 <input type="checkbox" id="unboostShowTotalBoost" class="toggle-input"
                                        <%= unboostData.showTotalBoost ? 'checked' : '' %> onchange="updateUnboostPreview()">
-                                <span class="toggle-slider"></span><span>✨ Total Boost</span>
+                                <span class="toggle-slider"></span><span><%= t('booster.field_total_boost') %></span>
                             </label>
                             <label class="toggle-label">
                                 <input type="checkbox" id="unboostShowLevelServer" class="toggle-input"
                                        <%= unboostData.showLevelServer ? 'checked' : '' %> onchange="updateUnboostPreview()">
-                                <span class="toggle-slider"></span><span>🏅 Level Server</span>
+                                <span class="toggle-slider"></span><span><%= t('booster.field_level_server') %></span>
                             </label>
                         </div>
                     </div>
@@ -453,31 +453,31 @@
 
                 <!-- ── Unboost Card ── -->
                 <div class="form-group" style="margin-top:1.5rem;border-top:1px solid var(--border);padding-top:1.25rem;">
-                    <label class="label" style="margin-bottom:.75rem;">Unboost Card</label>
+                    <label class="label" style="margin-bottom:.75rem;"><%= t('booster.unboost_card_label') %></label>
                     <label class="toggle-label">
                         <input type="checkbox" id="unboostCardEnabled" class="toggle-input"
                                <%= unboostData.cardEnabled ? 'checked' : '' %>>
                         <span class="toggle-slider"></span>
-                        <span>Send unboost card image</span>
+                        <span><%= t('booster.send_unboost_card') %></span>
                     </label>
                 </div>
                 <div id="unboostCardPanel" style="display:none;">
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;">
                         <div class="form-group">
-                            <label class="label">Avatar Shape</label>
+                            <label class="label"><%= t('booster.card_avatar_shape') %></label>
                             <div style="display:flex;gap:.6rem;margin-top:.2rem;">
                                 <label style="display:flex;align-items:center;gap:.4rem;cursor:pointer;font-size:.85rem;">
                                     <input type="radio" name="unboostCardAvatarShape" value="circle" <%= (unboostData.cardAvatarShape||'circle')==='circle'?'checked':'' %>>
-                                    <span>Circle</span>
+                                    <span><%= t('booster.card_avatar_circle') %></span>
                                 </label>
                                 <label style="display:flex;align-items:center;gap:.4rem;cursor:pointer;font-size:.85rem;">
                                     <input type="radio" name="unboostCardAvatarShape" value="square" <%= unboostData.cardAvatarShape==='square'?'checked':'' %>>
-                                    <span>Square</span>
+                                    <span><%= t('booster.card_avatar_square') %></span>
                                 </label>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label class="label">Font</label>
+                            <label class="label"><%= t('booster.card_font') %></label>
                             <select id="unboostCardFont" class="select" style="font-size:.82rem;">
                                 <% [['impact','Impact'],['arial','Arial'],['georgia','Georgia'],['courier','Courier New'],['verdana','Verdana']].forEach(function(f){ %>
                                     <option value="<%= f[0] %>" <%= (unboostData.cardFont||'impact')===f[0]?'selected':'' %>><%= f[1] %></option>
@@ -486,9 +486,9 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="label">Background Type</label>
+                        <label class="label"><%= t('booster.card_bg_type') %></label>
                         <div style="display:flex;gap:.75rem;flex-wrap:wrap;margin-top:.2rem;">
-                            <% [['gradient','Gradient'],['solid','Solid'],['image','Image URL'],['transparent','Transparent']].forEach(function(bt){ %>
+                            <% [['gradient',t('booster.card_bg_gradient')],['solid',t('booster.card_bg_solid')],['image',t('booster.card_bg_image_url_opt')],['transparent',t('booster.card_bg_transparent')]].forEach(function(bt){ %>
                             <label style="display:flex;align-items:center;gap:.4rem;cursor:pointer;font-size:.85rem;">
                                 <input type="radio" name="unboostCardBgType" value="<%= bt[0] %>" <%= (unboostData.cardBgType||'gradient')===bt[0]?'checked':'' %>>
                                 <span><%= bt[1] %></span>
@@ -498,14 +498,14 @@
                     </div>
                     <div id="unboostCardBgGradientPanel" style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;">
                         <div class="form-group">
-                            <label class="label" id="unboostCardBgColor1Label">Left Background</label>
+                            <label class="label" id="unboostCardBgColor1Label"><%= t('booster.card_left_bg') %></label>
                             <div style="display:flex;gap:.5rem;align-items:center;">
                                 <input type="color" id="unboostCardBgColorPicker" value="<%= unboostData.cardBgColor||'#1e0a0a' %>" style="width:38px;height:32px;border:none;border-radius:5px;cursor:pointer;padding:0;background:none;" oninput="bcSync('unboostCardBgColor','unboostCardBgColorPicker');drawUnboostCard()">
                                 <input type="text" id="unboostCardBgColor" class="input" style="max-width:110px;" maxlength="7" value="<%= unboostData.cardBgColor||'#1e0a0a' %>" oninput="bcSyncP('unboostCardBgColor','unboostCardBgColorPicker');drawUnboostCard()">
                             </div>
                         </div>
                         <div class="form-group" id="unboostCardBgColor2Group">
-                            <label class="label">Right Background</label>
+                            <label class="label"><%= t('booster.card_right_bg') %></label>
                             <div style="display:flex;gap:.5rem;align-items:center;">
                                 <input type="color" id="unboostCardBgColor2Picker" value="<%= unboostData.cardBgColor2||'#2e0a0a' %>" style="width:38px;height:32px;border:none;border-radius:5px;cursor:pointer;padding:0;background:none;" oninput="bcSync('unboostCardBgColor2','unboostCardBgColor2Picker');drawUnboostCard()">
                                 <input type="text" id="unboostCardBgColor2" class="input" style="max-width:110px;" maxlength="7" value="<%= unboostData.cardBgColor2||'#2e0a0a' %>" oninput="bcSyncP('unboostCardBgColor2','unboostCardBgColor2Picker');drawUnboostCard()">
@@ -513,46 +513,46 @@
                         </div>
                     </div>
                     <div id="unboostCardBgImagePanel" style="display:none;" class="form-group">
-                        <label class="label">Background Image URL</label>
+                        <label class="label"><%= t('booster.card_bg_image_url') %></label>
                         <input type="text" id="unboostCardBgImageUrl" class="input" placeholder="https://..." value="<%= unboostData.cardBgImageUrl||'' %>">
                     </div>
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;">
                         <div class="form-group">
-                            <label class="label">Overlay Color</label>
+                            <label class="label"><%= t('booster.card_overlay_color') %></label>
                             <div style="display:flex;gap:.5rem;align-items:center;">
                                 <input type="color" id="unboostCardOverlayColorPicker" value="<%= unboostData.cardOverlayColor||'#000000' %>" style="width:38px;height:32px;border:none;border-radius:5px;cursor:pointer;padding:0;background:none;" oninput="bcSync('unboostCardOverlayColor','unboostCardOverlayColorPicker');drawUnboostCard()">
                                 <input type="text" id="unboostCardOverlayColor" class="input" style="max-width:110px;" maxlength="7" value="<%= unboostData.cardOverlayColor||'#000000' %>" oninput="bcSyncP('unboostCardOverlayColor','unboostCardOverlayColorPicker');drawUnboostCard()">
                             </div>
                         </div>
                         <div class="form-group">
-                            <label class="label" style="display:flex;justify-content:space-between;"><span>Overlay Opacity</span><span id="unboostCardOverlayOpacityVal" style="color:var(--text-muted);font-weight:400;"><%= unboostData.cardOverlayOpacity||'0' %>%</span></label>
+                            <label class="label" style="display:flex;justify-content:space-between;"><span><%= t('booster.card_overlay_opacity') %></span><span id="unboostCardOverlayOpacityVal" style="color:var(--text-muted);font-weight:400;"><%= unboostData.cardOverlayOpacity||'0' %>%</span></label>
                             <input type="range" id="unboostCardOverlayOpacity" min="0" max="100" value="<%= unboostData.cardOverlayOpacity||'0' %>" style="width:100%;margin-top:.45rem;accent-color:var(--accent,#5865f2);" oninput="document.getElementById('unboostCardOverlayOpacityVal').textContent=this.value+'%';drawUnboostCard()">
                         </div>
                     </div>
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;">
                         <div class="form-group">
-                            <label class="label">Title Color</label>
+                            <label class="label"><%= t('booster.card_title_color') %></label>
                             <div style="display:flex;gap:.5rem;align-items:center;">
                                 <input type="color" id="unboostCardTitleColorPicker" value="<%= unboostData.cardTitleColor||'#ffffff' %>" style="width:38px;height:32px;border:none;border-radius:5px;cursor:pointer;padding:0;background:none;" oninput="bcSync('unboostCardTitleColor','unboostCardTitleColorPicker');drawUnboostCard()">
                                 <input type="text" id="unboostCardTitleColor" class="input" style="max-width:110px;" maxlength="7" value="<%= unboostData.cardTitleColor||'#ffffff' %>" oninput="bcSyncP('unboostCardTitleColor','unboostCardTitleColorPicker');drawUnboostCard()">
                             </div>
                         </div>
                         <div class="form-group">
-                            <label class="label">Username Color</label>
+                            <label class="label"><%= t('booster.card_username_color') %></label>
                             <div style="display:flex;gap:.5rem;align-items:center;">
                                 <input type="color" id="unboostCardUsernameColorPicker" value="<%= unboostData.cardUsernameColor||'#ED4245' %>" style="width:38px;height:32px;border:none;border-radius:5px;cursor:pointer;padding:0;background:none;" oninput="bcSync('unboostCardUsernameColor','unboostCardUsernameColorPicker');drawUnboostCard()">
                                 <input type="text" id="unboostCardUsernameColor" class="input" style="max-width:110px;" maxlength="7" value="<%= unboostData.cardUsernameColor||'#ED4245' %>" oninput="bcSyncP('unboostCardUsernameColor','unboostCardUsernameColorPicker');drawUnboostCard()">
                             </div>
                         </div>
                         <div class="form-group">
-                            <label class="label">Message Color (sub text)</label>
+                            <label class="label"><%= t('booster.card_msg_color') %></label>
                             <div style="display:flex;gap:.5rem;align-items:center;">
                                 <input type="color" id="unboostCardMsgColorPicker" value="<%= unboostData.cardMsgColor||'#cccccc' %>" style="width:38px;height:32px;border:none;border-radius:5px;cursor:pointer;padding:0;background:none;" oninput="bcSync('unboostCardMsgColor','unboostCardMsgColorPicker');drawUnboostCard()">
                                 <input type="text" id="unboostCardMsgColor" class="input" style="max-width:110px;" maxlength="7" value="<%= unboostData.cardMsgColor||'#cccccc' %>" oninput="bcSyncP('unboostCardMsgColor','unboostCardMsgColorPicker');drawUnboostCard()">
                             </div>
                         </div>
                         <div class="form-group">
-                            <label class="label">Avatar Border Color</label>
+                            <label class="label"><%= t('booster.card_avatar_border') %></label>
                             <div style="display:flex;gap:.5rem;align-items:center;">
                                 <input type="color" id="unboostCardAccentPicker" value="<%= unboostData.cardAccentColor||'#ED4245' %>" style="width:38px;height:32px;border:none;border-radius:5px;cursor:pointer;padding:0;background:none;" oninput="bcSync('unboostCardAccentColor','unboostCardAccentPicker');drawUnboostCard()">
                                 <input type="text" id="unboostCardAccentColor" class="input" style="max-width:110px;" maxlength="7" value="<%= unboostData.cardAccentColor||'#ED4245' %>" oninput="bcSyncP('unboostCardAccentColor','unboostCardAccentPicker');drawUnboostCard()">
@@ -560,25 +560,25 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="label">Large Text</label>
+                        <label class="label"><%= t('booster.card_large_text') %></label>
                         <input type="text" id="unboostCardWelcomeText" class="input" maxlength="20" placeholder="UNBOOST" value="<%= unboostData.cardWelcomeText||'UNBOOST' %>">
                     </div>
                     <div class="form-group">
-                        <label class="label">Small Text Below</label>
+                        <label class="label"><%= t('booster.card_small_text') %></label>
                         <input type="text" id="unboostCardSubText" class="input" maxlength="60" placeholder="Boost ended..." value="<%= unboostData.cardSubText||'Boost ended...' %>">
                         <div class="hint" style="margin-top:.3rem;"><code>{server}</code> · <code>{boosts}</code> · <code>{level}</code></div>
                     </div>
                 </div>
 
                 <div class="form-actions">
-                    <button class="btn btn-primary" onclick="saveUnboost()">Save</button>
+                    <button class="btn btn-primary" onclick="saveUnboost()"><%= t('common.save') %></button>
                 </div>
                 <div id="unboostMsg" class="form-message"></div>
             </div>
 
             <!-- Kolom kanan: preview -->
             <div class="preview-panel">
-                <div class="preview-label">Preview</div>
+                <div class="preview-label"><%= t('common.preview') %></div>
                 <div class="dc-window">
                     <div class="dc-channel-bar">
                         <span class="dc-channel-hash">#</span>
@@ -679,6 +679,26 @@
 const GUILD_ID = '<%= guild.id %>';
 const CHANNELS = <%- JSON.stringify(Object.fromEntries((locals.channels||[]).map(ch=>[ch.id,ch.name]))) %>;
 
+const I18N_BOOST_TAB_TITLE   = '<%= t("booster.tab_boost_title") %>';
+const I18N_BOOST_TAB_DESC    = '<%= t("booster.tab_boost_desc") %>';
+const I18N_UNBOOST_TAB_TITLE = '<%= t("booster.tab_unboost_title") %>';
+const I18N_UNBOOST_TAB_DESC  = '<%= t("booster.tab_unboost_desc") %>';
+const I18N_BOOST_FIELD_MBR   = '<%= t("booster.field_member") %>';
+const I18N_BOOST_FIELD_BST   = '<%= t("booster.field_boost_start") %>';
+const I18N_BOOST_FIELD_TOT   = '<%= t("booster.field_total_boost") %>';
+const I18N_BOOST_FIELD_LVL   = '<%= t("booster.field_level_server") %>';
+const I18N_BOOST_LEFT_BG     = '<%= t("booster.card_left_bg") %>';
+const I18N_BOOST_BG_COLOR    = '<%= t("booster.card_bg_color") %>';
+const I18N_BOOST_PH_MENTION  = '<%= t("booster.ph_mention") %>';
+const I18N_BOOST_PH_USERNAME = '<%= t("booster.ph_username") %>';
+const I18N_BOOST_PH_TAG      = '<%= t("booster.ph_tag") %>';
+const I18N_BOOST_PH_SERVER   = '<%= t("booster.ph_server") %>';
+const I18N_BOOST_PH_BOOSTS   = '<%= t("booster.ph_boosts") %>';
+const I18N_BOOST_PH_LEVEL    = '<%= t("booster.ph_level") %>';
+const I18N_BOOST_ERR_NO_CH   = '<%= t("booster.err_no_channel") %>';
+const I18N_BOOST_ERR_CLR_B   = '<%= t("booster.err_invalid_color", { example: "#FF73FA" }) %>';
+const I18N_BOOST_ERR_CLR_U   = '<%= t("booster.err_invalid_color", { example: "#ED4245" }) %>';
+
 const SAMPLE = {
     member:    '@<%= loginUser ? loginUser.displayName.replace(/'/g,"") : "BoostUser" %>',
     username:  '<%= loginUser ? loginUser.username.replace(/'/g,"") : "BoostUser" %>',
@@ -691,8 +711,8 @@ const SAMPLE = {
 
 // ── TAB switching ──────────────────────────────────────────────────────────
 const TAB_META = {
-    boost:   { title: 'Boost Notification',   desc: 'Notifikasi otomatis saat member melakukan boost server.' },
-    unboost: { title: 'Unboost Notification', desc: 'Notifikasi otomatis saat member menghapus boost server.' },
+    boost:   { title: I18N_BOOST_TAB_TITLE,   desc: I18N_BOOST_TAB_DESC },
+    unboost: { title: I18N_UNBOOST_TAB_TITLE, desc: I18N_UNBOOST_TAB_DESC },
 };
 
 function switchTab(tab) {
@@ -871,7 +891,7 @@ async function _drawCard(prefix, canvasId, wrapId, defaultBig, defaultSub, defau
     if (gradPanel) gradPanel.style.display = hasBgClr ? 'grid' : 'none';
     if (imgPanel)  imgPanel.style.display  = bgType === 'image' ? 'block' : 'none';
     if (col2Grp)   col2Grp.style.display   = bgType === 'gradient' ? 'block' : 'none';
-    if (lbl)       lbl.textContent         = bgType === 'gradient' ? 'Left Background' : 'Background Color';
+    if (lbl)       lbl.textContent         = bgType === 'gradient' ? I18N_BOOST_LEFT_BG : I18N_BOOST_BG_COLOR;
 
     ctx.clearRect(0, 0, W, H);
     function rr(x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y); ctx.quadraticCurveTo(x+w,y,x+w,y+r); ctx.lineTo(x+w,y+h-r); ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h); ctx.lineTo(x+r,y+h); ctx.quadraticCurveTo(x,y+h,x,y+h-r); ctx.lineTo(x,y+r); ctx.quadraticCurveTo(x,y,x+r,y); ctx.closePath(); }
@@ -923,15 +943,15 @@ async function drawUnboostCard() {
 
 // ── Field sample data ──────────────────────────────────────────────────────
 const BOOST_FIELDS = [
-    { id: 'boostShowMember',     name: '👤 Member',      value: () => SAMPLE.username },
-    { id: 'boostShowMulaiBoost', name: '🚀 Boost Start', value: () => 'just now' },
-    { id: 'boostShowTotalBoost', name: '✨ Total Boost',  value: () => `${SAMPLE.boosts} boost` },
-    { id: 'boostShowLevelServer',name: '🏅 Level Server', value: () => `Level <%= guild.premiumTier %>` },
+    { id: 'boostShowMember',     name: I18N_BOOST_FIELD_MBR, value: () => SAMPLE.username },
+    { id: 'boostShowMulaiBoost', name: I18N_BOOST_FIELD_BST, value: () => 'just now' },
+    { id: 'boostShowTotalBoost', name: I18N_BOOST_FIELD_TOT, value: () => `${SAMPLE.boosts} boost` },
+    { id: 'boostShowLevelServer',name: I18N_BOOST_FIELD_LVL, value: () => `Level <%= guild.premiumTier %>` },
 ];
 const UNBOOST_FIELDS = [
-    { id: 'unboostShowMember',      name: '👤 Member',      value: () => SAMPLE.username },
-    { id: 'unboostShowTotalBoost',  name: '✨ Total Boost',  value: () => `${SAMPLE.boosts} boost` },
-    { id: 'unboostShowLevelServer', name: '🏅 Level Server', value: () => `Level <%= guild.premiumTier %>` },
+    { id: 'unboostShowMember',      name: I18N_BOOST_FIELD_MBR, value: () => SAMPLE.username },
+    { id: 'unboostShowTotalBoost',  name: I18N_BOOST_FIELD_TOT, value: () => `${SAMPLE.boosts} boost` },
+    { id: 'unboostShowLevelServer', name: I18N_BOOST_FIELD_LVL, value: () => `Level <%= guild.premiumTier %>` },
 ];
 
 function renderFields(fieldDefs, containerId) {
@@ -1023,12 +1043,12 @@ function syncPicker(inputId, pickerId) {
 
 // ── Placeholder picker ──────────────────────────────────────────────────────
 const PLACEHOLDERS = [
-    ['{member}',   'Mention member'],
-    ['{username}', 'Nama pengguna'],
-    ['{tag}',      'Username#tag'],
-    ['{server}',   'Nama server'],
-    ['{boosts}',   'Total boost'],
-    ['{level}',    'Level server'],
+    ['{member}',   I18N_BOOST_PH_MENTION],
+    ['{username}', I18N_BOOST_PH_USERNAME],
+    ['{tag}',      I18N_BOOST_PH_TAG],
+    ['{server}',   I18N_BOOST_PH_SERVER],
+    ['{boosts}',   I18N_BOOST_PH_BOOSTS],
+    ['{level}',    I18N_BOOST_PH_LEVEL],
 ];
 
 // ── Picker: tracks last focused field per section ─────────────────────────
@@ -1087,11 +1107,11 @@ function insertPhDyn(pickerId, ph) {
 async function saveBoost() {
     const msg         = document.getElementById('boostMsg');
     if (!document.getElementById('boostChannel').value)
-        return showMsg(msg, 'Please select a destination channel first.', 'error');
+        return showMsg(msg, I18N_BOOST_ERR_NO_CH, 'error');
     const messageType = document.querySelector('input[name="boostMessageType"]:checked')?.value || 'embed';
     const color       = document.getElementById('boostColor').value.trim() || '#FF73FA';
     if (messageType === 'embed' && !/^#[0-9A-Fa-f]{6}$/.test(color))
-        return showMsg(msg, 'Invalid color format. Example: #FF73FA', 'error');
+        return showMsg(msg, I18N_BOOST_ERR_CLR_B, 'error');
 
     const res = await fetch(`/api/guild/${GUILD_ID}/booster-boost`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -1133,11 +1153,11 @@ async function saveBoost() {
 async function saveUnboost() {
     const msg         = document.getElementById('unboostMsg');
     if (!document.getElementById('unboostChannel').value)
-        return showMsg(msg, 'Please select a destination channel first.', 'error');
+        return showMsg(msg, I18N_BOOST_ERR_NO_CH, 'error');
     const messageType = document.querySelector('input[name="unboostMessageType"]:checked')?.value || 'embed';
     const color       = document.getElementById('unboostColor').value.trim() || '#ED4245';
     if (messageType === 'embed' && !/^#[0-9A-Fa-f]{6}$/.test(color))
-        return showMsg(msg, 'Invalid color format. Example: #ED4245', 'error');
+        return showMsg(msg, I18N_BOOST_ERR_CLR_U, 'error');
 
     const res = await fetch(`/api/guild/${GUILD_ID}/booster-unboost`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },

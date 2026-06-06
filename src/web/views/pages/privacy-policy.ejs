@@ -69,15 +69,15 @@
 <div class="legal-wrap">
     <!-- TOC -->
     <aside class="legal-toc">
-        <div class="legal-toc-title">Daftar Isi</div>
-        <a href="#s1">1. Informasi yang Dikumpulkan</a>
-        <a href="#s2">2. How We Use Data</a>
-        <a href="#s3">3. Penyimpanan Data</a>
-        <a href="#s4">4. Berbagi Data</a>
-        <a href="#s5">5. Hak Pengguna</a>
-        <a href="#s6">6. Keamanan</a>
-        <a href="#s7">7. Perubahan Kebijakan</a>
-        <a href="#s8">8. Kontak</a>
+        <div class="legal-toc-title"><%= t('privacy.toc_title') %></div>
+        <a href="#s1"><%= t('privacy.toc_1') %></a>
+        <a href="#s2"><%= t('privacy.toc_2') %></a>
+        <a href="#s3"><%= t('privacy.toc_3') %></a>
+        <a href="#s4"><%= t('privacy.toc_4') %></a>
+        <a href="#s5"><%= t('privacy.toc_5') %></a>
+        <a href="#s6"><%= t('privacy.toc_6') %></a>
+        <a href="#s7"><%= t('privacy.toc_7') %></a>
+        <a href="#s8"><%= t('privacy.toc_8') %></a>
     </aside>
 
     <!-- Content -->
@@ -85,91 +85,91 @@
         <div class="legal-header">
             <h1>Privacy Policy</h1>
             <div class="legal-meta">
-                Terakhir diperbarui: <span>1 Juni 2026</span> &nbsp;·&nbsp;
-                Applies to: <span><%- locals.botNavName || 'Bot' %></span>
+                <%= t('privacy.last_updated') %> <span>1 Juni 2026</span> &nbsp;·&nbsp;
+                <%= t('privacy.applies_to') %> <span><%- locals.botNavName || 'Bot' %></span>
             </div>
         </div>
 
         <div class="legal-notice">
-            Dengan menggunakan bot ini atau layanan terkait, kamu menyetujui kebijakan privasi ini. Jika kamu tidak setuju, harap berhenti menggunakan layanan kami.
+            <%= t('privacy.notice') %>
         </div>
 
         <div class="legal-section" id="s1">
-            <h2><span class="sec-num">1</span> Informasi yang Dikumpulkan</h2>
-            <p>Kami mengumpulkan data minimal yang diperlukan untuk operasional bot. Berikut jenis data yang dikumpulkan:</p>
+            <h2><span class="sec-num">1</span> <%= t('privacy.s1_title') %></h2>
+            <p><%= t('privacy.s1_p1') %></p>
             <ul>
-                <li><strong>ID Server (Guild ID)</strong> — untuk menyimpan konfigurasi per server</li>
-                <li><strong>ID Pengguna (User ID)</strong> — untuk fitur invite tracking, giveaway, dan log</li>
-                <li><strong>ID Channel</strong> — untuk menentukan channel tujuan notifikasi</li>
-                <li><strong>ID Role</strong> — untuk konfigurasi autorole dan syarat giveaway</li>
-                <li><strong>Pesan kustom</strong> — teks notifikasi yang dikonfigurasi oleh admin server</li>
+                <li><%- t('privacy.s1_li1') %></li>
+                <li><%- t('privacy.s1_li2') %></li>
+                <li><%- t('privacy.s1_li3') %></li>
+                <li><%- t('privacy.s1_li4') %></li>
+                <li><%- t('privacy.s1_li5') %></li>
             </ul>
-            <p>Kami <strong>tidak</strong> mengumpulkan konten pesan pribadi, password, email, atau informasi sensitif lainnya.</p>
+            <p><%- t('privacy.s1_p2') %></p>
         </div>
 
         <div class="legal-section" id="s2">
-            <h2><span class="sec-num">2</span> How We Use Data</h2>
-            <p>Data yang dikumpulkan digunakan semata-mata untuk:</p>
+            <h2><span class="sec-num">2</span> <%= t('privacy.s2_title') %></h2>
+            <p><%= t('privacy.s2_p1') %></p>
             <ul>
-                <li>Menjalankan fitur bot (welcome, goodbye, notifikasi YouTube/TikTok/Twitch, giveaway, dll.)</li>
-                <li>Menyimpan konfigurasi server yang diatur melalui dashboard</li>
-                <li>Melacak statistik invite link dalam server</li>
-                <li>Menentukan pemenang giveaway secara acak</li>
+                <li><%= t('privacy.s2_li1') %></li>
+                <li><%= t('privacy.s2_li2') %></li>
+                <li><%= t('privacy.s2_li3') %></li>
+                <li><%= t('privacy.s2_li4') %></li>
             </ul>
-            <p>Data tidak digunakan untuk iklan, analitik komersial, atau kepentingan di luar operasional bot.</p>
+            <p><%= t('privacy.s2_p2') %></p>
         </div>
 
         <div class="legal-section" id="s3">
-            <h2><span class="sec-num">3</span> Penyimpanan Data</h2>
-            <p>Semua data disimpan secara lokal di database SQLite pada server yang menjalankan bot. Data tidak diunggah ke layanan cloud pihak ketiga.</p>
+            <h2><span class="sec-num">3</span> <%= t('privacy.s3_title') %></h2>
+            <p><%= t('privacy.s3_p1') %></p>
             <ul>
-                <li>Data konfigurasi server disimpan selama bot berada di server tersebut</li>
-                <li>Data dihapus otomatis saat bot dikeluarkan dari server</li>
-                <li>Admin dapat menghapus data kapan saja melalui dashboard</li>
+                <li><%= t('privacy.s3_li1') %></li>
+                <li><%= t('privacy.s3_li2') %></li>
+                <li><%= t('privacy.s3_li3') %></li>
             </ul>
         </div>
 
         <div class="legal-section" id="s4">
-            <h2><span class="sec-num">4</span> Berbagi Data</h2>
-            <p>Kami <strong>tidak menjual, menyewakan, atau membagikan</strong> data pengguna kepada pihak ketiga, kecuali:</p>
+            <h2><span class="sec-num">4</span> <%= t('privacy.s4_title') %></h2>
+            <p><%- t('privacy.s4_p1') %></p>
             <ul>
-                <li>Diwajibkan oleh hukum yang berlaku</li>
-                <li>API pihak ketiga yang digunakan (YouTube API, Twitch API, TikTok/RSSHub) — hanya mengirim ID publik untuk mengambil data feed</li>
+                <li><%= t('privacy.s4_li1') %></li>
+                <li><%= t('privacy.s4_li2') %></li>
             </ul>
         </div>
 
         <div class="legal-section" id="s5">
-            <h2><span class="sec-num">5</span> Hak Pengguna</h2>
-            <p>Sebagai pengguna, kamu memiliki hak untuk:</p>
+            <h2><span class="sec-num">5</span> <%= t('privacy.s5_title') %></h2>
+            <p><%= t('privacy.s5_p1') %></p>
             <ul>
-                <li><strong>Menghapus data</strong> — keluarkan bot dari server untuk menghapus semua data terkait server tersebut</li>
-                <li><strong>Melihat data</strong> — semua konfigurasi tersedia di dashboard</li>
-                <li><strong>Meminta penghapusan manual</strong> — hubungi kami melalui support server</li>
+                <li><%- t('privacy.s5_li1') %></li>
+                <li><%- t('privacy.s5_li2') %></li>
+                <li><%- t('privacy.s5_li3') %></li>
             </ul>
         </div>
 
         <div class="legal-section" id="s6">
-            <h2><span class="sec-num">6</span> Keamanan</h2>
-            <p>Kami menerapkan langkah-langkah keamanan standar untuk melindungi data:</p>
+            <h2><span class="sec-num">6</span> <%= t('privacy.s6_title') %></h2>
+            <p><%= t('privacy.s6_p1') %></p>
             <ul>
-                <li>Autentikasi OAuth2 Discord untuk akses dashboard</li>
-                <li>Verifikasi izin Manage Guild sebelum mengizinkan perubahan konfigurasi</li>
-                <li>Webhook diverifikasi menggunakan HMAC signature</li>
-                <li>Sesi dashboard dienkripsi dan memiliki masa berlaku terbatas</li>
+                <li><%= t('privacy.s6_li1') %></li>
+                <li><%= t('privacy.s6_li2') %></li>
+                <li><%= t('privacy.s6_li3') %></li>
+                <li><%= t('privacy.s6_li4') %></li>
             </ul>
         </div>
 
         <div class="legal-section" id="s7">
-            <h2><span class="sec-num">7</span> Perubahan Kebijakan</h2>
-            <p>Kebijakan privasi ini dapat diperbarui sewaktu-waktu. Perubahan signifikan akan diumumkan melalui support server Discord. Tanggal pembaruan terakhir selalu tercantum di bagian atas halaman ini.</p>
+            <h2><span class="sec-num">7</span> <%= t('privacy.s7_title') %></h2>
+            <p><%= t('privacy.s7_p1') %></p>
         </div>
 
         <div class="legal-section" id="s8">
-            <h2><span class="sec-num">8</span> Kontak</h2>
-            <p>Pertanyaan atau permintaan terkait privasi dapat disampaikan melalui:</p>
+            <h2><span class="sec-num">8</span> <%= t('privacy.s8_title') %></h2>
+            <p><%= t('privacy.s8_p1') %></p>
             <ul>
-                <li><strong>Support Server Discord</strong> — <a href="https://discord.gg/DMPvHf46gu" target="_blank" rel="noopener noreferrer">Bergabung di sini</a></li>
-                <li><strong>Report Issues</strong> — <a href="/report-bug" target="_blank" rel="noopener noreferrer">Laporkan issue baru</a></li>
+                <li><strong><%= t('privacy.s8_li1_label') %></strong> — <a href="https://discord.gg/DMPvHf46gu" target="_blank" rel="noopener noreferrer"><%= t('privacy.s8_li1_link') %></a></li>
+                <li><strong><%= t('privacy.s8_li2_label') %></strong> — <a href="/report-bug" target="_blank" rel="noopener noreferrer"><%= t('privacy.s8_li2_link') %></a></li>
             </ul>
         </div>
     </main>

@@ -173,7 +173,7 @@
             <text x="168" y="60" text-anchor="middle" font-size="13" fill="#ED4245">🐛</text>
         </svg>
         <h1>Report Bug</h1>
-        <p>Temukan bug atau punya saran? Isi form di bawah dan tim kami akan segera menindaklanjuti laporan kamu.</p>
+        <p><%= t('report_bug.header_desc') %></p>
     </div>
 
     <!-- Form -->
@@ -182,12 +182,12 @@
             <!-- Nama -->
             <div class="rb-row">
                 <div>
-                    <label class="rb-label" for="rbFirstName">First Name <span>*</span></label>
-                    <input class="rb-input" id="rbFirstName" type="text" placeholder="e.g., Andri" required maxlength="50">
+                    <label class="rb-label" for="rbFirstName"><%= t('report_bug.first_name') %> <span>*</span></label>
+                    <input class="rb-input" id="rbFirstName" type="text" placeholder="<%= t('report_bug.first_name_ph') %>" required maxlength="50">
                 </div>
                 <div>
-                    <label class="rb-label" for="rbLastName">Last Name <span>*</span></label>
-                    <input class="rb-input" id="rbLastName" type="text" placeholder="e.g., Hermawan" required maxlength="50">
+                    <label class="rb-label" for="rbLastName"><%= t('report_bug.last_name') %> <span>*</span></label>
+                    <input class="rb-input" id="rbLastName" type="text" placeholder="<%= t('report_bug.last_name_ph') %>" required maxlength="50">
                 </div>
             </div>
 
@@ -196,7 +196,7 @@
                 <div>
                     <label class="rb-label" for="rbDiscordUser">
                         Discord Username <span>*</span>
-                        <span style="font-weight:400;color:var(--text-muted);font-size:.72rem;margin-left:.3rem;">— untuk kami hubungi jika perlu klarifikasi</span>
+                        <span style="font-weight:400;color:var(--text-muted);font-size:.72rem;margin-left:.3rem;"><%= t('report_bug.discord_user_hint') %></span>
                     </label>
                     <input class="rb-input" id="rbDiscordUser" type="text" placeholder="username"
                            required maxlength="100"
@@ -206,7 +206,7 @@
                 <div>
                     <label class="rb-label" for="rbDiscordId">
                         Discord ID <span>*</span>
-                        <span style="font-weight:400;color:var(--text-muted);font-size:.72rem;margin-left:.3rem;">— your unique Discord account ID</span>
+                        <span style="font-weight:400;color:var(--text-muted);font-size:.72rem;margin-left:.3rem;"><%= t('report_bug.discord_id_hint') %></span>
                     </label>
                     <input class="rb-input" id="rbDiscordId" type="text" placeholder="123456789012345678"
                            required maxlength="20" pattern="\d{15,20}"
@@ -216,19 +216,19 @@
             </div>
             <% if (locals.reportUser) { %>
             <p style="font-size:.75rem;color:var(--text-muted);margin:-0.4rem 0 .85rem;opacity:.7;">
-                ✓ Info Discord diisi otomatis dari akun yang sedang login.
+                <%= t('report_bug.discord_autofill') %>
             </p>
             <% } %>
 
             <!-- Pesan -->
             <div class="rb-field">
-                <label class="rb-label" for="rbMessage">Message <span>*</span></label>
-                <textarea class="rb-textarea" id="rbMessage" placeholder="Describe the bug you found — what feature, what happened, and steps reproduksi..." required maxlength="2000"></textarea>
+                <label class="rb-label" for="rbMessage"><%= t('report_bug.message_label') %> <span>*</span></label>
+                <textarea class="rb-textarea" id="rbMessage" placeholder="<%= t('report_bug.message_ph') %>" required maxlength="2000"></textarea>
             </div>
 
             <!-- Upload gambar -->
             <div class="rb-field">
-                <label class="rb-upload-label">Image <span style="font-weight:400;color:var(--text-muted);font-size:.75rem;">(Optional)</span></label>
+                <label class="rb-upload-label"><%= t('report_bug.image_label') %> <span style="font-weight:400;color:var(--text-muted);font-size:.75rem;"><%= t('report_bug.image_optional') %></span></label>
                 <div class="rb-upload-area" onclick="document.getElementById('rbFile').click()">
                     <input type="file" id="rbFile" accept="image/jpeg,image/png,image/gif,image/webp" style="display:none;" onchange="previewFile(this)">
                     <svg class="rb-upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -236,8 +236,8 @@
                         <polyline points="17 8 12 3 7 8"/>
                         <line x1="12" y1="3" x2="12" y2="15"/>
                     </svg>
-                    <div class="rb-upload-text">Drag &amp; drop an image here, or click to select</div>
-                    <div class="rb-upload-hint">Recommended max: 1280×1280, JPG/PNG/GIF/WEBP</div>
+                    <div class="rb-upload-text"><%= t('report_bug.upload_text') %></div>
+                    <div class="rb-upload-hint"><%= t('report_bug.upload_hint') %></div>
                     <div class="rb-upload-preview" id="rbFilePreview">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;flex-shrink:0;"><polyline points="20 6 9 17 4 12"/></svg>
                         <span id="rbFileName"></span>
@@ -249,7 +249,7 @@
             <div class="rb-submit-row">
                 <button type="submit" class="rb-btn" id="rbSubmitBtn">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-                    Send
+                    <%= t('report_bug.send_btn') %>
                 </button>
             </div>
 
@@ -261,18 +261,21 @@
     <div class="rb-tips">
         <div class="rb-tips-title">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;color:#F0A032;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-            Tips laporan yang baik
+            <%= t('report_bug.tips_title') %>
         </div>
         <ul class="rb-tips-list">
-            <li>Jelaskan bug secara spesifik — fitur apa, di mana, dan kapan terjadi.</li>
-            <li>Sertakan langkah reproduksi agar kami bisa mengulangi masalahnya.</li>
-            <li>Lampirkan screenshot atau pesan error jika ada.</li>
-            <li>Sebutkan perilaku yang diharapkan vs yang sebenarnya terjadi.</li>
+            <li><%= t('report_bug.tip_1') %></li>
+            <li><%= t('report_bug.tip_2') %></li>
+            <li><%= t('report_bug.tip_3') %></li>
+            <li><%= t('report_bug.tip_4') %></li>
         </ul>
     </div>
 </div>
 
 <script>
+const I18N_RB_SENDING  = '<%= t("report_bug.sending") %>';
+const I18N_RB_ERR_CONN = '<%= t("report_bug.err_connect") %>';
+
 function previewFile(input) {
     const previewEl  = document.getElementById('rbFilePreview');
     const fileNameEl = document.getElementById('rbFileName');
@@ -316,7 +319,7 @@ async function submitReport(e) {
     const imageFile       = document.getElementById('rbFile').files[0];
 
     btn.disabled  = true;
-    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;animation:spin .7s linear infinite;"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Mengirim...';
+    btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;animation:spin .7s linear infinite;"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> ${I18N_RB_SENDING}`;
 
     try {
         // Kirim sebagai FormData agar gambar bisa ikut dikirim ke server
@@ -337,7 +340,7 @@ async function submitReport(e) {
             document.getElementById('rbFilePreview').style.display = 'none';
         }
     } catch (err) {
-        showMsg(null, 'Failed to connect to server. Check your internet connection.', 'error');
+        showMsg(null, I18N_RB_ERR_CONN, 'error');
     } finally {
         btn.disabled  = false;
         btn.innerHTML = orig;

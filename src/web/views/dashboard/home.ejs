@@ -18,7 +18,7 @@
                 <% } %>
                 <div class="ov-server-info">
                     <h1 class="ov-server-name"><%= guild.name %></h1>
-                    <p class="ov-server-sub">Selamat datang di dashboard — kelola server dari sini.</p>
+                    <p class="ov-server-sub"><%= t('home.welcome_sub') %></p>
                 </div>
             </div>
         </div>
@@ -31,7 +31,7 @@
                 </div>
                 <div class="ov-stat-body">
                     <div class="ov-stat-value"><%= guild.memberCount %></div>
-                    <div class="ov-stat-label">Total Member</div>
+                    <div class="ov-stat-label"><%= t('home.total_members') %></div>
                 </div>
                 <div class="ov-stat-bar"></div>
             </div>
@@ -41,7 +41,7 @@
                 </div>
                 <div class="ov-stat-body">
                     <div class="ov-stat-value"><%= guild.channels.cache.filter(c => c.type === 0).size %></div>
-                    <div class="ov-stat-label">Text Channel</div>
+                    <div class="ov-stat-label"><%= t('home.text_channels') %></div>
                 </div>
                 <div class="ov-stat-bar"></div>
             </div>
@@ -51,7 +51,7 @@
                 </div>
                 <div class="ov-stat-body">
                     <div class="ov-stat-value"><%= guild.roles.cache.size %></div>
-                    <div class="ov-stat-label">Role</div>
+                    <div class="ov-stat-label"><%= t('home.roles') %></div>
                 </div>
                 <div class="ov-stat-bar"></div>
             </div>
@@ -61,7 +61,7 @@
                 </div>
                 <div class="ov-stat-body">
                     <div class="ov-stat-value ov-stat-nickname"><%= botNickname %></div>
-                    <div class="ov-stat-label">Nickname Bot</div>
+                    <div class="ov-stat-label"><%= t('home.bot_nickname') %></div>
                 </div>
                 <div class="ov-stat-bar"></div>
             </div>
@@ -72,14 +72,14 @@
         <div class="ov-perm-warn">
             <div class="ov-perm-header">
                 <i data-lucide="alert-triangle"></i>
-                <span><strong><%= missingPerms.length %> permission</strong> yang diperlukan belum diberikan:</span>
+                <span><%- t('home.perm_missing', { count: missingPerms.length }) %></span>
             </div>
             <ul class="perm-list">
                 <% missingPerms.forEach(p => { %>
                 <li><code class="perm-name"><%= p.name %></code><span class="perm-desc"> — <%= p.desc %></span></li>
                 <% }); %>
             </ul>
-            <p class="perm-hint">Open Discord server settings → Roles → select the bot role → enable the permissions above.</p>
+            <p class="perm-hint"><%= t('home.perm_hint') %></p>
         </div>
         <% } %>
 
@@ -88,14 +88,14 @@
             <div class="ov-nickname-left">
                 <div class="ov-nickname-icon"><i data-lucide="pencil-line"></i></div>
                 <div>
-                    <div class="ov-nickname-title">Nickname Bot</div>
-                    <div class="ov-nickname-sub">Ubah nama tampilan bot di server ini</div>
+                    <div class="ov-nickname-title"><%= t('home.bot_nickname') %></div>
+                    <div class="ov-nickname-sub"><%= t('home.nickname_sub') %></div>
                 </div>
             </div>
             <div class="ov-nickname-right">
                 <input type="text" id="nicknameInput" class="input" value="<%= botNickname %>"
-                       maxlength="32" placeholder="Kosongkan untuk reset ke nama asli">
-                <button class="btn btn-primary" onclick="saveNickname('<%= guild.id %>')">Save</button>
+                       maxlength="32" placeholder="<%= t('home.nickname_placeholder') %>">
+                <button class="btn btn-primary" onclick="saveNickname('<%= guild.id %>')"><%= t('home.save') %></button>
             </div>
             <div id="nicknameMsg" class="form-message" style="width:100%;margin-top:.5rem;"></div>
         </div>
@@ -108,7 +108,7 @@
         <div class="ov-feat-section">
             <div class="ov-section-header">
                 <div class="ov-section-dot" style="background:#5865F2;"></div>
-                <span>Notification</span>
+                <span><%= t('home.section_notification') %></span>
                 <div class="ov-section-line"></div>
             </div>
             <div class="ov-feat-grid">
@@ -117,8 +117,8 @@
                         <i data-lucide="user-plus"></i>
                     </div>
                     <div class="ov-feat-body">
-                        <div class="ov-feat-title">Welcome Notification</div>
-                        <div class="ov-feat-desc">Automatic welcome card & message when a member joins.</div>
+                        <div class="ov-feat-title"><%= t('home.feat_welcome_title') %></div>
+                        <div class="ov-feat-desc"><%= t('home.feat_welcome_desc') %></div>
                     </div>
                     <i data-lucide="arrow-right" class="ov-feat-arrow"></i>
                 </a>
@@ -127,8 +127,8 @@
                         <i data-lucide="log-out"></i>
                     </div>
                     <div class="ov-feat-body">
-                        <div class="ov-feat-title">Goodbye Notification</div>
-                        <div class="ov-feat-desc">Automatic goodbye card & message when a member leaves.</div>
+                        <div class="ov-feat-title"><%= t('home.feat_goodbye_title') %></div>
+                        <div class="ov-feat-desc"><%= t('home.feat_goodbye_desc') %></div>
                     </div>
                     <i data-lucide="arrow-right" class="ov-feat-arrow"></i>
                 </a>
@@ -137,8 +137,8 @@
                         <i data-lucide="zap"></i>
                     </div>
                     <div class="ov-feat-body">
-                        <div class="ov-feat-title">Boost Notification</div>
-                        <div class="ov-feat-desc">Notifikasi otomatis saat member melakukan boost server.</div>
+                        <div class="ov-feat-title"><%= t('home.feat_boost_title') %></div>
+                        <div class="ov-feat-desc"><%= t('home.feat_boost_desc') %></div>
                     </div>
                     <i data-lucide="arrow-right" class="ov-feat-arrow"></i>
                 </a>
@@ -147,8 +147,8 @@
                         <i data-lucide="zap-off"></i>
                     </div>
                     <div class="ov-feat-body">
-                        <div class="ov-feat-title">Unboost Notification</div>
-                        <div class="ov-feat-desc">Notifikasi otomatis saat member menghapus boost server.</div>
+                        <div class="ov-feat-title"><%= t('home.feat_unboost_title') %></div>
+                        <div class="ov-feat-desc"><%= t('home.feat_unboost_desc') %></div>
                     </div>
                     <i data-lucide="arrow-right" class="ov-feat-arrow"></i>
                 </a>
@@ -159,7 +159,7 @@
         <div class="ov-feat-section">
             <div class="ov-section-header">
                 <div class="ov-section-dot" style="background:#57F287;"></div>
-                <span>Auto Role</span>
+                <span><%= t('home.section_autorole') %></span>
                 <div class="ov-section-line"></div>
             </div>
             <div class="ov-feat-grid">
@@ -168,8 +168,8 @@
                         <i data-lucide="users"></i>
                     </div>
                     <div class="ov-feat-body">
-                        <div class="ov-feat-title">Autorole Join</div>
-                        <div class="ov-feat-desc">Automatically assign a role when a member or bot joins.</div>
+                        <div class="ov-feat-title"><%= t('home.feat_autorole_join_title') %></div>
+                        <div class="ov-feat-desc"><%= t('home.feat_autorole_join_desc') %></div>
                     </div>
                     <i data-lucide="arrow-right" class="ov-feat-arrow"></i>
                 </a>
@@ -178,8 +178,8 @@
                         <i data-lucide="zap"></i>
                     </div>
                     <div class="ov-feat-body">
-                        <div class="ov-feat-title">Autorole Booster</div>
-                        <div class="ov-feat-desc">Berikan & cabut role otomatis saat member boost/unboost.</div>
+                        <div class="ov-feat-title"><%= t('home.feat_autorole_booster_title') %></div>
+                        <div class="ov-feat-desc"><%= t('home.feat_autorole_booster_desc') %></div>
                     </div>
                     <i data-lucide="arrow-right" class="ov-feat-arrow"></i>
                 </a>
@@ -188,8 +188,8 @@
                         <i data-lucide="mouse-pointer-2"></i>
                     </div>
                     <div class="ov-feat-body">
-                        <div class="ov-feat-title">Autorole Button</div>
-                        <div class="ov-feat-desc">Interactive button panel for members to choose their own roles.</div>
+                        <div class="ov-feat-title"><%= t('home.feat_autorole_button_title') %></div>
+                        <div class="ov-feat-desc"><%= t('home.feat_autorole_button_desc') %></div>
                     </div>
                     <i data-lucide="arrow-right" class="ov-feat-arrow"></i>
                 </a>
@@ -198,8 +198,8 @@
                         <i data-lucide="smile"></i>
                     </div>
                     <div class="ov-feat-body">
-                        <div class="ov-feat-title">Autorole Reaction</div>
-                        <div class="ov-feat-desc">Panel emoji reaction untuk member memilih role dengan klik emoji.</div>
+                        <div class="ov-feat-title"><%= t('home.feat_autorole_reaction_title') %></div>
+                        <div class="ov-feat-desc"><%= t('home.feat_autorole_reaction_desc') %></div>
                     </div>
                     <i data-lucide="arrow-right" class="ov-feat-arrow"></i>
                 </a>
@@ -210,7 +210,7 @@
         <div class="ov-feat-section">
             <div class="ov-section-header">
                 <div class="ov-section-dot" style="background:#ED4245;"></div>
-                <span>Moderation</span>
+                <span><%= t('home.section_moderation') %></span>
                 <div class="ov-section-line"></div>
             </div>
             <div class="ov-feat-grid">
@@ -219,8 +219,8 @@
                         <i data-lucide="shield-check"></i>
                     </div>
                     <div class="ov-feat-body">
-                        <div class="ov-feat-title">Automod</div>
-                        <div class="ov-feat-desc">Anti-link, anti-invite, spam detection, mass mention, dan antiraid otomatis.</div>
+                        <div class="ov-feat-title"><%= t('home.feat_automod_title') %></div>
+                        <div class="ov-feat-desc"><%= t('home.feat_automod_desc') %></div>
                     </div>
                     <i data-lucide="arrow-right" class="ov-feat-arrow"></i>
                 </a>
@@ -229,8 +229,8 @@
                         <i data-lucide="triangle-alert"></i>
                     </div>
                     <div class="ov-feat-body">
-                        <div class="ov-feat-title">Warning System</div>
-                        <div class="ov-feat-desc">Graduated warning system with automatic actions when thresholds are reached.</div>
+                        <div class="ov-feat-title"><%= t('home.feat_warnings_title') %></div>
+                        <div class="ov-feat-desc"><%= t('home.feat_warnings_desc') %></div>
                     </div>
                     <i data-lucide="arrow-right" class="ov-feat-arrow"></i>
                 </a>
@@ -239,8 +239,8 @@
                         <i data-lucide="scroll-text"></i>
                     </div>
                     <div class="ov-feat-body">
-                        <div class="ov-feat-title">Mod Log</div>
-                        <div class="ov-feat-desc">Catat semua aksi moderasi — ban, kick, timeout, dan warn — ke channel log.</div>
+                        <div class="ov-feat-title"><%= t('home.feat_modlog_title') %></div>
+                        <div class="ov-feat-desc"><%= t('home.feat_modlog_desc') %></div>
                     </div>
                     <i data-lucide="arrow-right" class="ov-feat-arrow"></i>
                 </a>
@@ -251,7 +251,7 @@
         <div class="ov-feat-section">
             <div class="ov-section-header">
                 <div class="ov-section-dot" style="background:#FEE75C;"></div>
-                <span>Utility</span>
+                <span><%= t('home.section_utility') %></span>
                 <div class="ov-section-line"></div>
             </div>
             <div class="ov-feat-grid">
@@ -260,8 +260,8 @@
                         <i data-lucide="ticket"></i>
                     </div>
                     <div class="ov-feat-body">
-                        <div class="ov-feat-title">Ticket</div>
-                        <div class="ov-feat-desc">Private ticket system for members to request help from staff.</div>
+                        <div class="ov-feat-title"><%= t('home.feat_ticket_title') %></div>
+                        <div class="ov-feat-desc"><%= t('home.feat_ticket_desc') %></div>
                     </div>
                     <i data-lucide="arrow-right" class="ov-feat-arrow"></i>
                 </a>
@@ -270,8 +270,8 @@
                         <i data-lucide="gift"></i>
                     </div>
                     <div class="ov-feat-body">
-                        <div class="ov-feat-title">Giveaway</div>
-                        <div class="ov-feat-desc">Buat dan kelola giveaway otomatis dengan pemenang acak.</div>
+                        <div class="ov-feat-title"><%= t('home.feat_giveaway_title') %></div>
+                        <div class="ov-feat-desc"><%= t('home.feat_giveaway_desc') %></div>
                     </div>
                     <i data-lucide="arrow-right" class="ov-feat-arrow"></i>
                 </a>
@@ -280,8 +280,8 @@
                         <i data-lucide="mail"></i>
                     </div>
                     <div class="ov-feat-body">
-                        <div class="ov-feat-title">Message Builder</div>
-                        <div class="ov-feat-desc">Create and send embed message templates to any channel.</div>
+                        <div class="ov-feat-title"><%= t('home.feat_message_builder_title') %></div>
+                        <div class="ov-feat-desc"><%= t('home.feat_message_builder_desc') %></div>
                     </div>
                     <i data-lucide="arrow-right" class="ov-feat-arrow"></i>
                 </a>
@@ -290,8 +290,8 @@
                         <i data-lucide="bar-chart-2"></i>
                     </div>
                     <div class="ov-feat-body">
-                        <div class="ov-feat-title">Server Stats</div>
-                        <div class="ov-feat-desc">Automatically display server statistics via voice channels.</div>
+                        <div class="ov-feat-title"><%= t('home.feat_serverstats_title') %></div>
+                        <div class="ov-feat-desc"><%= t('home.feat_serverstats_desc') %></div>
                     </div>
                     <i data-lucide="arrow-right" class="ov-feat-arrow"></i>
                 </a>
@@ -300,8 +300,8 @@
                         <i data-lucide="link"></i>
                     </div>
                     <div class="ov-feat-body">
-                        <div class="ov-feat-title">Invite Links</div>
-                        <div class="ov-feat-desc">View all server invite links and their usage statistics.</div>
+                        <div class="ov-feat-title"><%= t('home.feat_invites_title') %></div>
+                        <div class="ov-feat-desc"><%= t('home.feat_invites_desc') %></div>
                     </div>
                     <i data-lucide="arrow-right" class="ov-feat-arrow"></i>
                 </a>
@@ -312,7 +312,7 @@
         <div class="ov-feat-section">
             <div class="ov-section-header">
                 <div class="ov-section-dot" style="background:#FF73FA;"></div>
-                <span>Social Media</span>
+                <span><%= t('home.section_social') %></span>
                 <div class="ov-section-line"></div>
             </div>
             <div class="ov-feat-grid">
@@ -321,8 +321,8 @@
                         <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
                     </div>
                     <div class="ov-feat-body">
-                        <div class="ov-feat-title">YouTube Notification</div>
-                        <div class="ov-feat-desc">Notifikasi otomatis saat channel YouTube mengunggah video baru.</div>
+                        <div class="ov-feat-title"><%= t('home.feat_youtube_title') %></div>
+                        <div class="ov-feat-desc"><%= t('home.feat_youtube_desc') %></div>
                     </div>
                     <i data-lucide="arrow-right" class="ov-feat-arrow"></i>
                 </a>
@@ -331,8 +331,8 @@
                         <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg>
                     </div>
                     <div class="ov-feat-body">
-                        <div class="ov-feat-title">TikTok Notification</div>
-                        <div class="ov-feat-desc">Notifikasi otomatis saat akun TikTok mengunggah video baru.</div>
+                        <div class="ov-feat-title"><%= t('home.feat_tiktok_title') %></div>
+                        <div class="ov-feat-desc"><%= t('home.feat_tiktok_desc') %></div>
                     </div>
                     <i data-lucide="arrow-right" class="ov-feat-arrow"></i>
                 </a>
@@ -341,8 +341,8 @@
                         <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"/></svg>
                     </div>
                     <div class="ov-feat-body">
-                        <div class="ov-feat-title">Twitch Notification</div>
-                        <div class="ov-feat-desc">Notifikasi otomatis saat streamer Twitch mulai live streaming.</div>
+                        <div class="ov-feat-title"><%= t('home.feat_twitch_title') %></div>
+                        <div class="ov-feat-desc"><%= t('home.feat_twitch_desc') %></div>
                     </div>
                     <i data-lucide="arrow-right" class="ov-feat-arrow"></i>
                 </a>
@@ -351,8 +351,8 @@
                         <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M2.664 0v24h5.227v-8.01l2.557-2.503 5.186 10.513H21l-7.527-14.6L20.188 3.54h-5.753L8.083 9.872 7.89 9.68V0z"/></svg>
                     </div>
                     <div class="ov-feat-body">
-                        <div class="ov-feat-title">Kick Notification</div>
-                        <div class="ov-feat-desc">Notifikasi otomatis saat streamer Kick.com mulai live streaming.</div>
+                        <div class="ov-feat-title"><%= t('home.feat_kick_title') %></div>
+                        <div class="ov-feat-desc"><%= t('home.feat_kick_desc') %></div>
                     </div>
                     <i data-lucide="arrow-right" class="ov-feat-arrow"></i>
                 </a>

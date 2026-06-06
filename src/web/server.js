@@ -18,6 +18,27 @@ const compression        = require('compression');
 const Database           = require('better-sqlite3');
 const SQLiteSessionStore = require('../utils/SQLiteSessionStore');
 const config             = require('../config');
+const i18next            = require('i18next');
+const i18nextMiddleware  = require('i18next-http-middleware');
+const Backend            = require('i18next-fs-backend');
+
+// ─── i18next ──────────────────────────────────────────────────────────────────
+i18next
+    .use(Backend)
+    .use(i18nextMiddleware.LanguageDetector)
+    .init({
+        backend: { loadPath: path.join(__dirname, 'locales/{{lng}}.json') },
+        fallbackLng: 'en',
+        supportedLngs: ['en', 'id'],
+        detection: {
+            order: ['session', 'cookie'],
+            lookupSession: 'lang',
+            lookupCookie: 'lang',
+            caches: ['session', 'cookie'],
+        },
+        preload: ['en', 'id'],
+        interpolation: { escapeValue: false },
+    });
 
 // ─── Buat app Express ────────────────────────────────────────────────────────
 const app = express();
@@ -75,6 +96,7 @@ passport.deserializeUser((user, done) => done(null, user));
 
 app.use(passport.initialize());
 app.use(passport.session());
+app.use(i18nextMiddleware.handle(i18next));
 
 // ─── Inject client ke semua request ──────────────────────────────────────────
 let discordClient = null;
@@ -87,6 +109,9 @@ app.use((req, res, next) => {
     res.locals.botNavAvatar = botClientUser?.avatar
         ? `https://cdn.discordapp.com/avatars/${botClientUser.id}/${botClientUser.avatar}.png?size=512`
         : 'https://cdn.discordapp.com/embed/avatars/0.png';
+
+    res.locals.t           = req.t;
+    res.locals.currentLang = req.language || 'en';
 
     next();
 });
@@ -102,6 +127,15 @@ app.use('/dashboard', dashRoutes);
 app.use('/api',       apiRoutes);
 // WebSub callback — harus public (tanpa auth), tapi tetap dapat req.discordClient
 app.use('/webhook',   webhookRoutes);
+
+app.get('/lang/:lng', (req, res) => {
+    const supported = ['en', 'id'];
+    const lng = supported.includes(req.params.lng) ? req.params.lng : 'en';
+    req.session.lang = lng;
+    res.cookie('lang', lng, { maxAge: 1000 * 60 * 60 * 24 * 365, httpOnly: false });
+    const back = req.get('Referer') || '/';
+    res.redirect(back);
+});
 
 app.get('/', (req, res) => {
     if (req.isAuthenticated()) return res.redirect('/dashboard');

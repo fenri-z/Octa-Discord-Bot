@@ -8,8 +8,8 @@
     <div class="dash-content-wide">
         <%- include('../partials/perm-notice') %>
         <div class="page-header">
-            <h1>🎫 Ticketing</h1>
-            <p>Private ticket system for members to request help from staff.</p>
+            <h1><%= t('ticket.page_title') %></h1>
+            <p><%= t('ticket.page_desc') %></p>
         </div>
 
         <div class="tk-layout">
@@ -21,8 +21,8 @@
         <div class="settings-card" style="margin-bottom:1rem;">
             <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;">
                 <div>
-                    <div style="font-weight:600;font-size:.95rem;">Enable Ticketing</div>
-                    <div style="font-size:.8rem;color:var(--text-muted);margin-top:.15rem;">Members can create tickets via the panel button.</div>
+                    <div style="font-weight:600;font-size:.95rem;"><%= t('ticket.enable_title') %></div>
+                    <div style="font-size:.8rem;color:var(--text-muted);margin-top:.15rem;"><%= t('ticket.enable_desc') %></div>
                 </div>
                 <label class="toggle-label">
                     <input type="checkbox" id="ticketEnabled" class="toggle-input" <%= ticketData.enabled ? 'checked' : '' %>>
@@ -33,35 +33,35 @@
 
         <!-- Channel & Category -->
         <div class="settings-card" style="margin-bottom:1rem;">
-            <div style="font-size:.8rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.9rem;">⚙️ Channel Configuration</div>
+            <div style="font-size:.8rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.9rem;"><%= t('ticket.channel_config') %></div>
 
             <div class="form-group">
-                <label class="label">Ticket Category <span class="hint-inline">(optional)</span></label>
+                <label class="label"><%= t('ticket.category_label') %> <span class="hint-inline">(<%= t('giveaway.required_role_hint') %>)</span></label>
                 <select id="ticketCategory" class="select">
-                    <option value="">— No Category —</option>
+                    <option value=""><%= t('ticket.category_none') %></option>
                     <% categories.forEach(c => { %>
                         <option value="<%= c.id %>" <%= ticketData.categoryId === c.id ? 'selected' : '' %>>📁 <%= c.name %></option>
                     <% }) %>
                 </select>
-                <div class="hint">Ticket channels will be created inside this category.</div>
+                <div class="hint"><%= t('ticket.category_hint') %></div>
             </div>
 
             <div class="form-group">
-                <label class="label">Channel Log Transcript</label>
+                <label class="label"><%= t('ticket.log_label') %></label>
                 <select id="ticketLogChannel" class="select">
-                    <option value="">— None —</option>
+                    <option value=""><%= t('ticket.log_none') %></option>
                     <% channels.forEach(c => { %>
                         <option value="<%= c.id %>" <%= ticketData.logChannelId === c.id ? 'selected' : '' %>>#<%= c.name %></option>
                     <% }) %>
                 </select>
-                <div class="hint">Transcript is sent to this channel when a ticket is closed.</div>
+                <div class="hint"><%= t('ticket.log_hint') %></div>
             </div>
         </div>
 
         <!-- Staff Roles -->
         <div class="settings-card" style="margin-bottom:1rem;">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.9rem;flex-wrap:wrap;gap:.5rem;">
-                <div style="font-size:.8rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;">🛡️ Staff Roles</div>
+                <div style="font-size:.8rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;"><%= t('ticket.staff_roles') %></div>
                 <span style="font-size:.72rem;padding:.15rem .45rem;border-radius:999px;background:var(--bg2);border:1px solid var(--border);color:var(--text-muted);" id="staffRoleCounter"><%= ticketData.staffRoles.length %> role</span>
             </div>
             <div id="staffRoleList" style="display:flex;flex-direction:column;gap:.45rem;margin-bottom:.75rem;">
@@ -71,29 +71,29 @@
                     <div class="tk-role-chip" data-id="<%= role.id %>">
                         <span class="tk-role-dot" style="background:<%= role.color %>;"></span>
                         <span>@<%= role.name %></span>
-                        <button class="tk-role-remove" onclick="removeStaffRole('<%= role.id %>')" title="Remove">✕</button>
+                        <button class="tk-role-remove" onclick="removeStaffRole('<%= role.id %>')" title="<%= t('ticket.role_remove_title') %>">✕</button>
                     </div>
                     <% } %>
                 <% }) %>
                 <div id="staffRoleEmpty" style="color:var(--text-muted);font-size:.82rem;padding:.3rem 0;<%= ticketData.staffRoles.length > 0 ? 'display:none;' : '' %>">
-                    No staff roles yet. Add one below.
+                    <%= t('ticket.staff_empty') %>
                 </div>
             </div>
             <div style="display:flex;gap:.5rem;">
                 <select id="staffRoleAdd" class="select" style="flex:1;">
-                    <option value="">— Select role —</option>
+                    <option value=""><%= t('common.select_role') %></option>
                     <% roles.forEach(r => { %>
                         <option value="<%= r.id %>" style="color:<%= r.color %>">@<%= r.name %></option>
                     <% }) %>
                 </select>
-                <button class="btn btn-primary btn-sm" onclick="addStaffRole()">＋ Add</button>
+                <button class="btn btn-primary btn-sm" onclick="addStaffRole()"><%= t('ticket.add_btn') %></button>
             </div>
-            <div class="hint" style="margin-top:.5rem;">Role that can view and manage all tickets. The server owner can always view tickets.</div>
+            <div class="hint" style="margin-top:.5rem;"><%= t('ticket.staff_hint') %></div>
         </div>
 
         <!-- Save Configuration -->
         <div style="display:flex;justify-content:flex-end;margin-bottom:1rem;">
-            <button class="btn btn-primary" onclick="saveConfig()">💾 Save Configuration</button>
+            <button class="btn btn-primary" onclick="saveConfig()">💾 <%= t('common.save') %></button>
         </div>
         <div id="configMsg" class="form-message"></div>
 
@@ -103,22 +103,22 @@
         <div class="tk-panel-col">
 
         <div class="settings-card">
-            <div style="font-size:.8rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.9rem;">🎨 Panel Appearance</div>
+            <div style="font-size:.8rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.9rem;"><%= t('ticket.panel_appearance') %></div>
 
             <div class="form-group">
-                <label class="label">Embed Title</label>
+                <label class="label"><%= t('ticket.embed_title_label') %></label>
                 <input type="text" id="panelTitle" class="input" maxlength="256"
-                       value="<%= ticketData.embedTitle %>" placeholder="🎫 Support Ticket"
+                       value="<%= ticketData.embedTitle %>" placeholder="<%= t('ticket.embed_title_default') %>"
                        oninput="updateTicketPreview()">
             </div>
             <div class="form-group">
-                <label class="label">Description</label>
+                <label class="label"><%= t('ticket.description_label') %></label>
                 <textarea id="panelDesc" class="textarea" rows="4" maxlength="4000"
-                          placeholder="Click the button below to create a ticket..."
+                          placeholder="<%= t('ticket.embed_desc_default') %>"
                           oninput="updateTicketPreview()"><%= ticketData.embedDesc %></textarea>
             </div>
             <div class="form-group">
-                <label class="label">Embed Color</label>
+                <label class="label"><%= t('ticket.embed_color_label') %></label>
                 <div style="display:flex;gap:.75rem;align-items:center;">
                     <input type="color" id="panelColorPicker" value="<%= ticketData.embedColor || '#5865F2' %>"
                            style="width:44px;height:36px;border:none;border-radius:6px;cursor:pointer;padding:0;background:none;"
@@ -129,14 +129,14 @@
                 </div>
             </div>
             <div class="form-group">
-                <label class="label">Button Label</label>
+                <label class="label"><%= t('ticket.btn_label') %></label>
                 <input type="text" id="panelBtnLabel" class="input" maxlength="80"
-                       value="<%= ticketData.btnLabel %>" placeholder="📩 Create Ticket"
+                       value="<%= ticketData.btnLabel %>" placeholder="<%= t('ticket.btn_label_default') %>"
                        oninput="updateTicketPreview()">
             </div>
 
             <!-- Preview Discord -->
-            <div class="preview-label" style="margin-top:1.25rem;">Preview</div>
+            <div class="preview-label" style="margin-top:1.25rem;"><%= t('common.preview') %></div>
             <div class="dc-window">
                 <div class="dc-channel-bar"><span class="dc-channel-hash">#</span><span>ticket-panel</span></div>
                 <div class="dc-messages">
@@ -148,13 +148,13 @@
                             <div class="dc-embed" id="tkPreviewEmbed">
                                 <div class="dc-embed-pill" id="tkPreviewPill" style="background:<%= ticketData.embedColor||'#5865F2' %>;"></div>
                                 <div class="dc-embed-content">
-                                    <div class="dc-embed-title" id="tkPreviewTitle"><%= ticketData.embedTitle || '🎫 Support Ticket' %></div>
-                                    <div class="dc-embed-desc" id="tkPreviewDesc"><%= ticketData.embedDesc || 'Click the button below to create a ticket.' %></div>
+                                    <div class="dc-embed-title" id="tkPreviewTitle"><%= ticketData.embedTitle || t('ticket.embed_title_default') %></div>
+                                    <div class="dc-embed-desc" id="tkPreviewDesc"><%= ticketData.embedDesc || t('ticket.embed_desc_default') %></div>
                                 </div>
                             </div>
                             <!-- Preview tombol -->
                             <div style="margin-top:.4rem;">
-                                <span class="tk-btn-preview" id="tkPreviewBtn"><%= ticketData.btnLabel || '📩 Buat Ticket' %></span>
+                                <span class="tk-btn-preview" id="tkPreviewBtn"><%= ticketData.btnLabel || t('ticket.btn_label_default') %></span>
                             </div>
                         </div>
                     </div>
@@ -163,24 +163,24 @@
 
             <!-- Select send channel -->
             <div class="form-group" style="margin-top:1rem;" id="panelSendChannelGroup">
-                <label class="label">Channel tujuan panel</label>
+                <label class="label"><%= t('ticket.send_channel_label') %></label>
                 <select id="panelSendChannel" class="select">
-                    <option value="">— Select channel —</option>
+                    <option value=""><%= t('common.select_channel') %></option>
                     <% channels.forEach(c => { %>
                         <option value="<%= c.id %>">#<%= c.name %></option>
                     <% }) %>
                 </select>
                 <% if (ticketData.panelSent) { %>
                 <div class="hint" style="margin-top:.4rem;">
-                    ✅ Panel already sent — <a href="https://discord.com/channels/<%= guild.id %>/<%= ticketData.panelChannelId %>/<%= ticketData.panelMsgId %>" target="_blank" style="color:var(--accent);">View</a>.
-                    Click <strong>Send Panel</strong> to update.
+                    <%= t('ticket.panel_sent') %> <a href="https://discord.com/channels/<%= guild.id %>/<%= ticketData.panelChannelId %>/<%= ticketData.panelMsgId %>" target="_blank" style="color:var(--accent);"><%= t('ticket.panel_sent_view') %></a>.
+                    <%- t('ticket.panel_sent_hint') %>
                 </div>
                 <% } %>
             </div>
 
             <div style="display:flex;gap:.75rem;margin-top:1rem;flex-wrap:wrap;">
-                <button class="btn btn-outline" onclick="savePanelEmbed()">💾 Save Embed</button>
-                <button class="btn btn-primary" onclick="sendPanel()">📨 Send Panel</button>
+                <button class="btn btn-outline" onclick="savePanelEmbed()">💾 <%= t('common.save') %></button>
+                <button class="btn btn-primary" onclick="sendPanel()"><%= t('ticket.send_panel_btn') %></button>
             </div>
             <div id="panelMsg" class="form-message" style="margin-top:.5rem;"></div>
         </div>
@@ -189,18 +189,18 @@
         <% if (openTickets.length > 0) { %>
         <div class="settings-card" style="margin-top:1rem;">
             <div style="font-size:.8rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.9rem;">
-                📋 Active Tickets
-                <span style="font-size:.72rem;padding:.15rem .45rem;border-radius:999px;background:var(--bg2);border:1px solid rgba(87,242,135,.3);color:#57F287;margin-left:.5rem;"><%= openTickets.length %> terbuka</span>
+                <%= t('ticket.active_tickets') %>
+                <span style="font-size:.72rem;padding:.15rem .45rem;border-radius:999px;background:var(--bg2);border:1px solid rgba(87,242,135,.3);color:#57F287;margin-left:.5rem;"><%= openTickets.length %> <%= t('ticket.tickets_open') %></span>
             </div>
             <div style="display:flex;flex-direction:column;gap:.45rem;">
-                <% openTickets.forEach(t => { %>
+                <% openTickets.forEach(tk => { %>
                 <div class="tk-ticket-row">
-                    <div class="tk-ticket-num">#<%= String(t.ticketNumber).padStart(4,'0') %></div>
+                    <div class="tk-ticket-num">#<%= String(tk.ticketNumber).padStart(4,'0') %></div>
                     <div class="tk-ticket-body">
-                        <div class="tk-ticket-user"><%= t.username %></div>
-                        <div class="tk-ticket-time">Dibuka <span title="<%= new Date(t.openedAt).toLocaleString('id-ID') %>"><%= Math.floor((Date.now()-t.openedAt)/60000) %> menit lalu</span></div>
+                        <div class="tk-ticket-user"><%= tk.username %></div>
+                        <div class="tk-ticket-time"><%= t('ticket.ticket_opened') %> <span title="<%= new Date(tk.openedAt).toLocaleString('id-ID') %>"><%= t('ticket.minutes_ago', { n: Math.floor((Date.now()-tk.openedAt)/60000) }) %></span></div>
                     </div>
-                    <a href="https://discord.com/channels/<%= guild.id %>/<%= t.channelId %>" target="_blank" class="btn btn-outline btn-sm" style="flex-shrink:0;">🔗 Lihat</a>
+                    <a href="https://discord.com/channels/<%= guild.id %>/<%= tk.channelId %>" target="_blank" class="btn btn-outline btn-sm" style="flex-shrink:0;"><%= t('ticket.view_btn') %></a>
                 </div>
                 <% }) %>
             </div>
@@ -287,7 +287,13 @@
 </style>
 
 <script>
-const GUILD_ID = '<%= guild.id %>';
+const GUILD_ID              = '<%= guild.id %>';
+const I18N_TK_NO_CH         = '<%= t("ticket.err_no_channel") %>';
+const I18N_TK_SENT_OK       = '<%= t("ticket.panel_sent_ok") %>';
+const I18N_TK_TITLE_DEF     = '<%= t("ticket.embed_title_default") %>';
+const I18N_TK_DESC_DEF      = '<%= t("ticket.embed_desc_default") %>';
+const I18N_TK_BTN_DEF       = '<%= t("ticket.btn_label_default") %>';
+const I18N_TK_REMOVE_TITLE  = '<%= t("ticket.role_remove_title") %>';
 let _staffRoles = <%- JSON.stringify(ticketData.staffRoles) %>;
 
 // ── Color sync ────────────────────────────────────────────────────────────────
@@ -304,10 +310,10 @@ function updateTicketPreview() {
     const title = document.getElementById('panelTitle').value;
     const desc  = document.getElementById('panelDesc').value;
     const color = document.getElementById('panelColor').value || '#5865F2';
-    const btn   = document.getElementById('panelBtnLabel').value || '📩 Buat Ticket';
+    const btn   = document.getElementById('panelBtnLabel').value || I18N_TK_BTN_DEF;
 
-    document.getElementById('tkPreviewTitle').textContent = title || '🎫 Support Ticket';
-    document.getElementById('tkPreviewDesc').textContent  = desc  || 'Click the button below to create a ticket.';
+    document.getElementById('tkPreviewTitle').textContent = title || I18N_TK_TITLE_DEF;
+    document.getElementById('tkPreviewDesc').textContent  = desc  || I18N_TK_DESC_DEF;
     document.getElementById('tkPreviewPill').style.background = color;
     document.getElementById('tkPreviewBtn').textContent   = btn;
 }
@@ -328,7 +334,7 @@ function addStaffRole() {
     const chip = document.createElement('div');
     chip.className = 'tk-role-chip';
     chip.dataset.id = roleId;
-    chip.innerHTML = `<span class="tk-role-dot" style="background:gray;"></span><span>${roleName}</span><button class="tk-role-remove" onclick="removeStaffRole('${roleId}')" title="Hapus">✕</button>`;
+    chip.innerHTML = `<span class="tk-role-dot" style="background:gray;"></span><span>${roleName}</span><button class="tk-role-remove" onclick="removeStaffRole('${roleId}')" title="${I18N_TK_REMOVE_TITLE}">✕</button>`;
     list.appendChild(chip);
     document.getElementById('staffRoleCounter').textContent = `${_staffRoles.length} role`;
 }
@@ -385,7 +391,7 @@ async function savePanelEmbed() {
 async function sendPanel() {
     const msg       = document.getElementById('panelMsg');
     const channelId = document.getElementById('panelSendChannel').value;
-    if (!channelId) return showMsg(msg, 'Please select a destination channel first.', 'error');
+    if (!channelId) return showMsg(msg, I18N_TK_NO_CH, 'error');
 
     // Simpan embed dulu
     await savePanelEmbed();
@@ -395,7 +401,7 @@ async function sendPanel() {
         body: JSON.stringify({ channelId })
     });
     const data = await res.json();
-    if (data.success) showMsg(msg, '✅ Panel sent successfully!', 'success');
+    if (data.success) showMsg(msg, I18N_TK_SENT_OK, 'success');
     else              showMsg(msg, data.message, 'error');
 
     if (data.success) setTimeout(() => location.reload(), 1200);

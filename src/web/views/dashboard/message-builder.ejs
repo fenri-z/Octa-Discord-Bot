@@ -8,14 +8,14 @@
     <div class="dash-content-wide">
         <%- include('../partials/perm-notice') %>
         <div class="page-header">
-            <h1>Message Builder</h1>
-            <p>Buat, edit, dan kirim template embed ke channel manapun.</p>
+            <h1><%= t('message_builder.page_title') %></h1>
+            <p><%= t('message_builder.page_desc') %></p>
         </div>
 
         <!-- ── Toolbar: buat baru + search ── -->
         <div class="mb-toolbar">
-            <button class="btn btn-primary" onclick="openCreateModal()">＋ Template Baru</button>
-            <input type="text" class="input mb-search" placeholder="🔍 Cari template..." oninput="filterTemplates(this.value)">
+            <button class="btn btn-primary" onclick="openCreateModal()">＋ <%= t('message_builder.new_template_btn') %></button>
+            <input type="text" class="input mb-search" placeholder="🔍 <%= t('message_builder.search_placeholder') %>" oninput="filterTemplates(this.value)">
         </div>
 
         <!-- ── Page layout: list kiri, preview kanan ── -->
@@ -27,35 +27,35 @@
                     <% if (templates.length === 0) { %>
                         <div class="empty-state" id="emptyState">
                             <p style="font-size:2rem;margin-bottom:.5rem">✉️</p>
-                            <p>No templates yet. Buat yang pertama!</p>
+                            <p><%= t('message_builder.no_templates') %></p>
                         </div>
                     <% } else { %>
-                        <% templates.forEach(t => { %>
-                        <div class="mb-card" data-name="<%= t.name %>">
-                            <div class="mb-card-pill" style="background:<%= t.color || '#5865F2' %>"></div>
+                        <% templates.forEach(function(tmpl) { %>
+                        <div class="mb-card" data-name="<%= tmpl.name %>">
+                            <div class="mb-card-pill" style="background:<%= tmpl.color || '#5865F2' %>"></div>
                             <div class="mb-card-body">
                                 <div class="mb-card-header">
-                                    <span class="mb-card-name"><%= t.name %></span>
-                                    <span class="mb-badge <%= t.kategori === 'unik' ? 'mb-badge-unik' : 'mb-badge-biasa' %>">
-                                        <%= t.kategori === 'unik' ? 'Unik' : 'Biasa' %>
+                                    <span class="mb-card-name"><%= tmpl.name %></span>
+                                    <span class="mb-badge <%= tmpl.kategori === 'unik' ? 'mb-badge-unik' : 'mb-badge-biasa' %>">
+                                        <%= tmpl.kategori === 'unik' ? t('message_builder.badge_unique') : t('message_builder.badge_regular') %>
                                     </span>
                                     <span class="mb-badge mb-badge-type">
-                                        <%= t.messageType === 'plain' ? 'Teks' : 'Embed' %>
+                                        <%= tmpl.messageType === 'plain' ? t('message_builder.badge_text') : 'Embed' %>
                                     </span>
                                 </div>
                                 <div class="mb-card-title">
-                                    <% if (t.messageType === 'plain') { %>
-                                        <span style="color:var(--text-muted);font-style:italic;"><%= t.plainText ? t.plainText.slice(0, 60) + (t.plainText.length > 60 ? '…' : '') : '(teks kosong)' %></span>
+                                    <% if (tmpl.messageType === 'plain') { %>
+                                        <span style="color:var(--text-muted);font-style:italic;"><%= tmpl.plainText ? tmpl.plainText.slice(0, 60) + (tmpl.plainText.length > 60 ? '…' : '') : t('message_builder.empty_text') %></span>
                                     <% } else { %>
-                                        <%= t.title || '(no title)' %>
+                                        <%= tmpl.title || '(no title)' %>
                                     <% } %>
                                 </div>
-                                <div class="mb-card-desc"><%= t.description ? t.description.slice(0, 80) + (t.description.length > 80 ? '…' : '') : (t.messageType === 'unik' ? '📌 Unique' : '📋 Regular') %></div>
+                                <div class="mb-card-desc"><%= tmpl.description ? tmpl.description.slice(0, 80) + (tmpl.description.length > 80 ? '…' : '') : (tmpl.messageType === 'unik' ? '📌 Unique' : '📋 Regular') %></div>
                             </div>
                             <div class="mb-card-actions">
-                                <button class="btn btn-outline btn-sm" onclick="openEditModal('<%= t.name %>')"><i data-lucide="pencil"></i> Edit</button>
-                                <button class="btn btn-outline btn-sm" onclick="openSendModal('<%= t.name %>')"><i data-lucide="send"></i> Kirim</button>
-                                <button class="btn btn-sm mb-btn-delete" onclick="deleteTemplate('<%= t.name %>')"><i data-lucide="trash-2"></i></button>
+                                <button class="btn btn-outline btn-sm" onclick="openEditModal('<%= tmpl.name %>')"><i data-lucide="pencil"></i> Edit</button>
+                                <button class="btn btn-outline btn-sm" onclick="openSendModal('<%= tmpl.name %>')"><i data-lucide="send"></i> <%= t('message_builder.send_btn') %></button>
+                                <button class="btn btn-sm mb-btn-delete" onclick="deleteTemplate('<%= tmpl.name %>')"><i data-lucide="trash-2"></i></button>
                             </div>
                         </div>
                         <% }) %>
@@ -66,7 +66,7 @@
             <!-- Kanan: preview panel -->
             <div class="mb-preview-panel" id="mbPreviewPanel">
                 <div class="mb-preview-panel-header">
-                    <span id="mbPreviewPanelName" class="mb-preview-panel-title">Preview</span>
+                    <span id="mbPreviewPanelName" class="mb-preview-panel-title"><%= t('common.preview') %></span>
                     <button class="mb-preview-panel-close" onclick="closePreviewPanel()">✕</button>
                 </div>
                 <div class="mb-preview-panel-body">
@@ -128,7 +128,7 @@
 <div class="mb-modal-backdrop" id="editBackdrop" onclick="closeEditModal()"></div>
 <div class="mb-modal" id="editModal">
     <div class="mb-modal-header">
-        <h2 id="editModalTitle">Template Baru</h2>
+        <h2 id="editModalTitle"><%= t('message_builder.modal_new_title') %></h2>
         <button class="mb-modal-close" onclick="closeEditModal()">✕</button>
     </div>
     <div class="mb-modal-body">
@@ -138,21 +138,21 @@
                 <input type="hidden" id="editOriginalName">
 
                 <div class="form-group">
-                    <label class="label">Template Name</label>
+                    <label class="label"><%= t('message_builder.field_name') %></label>
                     <input type="text" id="editName" class="input" placeholder="contoh: pengumuman-rutin" maxlength="32">
-                    <div class="hint">Hanya huruf, angka, <code>-</code> dan <code>_</code> (maks. 32 karakter).</div>
+                    <div class="hint"><%- t('message_builder.field_name_hint') %></div>
                 </div>
 
                 <div class="form-group">
-                    <label class="label">Category</label>
+                    <label class="label"><%= t('message_builder.field_category') %></label>
                     <select id="editKategori" class="select">
-                        <option value="biasa">Regular — can be sent multiple times</option>
-                        <option value="unik">Unique — send once, can be edited</option>
+                        <option value="biasa"><%= t('message_builder.category_regular') %></option>
+                        <option value="unik"><%= t('message_builder.category_unique') %></option>
                     </select>
                 </div>
 
                 <div class="form-group">
-                    <label class="label">Message Type</label>
+                    <label class="label"><%= t('message_builder.field_type') %></label>
                     <div style="display:flex;gap:.75rem;">
                         <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;">
                             <input type="radio" name="editMessageType" id="mbTypeEmbed" value="embed" checked>
@@ -160,7 +160,7 @@
                         </label>
                         <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;">
                             <input type="radio" name="editMessageType" id="mbTypePlain" value="plain">
-                            <span>Teks Biasa</span>
+                            <span><%= t('message_builder.type_plain') %></span>
                         </label>
                     </div>
                 </div>
@@ -168,7 +168,7 @@
                 <!-- ── Panel Teks Biasa ── -->
                 <div id="mbPlainPanel" style="display:none;">
                     <div class="form-group">
-                        <label class="label">Plain Text Message</label>
+                        <label class="label"><%= t('message_builder.field_plain_text') %></label>
                         <textarea id="editPlainText" class="textarea" rows="5"
                                   placeholder="Write your message here..."
                                   oninput="updatePreview()"></textarea>
@@ -179,12 +179,12 @@
                 <div id="mbEmbedPanel">
 
                 <div class="form-group">
-                    <label class="label">Embed Title</label>
+                    <label class="label"><%= t('message_builder.field_embed_title') %></label>
                     <input type="text" id="editTitle" class="input" placeholder="Judul embed..." maxlength="256" oninput="updatePreview()">
                 </div>
 
                 <div class="form-group">
-                    <label class="label">Deskripsi</label>
+                    <label class="label"><%= t('message_builder.field_description') %></label>
                     <textarea id="editDescription" class="textarea" rows="4" placeholder="Isi konten embed... Mendukung markdown Discord." oninput="updatePreview()"></textarea>
                 </div>
 
@@ -199,22 +199,22 @@
                 </div>
 
                 <div class="form-group">
-                    <label class="label">URL Ikon Author</label>
+                    <label class="label"><%= t('message_builder.field_author_icon') %></label>
                     <input type="text" id="editAuthorIcon" class="input" placeholder="https://... (opsional)" oninput="updatePreview()">
                 </div>
 
                 <div class="form-group">
-                    <label class="label">URL Gambar (bawah embed)</label>
+                    <label class="label"><%= t('message_builder.field_image') %></label>
                     <input type="text" id="editImage" class="input" placeholder="https://..." oninput="updatePreview()">
                 </div>
 
                 <div class="form-group">
-                    <label class="label">URL Thumbnail (pojok kanan)</label>
+                    <label class="label"><%= t('message_builder.field_thumbnail') %></label>
                     <input type="text" id="editThumbnail" class="input" placeholder="https://..." oninput="updatePreview()">
                 </div>
 
                 <div class="form-group">
-                    <label class="label">Embed Color</label>
+                    <label class="label"><%= t('message_builder.field_color') %></label>
                     <div style="display:flex;gap:.75rem;align-items:center;">
                         <input type="color" id="editColorPicker" value="#5865F2"
                                style="width:44px;height:36px;border:none;border-radius:6px;cursor:pointer;padding:0;background:none;"
@@ -230,7 +230,7 @@
 
             <!-- Preview -->
             <div class="mb-editor-preview">
-                <div class="preview-label">Preview</div>
+                <div class="preview-label"><%= t('common.preview') %></div>
                 <div class="dc-window">
                     <div class="dc-channel-bar">
                         <span class="dc-channel-hash">#</span>
@@ -271,8 +271,8 @@
     <div class="mb-modal-footer">
         <div id="editMsg" class="form-message"></div>
         <div style="display:flex;gap:.75rem;justify-content:flex-end;">
-            <button class="btn btn-outline" onclick="closeEditModal()">Batal</button>
-            <button class="btn btn-primary" onclick="saveTemplate()">Save</button>
+            <button class="btn btn-outline" onclick="closeEditModal()"><%= t('common.cancel') %></button>
+            <button class="btn btn-primary" onclick="saveTemplate()"><%= t('common.save') %></button>
         </div>
     </div>
 </div>
@@ -283,17 +283,17 @@
 <div class="mb-modal-backdrop" id="sendBackdrop" onclick="closeSendModal()"></div>
 <div class="mb-modal mb-modal-sm" id="sendModal">
     <div class="mb-modal-header">
-        <h2><i data-lucide="send"></i> Send Template</h2>
+        <h2><i data-lucide="send"></i> <%= t('message_builder.send_modal_title') %></h2>
         <button class="mb-modal-close" onclick="closeSendModal()">✕</button>
     </div>
     <div class="mb-modal-body">
         <p style="margin-bottom:1rem;color:var(--text-muted);font-size:.9rem;">
-            Send template <strong id="sendTemplateName"></strong> to channel:
+            <%= t('message_builder.send_to_channel_pre') %> <strong id="sendTemplateName"></strong> <%= t('message_builder.send_to_channel_post') %>
         </p>
         <div class="form-group">
-            <label class="label">Destination Channel</label>
+            <label class="label"><%= t('common.channel') %></label>
             <select id="sendChannel" class="select">
-                <option value="">— Select channel —</option>
+                <option value=""><%= t('common.select_channel') %></option>
                 <% channels.forEach(ch => { %>
                     <option value="<%= ch.id %>">#<%= ch.name %></option>
                 <% }) %>
@@ -303,8 +303,8 @@
     <div class="mb-modal-footer">
         <div id="sendMsg" class="form-message"></div>
         <div style="display:flex;gap:.75rem;justify-content:flex-end;">
-            <button class="btn btn-outline" onclick="closeSendModal()">Batal</button>
-            <button class="btn btn-primary" onclick="sendTemplate()">Kirim</button>
+            <button class="btn btn-outline" onclick="closeSendModal()"><%= t('common.cancel') %></button>
+            <button class="btn btn-primary" onclick="sendTemplate()"><%= t('message_builder.send_btn') %></button>
         </div>
     </div>
 </div>
@@ -674,6 +674,13 @@ const GUILD_ID = '<%= guild.id %>';
 const CHANNELS = <%- JSON.stringify(Object.fromEntries(channels.map(c => [c.id, c.name]))) %>;
 const ROLES    = <%- JSON.stringify(Object.fromEntries((locals.roles||[]).map(r=>[r.id,{name:r.name,color:r.color}]))) %>;
 
+const I18N_MB_NEW_TITLE    = '<%= t("message_builder.modal_new_title") %>';
+const I18N_MB_CONFIRM_DEL  = '<%= t("message_builder.confirm_delete") %>';
+const I18N_MB_ERR_EMPTY    = '<%= t("message_builder.err_name_empty") %>';
+const I18N_MB_ERR_INVALID  = '<%= t("message_builder.err_name_invalid") %>';
+const I18N_MB_ERR_NO_CH    = '<%= t("message_builder.err_no_channel") %>';
+const I18N_MB_NO_TEMPLATES = '<%= t("message_builder.no_templates") %>';
+
 let _sendingName = '';
 
 // ── Filter ────────────────────────────────────────────────────────────────
@@ -872,7 +879,7 @@ function updatePreview() {
 
 // ── Buka modal buat baru ──────────────────────────────────────────────────
 function openCreateModal() {
-    document.getElementById('editModalTitle').textContent = 'Template Baru';
+    document.getElementById('editModalTitle').textContent = I18N_MB_NEW_TITLE;
     document.getElementById('editOriginalName').value = '';
     document.getElementById('editName').value         = '';
     document.getElementById('editName').disabled      = false;
@@ -933,8 +940,8 @@ async function saveTemplate() {
     const name         = isEdit ? originalName : document.getElementById('editName').value.trim();
     const msg          = document.getElementById('editMsg');
 
-    if (!name) return showMsg(msg, 'Template name cannot be empty.', 'error');
-    if (!/^[a-zA-Z0-9_-]{1,32}$/.test(name)) return showMsg(msg, 'Invalid name. Use letters, numbers, - and _.', 'error');
+    if (!name) return showMsg(msg, I18N_MB_ERR_EMPTY, 'error');
+    if (!/^[a-zA-Z0-9_-]{1,32}$/.test(name)) return showMsg(msg, I18N_MB_ERR_INVALID, 'error');
 
     const isPlain    = document.getElementById('mbTypePlain').checked;
     const payload = {
@@ -965,14 +972,14 @@ async function saveTemplate() {
 
 // ── Hapus template ────────────────────────────────────────────────────────
 async function deleteTemplate(name) {
-    if (!confirm(`Delete template "${name}"? This action cannot be undone.`)) return;
+    if (!confirm(I18N_MB_CONFIRM_DEL.replace('{{name}}', name))) return;
     const res  = await fetch(`/api/guild/${GUILD_ID}/message-builder/${encodeURIComponent(name)}`, { method: 'DELETE' });
     const data = await res.json();
     if (!data.success) return alert('Failed: ' + data.message);
     const card = document.querySelector(`.mb-card[data-name="${name}"]`);
     if (card) card.remove();
     if (!document.querySelector('.mb-card')) {
-        document.getElementById('mbGrid').innerHTML = '<div class="empty-state"><p style="font-size:2rem;margin-bottom:.5rem">✉️</p><p>No templates yet. Create the first one!</p></div>';
+        document.getElementById('mbGrid').innerHTML = `<div class="empty-state"><p style="font-size:2rem;margin-bottom:.5rem">✉️</p><p>${I18N_MB_NO_TEMPLATES}</p></div>`;
     }
 }
 
@@ -989,7 +996,7 @@ function closeSendModal() { closeModal('sendBackdrop', 'sendModal'); }
 async function sendTemplate() {
     const channelId = document.getElementById('sendChannel').value;
     const msg       = document.getElementById('sendMsg');
-    if (!channelId) return showMsg(msg, 'Please select a destination channel.', 'error');
+    if (!channelId) return showMsg(msg, I18N_MB_ERR_NO_CH, 'error');
 
     const res  = await fetch(`/api/guild/${GUILD_ID}/message-builder/${encodeURIComponent(_sendingName)}/send`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },

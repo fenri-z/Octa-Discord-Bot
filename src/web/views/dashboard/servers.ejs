@@ -3,19 +3,19 @@
 
 <div class="page-container">
     <div class="page-header">
-        <h1>Dashboard</h1>
-        <p>Select the server you want to manage. (<%= guilds.length %> server(s))</p>
+        <h1><%= t('servers.title') %></h1>
+        <p><%= t('servers.subtitle', { count: guilds.length }) %></p>
     </div>
 
     <!-- Search + Refresh -->
     <div class="srv-toolbar">
         <div class="srv-search-wrap">
             <i data-lucide="search" class="srv-search-icon"></i>
-            <input type="text" id="srvSearch" class="srv-search-input" placeholder="Cari server...">
+            <input type="text" id="srvSearch" class="srv-search-input" placeholder="<%= t('servers.search_placeholder') %>">
         </div>
         <a href="/dashboard/refresh" class="btn btn-outline srv-refresh-btn" id="refreshBtn">
             <i data-lucide="refresh-cw"></i>
-            Segarkan
+            <%= t('servers.refresh') %>
         </a>
     </div>
 
@@ -45,21 +45,21 @@
                     <div class="srv-card-meta">
                         <% if (guild.botPresent && guild.memberCount !== null) { %>
                             <span class="srv-dot green"></span>
-                            <span><%= guild.memberCount.toLocaleString('id-ID') %> Anggota</span>
+                            <span><%= guild.memberCount.toLocaleString() %> <%= t('servers.members') %></span>
                         <% } else if (guild.botPresent) { %>
                             <span class="srv-dot green"></span>
-                            <span>Bot aktif</span>
+                            <span><%= t('servers.bot_active') %></span>
                         <% } else { %>
                             <span class="srv-dot gray"></span>
-                            <span>Bot belum ada</span>
+                            <span><%= t('servers.bot_not_present') %></span>
                         <% } %>
                     </div>
                 </div>
                 <% if (guild.botPresent) { %>
-                    <a href="/dashboard/<%= guild.id %>" class="srv-card-action srv-btn-manage">Kelola</a>
+                    <a href="/dashboard/<%= guild.id %>" class="srv-card-action srv-btn-manage"><%= t('servers.manage') %></a>
                 <% } else { %>
                     <a href="https://discord.com/oauth2/authorize?client_id=<%= process.env.CLIENT_ID %>&permissions=8&scope=bot+applications.commands&guild_id=<%= guild.id %>"
-                       target="_blank" class="srv-card-action srv-btn-invite">Undang</a>
+                       target="_blank" class="srv-card-action srv-btn-invite"><%= t('servers.invite') %></a>
                 <% } %>
             </div>
         </div>
@@ -67,11 +67,11 @@
 
         <% if (guilds.length === 0) { %>
         <div class="empty-state" id="emptyInitial" style="grid-column:1/-1">
-            <p>Kamu tidak punya server dengan izin Manage Guild.</p>
+            <p><%= t('servers.no_servers') %></p>
         </div>
         <% } %>
         <div class="empty-state" id="emptySearch" style="display:none;grid-column:1/-1">
-            <p>No servers match your search.</p>
+            <p><%= t('servers.no_results') %></p>
         </div>
     </div>
 </div>

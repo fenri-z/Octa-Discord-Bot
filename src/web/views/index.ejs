@@ -368,26 +368,24 @@ body {
         <div class="lp-hero-left">
             <div class="lp-online-badge">
                 <span class="lp-online-dot"></span>
-                Multipurpose Discord Bot
+                <%= t('landing.badge') %>
             </div>
             <h1 class="lp-title">
                 <%- locals.botNavName || locals.botName || 'OCTA BOT' %><span class="lp-cursor"></span>
             </h1>
             <p class="lp-subtitle">
-                Bot Discord yang powerful, reliable, dan mudah digunakan —
-                dibangun untuk membantu komunitas berkembang lebih cepat.
-                Dari moderasi dan otomasi hingga utilitas server lanjutan.
+                <%= t('landing.subtitle') %>
             </p>
             <div class="lp-cta-row">
                 <a href="/auth/login" class="lp-btn lp-btn-primary">
                     <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                         <path d="M20.317 4.492c-1.53-.69-3.17-1.2-4.885-1.49a.075.075 0 0 0-.079.036c-.21.369-.444.85-.608 1.23a18.566 18.566 0 0 0-5.487 0 12.36 12.36 0 0 0-.617-1.23A.077.077 0 0 0 8.562 3c-1.714.29-3.354.8-4.885 1.491a.07.07 0 0 0-.032.027C.533 9.093-.32 13.555.099 17.961a.08.08 0 0 0 .031.055 20.03 20.03 0 0 0 5.993 2.98.078.078 0 0 0 .084-.026c.462-.62.874-1.275 1.226-1.963.021-.04.001-.088-.041-.104a13.201 13.201 0 0 1-1.872-.878.075.075 0 0 1-.008-.125c.126-.093.252-.19.372-.287a.075.075 0 0 1 .078-.01c3.927 1.764 8.18 1.764 12.061 0a.075.075 0 0 1 .079.009c.12.098.245.195.372.288a.075.075 0 0 1-.006.125c-.598.344-1.22.635-1.873.877a.075.075 0 0 0-.041.105c.36.687.772 1.341 1.225 1.962a.077.077 0 0 0 .084.028 19.963 19.963 0 0 0 6.002-2.981.076.076 0 0 0 .032-.054c.5-5.094-.838-9.52-3.549-13.442a.06.06 0 0 0-.031-.028z"/>
                     </svg>
-                    Login dengan Discord
+                    <%= t('landing.login_btn') %>
                 </a>
                 <a href="/commands" class="lp-btn lp-btn-ghost">
                     <i data-lucide="book-open"></i>
-                    Lihat Commands
+                    <%= t('landing.commands_btn') %>
                 </a>
             </div>
             <% if (typeof error !== 'undefined' && error) { %>
@@ -404,7 +402,7 @@ body {
 
             <!-- Icon buttons (mobile only) -->
             <div class="lp-icon-btns">
-                <a href="/auth/login" class="lp-icon-btn" title="Login dengan Discord">
+                <a href="/auth/login" class="lp-icon-btn" title="<%= t('landing.login_btn') %>">
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                         <path d="M20.317 4.492c-1.53-.69-3.17-1.2-4.885-1.49a.075.075 0 0 0-.079.036c-.21.369-.444.85-.608 1.23a18.566 18.566 0 0 0-5.487 0 12.36 12.36 0 0 0-.617-1.23A.077.077 0 0 0 8.562 3c-1.714.29-3.354.8-4.885 1.491a.07.07 0 0 0-.032.027C.533 9.093-.32 13.555.099 17.961a.08.08 0 0 0 .031.055 20.03 20.03 0 0 0 5.993 2.98.078.078 0 0 0 .084-.026c.462-.62.874-1.275 1.226-1.963.021-.04.001-.088-.041-.104a13.201 13.201 0 0 1-1.872-.878.075.075 0 0 1-.008-.125c.126-.093.252-.19.372-.287a.075.075 0 0 1 .078-.01c3.927 1.764 8.18 1.764 12.061 0a.075.075 0 0 1 .079.009c.12.098.245.195.372.288a.075.075 0 0 1-.006.125c-.598.344-1.22.635-1.873.877a.075.075 0 0 0-.041.105c.36.687.772 1.341 1.225 1.962a.077.077 0 0 0 .084.028 19.963 19.963 0 0 0 6.002-2.981.076.076 0 0 0 .032-.054c.5-5.094-.838-9.52-3.549-13.442a.06.06 0 0 0-.031-.028z"/>
                     </svg>
@@ -439,18 +437,14 @@ body {
 <section class="lp-why">
     <div class="lp-why-inner">
 
-        <h2 class="lp-why-heading">Kenapa <span class="gw"><%- locals.botNavName || 'Bot ini' %>?</span></h2>
+        <h2 class="lp-why-heading"><%= t('landing.why_prefix') %> <span class="gw"><%- locals.botNavName || 'Bot' %>?</span></h2>
 
         <!-- Row 1: Moderation — text left, mock right -->
         <div class="lp-why-row">
             <div class="lp-why-text">
-                <div class="lp-why-label" style="color:#ED4245;">Keamanan Server</div>
-                <h3>Moderasi &amp; Automod</h3>
-                <p>
-                    Sistem moderasi lengkap — ban, kick, mute, warn bertahap — dilengkapi automod
-                    yang mendeteksi spam, link berbahaya, mass mention, dan raid secara otomatis.
-                    Semua tindakan tercatat rapi di mod log.
-                </p>
+                <div class="lp-why-label" style="color:#ED4245;"><%= t('landing.why1_label') %></div>
+                <h3><%= t('landing.why1_title') %></h3>
+                <p><%= t('landing.why1_desc') %></p>
             </div>
             <div class="lp-why-visual">
                 <div class="lp-mock">
@@ -472,11 +466,11 @@ body {
                                     <span class="lp-mock-tag">APP</span>
                                 </div>
                                 <div class="lp-mock-embed" style="border-left-color:#ED4245;">
-                                    <div class="lp-mock-embed-title">🔨 Member Banned</div>
-                                    <div class="lp-mock-embed-desc">BadUser#0001 telah dibanned dari server.</div>
+                                    <div class="lp-mock-embed-title"><%= t('landing.mock1_banned_title') %></div>
+                                    <div class="lp-mock-embed-desc"><%= t('landing.mock1_banned_desc') %></div>
                                     <div class="lp-mock-embed-fields">
                                         <div class="lp-mock-field">
-                                            <div class="lp-mock-field-name">Alasan</div>
+                                            <div class="lp-mock-field-name"><%= t('landing.mock1_reason') %></div>
                                             <div class="lp-mock-field-val">Spam &amp; Toxic</div>
                                         </div>
                                         <div class="lp-mock-field">
@@ -498,8 +492,8 @@ body {
                                     <span class="lp-mock-tag">APP</span>
                                 </div>
                                 <div class="lp-mock-embed" style="border-left-color:#FEE75C;">
-                                    <div class="lp-mock-embed-title">⚠️ Automod — Spam Terdeteksi</div>
-                                    <div class="lp-mock-embed-desc">Message from Spammer#9999 auto-deleted. Member received a warning.</div>
+                                    <div class="lp-mock-embed-title"><%= t('landing.mock1_automod_title') %></div>
+                                    <div class="lp-mock-embed-desc"><%= t('landing.mock1_automod_desc') %></div>
                                 </div>
                             </div>
                         </div>
@@ -511,13 +505,9 @@ body {
         <!-- Row 2: Giveaway — visual left, text right -->
         <div class="lp-why-row rev">
             <div class="lp-why-text">
-                <div class="lp-why-label" style="color:#FEE75C;">Event &amp; Hiburan</div>
-                <h3>Sistem Giveaway</h3>
-                <p>
-                    Buat giveaway menarik dalam hitungan detik — atur durasi, jumlah pemenang,
-                    dan syarat peserta. Bot secara otomatis memilih pemenang acak dan mendukung
-                    reroll jika diperlukan.
-                </p>
+                <div class="lp-why-label" style="color:#FEE75C;"><%= t('landing.why2_label') %></div>
+                <h3><%= t('landing.why2_title') %></h3>
+                <p><%= t('landing.why2_desc') %></p>
             </div>
             <div class="lp-why-visual">
                 <div class="lp-mock">
@@ -540,19 +530,19 @@ body {
                                 </div>
                                 <div class="lp-mock-embed" style="border-left-color:#FEE75C;">
                                     <div class="lp-mock-embed-title">🎉 GIVEAWAY</div>
-                                    <div class="lp-mock-embed-desc">React 🎉 untuk ikut serta!</div>
+                                    <div class="lp-mock-embed-desc"><%= t('landing.mock2_gw_react') %></div>
                                     <div class="lp-mock-embed-fields">
                                         <div class="lp-mock-field">
-                                            <div class="lp-mock-field-name">Hadiah</div>
-                                            <div class="lp-mock-field-val">Discord Nitro</div>
+                                            <div class="lp-mock-field-name"><%= t('landing.mock2_prize') %></div>
+                                            <div class="lp-mock-field-val"><%= t('landing.mock2_prize_val') %></div>
                                         </div>
                                         <div class="lp-mock-field">
-                                            <div class="lp-mock-field-name">Pemenang</div>
-                                            <div class="lp-mock-field-val">1 orang</div>
+                                            <div class="lp-mock-field-name"><%= t('landing.mock2_winners') %></div>
+                                            <div class="lp-mock-field-val"><%= t('landing.mock2_winners_val') %></div>
                                         </div>
                                         <div class="lp-mock-field">
-                                            <div class="lp-mock-field-name">Berakhir</div>
-                                            <div class="lp-mock-field-val">24 jam lagi</div>
+                                            <div class="lp-mock-field-name"><%= t('landing.mock2_ends') %></div>
+                                            <div class="lp-mock-field-val"><%= t('landing.mock2_ends_val') %></div>
                                         </div>
                                     </div>
                                 </div>
@@ -566,13 +556,9 @@ body {
         <!-- Row 3: Welcome — text left, mock right -->
         <div class="lp-why-row">
             <div class="lp-why-text">
-                <div class="lp-why-label" style="color:#57F287;">Onboarding Member</div>
-                <h3>Welcome &amp; Auto Role</h3>
-                <p>
-                    Sambut member baru dengan pesan welcome yang bisa dikustomisasi penuh —
-                    embed, welcome card, dan background pilihan sendiri.
-                    Role otomatis langsung diberikan saat join.
-                </p>
+                <div class="lp-why-label" style="color:#57F287;"><%= t('landing.why3_label') %></div>
+                <h3><%= t('landing.why3_title') %></h3>
+                <p><%= t('landing.why3_desc') %></p>
             </div>
             <div class="lp-why-visual">
                 <div class="lp-mock">
@@ -580,7 +566,7 @@ body {
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
                         </svg>
-                        # selamat-datang
+                        # <%= t('landing.mock3_channel') %>
                     </div>
                     <div class="lp-mock-body">
                         <div class="lp-mock-msg">
@@ -594,14 +580,13 @@ body {
                                     <span class="lp-mock-tag">APP</span>
                                 </div>
                                 <div class="lp-mock-embed" style="border-left-color:#57F287;">
-                                    <div class="lp-mock-embed-title">👋 Welcome, NewMember!</div>
+                                    <div class="lp-mock-embed-title"><%= t('landing.mock3_welcome_title') %></div>
                                     <div class="lp-mock-embed-desc">
-                                        You are member #<strong style="color:#fff">247</strong> in this server.<br>
-                                        Silakan baca #rules dan selamat bergabung!
+                                        <%- t('landing.mock3_welcome_body') %>
                                     </div>
                                     <div class="lp-mock-embed-fields">
                                         <div class="lp-mock-field">
-                                            <div class="lp-mock-field-name">Role Diberikan</div>
+                                            <div class="lp-mock-field-name"><%= t('landing.mock3_role_given') %></div>
                                             <div class="lp-mock-field-val">@Member</div>
                                         </div>
                                     </div>
@@ -619,8 +604,8 @@ body {
 <!-- ── Features Grid ──────────────────────────────────────────────────────── -->
 <section class="lp-features">
     <div class="lp-sect-title">
-        <h2>Semua yang kamu butuhkan</h2>
-        <p>10 fitur powerful tersedia langsung dari dashboard dan slash commands.</p>
+        <h2><%= t('landing.feat_heading') %></h2>
+        <p><%= t('landing.feat_subheading') %></p>
     </div>
     <div class="lp-feat-grid">
 
@@ -629,7 +614,7 @@ body {
                 <i data-lucide="user-plus"></i>
             </div>
             <h3>Welcome &amp; Goodbye</h3>
-            <p>Pesan sambutan dan perpisahan otomatis dengan embed, welcome card, dan kustomisasi penuh.</p>
+            <p><%= t('landing.feat_welcome_desc') %></p>
         </div>
 
         <div class="lp-feat-card">
@@ -637,7 +622,7 @@ body {
                 <i data-lucide="zap"></i>
             </div>
             <h3>Boost Notification</h3>
-            <p>Notifikasi otomatis saat member boost atau berhenti boost server, lengkap dengan boost card.</p>
+            <p><%= t('landing.feat_boost_desc') %></p>
         </div>
 
         <div class="lp-feat-card">
@@ -645,7 +630,7 @@ body {
                 <i data-lucide="users"></i>
             </div>
             <h3>Auto Role</h3>
-            <p>Berikan role otomatis ke member baru, bot, atau booster — termasuk panel tombol pilih role.</p>
+            <p><%= t('landing.feat_autorole_desc') %></p>
         </div>
 
         <div class="lp-feat-card">
@@ -653,7 +638,7 @@ body {
                 <i data-lucide="bar-chart-2"></i>
             </div>
             <h3>Server Stats</h3>
-            <p>Display the total member count in real-time via auto-updating voice channels.</p>
+            <p><%= t('landing.feat_serverstats_desc') %></p>
         </div>
 
         <div class="lp-feat-card">
@@ -661,7 +646,7 @@ body {
                 <i data-lucide="mail"></i>
             </div>
             <h3>Message Builder</h3>
-            <p>Buat dan kirim template embed ke channel manapun langsung dari dashboard web.</p>
+            <p><%= t('landing.feat_msgbuilder_desc') %></p>
         </div>
 
         <div class="lp-feat-card">
@@ -669,7 +654,7 @@ body {
                 <i data-lucide="link"></i>
             </div>
             <h3>Invite Links</h3>
-            <p>Pantau semua invite link server beserta statistik penggunaan, diurutkan dari terbanyak.</p>
+            <p><%= t('landing.feat_invites_desc') %></p>
         </div>
 
         <div class="lp-feat-card">
@@ -677,7 +662,7 @@ body {
                 <i data-lucide="ticket"></i>
             </div>
             <h3>Ticket System</h3>
-            <p>Private ticket system so members can request staff help, with a customizable panel.</p>
+            <p><%= t('landing.feat_ticket_desc') %></p>
         </div>
 
         <div class="lp-feat-card">
@@ -685,7 +670,7 @@ body {
                 <i data-lucide="gift"></i>
             </div>
             <h3>Giveaway</h3>
-            <p>Buat dan kelola giveaway otomatis dengan pemenang acak — start, end, dan reroll via slash command.</p>
+            <p><%= t('landing.feat_giveaway_desc') %></p>
         </div>
 
         <div class="lp-feat-card">
@@ -693,7 +678,7 @@ body {
                 <i data-lucide="shield-check"></i>
             </div>
             <h3>Moderation</h3>
-            <p>Kelola keamanan server — ban, kick, mute, warn bertahap, automod, dan mod log lengkap.</p>
+            <p><%= t('landing.feat_moderation_desc') %></p>
         </div>
 
         <div class="lp-feat-card">
@@ -703,7 +688,7 @@ body {
                 </svg>
             </div>
             <h3>Social Media</h3>
-            <p>Notifikasi otomatis dari YouTube, TikTok, Twitch, dan Kick saat ada video atau live baru.</p>
+            <p><%= t('landing.feat_socialmedia_desc') %></p>
         </div>
 
     </div>
@@ -711,13 +696,13 @@ body {
 
 <!-- ── Bottom CTA ─────────────────────────────────────────────────────────── -->
 <div class="lp-bottom">
-    <h2>Siap mengelola server?</h2>
-    <p>Login dengan akun Discord kamu dan mulai kelola server langsung dari browser.</p>
+    <h2><%= t('landing.cta_heading') %></h2>
+    <p><%= t('landing.cta_desc') %></p>
     <a href="/auth/login" class="lp-btn lp-btn-primary">
         <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
             <path d="M20.317 4.492c-1.53-.69-3.17-1.2-4.885-1.49a.075.075 0 0 0-.079.036c-.21.369-.444.85-.608 1.23a18.566 18.566 0 0 0-5.487 0 12.36 12.36 0 0 0-.617-1.23A.077.077 0 0 0 8.562 3c-1.714.29-3.354.8-4.885 1.491a.07.07 0 0 0-.032.027C.533 9.093-.32 13.555.099 17.961a.08.08 0 0 0 .031.055 20.03 20.03 0 0 0 5.993 2.98.078.078 0 0 0 .084-.026c.462-.62.874-1.275 1.226-1.963.021-.04.001-.088-.041-.104a13.201 13.201 0 0 1-1.872-.878.075.075 0 0 1-.008-.125c.126-.093.252-.19.372-.287a.075.075 0 0 1 .078-.01c3.927 1.764 8.18 1.764 12.061 0a.075.075 0 0 1 .079.009c.12.098.245.195.372.288a.075.075 0 0 1-.006.125c-.598.344-1.22.635-1.873.877a.075.075 0 0 0-.041.105c.36.687.772 1.341 1.225 1.962a.077.077 0 0 0 .084.028 19.963 19.963 0 0 0 6.002-2.981.076.076 0 0 0 .032-.054c.5-5.094-.838-9.52-3.549-13.442a.06.06 0 0 0-.031-.028z"/>
         </svg>
-        Login dengan Discord
+        <%= t('landing.login_btn') %>
     </a>
 </div>
 

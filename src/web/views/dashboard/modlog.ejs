@@ -9,8 +9,8 @@
         <%- include('../partials/perm-notice') %>
 
         <div class="page-header">
-            <h1>📋 Mod Log</h1>
-            <p>Catat aksi moderasi (ban, kick, timeout, dll.) ke channel log otomatis.</p>
+            <h1><%= t('modlog.page_title') %></h1>
+            <p><%= t('modlog.page_desc') %></p>
         </div>
 
         <!-- ── Stats ─────────────────────────────────────────────────────────── -->
@@ -18,15 +18,15 @@
             <div class="stat-card">
                 <div class="stat-icon" style="color:#5865F2;"><i data-lucide="scroll-text"></i></div>
                 <div class="stat-info">
-                    <div class="stat-value"><%= logChannelId ? 'Aktif' : 'Nonaktif' %></div>
-                    <div class="stat-label">Status</div>
+                    <div class="stat-value"><%= logChannelId ? t('modlog.status_active') : t('modlog.status_inactive') %></div>
+                    <div class="stat-label"><%= t('modlog.status_label') %></div>
                 </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon" style="color:#57F287;"><i data-lucide="check-circle"></i></div>
                 <div class="stat-info">
                     <div class="stat-value"><%= enabledCount %> / 5</div>
-                    <div class="stat-label">Active Events</div>
+                    <div class="stat-label"><%= t('modlog.active_events') %></div>
                 </div>
             </div>
             <div class="stat-card">
@@ -35,34 +35,34 @@
                     <div class="stat-value">
                         <% if (logChannelId) { %>
                             <% var logCh = guild.channels.cache.get(logChannelId); %>
-                            <%= logCh ? '#' + logCh.name : 'Channel deleted' %>
+                            <%= logCh ? '#' + logCh.name : t('modlog.channel_deleted') %>
                         <% } else { %>
                             —
                         <% } %>
                     </div>
-                    <div class="stat-label">Channel Log</div>
+                    <div class="stat-label"><%= t('modlog.channel_log') %></div>
                 </div>
             </div>
         </div>
 
         <!-- ── Configuration ───────────────────────────────────────────────────── -->
         <div class="settings-card">
-            <h2>Channel Configuration</h2>
+            <h2><%= t('modlog.config_title') %></h2>
             <p class="section-desc" style="margin-bottom:1.25rem;">
-                Select the text channel where all moderation logs will be sent. Leave blank to disable mod log.
+                <%= t('modlog.config_desc') %>
             </p>
 
             <div class="form-group">
-                <label class="label">Log Channel</label>
+                <label class="label"><%= t('common.channel') %></label>
                 <div class="ml-channel-row">
                     <select id="mlChannel" class="select ml-channel-select">
-                        <option value="">— Disable Mod Log —</option>
+                        <option value=""><%= t('common.select_channel') %></option>
                         <% textChannels.forEach(function(ch) { %>
                             <option value="<%= ch.id %>" <%= logChannelId === ch.id ? 'selected' : '' %>>#<%= ch.name %></option>
                         <% }); %>
                     </select>
                     <button class="btn btn-primary ml-channel-btn" onclick="saveConfig()">
-                        <i data-lucide="save"></i> Save
+                        <i data-lucide="save"></i> <%= t('common.save') %>
                     </button>
                 </div>
             </div>
@@ -71,44 +71,44 @@
 
         <!-- ── Event Toggles ──────────────────────────────────────────────────── -->
         <div class="settings-card">
-            <h2>Event yang Dicatat</h2>
+            <h2><%= t('modlog.events_title') %></h2>
             <p class="section-desc" style="margin-bottom:1.25rem;">
-                Select which moderation action types to log. Changes are saved immediately when a toggle is changed.
+                <%= t('modlog.events_desc') %>
             </p>
 
             <div class="form-group">
                 <label class="toggle-label">
                     <input type="checkbox" id="evtBan" class="toggle-input" <%= events.ban ? 'checked' : '' %>>
                     <span class="toggle-slider"></span>
-                    <span><strong>Ban Member</strong> — Log saat member di-ban dari server</span>
+                    <span><%= t('modlog.evt_ban') %></span>
                 </label>
             </div>
             <div class="form-group">
                 <label class="toggle-label">
                     <input type="checkbox" id="evtUnban" class="toggle-input" <%= events.unban ? 'checked' : '' %>>
                     <span class="toggle-slider"></span>
-                    <span><strong>Unban Member</strong> — Log saat ban member dicabut</span>
+                    <span><%= t('modlog.evt_unban') %></span>
                 </label>
             </div>
             <div class="form-group">
                 <label class="toggle-label">
                     <input type="checkbox" id="evtKick" class="toggle-input" <%= events.kick ? 'checked' : '' %>>
                     <span class="toggle-slider"></span>
-                    <span><strong>Kick Member</strong> — Log saat member di-kick dari server</span>
+                    <span><%= t('modlog.evt_kick') %></span>
                 </label>
             </div>
             <div class="form-group">
                 <label class="toggle-label">
                     <input type="checkbox" id="evtTimeout" class="toggle-input" <%= events.timeout ? 'checked' : '' %>>
                     <span class="toggle-slider"></span>
-                    <span><strong>Timeout Member</strong> — Log saat member di-timeout atau timeout dicabut</span>
+                    <span><%= t('modlog.evt_timeout') %></span>
                 </label>
             </div>
             <div class="form-group">
                 <label class="toggle-label">
                     <input type="checkbox" id="evtWarn" class="toggle-input" <%= events.warn ? 'checked' : '' %>>
                     <span class="toggle-slider"></span>
-                    <span><strong>Warning</strong> — Log saat moderator menambahkan peringatan via /warn add</span>
+                    <span><%= t('modlog.evt_warn') %></span>
                 </label>
             </div>
             <div id="evtMsg" class="form-message"></div>
@@ -118,9 +118,7 @@
         <div class="ml-info-box">
             <i data-lucide="info" style="flex-shrink:0;color:#5865F2;margin-top:2px;width:18px;height:18px;"></i>
             <div>
-                <strong>Cara kerja Mod Log:</strong> Bot mendengarkan Audit Log Discord. Setiap aksi
-                moderasi yang dilakukan siapapun di server akan otomatis dicatat ke channel yang dipilih.
-                Gunakan <code>/modlog test</code> untuk mengirim embed uji coba ke channel log.
+                <strong><%= t('modlog.info_title') %></strong> <%- t('modlog.info_body') %>
             </div>
         </div>
 

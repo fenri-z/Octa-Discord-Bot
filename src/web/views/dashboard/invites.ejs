@@ -8,8 +8,8 @@
     <div class="dash-content-wide">
         <%- include('../partials/perm-notice') %>
         <div class="page-header">
-            <h1>Invite Links</h1>
-            <p>Semua invite link aktif di server, diurutkan dari penggunaan terbanyak. Invite yang sudah kadaluarsa otomatis tidak ditampilkan.</p>
+            <h1><%= t('invites.page_title') %></h1>
+            <p><%= t('invites.page_desc') %></p>
         </div>
 
         <!-- ── Stats Overview ──────────────────────────────────────────── -->
@@ -18,21 +18,21 @@
                 <div class="stat-icon"><i data-lucide="link"></i></div>
                 <div class="stat-info">
                     <div class="stat-value" id="statTotal"><%= invites.length %></div>
-                    <div class="stat-label">Total Invite</div>
+                    <div class="stat-label"><%= t('invites.total_invite') %></div>
                 </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon" style="color:#57F287;"><i data-lucide="trending-up"></i></div>
                 <div class="stat-info">
                     <div class="stat-value" id="statUses"><%= totalUses %></div>
-                    <div class="stat-label">Total Uses</div>
+                    <div class="stat-label"><%= t('invites.total_uses') %></div>
                 </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon" style="color:#5865F2;"><i data-lucide="user"></i></div>
                 <div class="stat-info">
                     <div class="stat-value" id="statInviters"><%= uniqueInviters %></div>
-                    <div class="stat-label">Unique Inviters</div>
+                    <div class="stat-label"><%= t('invites.unique_inviters') %></div>
                 </div>
             </div>
             <div class="stat-card">
@@ -41,7 +41,7 @@
                     <div class="stat-value" id="statTop" style="font-size:.95rem;">
                         <% if (invites.length > 0) { %><%= invites[0].inviterTag %><% } else { %>—<% } %>
                     </div>
-                    <div class="stat-label">Top Invite</div>
+                    <div class="stat-label"><%= t('invites.top_invite') %></div>
                 </div>
             </div>
         </div>
@@ -58,7 +58,7 @@
 
             <!-- Baris 1: judul + refresh -->
             <div class="inv-header-row" style="display:flex;align-items:center;justify-content:space-between;padding:1rem 1.25rem;border-bottom:1px solid var(--border,rgba(255,255,255,.06));">
-                <h2 style="margin:0;">Daftar Invite</h2>
+                <h2 style="margin:0;"><%= t('invites.list_title') %></h2>
                 <button class="btn btn-primary" id="refreshBtn" onclick="refreshInvites('<%= guild.id %>')"
                         style="font-size:.85rem;padding:.4rem .9rem;display:flex;align-items:center;gap:.35rem;flex-shrink:0;">
                     <i data-lucide="refresh-cw" style="width:14px;height:14px;"></i> Refresh
@@ -68,13 +68,13 @@
             <!-- Baris 2: filter periode + search -->
             <div class="inv-filter-row" style="display:flex;align-items:center;justify-content:space-between;gap:.75rem;padding:.65rem 1.25rem;border-bottom:1px solid var(--border,rgba(255,255,255,.06));flex-wrap:wrap;">
                 <div class="inv-period-btns" style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;">
-                    <button class="period-btn active" data-period="all"    onclick="setPeriod(this,'all')"   >All</button>
-                    <button class="period-btn"         data-period="30d"   onclick="setPeriod(this,'30d')"   >30 Days</button>
-                    <button class="period-btn"         data-period="7d"    onclick="setPeriod(this,'7d')"    >7 Days</button>
-                    <button class="period-btn"         data-period="today" onclick="setPeriod(this,'today')" >Today</button>
-                    <span class="inv-filter-hint" style="font-size:.75rem;color:var(--text-muted);">based on creation date</span>
+                    <button class="period-btn active" data-period="all"    onclick="setPeriod(this,'all')"   ><%= t('invites.filter_all') %></button>
+                    <button class="period-btn"         data-period="30d"   onclick="setPeriod(this,'30d')"   ><%= t('invites.filter_30d') %></button>
+                    <button class="period-btn"         data-period="7d"    onclick="setPeriod(this,'7d')"    ><%= t('invites.filter_7d') %></button>
+                    <button class="period-btn"         data-period="today" onclick="setPeriod(this,'today')" ><%= t('invites.filter_today') %></button>
+                    <span class="inv-filter-hint" style="font-size:.75rem;color:var(--text-muted);"><%= t('invites.filter_hint') %></span>
                 </div>
-                <input type="text" id="searchInput" class="input inv-search" placeholder="Search code / inviter / channel…"
+                <input type="text" id="searchInput" class="input inv-search" placeholder="<%= t('invites.search_placeholder') %>"
                        style="width:220px;font-size:.85rem;padding:.38rem .75rem;flex-shrink:0;"
                        oninput="currentPage=1;applyFilter()">
             </div>
@@ -82,7 +82,7 @@
             <% if (invites.length === 0 && !fetchError) { %>
             <div style="padding:2.5rem;text-align:center;color:var(--text-muted);">
                 <i data-lucide="inbox" style="width:40px;height:40px;opacity:.4;display:block;margin:0 auto .75rem;"></i>
-                No active invite links on this server.
+                <%= t('invites.no_invites') %>
             </div>
             <% } else { %>
             <div class="inv-table-wrap">
@@ -90,27 +90,27 @@
                     <thead>
                         <tr>
                             <th class="th-cell inv-col-rank">#</th>
-                            <th class="th-cell inv-col-code">Invite Code</th>
-                            <th class="th-cell inv-col-inviter">Inviter</th>
+                            <th class="th-cell inv-col-code"><%= t('invites.col_code') %></th>
+                            <th class="th-cell inv-col-inviter"><%= t('invites.col_inviter') %></th>
                             <th class="th-cell inv-col-channel">Channel</th>
-                            <th class="th-cell inv-col-uses">Uses</th>
-                            <th class="th-cell inv-col-created">Created</th>
-                            <th class="th-cell inv-col-expiry">Expiry</th>
-                            <th class="th-cell inv-col-temp" style="text-align:center;">Temporary</th>
+                            <th class="th-cell inv-col-uses"><%= t('invites.col_uses') %></th>
+                            <th class="th-cell inv-col-created"><%= t('invites.col_created') %></th>
+                            <th class="th-cell inv-col-expiry"><%= t('invites.col_expiry') %></th>
+                            <th class="th-cell inv-col-temp" style="text-align:center;"><%= t('invites.col_temp') %></th>
                         </tr>
                     </thead>
                     <tbody id="inviteTableBody"></tbody>
                 </table>
             </div>
             <div id="noResultMsg" style="display:none;padding:2rem;text-align:center;color:var(--text-muted);">
-                No invites match the current filter.
+                <%= t('invites.no_results') %>
             </div>
             <% } %>
 
             <div id="paginationBar" style="display:flex;justify-content:center;align-items:center;gap:.3rem;padding:.65rem 1.25rem;border-top:1px solid var(--border,rgba(255,255,255,.06));flex-wrap:wrap;min-height:0;"></div>
             <div style="padding:.6rem 1.25rem;border-top:1px solid var(--border,rgba(255,255,255,.06));font-size:.8rem;color:var(--text-muted);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;">
                 <span id="tableFooterCount"></span>
-                <span id="lastRefreshed">Data fetched when page loaded</span>
+                <span id="lastRefreshed"><%= t('invites.data_fetched') %></span>
             </div>
         </div>
 
@@ -273,6 +273,22 @@
 
 <script>
 const GUILD_ID    = '<%= guild.id %>';
+const I18N_INV_PERMANENT  = '<%= t("invites.permanent") %>';
+const I18N_INV_EXPIRED    = '<%= t("invites.expired") %>';
+const I18N_INV_DAYS_LEFT  = '<%= t("invites.days_left") %>';
+const I18N_INV_HOURS_LEFT = '<%= t("invites.hours_left") %>';
+const I18N_INV_REFRESHED     = '<%= t("invites.refreshed_at") %>';
+const I18N_INV_PAG_NONE      = '<%= t("invites.pagination_none") %>';
+const I18N_INV_PAG_RANGE     = '<%= t("invites.pagination_range") %>';
+const I18N_INV_ERR_FETCH     = '<%= t("invites.err_fetch") %>';
+const I18N_INV_ERR_CONNECT   = '<%= t("invites.err_connect") %>';
+const I18N_INV_LOADING       = '<%= t("invites.loading") %>';
+const I18N_INV_PERIOD     = {
+    all:   '<%= t("invites.filter_all") %>',
+    '30d': '<%= t("invites.filter_30d") %>',
+    '7d':  '<%= t("invites.filter_7d") %>',
+    today: '<%= t("invites.filter_today") %>'
+};
 let ALL_INVITES   = <%- JSON.stringify(invites) %>;
 let currentPeriod = 'all';
 let currentPage   = 1;
@@ -289,11 +305,11 @@ function periodCutoff(period) {
 }
 
 function fmtExpiry(inv) {
-    if (!inv.expiresAt) return `<span style="color:#57F287;font-size:.8rem;">Permanen</span>`;
+    if (!inv.expiresAt) return `<span style="color:#57F287;font-size:.8rem;">${I18N_INV_PERMANENT}</span>`;
     const diff = inv.expiresAt - Date.now();
     const h = Math.floor(diff / 3600000);
     const d = Math.floor(h / 24);
-    const label = diff <= 0 ? 'Kadaluarsa' : (d > 0 ? `${d}h lagi` : `${h}j lagi`);
+    const label = diff <= 0 ? I18N_INV_EXPIRED : (d > 0 ? I18N_INV_DAYS_LEFT.replace('{n}', d) : I18N_INV_HOURS_LEFT.replace('{n}', h));
     return `<span title="${new Date(inv.expiresAt).toLocaleString('id-ID')}" style="cursor:default;">${label}</span>`;
 }
 
@@ -377,12 +393,13 @@ function renderPage() {
     if (noRes) noRes.style.display = _filtered.length === 0 ? 'block' : 'none';
 
     // Footer count
-    const periodLabel = { all:'semua periode','30d':'30 hari terakhir','7d':'7 hari terakhir',today:'hari ini' }[currentPeriod];
+    const periodLabel = I18N_INV_PERIOD[currentPeriod] || currentPeriod;
     const countEl = document.getElementById('tableFooterCount');
     if (countEl) {
+        const _fmt = (tpl, v) => tpl.replace(/\{\{(\w+)\}\}/g, (_,k) => v[k] ?? _);
         countEl.textContent = _filtered.length === 0
-            ? `0 dari ${ALL_INVITES.length} invite (${periodLabel})`
-            : `${start + 1}–${end} dari ${_filtered.length} invite (${periodLabel})`;
+            ? _fmt(I18N_INV_PAG_NONE,  { total: ALL_INVITES.length, period: periodLabel })
+            : _fmt(I18N_INV_PAG_RANGE, { start: start + 1, end, total: _filtered.length, period: periodLabel });
     }
 
     renderPagination(totalPages);
@@ -438,17 +455,17 @@ function setPeriod(btn, period) {
 async function refreshInvites(guildId) {
     const btn = document.getElementById('refreshBtn');
     btn.disabled = true;
-    btn.innerHTML = '<i data-lucide="loader" style="width:14px;height:14px;animation:spin 1s linear infinite;"></i> Memuat…';
+    btn.innerHTML = `<i data-lucide="loader" style="width:14px;height:14px;animation:spin 1s linear infinite;"></i> ${I18N_INV_LOADING}`;
     if (window.lucide) lucide.createIcons();
     try {
         const res  = await fetch(`/api/guild/${guildId}/invites`);
         const data = await res.json();
-        if (!data.success) { alert(data.message || 'Gagal mengambil invite.'); return; }
+        if (!data.success) { alert(data.message || I18N_INV_ERR_FETCH); return; }
         ALL_INVITES = data.invites;
         currentPage = 1;
         applyFilter();
-        document.getElementById('lastRefreshed').textContent = `Diperbarui pukul ${new Date().toLocaleTimeString('id-ID')}`;
-    } catch { alert('Gagal menghubungi server.'); }
+        document.getElementById('lastRefreshed').textContent = `${I18N_INV_REFRESHED} ${new Date().toLocaleTimeString('id-ID')}`;
+    } catch { alert(I18N_INV_ERR_CONNECT); }
     finally {
         btn.disabled = false;
         btn.innerHTML = '<i data-lucide="refresh-cw" style="width:14px;height:14px;"></i> Refresh';

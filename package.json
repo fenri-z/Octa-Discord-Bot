@@ -1,7 +1,7 @@
 {
-  "name": "discordjs-v14-bot-template",
-  "version": "3.0.0",
-  "description": "A Discord bot commands, components and events handler based on discord.js v14 and fully written in JavaScript.",
+  "name": "octa-bot",
+  "version": "1.0.0",
+  "description": "A Discord bot commands, components and events handler based on discord.js v14",
   "main": "src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -10,7 +10,7 @@
     "migrate": "node migrate-yaml-to-sqlite.js"
   },
   "keywords": [],
-  "author": "TFAGaming",
+  "author": "Fenri",
   "license": "GPL-3.0",
   "dependencies": {
     "better-sqlite3": "^9.6.0",
@@ -21,6 +21,9 @@
     "ejs": "^6.0.1",
     "express": "^5.2.1",
     "express-session": "^1.19.0",
+    "i18next": "^26.3.1",
+    "i18next-fs-backend": "^2.6.6",
+    "i18next-http-middleware": "^3.9.7",
     "multer": "^2.1.1",
     "passport": "^0.7.0",
     "passport-discord": "^0.1.4",

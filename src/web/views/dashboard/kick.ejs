@@ -157,8 +157,8 @@
 
         <!-- Header -->
         <div class="page-header">
-            <h1>Kick Notification</h1>
-            <p>Monitor Kick.com streamers and automatically send notifications to Discord when they go Live.</p>
+            <h1><%= t('kick.page_title') %></h1>
+            <p><%= t('kick.page_desc') %></p>
         </div>
 
         <!-- Warning: belum dikonfigurasi -->
@@ -186,7 +186,7 @@
                 </div>
                 <div class="stat-info">
                     <div class="stat-value"><%= kickAccounts.length %></div>
-                    <div class="stat-label">Streamer Dipantau</div>
+                    <div class="stat-label"><%= t('kick.stat_monitored') %></div>
                 </div>
             </div>
             <div class="stat-card">
@@ -195,7 +195,7 @@
                 </div>
                 <div class="stat-info">
                     <div class="stat-value"><%= kickAccounts.filter(a => a.enabled).length %></div>
-                    <div class="stat-label">Active Notifications</div>
+                    <div class="stat-label"><%= t('kick.stat_active') %></div>
                 </div>
             </div>
             <div class="stat-card">
@@ -204,7 +204,7 @@
                 </div>
                 <div class="stat-info">
                     <div class="stat-value"><%= maxAccounts - kickAccounts.length %></div>
-                    <div class="stat-label">Slot Tersisa</div>
+                    <div class="stat-label"><%= t('kick.stat_slots') %></div>
                 </div>
             </div>
         </div>
@@ -214,13 +214,13 @@
         <div class="settings-card" style="margin-bottom:1.5rem;">
             <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:1rem;">
                 <i data-lucide="plus-circle" style="color:#53FC18;width:18px;height:18px;flex-shrink:0;"></i>
-                <h2 style="margin:0;font-size:1rem;font-weight:600;">Add Kick Streamer</h2>
+                <h2 style="margin:0;font-size:1rem;font-weight:600;"><%= t('kick.add_title') %></h2>
             </div>
             <p style="font-size:.85rem;color:var(--text-muted);margin:0 0 1rem 0;">
-                Masukkan username atau URL Kick. Sisa slot: <strong><%= maxAccounts - kickAccounts.length %></strong> dari <%= maxAccounts %>.
+                <%- t('kick.add_desc', { remaining: maxAccounts - kickAccounts.length, max: maxAccounts }) %>
             </p>
             <div class="form-group" style="margin-bottom:0;">
-                <label class="label">Username / URL Kick</label>
+                <label class="label"><%= t('kick.search_label') %></label>
                 <div class="kk-search-row" style="display:flex;gap:.6rem;">
                     <input type="text" id="kkLookupInput" class="input"
                            placeholder="username  atau  https://kick.com/username"
@@ -229,7 +229,7 @@
                     <button class="btn btn-primary" onclick="lookupKick()" id="kkLookupBtn"
                             style="white-space:nowrap;flex-shrink:0;background:#53FC18;border-color:#53FC18;color:#000;<% if (!isConfigured) { %>opacity:.5;cursor:not-allowed;<% } %>"
                             <%= !isConfigured ? 'disabled' : '' %>>
-                        <i data-lucide="search" style="width:14px;height:14px;"></i> Cari
+                        <i data-lucide="search" style="width:14px;height:14px;"></i> <%= t('kick.search_btn') %>
                     </button>
                 </div>
             </div>
@@ -271,7 +271,7 @@
                         <div id="kkLookupLogin" style="font-size:.78rem;color:var(--text-muted);"></div>
                     </div>
                     <button class="btn btn-success" onclick="addKickStreamer()" style="flex-shrink:0;background:#53FC18;border-color:#53FC18;color:#000;">
-                        <i data-lucide="plus" style="width:14px;height:14px;"></i> Add
+                        <i data-lucide="plus" style="width:14px;height:14px;"></i> <%= t('kick.add_btn') %>
                     </button>
                 </div>
             </div>
@@ -279,7 +279,7 @@
         <% } else { %>
         <div class="perm-card perm-warn" style="margin-bottom:1.5rem;">
             <i data-lucide="info"></i>
-            <span>Sudah mencapai batas maksimal <strong><%= maxAccounts %> streamer Kick</strong> per server.</span>
+            <span><%- t('kick.max_reached', { max: maxAccounts }) %></span>
         </div>
         <% } %>
 
@@ -288,7 +288,7 @@
         <% if (kickAccounts.length === 0) { %>
             <div class="settings-card" style="text-align:center;padding:3rem 1.5rem;">
                 <svg viewBox="0 0 24 24" fill="currentColor" style="width:48px;height:48px;color:#53FC18;opacity:.4;display:block;margin:0 auto .75rem;"><path d="M2.664 0v24h5.227v-8.01l2.557-2.503 5.186 10.513H21l-7.527-14.6L20.188 3.54h-5.753L8.083 9.872 7.89 9.68V0z"/></svg>
-                <p style="color:var(--text-muted);margin:0;">No Kick streamers being monitored yet.</p>
+                <p style="color:var(--text-muted);margin:0;"><%= t('kick.no_streamers') %></p>
             </div>
         <% } else { %>
         <% kickAccounts.forEach(function(acc) {
@@ -341,13 +341,13 @@
                                    <%= acc.enabled ? 'checked' : '' %>
                                    onchange="updateKickPreview('<%= cardKey %>')">
                             <span class="toggle-slider"></span>
-                            <span>Enable Live notifications</span>
+                            <span><%= t('kick.enable_live') %></span>
                         </label>
                     </div>
                     <div class="form-group">
-                        <label class="label">Channel Discord</label>
+                        <label class="label"><%= t('common.channel') %></label>
                         <select class="select" id="kkChannel-<%= cardKey %>" onchange="updateKickPreview('<%= cardKey %>')">
-                            <option value="">— Select channel —</option>
+                            <option value=""><%= t('common.select_channel') %></option>
                             <% (locals.channels||[]).forEach(ch => { %>
                             <option value="<%= ch.id %>" <%= acc.channelId===ch.id?'selected':'' %>>#<%= ch.name %></option>
                             <% }) %>
@@ -355,7 +355,7 @@
                     </div>
                     <div class="form-group" style="margin-bottom:0;">
                         <div class="label-with-picker">
-                            <label class="label" style="margin-bottom:0;">Custom message <span style="font-weight:400;color:var(--text-muted);">(optional)</span></label>
+                            <label class="label" style="margin-bottom:0;"><%= t('kick.additional_msg') %> <span style="font-weight:400;color:var(--text-muted);">(<%= t('giveaway.required_role_hint') %>)</span></label>
                             <div class="ph-picker-anchor">
                                 <button type="button" class="ph-toggle-btn" onclick="toggleKkPicker('kkPicker-<%= cardKey %>',event)">{…} Placeholder</button>
                                 <div class="ph-dropdown" id="kkPicker-<%= cardKey %>" style="display:none;"></div>
@@ -371,11 +371,11 @@
                     <!-- Aksi -->
                     <div class="kk-action-row" style="display:flex;justify-content:flex-end;gap:.5rem;padding-top:.85rem;">
                         <button class="btn btn-secondary" onclick="testKickNotif('<%= acc.slug %>','<%= cardKey %>')">
-                            <i data-lucide="send" style="width:14px;height:14px;"></i> Test Notif
+                            <i data-lucide="send" style="width:14px;height:14px;"></i> <%= t('kick.test_notif_btn') %>
                         </button>
                         <button class="btn btn-primary" onclick="saveKickStreamer('<%= acc.slug %>','<%= cardKey %>')"
                                 style="background:#53FC18;border-color:#53FC18;color:#000;">
-                            <i data-lucide="save" style="width:14px;height:14px;"></i> Save
+                            <i data-lucide="save" style="width:14px;height:14px;"></i> <%= t('common.save') %>
                         </button>
                     </div>
                     <div id="kkMsg-<%= cardKey %>" class="form-message" style="margin-top:.4rem;"></div>
@@ -464,6 +464,10 @@ const GUILD_ID  = '<%= guild.id %>';
 const KK_CHANNELS = <%- JSON.stringify(Object.fromEntries((locals.channels||[]).map(ch=>[ch.id,ch.name]))) %>;
 let _kkLookupData = null;
 
+const I18N_KK_CONFIRM_DEL = '<%= t("kick.confirm_delete") %>';
+const I18N_KK_ERR_NO_CH   = '<%= t("kick.err_no_channel") %>';
+const I18N_KK_SEARCH_BTN  = '<%= t("kick.search_btn") %>';
+
 // ── Lookup ────────────────────────────────────────────────────────────────────
 async function lookupKick() {
     const input      = document.getElementById('kkLookupInput').value.trim();
@@ -508,7 +512,7 @@ async function lookupKick() {
         clearInterval(tipTimer);
         statusEl.style.display = 'none'; skeletonEl.style.display = 'none';
         btn.disabled  = false;
-        btn.innerHTML = '<i data-lucide="search" style="width:14px;height:14px;"></i> Cari';
+        btn.innerHTML = `<i data-lucide="search" style="width:14px;height:14px;"></i> ${I18N_KK_SEARCH_BTN}`;
         if (window.lucide) lucide.createIcons();
     }
 }
@@ -534,7 +538,7 @@ async function saveKickStreamer(slug, key) {
     const message   = document.getElementById(`kkMessage-${key}`)?.value?.trim() || '';
 
     if (enabled && !channelId) {
-        showMsg(msgEl, 'Notification is enabled but no Discord channel has been selected.', 'error');
+        showMsg(msgEl, I18N_KK_ERR_NO_CH, 'error');
         document.getElementById(`kkChannel-${key}`)?.focus();
         return;
     }
@@ -592,7 +596,7 @@ async function refreshKickThumbnail(slug, key) {
 
 // ── Remove ────────────────────────────────────────────────────────────────────
 async function removeKickStreamer(slug, name) {
-    if (!confirm(`Delete streamer "${name}"?`)) return;
+    if (!confirm(I18N_KK_CONFIRM_DEL.replace('{{name}}', name))) return;
     const r    = await fetch(`/api/guild/${GUILD_ID}/kick/accounts/${encodeURIComponent(slug)}`, { method: 'DELETE' });
     const data = await r.json();
     if (data.success) location.reload();

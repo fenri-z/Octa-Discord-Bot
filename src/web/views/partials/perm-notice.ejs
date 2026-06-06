@@ -2,7 +2,7 @@
 <div class="perm-warn" style="border-radius:10px;padding:.85rem 1.1rem;margin-bottom:1.25rem;background:rgba(237,66,69,.1);border:1px solid rgba(237,66,69,.25);font-size:.875rem;">
     <div class="perm-header">
         <i data-lucide="alert-triangle" style="width:17px;height:17px;flex-shrink:0;color:#f27f81;"></i>
-        <span style="color:#f27f81;font-weight:600;"><%= missingPerms.length %> permission(s) not yet granted to the bot:</span>
+        <span style="color:#f27f81;font-weight:600;"><%= t('common.perm_missing', { count: missingPerms.length }) %></span>
     </div>
     <ul class="perm-list" style="margin:.5rem 0 0;padding-left:1.25rem;">
         <% missingPerms.forEach(p => { %>
@@ -12,6 +12,6 @@
         </li>
         <% }); %>
     </ul>
-    <p class="perm-hint" style="font-size:.8rem;color:var(--text-muted);margin:.5rem 0 0;">Open Discord server settings → Roles → select the bot role → enable the permissions above.</p>
+    <p class="perm-hint" style="font-size:.8rem;color:var(--text-muted);margin:.5rem 0 0;"><%- t('common.perm_hint') %></p>
 </div>
 <% } %>
