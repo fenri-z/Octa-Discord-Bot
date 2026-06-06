@@ -134,6 +134,27 @@ class SQLiteDatabase {
     }
 
     /**
+     * Ambil semua key yang cocok dengan pola SQL LIKE.
+     * Gunakan % sebagai wildcard. Contoh: '%-123456789%'
+     * @param {string} pattern
+     * @returns {string[]}
+     */
+    keysLike(pattern) {
+        const rows = this._db.prepare('SELECT key FROM kv WHERE key LIKE ?').all(pattern);
+        return rows.map(r => r.key);
+    }
+
+    /**
+     * Hapus semua key yang cocok dengan pola SQL LIKE.
+     * @param {string} pattern
+     * @returns {number} Jumlah baris yang dihapus
+     */
+    deleteLike(pattern) {
+        const result = this._db.prepare('DELETE FROM kv WHERE key LIKE ?').run(pattern);
+        return result.changes;
+    }
+
+    /**
      * Tutup koneksi database (opsional, dipanggil saat proses berhenti).
      */
     close() {

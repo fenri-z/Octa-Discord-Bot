@@ -8,7 +8,7 @@ module.exports = new Event({
     run: async (client, guild) => {
         const guildId = guild.id;
 
-        warn(`[guildDelete] Bot left server: ${guild.name} (${guildId}). Settings data preserved.`);
+        warn(`[guildDelete] Bot left server: ${guild.name} (${guildId}). Data retained for 14 days.`);
 
         try {
             // Bersihkan invite cache di memori (bukan database)
@@ -16,7 +16,12 @@ module.exports = new Event({
                 client.inviteCache.delete(guildId);
             }
 
-            success(`[guildDelete] ${guild.name} — invite cache cleared. All database settings preserved ✓`);
+            // Tandai guild ini untuk penghapusan jika bot tidak kembali dalam 14 hari
+            if (client.guildRetentionManager) {
+                client.guildRetentionManager.markGuildLeft(guildId);
+            }
+
+            success(`[guildDelete] ${guild.name} — invite cache cleared. Data will be purged in 14 days if bot doesn't rejoin ✓`);
         } catch (err) {
             warn(`[guildDelete] ${guild.name} — error saat guildDelete: ${err.message}`);
         }

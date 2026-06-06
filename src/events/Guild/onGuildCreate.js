@@ -43,6 +43,11 @@ module.exports = new Event({
             warn(`[guildCreate] ${guild.name} — deploy failed: ${err.message}`);
         }
 
+        // Batalkan penghapusan data jika bot bergabung kembali dalam masa retensi
+        if (client.guildRetentionManager) {
+            client.guildRetentionManager.cancelRetention(guild.id);
+        }
+
         success(`Joined new guild: ${guild.name} (${guild.id})`);
     }
 }).toJSON();

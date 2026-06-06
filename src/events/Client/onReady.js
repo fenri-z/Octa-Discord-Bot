@@ -126,6 +126,16 @@ module.exports = new Event({
 
         client.user.setPresence({ status: 'online', activities: [{ name: '/help', type: 4 }] });
 
+        // ── Guild Retention Manager ───────────────────────────────────────
+        try {
+            const GuildRetentionManager       = require('../../utils/GuildRetentionManager');
+            const guildRetentionManager       = new GuildRetentionManager(client);
+            client.guildRetentionManager      = guildRetentionManager;
+            guildRetentionManager.start();
+        } catch (err) {
+            warn(`[Retention] Failed to start GuildRetentionManager: ${err.message}`);
+        }
+
         // ── Giveaway Manager ──────────────────────────────────────────────
         try {
             const GiveawayManager        = require('../../utils/GiveawayManager');
