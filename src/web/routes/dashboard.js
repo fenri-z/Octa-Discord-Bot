@@ -1155,6 +1155,9 @@ router.get('/:guildId/youtube', requireLogin, requireManageGuild, async (req, re
         let ytChannels = [];
         try { ytChannels = JSON.parse(db?.get(`youtube-channels-${guildId}`) || '[]'); }
         catch { ytChannels = []; }
+        // Decode HTML entities di nama channel (data lama mungkin tersimpan dengan &amp; dsb.)
+        const _decHtml = s => (s || '').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
+        ytChannels = ytChannels.map(ch => ({ ...ch, name: _decHtml(ch.name) }));
 
         const channels = [...guild.channels.cache.values()]
             .filter(c => c.type === 0 || c.type === 5 || c.type === 10 || c.type === 11 || c.type === 12)
