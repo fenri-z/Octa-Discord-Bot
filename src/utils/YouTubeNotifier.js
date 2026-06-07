@@ -97,7 +97,7 @@ class YouTubeNotifier {
 
         const nameMatch = html.match(/<meta[^>]+property="og:title"[^>]+content="([^"]+)"/i)
                        || html.match(/<title>([^<]+)<\/title>/i);
-        const name = nameMatch ? nameMatch[1].replace(/\s*[-–|]\s*YouTube\s*$/i, '').trim() : input;
+        const name = nameMatch ? this._decodeXml(nameMatch[1]).replace(/\s*[-–|]\s*YouTube\s*$/i, '').trim() : input;
 
         const thumbMatch = html.match(/<meta[^>]+property="og:image"[^>]+content="([^"]+)"/i);
         const thumbnail  = thumbMatch ? thumbMatch[1] : null;
