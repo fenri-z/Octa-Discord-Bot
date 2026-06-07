@@ -29,26 +29,23 @@ class TikTokNotifier {
     // ─── Lifecycle ─────────────────────────────────────────────────────────────
 
     start() {
-        info(`[TikTok] Video polling aktif (interval 5 menit). RSSHub: ${RSSHUB_BASE}`);
+        if (WebcastPushConnection) {
+            info(`[TikTok] Video poll 5 menit (RSSHub: ${RSSHUB_BASE}) + live poll 3 menit + health monitor 30 menit.`);
+            this._liveTimer = setInterval(() => this._pollLive(), LIVE_POLL_INTERVAL_MS);
+        } else {
+            info(`[TikTok] Video poll 5 menit (RSSHub: ${RSSHUB_BASE}) + health monitor 30 menit.`);
+            warn('[TikTok] tiktok-live-connector not found — live detection disabled. Jalankan: npm install tiktok-live-connector');
+        }
+
         setTimeout(() => {
             this._poll();
             this._pollTimer = setInterval(() => this._poll(), POLL_INTERVAL_MS);
         }, 35_000);
 
-        if (WebcastPushConnection) {
-            info('[TikTok] Live polling aktif (interval 3 menit) via tiktok-live-connector.');
-            this._liveTimer = setInterval(() => this._pollLive(), LIVE_POLL_INTERVAL_MS);
-        } else {
-            warn('[TikTok] tiktok-live-connector not found — live detection disabled.');
-            warn('[TikTok] Jalankan: npm install tiktok-live-connector');
-        }
-
-        // Health monitor — cek RSSHub setiap 30 menit
         setTimeout(() => {
             this._checkHealth();
             this._healthTimer = setInterval(() => this._checkHealth(), HEALTH_INTERVAL_MS);
-        }, 5 * 60 * 1000); // Mulai 5 menit setelah bot ready
-        info('[TikTok] Cookie health monitor aktif (cek setiap 30 menit).');
+        }, 5 * 60 * 1000);
     }
 
     stop() {

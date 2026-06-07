@@ -45,13 +45,11 @@ class YouTubeNotifier {
 
     start() {
         if (this._useWebSub) {
-            info('[YouTube] Mode WebSub aktif — notifikasi instan. RSS polling sebagai fallback (30 menit).');
-            // Subscribe semua channel yang belum aktif (tunda 5 detik biar bot ready)
+            info('[YouTube] WebSub aktif (notifikasi instan) + RSS fallback 30 menit + live poll 3 menit.');
             setTimeout(() => this._subscribeAll(), 5_000);
-            // Perpanjang subscription yang mau expire setiap 6 jam
             this._renewTimer = setInterval(() => this._renewSubscriptions(), RENEW_INTERVAL_MS);
         } else {
-            info('[YouTube] BASE_URL not set. RSS polling mode (5 min). Set BASE_URL in .env to enable WebSub.');
+            warn('[YouTube] BASE_URL tidak di-set — RSS polling 5 menit + live poll 3 menit. Set BASE_URL di .env untuk aktifkan WebSub.');
         }
 
         // RSS fallback / primary
@@ -61,10 +59,7 @@ class YouTubeNotifier {
             this._pollTimer = setInterval(() => this._poll(), pollMs);
         }, 30_000);
 
-        // Live-stream dedicated poll — WebSub tidak andal untuk live (push bisa datang
-        // saat stream masih "upcoming"). Poll 3 menit khusus cek status live.
         this._liveTimer = setInterval(() => this._pollLive(), LIVE_POLL_INTERVAL_MS);
-        info('[YouTube] Live-stream poll aktif (interval 3 menit).');
     }
 
     stop() {

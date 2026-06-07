@@ -51,7 +51,6 @@ class ComponentsHandler {
                             }
                         }
 
-                        info(`Loaded new component (type: ${module.type}) : ` + file);
                     } else if (module.__type__ === 4) {
                         if (!module.commandName || !module.run) {
                             error('Unable to load the autocomplete component ' + file);
@@ -59,8 +58,6 @@ class ComponentsHandler {
                         }
 
                         this.client.collection.components.autocomplete.set(module.commandName, module);
-
-                        info(`Loaded new component (type: autocomplete) : ` + file);
                     } else {
                         error('Invalid component type ' + module.__type__ + ' from component file ' + file);
                     }

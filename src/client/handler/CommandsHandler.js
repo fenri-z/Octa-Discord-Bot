@@ -59,8 +59,6 @@ class CommandsHandler {
                                 this.client.collection.message_commands_aliases.set(alias, module.command.name);
                             });
                         }
-
-                        info('Loaded new message command: ' + file);
                     } else if (module.__type__ === 1) {
                         if (!module.command || !module.run) {
                             error('Unable to load the application command ' + file);
@@ -69,8 +67,6 @@ class CommandsHandler {
 
                         this.client.collection.application_commands.set(module.command.name, module);
                         this.client.rest_application_commands_array.push(module.command);
-
-                        info('Loaded new application command: ' + file);
                     } else {
                         error('Invalid command type ' + module.__type__ + ' from command file ' + file);
                     }

@@ -41,8 +41,6 @@ class EventsHandler {
                             this.client.on(module.event, (...args) => module.run(this.client, ...args));
                         }
 
-                        info(`Loaded new event: ` + file);
-
                         total++;
                     } else {
                         error('Invalid event type ' + module.__type__ + ' from event file ' + file);

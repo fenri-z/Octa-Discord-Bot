@@ -75,8 +75,7 @@ module.exports = new Event({
         const devGuildId = process.env.DEV_GUILD_ID;
         const { publicCmds, devCmds } = loadCommands();
 
-        info(`Registered in ${guilds.length} server(s).`);
-        info(`${publicCmds.length} public commands, ${devCmds.length} dev-only commands.`);
+        info(`Registered in ${guilds.length} server(s). — ${publicCmds.length} public / ${devCmds.length} dev-only commands.`);
 
         if (!__client__.inviteCache) __client__.inviteCache = new Map();
 
@@ -121,7 +120,7 @@ module.exports = new Event({
             }
         }
 
-        success(`\nInitialization complete: ${ok} server(s) succeeded${fail > 0 ? `, ${fail} failed` : ''}.`);
+        success(`Initialization complete: ${ok} server(s) succeeded${fail > 0 ? `, ${fail} failed` : ''}.`);
         success('Bot siap digunakan!');
 
         client.user.setPresence({ status: 'online', activities: [{ name: '/help', type: 4 }] });
