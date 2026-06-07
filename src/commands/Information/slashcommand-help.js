@@ -4,6 +4,8 @@ const {
     ActionRowBuilder,
     StringSelectMenuBuilder,
     StringSelectMenuOptionBuilder,
+    ButtonBuilder,
+    ButtonStyle,
     PermissionFlagsBits,
 } = require("discord.js");
 const DiscordBot = require("../../client/DiscordBot");
@@ -56,14 +58,16 @@ const CATEGORIES = [
         { name: 'invites', emoji: '📩' },
     ]},
     { id: 'notification', emoji: '🔔', minLevel: 'admin',     color: '#FEE75C', commands: [
-        { name: 'welcome', emoji: '👋' },
-        { name: 'goodbye', emoji: '🚪' },
-        { name: 'booster', emoji: '🚀' },
+        { name: 'welcome',   emoji: '👋' },
+        { name: 'goodbye',   emoji: '🚪' },
+        { name: 'booster',   emoji: '🚀' },
+        { name: 'unbooster', emoji: '💔' },
     ]},
     { id: 'autorole',     emoji: '🎭', minLevel: 'admin',     color: '#FEE75C', commands: [
-        { name: 'autorole',           emoji: '🎭' },
+        { name: 'autorole-join',      emoji: '🎭' },
         { name: 'autorole-button',    emoji: '🔘' },
         { name: 'autorole-reaction',  emoji: '✨' },
+        { name: 'autorole-booster',   emoji: '🚀' },
     ]},
     { id: 'utility',      emoji: '🔧', minLevel: 'admin',     color: '#FEE75C', commands: [
         { name: 'ticket',       emoji: '🎫' },
@@ -82,12 +86,13 @@ const CATEGORIES = [
     ]},
 ];
 
+const PAGE_SIZE = 7;
+
 function getAccessible(userLevel) {
     return CATEGORIES.filter(cat => hasAccess(userLevel, cat.minLevel));
 }
 
 // ─── Slash command mention helper ────────────────────────────────────────────
-// Returns </cmd subcommand:ID> if found in cache, else `code` fallback
 function mention(client, syntax) {
     const clean = syntax.trim();
     if (!clean.startsWith('/')) return `\`${clean}\``;
@@ -100,15 +105,21 @@ function mention(client, syntax) {
 }
 
 // ─── Usage renderer ──────────────────────────────────────────────────────────
-// lines: [[syntax, desc], ...] — syntax starting with '/' = command, else = param
 function renderUsage(lines, client) {
     return lines.map(([syntax, desc]) => {
-        if (syntax.startsWith('/')) {
-            return `${mention(client, syntax)} — ${desc}`;
-        }
-        // parameter line (e.g. "  reason:" or "  type:")
+        if (syntax.startsWith('/')) return `${mention(client, syntax)} — ${desc}`;
         return `> ‣ \`${syntax.trim()}\` — ${desc}`;
     }).join('\n');
+}
+
+// ─── Paginator ───────────────────────────────────────────────────────────────
+function getPages(lines) {
+    if (!lines?.length) return [[]];
+    const pages = [];
+    for (let i = 0; i < lines.length; i += PAGE_SIZE) {
+        pages.push(lines.slice(i, i + PAGE_SIZE));
+    }
+    return pages;
 }
 
 // ─── Embed builders ──────────────────────────────────────────────────────────
@@ -140,34 +151,53 @@ function buildCategoryEmbed(cat, s, client) {
         .setTimestamp();
 }
 
-function buildCommandEmbed(cat, cmd, s, client) {
-    const catText = s.cat[cat.id] ?? { label: cat.id };
-    const cmdText = s.cmd[cmd.name] ?? { short: cmd.name, lines: [] };
-    const usage   = cmdText.lines?.length
-        ? renderUsage(cmdText.lines, client)
+function buildCommandEmbed(cat, cmd, s, client, page = 0) {
+    const catText  = s.cat[cat.id] ?? { label: cat.id };
+    const cmdText  = s.cmd[cmd.name] ?? { short: cmd.name, lines: [] };
+    const pages    = getPages(cmdText.lines);
+    const safePage = Math.min(page, pages.length - 1);
+    const usage    = pages[safePage]?.length
+        ? renderUsage(pages[safePage], client)
         : `\`/${cmd.name}\``;
+    const pageInfo = pages.length > 1 ? ` (${safePage + 1}/${pages.length})` : '';
 
     return new EmbedBuilder()
         .setColor(cat.color)
         .setTitle(s.cmd_view_title(cmd.name))
         .setDescription(`${cmd.emoji} ${cmdText.short}`)
-        .addFields({ name: s.field_usage, value: usage })
+        .addFields({ name: s.field_usage + pageInfo, value: usage })
         .setFooter({ text: s.footer_cmd(catText.label) })
         .setTimestamp();
 }
 
-// ─── Select menu builders ────────────────────────────────────────────────────
+// ─── Select menu & button builders ──────────────────────────────────────────
 function buildCategoryRow(accessCats, selectedId, s) {
     const selectedCat = accessCats.find(c => c.id === selectedId);
-    const options = accessCats.map(cat => {
+    const options = [];
+
+    // Add "Main Menu" as first option only when a category is already selected
+    if (selectedId !== null) {
+        options.push(
+            new StringSelectMenuOptionBuilder()
+                .setLabel(s.btn_main ?? 'Main Menu')
+                .setDescription(s.btn_main_desc ?? 'Return to the main menu')
+                .setValue('__main__')
+                .setEmoji('🏠')
+        );
+    }
+
+    accessCats.forEach(cat => {
         const catText = s.cat[cat.id] ?? { label: cat.id, opt: '' };
-        return new StringSelectMenuOptionBuilder()
-            .setLabel(catText.label)
-            .setDescription(catText.opt.slice(0, 100))
-            .setValue(cat.id)
-            .setEmoji(cat.emoji)
-            .setDefault(cat.id === selectedId);
+        options.push(
+            new StringSelectMenuOptionBuilder()
+                .setLabel(catText.label)
+                .setDescription(catText.opt.slice(0, 100))
+                .setValue(cat.id)
+                .setEmoji(cat.emoji)
+                .setDefault(cat.id === selectedId)
+        );
     });
+
     const selText = selectedCat ? (s.cat[selectedCat.id]?.label ?? selectedCat.id) : null;
     return new ActionRowBuilder().addComponents(
         new StringSelectMenuBuilder()
@@ -192,6 +222,21 @@ function buildCommandRow(cat, selectedCmdName, s) {
             .setCustomId('help-command')
             .setPlaceholder(s.cmd_placeholder)
             .addOptions(options)
+    );
+}
+
+function buildPageRow(page, totalPages) {
+    return new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+            .setCustomId('help-prev')
+            .setLabel('◀')
+            .setStyle(ButtonStyle.Secondary)
+            .setDisabled(page === 0),
+        new ButtonBuilder()
+            .setCustomId('help-next')
+            .setLabel('▶')
+            .setStyle(ButtonStyle.Secondary)
+            .setDisabled(page >= totalPages - 1),
     );
 }
 
@@ -220,6 +265,7 @@ module.exports = new ApplicationCommand({
 
         let currentCatId   = null;
         let currentCmdName = null;
+        let currentPage    = 0;
 
         const reply = await interaction.editReply({
             embeds:     [buildMainEmbed(client, s)],
@@ -228,34 +274,57 @@ module.exports = new ApplicationCommand({
 
         const collector = reply.createMessageComponentCollector({
             filter: i => i.user.id === interaction.user.id &&
-                (i.customId === 'help-category' || i.customId === 'help-command'),
+                ['help-category', 'help-command', 'help-prev', 'help-next'].includes(i.customId),
         });
 
         collector.on('collect', async i => {
             if (i.customId === 'help-category') {
+                // Main Menu option selected from dropdown
+                if (i.values[0] === '__main__') {
+                    currentCatId   = null;
+                    currentCmdName = null;
+                    currentPage    = 0;
+                    return i.update({
+                        embeds:     [buildMainEmbed(client, s)],
+                        components: [buildCategoryRow(accessCats, null, s)],
+                    });
+                }
                 currentCatId   = i.values[0];
                 currentCmdName = null;
-            } else {
+                currentPage    = 0;
+            } else if (i.customId === 'help-command') {
                 currentCmdName = i.values[0];
+                currentPage    = 0;
+            } else if (i.customId === 'help-prev') {
+                currentPage = Math.max(0, currentPage - 1);
+            } else if (i.customId === 'help-next') {
+                currentPage++;
             }
 
             const cat = CATEGORIES.find(c => c.id === currentCatId);
             if (!cat) return i.update({});
 
-            const catRow = buildCategoryRow(accessCats, currentCatId, s);
-            const cmdRow = buildCommandRow(cat, currentCmdName, s);
+            const catRow     = buildCategoryRow(accessCats, currentCatId, s);
+            const cmdRow     = buildCommandRow(cat, currentCmdName, s);
+            const components = [catRow, cmdRow];
 
             let embed;
             if (currentCmdName) {
                 const cmd = cat.commands.find(c => c.name === currentCmdName);
-                embed = cmd
-                    ? buildCommandEmbed(cat, cmd, s, client)
-                    : buildCategoryEmbed(cat, s, client);
+                if (cmd) {
+                    const cmdText  = s.cmd[cmd.name] ?? { short: cmd.name, lines: [] };
+                    const pages    = getPages(cmdText.lines);
+                    const safePage = Math.min(currentPage, pages.length - 1);
+                    embed = buildCommandEmbed(cat, cmd, s, client, safePage);
+                    if (pages.length > 1) components.push(buildPageRow(safePage, pages.length));
+                } else {
+                    embed = buildCategoryEmbed(cat, s, client);
+                }
             } else {
                 embed = buildCategoryEmbed(cat, s, client);
             }
 
-            await i.update({ embeds: [embed], components: [catRow, cmdRow] });
+            await i.update({ embeds: [embed], components });
         });
 
     }

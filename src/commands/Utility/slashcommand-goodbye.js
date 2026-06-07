@@ -172,28 +172,30 @@ module.exports = new ApplicationCommand({
             const cfg      = getConfig(client, guildId);
             const channel  = cfg.channelId ? interaction.guild.channels.cache.get(cfg.channelId) : null;
             const colorHex = cfg.color.startsWith('#') ? cfg.color : `#${cfg.color}`;
-            const on = '✅ Shown', off = '❌ Hidden';
+            const c        = getStrings(getLang(client.database, interaction.guild?.id)).common;
+            const on  = c.shown;
+            const off = c.hidden;
 
             const embed = new EmbedBuilder()
                 .setColor(colorHex)
-                .setTitle('⚙️ Goodbye Message Configuration')
+                .setTitle(s.status_title)
                 .addFields(
-                    { name: '🔌 Status',      value: cfg.enabled ? '✅ Enabled' : '❌ Disabled',                     inline: true },
-                    { name: '📨 Message Type',  value: cfg.messageType === 'plain' ? '💬 Plain Text' : '🖼️ Embed', inline: true },
-                    { name: '📢 Channel',     value: channel ? `<#${channel.id}>` : '`Not set`',              inline: true },
-                    { name: '🎨 Color',       value: `\`${cfg.color}\``,                                            inline: true },
-                    { name: '📌 Title',       value: `\`${cfg.title}\``,                                            inline: false },
-                    { name: '📝 Description',   value: `\`${cfg.description}\``,                                      inline: false },
-                    { name: '💬 Plain Text',  value: cfg.plainText ? `\`${cfg.plainText.slice(0,100)}\`` : '`(empty)`', inline: false },
-                    { name: '🃏 Goodbye Card',value: cfg.cardEnabled ? '✅ Enabled' : '❌ Disabled',                 inline: true },
-                    { name: '🔻 Footer',      value: cfg.footerText ? `\`${cfg.footerText}\`` : '`(none)`',  inline: false },
-                    { name: '🖼️ Thumbnail',   value: cfg.thumbnail ? on : off,        inline: true },
-                    { name: '👤 Member',      value: cfg.showMember ? on : off,        inline: true },
-                    { name: '📅 Joined',   value: cfg.showBergabung ? on : off,     inline: true },
-                    { name: '📅 Account Created', value: cfg.showAkunDibuat ? on : off,    inline: true },
-                    { name: '👥 Total Members',value: cfg.showTotalMember ? on : off,   inline: true },
+                    { name: s.field_status,         value: cfg.enabled    ? c.enabled : c.disabled,                               inline: true  },
+                    { name: s.field_msg_type,        value: cfg.messageType === 'plain' ? s.type_plain_label : s.type_embed_label, inline: true  },
+                    { name: s.field_channel,         value: channel        ? `<#${channel.id}>` : s.not_set,                      inline: true  },
+                    { name: s.field_color,           value: `\`${cfg.color}\``,                                                   inline: true  },
+                    { name: s.field_title,           value: `\`${cfg.title}\``,                                                   inline: false },
+                    { name: s.field_description,     value: `\`${cfg.description}\``,                                             inline: false },
+                    { name: s.field_plain_text,      value: cfg.plainText  ? `\`${cfg.plainText.slice(0, 100)}\`` : s.val_none,   inline: false },
+                    { name: s.field_card,            value: cfg.cardEnabled ? c.enabled : c.disabled,                             inline: true  },
+                    { name: s.field_footer,          value: cfg.footerText  ? `\`${cfg.footerText}\`` : s.val_none,               inline: false },
+                    { name: s.field_thumbnail,       value: cfg.thumbnail       ? on : off, inline: true },
+                    { name: s.field_member,          value: cfg.showMember      ? on : off, inline: true },
+                    { name: s.field_joined,          value: cfg.showBergabung   ? on : off, inline: true },
+                    { name: s.field_account_created, value: cfg.showAkunDibuat  ? on : off, inline: true },
+                    { name: s.field_total_members,   value: cfg.showTotalMember ? on : off, inline: true },
                 )
-                .setFooter({ text: 'Use /goodbye preview to see the embed preview.' })
+                .setFooter({ text: s.status_footer })
                 .setTimestamp();
 
             return interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
@@ -203,7 +205,7 @@ module.exports = new ApplicationCommand({
         if (sub === 'toggle') {
             const val = interaction.options.getBoolean('active');
             if (val && !client.database.get(`goodbye-channel-${guildId}`))
-                return interaction.reply({ content: '❌ Set the goodbye channel first using `/goodbye channel`.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: s.no_channel_error, flags: MessageFlags.Ephemeral });
             setBool(client, `goodbye-enabled-${guildId}`, val);
             return interaction.reply({
                 content: val ? s.toggled_on : s.toggled_off,
@@ -214,7 +216,7 @@ module.exports = new ApplicationCommand({
         // ── CHANNEL ───────────────────────────────────────────────────────
         if (sub === 'channel') {
             const ch = resolveChannel(interaction.guild, interaction.options.getString('channel'));
-            if (!ch) return interaction.reply({ content: '❌ Channel not found. Use a `#channel` mention or channel ID.', flags: MessageFlags.Ephemeral });
+            if (!ch) return interaction.reply({ content: s.invalid_channel, flags: MessageFlags.Ephemeral });
             const chOk = await checkBotPermissions(interaction, [PermissionFlagsBits.SendMessages, PermissionFlagsBits.EmbedLinks], ch);
             if (!chOk) return;
             client.database.set(`goodbye-channel-${guildId}`, ch.id);
@@ -226,9 +228,7 @@ module.exports = new ApplicationCommand({
             const val = interaction.options.getString('type');
             client.database.set(`goodbye-messageType-${guildId}`, val);
             return interaction.reply({
-                content: val === 'plain'
-                    ? '✅ Goodbye message type changed to **Plain Text**. Use `/goodbye text` to set the content.'
-                    : '✅ Goodbye message type changed to **Embed**. Use `/goodbye text` to set the title & description.',
+                content: val === 'plain' ? s.type_set_plain : s.type_set_embed,
                 flags: MessageFlags.Ephemeral
             });
         }
@@ -288,7 +288,7 @@ module.exports = new ApplicationCommand({
                 const newPlain = submitted.fields.getTextInputValue('plainText').trim();
                 client.database.set(`goodbye-plainText-${guildId}`, newPlain);
                 return submitted.reply({
-                    content: `✅ Goodbye plain text updated.\n**Message:** ${newPlain}`,
+                    content: s.text_saved_plain(newPlain),
                     flags: MessageFlags.Ephemeral
                 });
             } else {
@@ -297,7 +297,7 @@ module.exports = new ApplicationCommand({
                 client.database.set(`goodbye-title-${guildId}`,       newTitle);
                 client.database.set(`goodbye-description-${guildId}`, newDesc);
                 return submitted.reply({
-                    content: `✅ Goodbye embed text updated.\n**Title:** ${newTitle}\n**Description:** ${newDesc}`,
+                    content: s.text_saved_embed(newTitle, newDesc),
                     flags: MessageFlags.Ephemeral
                 });
             }
@@ -339,18 +339,16 @@ module.exports = new ApplicationCommand({
             const field = interaction.options.getString('field');
             const val   = interaction.options.getBoolean('show');
             const fieldMap = {
-                member:       { key: `goodbye-showMember-${guildId}`,      label: '👤 Member'       },
-                bergabung:    { key: `goodbye-showBergabung-${guildId}`,    label: '📅 Joined'    },
-                akun_dibuat:  { key: `goodbye-showAkunDibuat-${guildId}`,   label: '📅 Account Created'  },
-                total_member: { key: `goodbye-showTotalMember-${guildId}`,  label: '👥 Total Members' },
+                member:       { key: `goodbye-showMember-${guildId}`,      label: s.field_member          },
+                bergabung:    { key: `goodbye-showBergabung-${guildId}`,    label: s.field_joined          },
+                akun_dibuat:  { key: `goodbye-showAkunDibuat-${guildId}`,   label: s.field_account_created },
+                total_member: { key: `goodbye-showTotalMember-${guildId}`,  label: s.field_total_members   },
             };
             const target = fieldMap[field];
-            if (!target) return interaction.reply({ content: '❌ Invalid field.', flags: MessageFlags.Ephemeral });
+            if (!target) return interaction.reply({ content: s.invalid_field, flags: MessageFlags.Ephemeral });
             setBool(client, target.key, val);
             return interaction.reply({
-                content: val
-                    ? `✅ Field **${target.label}** is now **shown** in the embed.`
-                    : `✅ Field **${target.label}** is now **hidden** from the embed.`,
+                content: val ? s.field_show(target.label) : s.field_hide(target.label),
                 flags: MessageFlags.Ephemeral
             });
         }
@@ -364,9 +362,7 @@ module.exports = new ApplicationCommand({
                 const newVal = !cfg.cardEnabled;
                 setBool(client, `goodbye-cardEnabled-${guildId}`, newVal);
                 return interaction.reply({
-                    content: newVal
-                        ? '✅ Goodbye card **enabled**. The farewell image will be sent along with the goodbye message.'
-                        : '❌ Goodbye card **disabled**.',
+                    content: newVal ? s.card_on : s.card_off,
                     flags: MessageFlags.Ephemeral
                 });
             }
@@ -399,7 +395,7 @@ module.exports = new ApplicationCommand({
                 if (!submitted) return;
                 client.database.set(`goodbye-cardWelcomeText-${guildId}`, submitted.fields.getTextInputValue('welcomeText').trim());
                 client.database.set(`goodbye-cardSubText-${guildId}`,     submitted.fields.getTextInputValue('subText').trim());
-                return submitted.reply({ content: '✅ Goodbye card text updated!', flags: MessageFlags.Ephemeral });
+                return submitted.reply({ content: s.card_text_saved, flags: MessageFlags.Ephemeral });
             }
 
             if (action === 'warna') {
@@ -433,11 +429,11 @@ module.exports = new ApplicationCommand({
                 }
                 if (errors.length > 0) {
                     return submitted.reply({
-                        content: `⚠️ Invalid color format for: **${errors.join(', ')}**. Other valid fields have been saved.`,
+                        content: s.card_colors_error(errors.join(', ')),
                         flags: MessageFlags.Ephemeral
                     });
                 }
-                return submitted.reply({ content: '✅ Goodbye card colors successfully updated!', flags: MessageFlags.Ephemeral });
+                return submitted.reply({ content: s.card_colors_saved, flags: MessageFlags.Ephemeral });
             }
         }
 
@@ -513,19 +509,19 @@ module.exports = new ApplicationCommand({
             if (cfg.messageType === 'plain') {
                 let content = parse(cfg.plainText).trim();
                 const infoLines = [];
-                if (cfg.showMember)      infoLines.push(`👤 **Member:** ${member.user.tag}`);
-                if (cfg.showBergabung)   infoLines.push(`📅 **Joined:** <t:${Math.floor(member.joinedTimestamp / 1000)}:R>`);
-                if (cfg.showAkunDibuat)  infoLines.push(`📅 **Account Created:** <t:${Math.floor(member.user.createdTimestamp / 1000)}:R>`);
-                if (cfg.showTotalMember) infoLines.push(`👥 **Total Members:** ${interaction.guild.memberCount} members`);
+                if (cfg.showMember)      infoLines.push(s.preview_member(member.user.tag));
+                if (cfg.showBergabung)   infoLines.push(s.preview_joined(`<t:${Math.floor(member.joinedTimestamp / 1000)}:R>`));
+                if (cfg.showAkunDibuat)  infoLines.push(s.preview_account(`<t:${Math.floor(member.user.createdTimestamp / 1000)}:R>`));
+                if (cfg.showTotalMember) infoLines.push(s.preview_members(interaction.guild.memberCount));
                 if (infoLines.length > 0) content += (content ? '\n' : '') + infoLines.join('\n');
                 content = content.trim();
                 if (content || cardAttachment) {
                     const payload = { flags: MessageFlags.Ephemeral };
-                    payload.content = `> 👁️ **Preview Mode** — not a real goodbye message${content ? '\n' + content : ''}`;
+                    payload.content = `${s.preview_mode}${content ? '\n' + content : ''}`;
                     if (cardAttachment) payload.files = [cardAttachment];
                     return interaction.reply(payload);
                 }
-                return interaction.reply({ content: '> 👁️ **Preview Mode** — empty message and goodbye card is not active.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: s.preview_mode_empty, flags: MessageFlags.Ephemeral });
             }
 
             // Embed mode
@@ -533,12 +529,12 @@ module.exports = new ApplicationCommand({
             const hasFields = cfg.showMember || cfg.showBergabung || cfg.showAkunDibuat || cfg.showTotalMember;
 
             if (!hasText && !hasFields && !cardAttachment) {
-                return interaction.reply({ content: '> 👁️ **Preview Mode** — empty message and goodbye card is not active.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: s.preview_mode_empty, flags: MessageFlags.Ephemeral });
             }
 
             const embed = new EmbedBuilder()
                 .setColor(colorHex)
-                .setAuthor({ name: '👁️ Preview Mode — not a real goodbye message' })
+                .setAuthor({ name: s.preview_title })
                 .setTimestamp();
 
             if (parseTitle(cfg.title))  embed.setTitle(parseTitle(cfg.title));
@@ -547,10 +543,10 @@ module.exports = new ApplicationCommand({
             if (cfg.thumbnail)          embed.setThumbnail(member.user.displayAvatarURL({ dynamic: true, size: 256 }));
 
             const fields = [];
-            if (cfg.showMember)      fields.push({ name: '👤 Member',       value: member.user.tag, inline: true });
-            if (cfg.showBergabung)   fields.push({ name: '📅 Joined',    value: member.joinedTimestamp ? `<t:${Math.floor(member.joinedTimestamp / 1000)}:R>` : '`Unknown`', inline: true });
-            if (cfg.showAkunDibuat)  fields.push({ name: '📅 Account Created',  value: `<t:${Math.floor(member.user.createdTimestamp / 1000)}:R>`, inline: true });
-            if (cfg.showTotalMember) fields.push({ name: '👥 Total Members', value: `**${interaction.guild.memberCount}** members`, inline: true });
+            if (cfg.showMember)      fields.push({ name: s.field_member,          value: member.user.tag, inline: true });
+            if (cfg.showBergabung)   fields.push({ name: s.field_joined,          value: member.joinedTimestamp ? `<t:${Math.floor(member.joinedTimestamp / 1000)}:R>` : '`Unknown`', inline: true });
+            if (cfg.showAkunDibuat)  fields.push({ name: s.field_account_created, value: `<t:${Math.floor(member.user.createdTimestamp / 1000)}:R>`, inline: true });
+            if (cfg.showTotalMember) fields.push({ name: s.field_total_members,   value: `**${interaction.guild.memberCount}**`, inline: true });
             if (fields.length > 0) embed.addFields(...fields);
             if (cardAttachment) embed.setImage('attachment://goodbye-card.png');
 

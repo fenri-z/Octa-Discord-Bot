@@ -190,35 +190,35 @@ module.exports = new ApplicationCommand({
 
         // ── STATUS ────────────────────────────────────────────────────────
         if (sub === 'status') {
-            const cfg     = getConfig(client, guildId);
-            const channel = cfg.channelId ? interaction.guild.channels.cache.get(cfg.channelId) : null;
+            const cfg      = getConfig(client, guildId);
+            const channel  = cfg.channelId ? interaction.guild.channels.cache.get(cfg.channelId) : null;
             const colorHex = cfg.color.startsWith('#') ? cfg.color : `#${cfg.color}`;
-
-            const on  = '✅ Shown';
-            const off = '❌ Hidden';
+            const c        = getStrings(getLang(client.database, interaction.guild?.id)).common;
+            const on  = c.shown;
+            const off = c.hidden;
 
             const embed = new EmbedBuilder()
                 .setColor(colorHex)
-                .setTitle('⚙️ Welcome Message Configuration')
+                .setTitle(s.status_title)
                 .addFields(
-                    { name: '🔌 Status',           value: cfg.enabled           ? '✅ Enabled' : '❌ Disabled',         inline: true },
-                    { name: '📨 Message Type',        value: cfg.messageType === 'plain' ? '💬 Plain Text' : '🖼️ Embed',         inline: true },
-                    { name: '📢 Channel',           value: channel               ? `<#${channel.id}>` : '`Not set`', inline: true },
-                    { name: '🎨 Color',             value: `\`${cfg.color}\``,                                           inline: true },
-                    { name: '📌 Title',             value: `\`${cfg.title}\``,                                           inline: false },
-                    { name: '📝 Description',         value: `\`${cfg.description}\``,                                     inline: false },
-                    { name: '💬 Plain Text',         value: `\`${cfg.plainText}\``,                                          inline: false },
-                    { name: '🃏 Welcome Card',      value: cfg.cardEnabled ? '✅ Enabled' : '❌ Disabled',  inline: true },
-                    { name: '🔻 Footer',            value: cfg.footerText        ? `\`${cfg.footerText}\`` : '`(none)`', inline: false },
-                    { name: '🖼️ Thumbnail',         value: cfg.thumbnail         ? on : off,  inline: true },
-                    { name: '👤 New Member',       value: cfg.showMemberNew     ? on : off,  inline: true },
-                    { name: '📅 Account Created',       value: cfg.showAkunDibuat    ? on : off,  inline: true },
-                    { name: '👥 Total Members',      value: cfg.showTotalMember   ? on : off,  inline: true },
-                    { name: '📨 Invited By',     value: cfg.showDiundangOleh  ? on : off,  inline: true },
-                    { name: '🔗 Invite Code',       value: cfg.showKodeInvite    ? on : off,  inline: true },
-                    { name: '📊 Total Invites',    value: cfg.showTotalUndangan ? on : off,  inline: true },
+                    { name: s.field_status,          value: cfg.enabled    ? c.enabled : c.disabled,                               inline: true  },
+                    { name: s.field_msg_type,         value: cfg.messageType === 'plain' ? s.type_plain_label : s.type_embed_label, inline: true  },
+                    { name: s.field_channel,          value: channel        ? `<#${channel.id}>` : s.not_set,                      inline: true  },
+                    { name: s.field_color,            value: `\`${cfg.color}\``,                                                   inline: true  },
+                    { name: s.field_title,            value: `\`${cfg.title}\``,                                                   inline: false },
+                    { name: s.field_description,      value: `\`${cfg.description}\``,                                             inline: false },
+                    { name: s.field_plain_text,       value: `\`${cfg.plainText}\``,                                               inline: false },
+                    { name: s.field_card,             value: cfg.cardEnabled ? c.enabled : c.disabled,                             inline: true  },
+                    { name: s.field_footer,           value: cfg.footerText  ? `\`${cfg.footerText}\`` : s.val_none,               inline: false },
+                    { name: s.field_thumbnail,        value: cfg.thumbnail          ? on : off, inline: true  },
+                    { name: s.field_new_member,       value: cfg.showMemberNew      ? on : off, inline: true  },
+                    { name: s.field_account_created,  value: cfg.showAkunDibuat     ? on : off, inline: true  },
+                    { name: s.field_total_members,    value: cfg.showTotalMember    ? on : off, inline: true  },
+                    { name: s.field_invited_by,       value: cfg.showDiundangOleh   ? on : off, inline: true  },
+                    { name: s.field_invite_code,      value: cfg.showKodeInvite     ? on : off, inline: true  },
+                    { name: s.field_total_invites,    value: cfg.showTotalUndangan  ? on : off, inline: true  },
                 )
-                .setFooter({ text: 'Use /welcome preview to see the embed preview.' })
+                .setFooter({ text: s.status_footer })
                 .setTimestamp();
 
             return interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
@@ -228,7 +228,7 @@ module.exports = new ApplicationCommand({
         if (sub === 'toggle') {
             const val = interaction.options.getBoolean('active');
             if (val && !client.database.get(`welcome-channel-${guildId}`))
-                return interaction.reply({ content: '❌ Set the welcome channel first using `/welcome channel`.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: s.no_channel_error, flags: MessageFlags.Ephemeral });
             setBool(client, `welcome-enabled-${guildId}`, val);
             return interaction.reply({
                 content: val ? s.toggled_on : s.toggled_off,
@@ -239,7 +239,7 @@ module.exports = new ApplicationCommand({
         // ── CHANNEL ───────────────────────────────────────────────────────
         if (sub === 'channel') {
             const ch = resolveChannel(interaction.guild, interaction.options.getString('channel'));
-            if (!ch) return interaction.reply({ content: '❌ Channel not found.', flags: MessageFlags.Ephemeral });
+            if (!ch) return interaction.reply({ content: s.invalid_channel, flags: MessageFlags.Ephemeral });
             const chOk = await checkBotPermissions(interaction, [PermissionFlagsBits.SendMessages, PermissionFlagsBits.EmbedLinks], ch);
             if (!chOk) return;
             client.database.set(`welcome-channel-${guildId}`, ch.id);
@@ -251,9 +251,7 @@ module.exports = new ApplicationCommand({
             const val = interaction.options.getString('type');
             client.database.set(`welcome-messageType-${guildId}`, val);
             return interaction.reply({
-                content: val === 'plain'
-                    ? '✅ Welcome message type changed to **Plain Text**. Use `/welcome text` to set the content.'
-                    : '✅ Welcome message type changed to **Embed**. Use `/welcome text` to set the title & description.',
+                content: val === 'plain' ? s.type_set_plain : s.type_set_embed,
                 flags: MessageFlags.Ephemeral
             });
         }
@@ -316,7 +314,7 @@ module.exports = new ApplicationCommand({
                 const newPlain = submitted.fields.getTextInputValue('plainText').trim();
                 client.database.set(`welcome-plainText-${guildId}`, newPlain);
                 return submitted.reply({
-                    content: `✅ Welcome plain text updated.\n**Message:** ${newPlain}`,
+                    content: s.text_saved_plain(newPlain),
                     flags: MessageFlags.Ephemeral
                 });
             } else {
@@ -325,7 +323,7 @@ module.exports = new ApplicationCommand({
                 client.database.set(`welcome-title-${guildId}`,       newTitle);
                 client.database.set(`welcome-description-${guildId}`, newDesc);
                 return submitted.reply({
-                    content: `✅ Welcome embed text updated.\n**Title:** ${newTitle}\n**Description:** ${newDesc}`,
+                    content: s.text_saved_embed(newTitle, newDesc),
                     flags: MessageFlags.Ephemeral
                 });
             }
@@ -368,22 +366,20 @@ module.exports = new ApplicationCommand({
             const val   = interaction.options.getBoolean('show');
 
             const fieldMap = {
-                member_baru:    { key: `welcome-showMemberNew-${guildId}`,     label: '👤 New Member'    },
-                akun_dibuat:    { key: `welcome-showAkunDibuat-${guildId}`,    label: '📅 Account Created'    },
-                total_member:   { key: `welcome-showTotalMember-${guildId}`,   label: '👥 Total Members'   },
-                diundang_oleh:  { key: `welcome-showDiundangOleh-${guildId}`,  label: '📨 Invited By'  },
-                kode_invite:    { key: `welcome-showKodeInvite-${guildId}`,    label: '🔗 Invite Code'    },
-                total_undangan: { key: `welcome-showTotalUndangan-${guildId}`, label: '📊 Total Invites' },
+                member_baru:    { key: `welcome-showMemberNew-${guildId}`,     label: s.field_new_member      },
+                akun_dibuat:    { key: `welcome-showAkunDibuat-${guildId}`,    label: s.field_account_created },
+                total_member:   { key: `welcome-showTotalMember-${guildId}`,   label: s.field_total_members   },
+                diundang_oleh:  { key: `welcome-showDiundangOleh-${guildId}`,  label: s.field_invited_by      },
+                kode_invite:    { key: `welcome-showKodeInvite-${guildId}`,    label: s.field_invite_code     },
+                total_undangan: { key: `welcome-showTotalUndangan-${guildId}`, label: s.field_total_invites   },
             };
 
             const target = fieldMap[field];
-            if (!target) return interaction.reply({ content: '❌ Invalid field.', flags: MessageFlags.Ephemeral });
+            if (!target) return interaction.reply({ content: s.invalid_field, flags: MessageFlags.Ephemeral });
 
             setBool(client, target.key, val);
             return interaction.reply({
-                content: val
-                    ? `✅ Field **${target.label}** is now **shown** in the embed.`
-                    : `✅ Field **${target.label}** is now **hidden** from the embed.`,
+                content: val ? s.field_show(target.label) : s.field_hide(target.label),
                 flags: MessageFlags.Ephemeral
             });
         }
@@ -398,9 +394,7 @@ module.exports = new ApplicationCommand({
                 const newVal = !cfg.cardEnabled;
                 setBool(client, `welcome-cardEnabled-${guildId}`, newVal);
                 return interaction.reply({
-                    content: newVal
-                        ? '✅ Welcome card **enabled**. The greeting image will be sent along with the welcome message.'
-                        : '❌ Welcome card **disabled**.',
+                    content: newVal ? s.card_on : s.card_off,
                     flags: MessageFlags.Ephemeral
                 });
             }
@@ -450,7 +444,7 @@ module.exports = new ApplicationCommand({
                 client.database.set(`welcome-cardSubText-${guildId}`,     newSubText);
 
                 return submitted.reply({
-                    content: `✅ Welcome card text updated!\n**Large Text:** ${newWelcomeText}\n**Sub Text:** ${newSubText}`,
+                    content: s.card_text_saved(newWelcomeText, newSubText),
                     flags: MessageFlags.Ephemeral
                 });
             }
@@ -528,13 +522,13 @@ module.exports = new ApplicationCommand({
 
                 if (errors.length > 0) {
                     return submitted.reply({
-                        content: `⚠️ Invalid color format for: **${errors.join(', ')}**. Use hex format like \`#5865F2\`. Other valid fields have been saved.`,
+                        content: s.card_colors_error(errors.join(', ')),
                         flags: MessageFlags.Ephemeral
                     });
                 }
 
                 return submitted.reply({
-                    content: '✅ Welcome card colors successfully updated!',
+                    content: s.card_colors_saved,
                     flags: MessageFlags.Ephemeral
                 });
             }
@@ -601,31 +595,31 @@ module.exports = new ApplicationCommand({
             if (cfg.messageType === 'plain') {
                 let content = parse(cfg.plainText).trim();
                 const infoLines = [];
-                if (cfg.showMemberNew)     infoLines.push(`👤 **New Member:** ${member.user.tag}`);
-                if (cfg.showAkunDibuat)    infoLines.push(`📅 **Account Created:** <t:${Math.floor(member.user.createdTimestamp / 1000)}:R>`);
-                if (cfg.showTotalMember)   infoLines.push(`👥 **Total Members:** ${interaction.guild.memberCount} members`);
-                if (cfg.showDiundangOleh)  infoLines.push(`📨 **Invited By:** ${member.user.tag} (example)`);
-                if (cfg.showKodeInvite)    infoLines.push(`🔗 **Invite Code:** \`abc123\` (example)`);
-                if (cfg.showTotalUndangan) infoLines.push(`📊 **Total Invites:** 42 invites (example)`);
+                if (cfg.showMemberNew)     infoLines.push(s.preview_new_member(member.user.tag));
+                if (cfg.showAkunDibuat)    infoLines.push(s.preview_account(`<t:${Math.floor(member.user.createdTimestamp / 1000)}:R>`));
+                if (cfg.showTotalMember)   infoLines.push(s.preview_members(interaction.guild.memberCount));
+                if (cfg.showDiundangOleh)  infoLines.push(s.preview_invited(member.user.tag));
+                if (cfg.showKodeInvite)    infoLines.push(s.preview_inv_code);
+                if (cfg.showTotalUndangan) infoLines.push(s.preview_inv_total);
                 if (infoLines.length > 0) content += (content ? '\n' : '') + infoLines.join('\n');
                 content = content.trim();
 
                 if (content) {
                     const payload = {
-                        content: `> 👁️ **Preview Mode** — not a real welcome message\n${content}`,
+                        content: `${s.preview_mode}\n${content}`,
                         flags: MessageFlags.Ephemeral
                     };
                     if (cardAttachment) payload.files = [cardAttachment];
                     return interaction.reply(payload);
                 } else if (cardAttachment) {
                     return interaction.reply({
-                        content: '> 👁️ **Preview Mode** — not a real welcome message *(empty message, welcome card only)*',
+                        content: s.preview_mode_card,
                         files: [cardAttachment],
                         flags: MessageFlags.Ephemeral
                     });
                 } else {
                     return interaction.reply({
-                        content: '> 👁️ **Preview Mode** — empty message and welcome card is not active.',
+                        content: s.preview_mode_empty,
                         flags: MessageFlags.Ephemeral
                     });
                 }
@@ -640,7 +634,7 @@ module.exports = new ApplicationCommand({
                 if (cardAttachment) {
                     const cardOnlyEmbed = new EmbedBuilder()
                         .setColor(colorHex)
-                        .setAuthor({ name: '👁️ Preview Mode — not a real welcome message' })
+                        .setAuthor({ name: s.preview_title })
                         .setTimestamp()
                         .setImage('attachment://welcome-card.png');
                     return interaction.reply({
@@ -650,14 +644,14 @@ module.exports = new ApplicationCommand({
                     });
                 }
                 return interaction.reply({
-                    content: '> 👁️ **Preview Mode** — empty message and welcome card is not active.',
+                    content: s.preview_mode_empty,
                     flags: MessageFlags.Ephemeral
                 });
             }
 
             const embed = new EmbedBuilder()
                 .setColor(colorHex)
-                .setAuthor({ name: '👁️ Preview Mode — not a real welcome message' })
+                .setAuthor({ name: s.preview_title })
                 .setTimestamp();
 
             if (parse(cfg.title))       embed.setTitle(parse(cfg.title));
@@ -667,12 +661,12 @@ module.exports = new ApplicationCommand({
             if (cfg.thumbnail)  embed.setThumbnail(member.user.displayAvatarURL({ dynamic: true, size: 256 }));
 
             const fields = [];
-            if (cfg.showMemberNew)     fields.push({ name: '👤 New Member',    value: member.user.tag, inline: true });
-            if (cfg.showAkunDibuat)    fields.push({ name: '📅 Account Created',    value: `<t:${Math.floor(member.user.createdTimestamp / 1000)}:R>`, inline: true });
-            if (cfg.showTotalMember)   fields.push({ name: '👥 Total Members',   value: `**${interaction.guild.memberCount}** members`, inline: true });
-            if (cfg.showDiundangOleh)  fields.push({ name: '📨 Invited By',  value: `${member.user.tag} (example)`, inline: true });
-            if (cfg.showKodeInvite)    fields.push({ name: '🔗 Invite Code',    value: '`abc123` (example)', inline: true });
-            if (cfg.showTotalUndangan) fields.push({ name: '📊 Total Invites', value: '**42** invites (example)', inline: true });
+            if (cfg.showMemberNew)     fields.push({ name: s.field_new_member,      value: member.user.tag, inline: true });
+            if (cfg.showAkunDibuat)    fields.push({ name: s.field_account_created, value: `<t:${Math.floor(member.user.createdTimestamp / 1000)}:R>`, inline: true });
+            if (cfg.showTotalMember)   fields.push({ name: s.field_total_members,   value: `**${interaction.guild.memberCount}**`, inline: true });
+            if (cfg.showDiundangOleh)  fields.push({ name: s.field_invited_by,      value: `${member.user.tag} (example)`, inline: true });
+            if (cfg.showKodeInvite)    fields.push({ name: s.field_invite_code,     value: '`abc123` (example)', inline: true });
+            if (cfg.showTotalUndangan) fields.push({ name: s.field_total_invites,   value: '**42** (example)', inline: true });
             if (fields.length > 0) embed.addFields(...fields);
 
             if (cardAttachment) embed.setImage('attachment://welcome-card.png');
