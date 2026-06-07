@@ -197,29 +197,27 @@ class YouTubeNotifier {
         // WebSub push datang sangat cepat, tunggu sebentar agar thumbnail tersedia.
         await new Promise(r => setTimeout(r, 30_000));
 
-        // Tentukan tipe konten sekali — hasilnya sama untuk semua guild
+        // Cek live LEBIH DULU agar live short tidak salah terdeteksi sebagai short biasa
         let type = 'video';
-        const isShort = await this._isShort(videoId);
-        if (isShort) {
-            type = 'short';
+        const liveInfo = await this._isLive(videoId);
+        if (liveInfo.isUpcoming) {
+            info(`[WebSub] ${videoId} is still upcoming/waiting room, skipping`);
+            return;
+        }
+        if (liveInfo.isLiveContent && !liveInfo.live) {
+            info(`[WebSub] ${videoId} is live content but not yet live (API delay), skipping — live poll will handle`);
+            return;
+        }
+        if (liveInfo.channelId && liveInfo.channelId !== channelId) {
+            warn(`[WebSub] Video ${videoId} does not belong to channel ${channelId} (actual: ${liveInfo.channelId}), skipping`);
+            return;
+        }
+        if (liveInfo.live) {
+            type = 'live';
         } else {
-            const liveInfo = await this._isLive(videoId);
-            // Waiting room / scheduled premiere — abaikan, live poll akan kirim saat benar-benar live
-            if (liveInfo.isUpcoming) {
-                info(`[WebSub] ${videoId} is still upcoming/waiting room, skipping`);
-                return;
-            }
-            // isLiveContent tapi belum live = API YouTube belum update, live poll yang akan handle
-            if (liveInfo.isLiveContent && !liveInfo.live) {
-                info(`[WebSub] ${videoId} is live content but not yet live (API delay), skipping — live poll will handle`);
-                return;
-            }
-            // Verifikasi video memang milik channel yang dipantau
-            if (liveInfo.channelId && liveInfo.channelId !== channelId) {
-                warn(`[WebSub] Video ${videoId} does not belong to channel ${channelId} (actual: ${liveInfo.channelId}), skipping`);
-                return;
-            }
-            if (liveInfo.live) type = 'live';
+            // Bukan live content — baru cek apakah short
+            const isShort = await this._isShort(videoId);
+            if (isShort) type = 'short';
         }
 
         // Untuk short, gunakan URL format /shorts/ agar terbuka di Shorts player
@@ -412,19 +410,17 @@ class YouTubeNotifier {
         const thumbnail = entry.thumbnail || `https://i.ytimg.com/vi/${entry.id}/hqdefault.jpg`;
         const db        = this.client.database;
 
+        // Cek live LEBIH DULU agar live short tidak salah terdeteksi sebagai short biasa
         let type = 'video';
-        const isShort = await this._isShort(entry.id);
-        if (isShort) {
-            type = 'short';
+        const liveInfo = await this._isLive(entry.id);
+        if (liveInfo.isUpcoming) return;
+        if (liveInfo.isLiveContent && !liveInfo.live) return;
+        if (liveInfo.live) {
+            type = 'live';
         } else {
-            // Selalu cek live terlepas dari liveEnabled,
-            // agar live stream tidak terkirim sebagai "Video Baru"
-            const liveInfo = await this._isLive(entry.id);
-            // Waiting room / scheduled premiere — skip, jangan kirim sebagai "Video Baru"
-            if (liveInfo.isUpcoming) return;
-            // isLiveContent tapi belum live = API YouTube belum update, live poll yang akan handle
-            if (liveInfo.isLiveContent && !liveInfo.live) return;
-            if (liveInfo.live) type = 'live';
+            // Bukan live content — baru cek apakah short
+            const isShort = await this._isShort(entry.id);
+            if (isShort) type = 'short';
         }
 
         // Untuk short, gunakan URL format /shorts/
