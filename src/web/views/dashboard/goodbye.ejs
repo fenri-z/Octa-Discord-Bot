@@ -118,32 +118,6 @@
 
                 </div><!-- /embedPanel -->
 
-                <div id="fieldsPanel" class="form-group">
-                    <label class="label" style="margin-bottom:.75rem;"><%= t('common.info_fields') %></label>
-                    <div style="display:flex;flex-direction:column;gap:.6rem;">
-                        <label class="toggle-label">
-                            <input type="checkbox" id="field_member" class="toggle-input field-toggle"
-                                   <%= goodbyeData.showMember ? 'checked' : '' %>>
-                            <span class="toggle-slider"></span><span><%= t('goodbye.field_member') %></span>
-                        </label>
-                        <label class="toggle-label">
-                            <input type="checkbox" id="field_bergabung" class="toggle-input field-toggle"
-                                   <%= goodbyeData.showBergabung ? 'checked' : '' %>>
-                            <span class="toggle-slider"></span><span><%= t('goodbye.field_joined_since') %></span>
-                        </label>
-                        <label class="toggle-label">
-                            <input type="checkbox" id="field_akun_dibuat" class="toggle-input field-toggle"
-                                   <%= goodbyeData.showAkunDibuat ? 'checked' : '' %>>
-                            <span class="toggle-slider"></span><span><%= t('goodbye.field_account_created') %></span>
-                        </label>
-                        <label class="toggle-label">
-                            <input type="checkbox" id="field_total_member" class="toggle-input field-toggle"
-                                   <%= goodbyeData.showTotalMember ? 'checked' : '' %>>
-                            <span class="toggle-slider"></span><span><%= t('goodbye.field_total_members') %></span>
-                        </label>
-                    </div>
-                </div>
-
                 <div class="form-group" style="margin-top:1.5rem;border-top:1px solid var(--border);padding-top:1.25rem;">
                     <label class="label" style="margin-bottom:.75rem;">Goodbye Card</label>
                     <label class="toggle-label">
@@ -598,8 +572,7 @@ function _syncCardPlacement() {
     const isPlain = document.getElementById('typePlain').checked;
     if (isPlain) {
         const plainVal    = (document.getElementById('goodbyePlainText') || {}).value || '';
-        const activeFields = FIELD_DEFS.filter(f => document.getElementById(f.id).checked);
-        const hasContent  = plainVal.trim() || activeFields.length > 0;
+        const hasContent  = !!plainVal.trim();
         wrap.style.display = hasContent ? 'none'  : 'block';
         if (imgEmbed) imgEmbed.style.display = 'none';
         if (imgPlain) imgPlain.style.display = hasContent ? 'block' : 'none';
@@ -723,7 +696,6 @@ function toggleMessageTypePanel() {
     const isPlain = document.getElementById('typePlain').checked;
     document.getElementById('plainTextPanel').style.display = isPlain ? 'block' : 'none';
     document.getElementById('embedPanel').style.display     = isPlain ? 'none'  : 'block';
-    document.getElementById('fieldsPanel').style.display    = 'block';
     updatePreview();
 }
 document.querySelectorAll('input[name="goodbyeMessageType"]').forEach(el => el.addEventListener('change', toggleMessageTypePanel));
@@ -797,14 +769,6 @@ function insertPh(targetId, ph) {
     document.querySelectorAll('.ph-dropdown').forEach(d => d.style.display = 'none');
 }
 
-// ── Field defs ────────────────────────────────────────────────────────────────
-const FIELD_DEFS = [
-    { id: 'field_member',       name: '👤 Member',       value: SAMPLE.username        },
-    { id: 'field_bergabung',    name: '📅 Joined',       value: '2 years ago'          },
-    { id: 'field_akun_dibuat',  name: '📅 Account Created',  value: SAMPLE.akun_dibuat     },
-    { id: 'field_total_member', name: '👥 Total Member', value: SAMPLE.count           },
-];
-
 const CHANNELS  = <%- JSON.stringify(Object.fromEntries((locals.channels || []).map(ch => [ch.id, ch.name]))) %>;
 const ROLES     = <%- JSON.stringify(Object.fromEntries((locals.roles    || []).map(r  => [r.id,  { name: r.name, color: r.color }]))) %>;
 const I18N_NO_CH = '<%= t("common.preview_no_channel") %>';
@@ -822,8 +786,6 @@ function updatePreview() {
     if (isPlain) {
         const plainVal = (document.getElementById('goodbyePlainText') || {}).value || '';
         let plainHtml = resolveHtmlMentions(mdToHtml(resolvePlaceholders(plainVal)));
-        const activeFields = FIELD_DEFS.filter(f => document.getElementById(f.id).checked);
-        if (activeFields.length > 0) { if (plainHtml) plainHtml += '\n'; plainHtml += activeFields.map(f => `<strong>${f.name}:</strong> ${f.value}`).join('\n'); }
         const msgsEl = document.querySelector('.dc-messages');
         if (plainHtml.trim()) {
             document.getElementById('previewPlainMsg').innerHTML = plainHtml;
@@ -839,9 +801,8 @@ function updatePreview() {
 
     const _titleVal = document.getElementById('goodbyeTitle').value.trim();
     const _descVal  = document.getElementById('goodbyeDescription').value.trim();
-    const _hasActiveFields = FIELD_DEFS.some(f => document.getElementById(f.id).checked);
     const _msgsEl = document.querySelector('.dc-messages');
-    if (!_titleVal && !_descVal && !_hasActiveFields) {
+    if (!_titleVal && !_descVal) {
         // Bersihkan semua elemen embed agar konten lama tidak tertinggal
         document.getElementById('previewTitle').innerHTML  = '';
         document.getElementById('previewDesc').innerHTML   = '';
@@ -872,16 +833,6 @@ function updatePreview() {
     const thumbEl = document.getElementById('previewThumb');
     thumbEl.style.display = thumb ? 'block' : 'none';
 
-    const fieldsEl = document.getElementById('previewFields');
-    fieldsEl.innerHTML = '';
-    FIELD_DEFS.forEach(f => {
-        if (document.getElementById(f.id).checked) {
-            const div = document.createElement('div');
-            div.innerHTML = `<div class="dc-field-name">${f.name}</div><div class="dc-field-value">${f.value}</div>`;
-            fieldsEl.appendChild(div);
-        }
-    });
-
     document.getElementById('prevChannelName').textContent = chanId && CHANNELS[chanId] ? CHANNELS[chanId] : I18N_NO_CH;
     const hashEl = document.querySelector('.dc-channel-hash');
     if (hashEl) hashEl.style.color = chanId ? '#dbdee1' : '#80848e';
@@ -895,8 +846,6 @@ function updatePreview() {
         if (el) el.addEventListener('input', updatePreview);
         if (el) el.addEventListener('change', updatePreview);
     });
-document.querySelectorAll('.field-toggle').forEach(el => el.addEventListener('change', updatePreview));
-
 buildPicker('embedPicker', 'embed');
 buildPicker('plainPicker', 'plain');
 // Gambar card selesai dulu sebelum updatePreview (cegah race condition canvas vs imgPlain)
@@ -933,10 +882,6 @@ async function saveGoodbye(guildId) {
         cardUsernameColor:  document.getElementById('cardUsernameColor')?.value.trim()  || '#ED4245',
         cardMsgColor:       document.getElementById('cardMsgColor')?.value.trim()       || '#cccccc',
         cardFont:           document.getElementById('cardFont')?.value                  || 'impact',
-        showMember:      document.getElementById('field_member').checked,
-        showBergabung:   document.getElementById('field_bergabung').checked,
-        showAkunDibuat:  document.getElementById('field_akun_dibuat').checked,
-        showTotalMember: document.getElementById('field_total_member').checked,
     };
     const res  = await fetch(`/api/guild/${guildId}/goodbye`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },

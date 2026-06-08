@@ -15,6 +15,8 @@ const POLL_INTERVAL_MS         = 5 * 60 * 1000;   // Video: 5 menit via RSSHub
 const LIVE_POLL_INTERVAL_MS    = 3 * 60 * 1000;   // Live: 3 menit via WebSocket
 const HEALTH_INTERVAL_MS       = 30 * 60 * 1000;  // Health check: 30 menit
 const HEALTH_FAIL_THRESHOLD    = 3;               // Alert setelah 3x gagal berturut-turut
+const LIVE_FAIL_THRESHOLD      = 3;               // Hapus liveKey setelah 3x gagal (bukan 2x)
+const LIVE_NOTIF_COOLDOWN_MS   = 2 * 60 * 60 * 1000; // Cooldown 2 jam antar notif live
 
 const RSSHUB_BASE = (process.env.RSSHUB_BASE_URL || 'https://rsshub.app').replace(/\/$/, '');
 
@@ -24,6 +26,7 @@ class TikTokNotifier {
         this._pollTimer    = null;
         this._liveTimer    = null;
         this._healthTimer  = null;
+        this._isLiveCache  = new Map(); // username → { result, expiresAt }
     }
 
     // ─── Lifecycle ─────────────────────────────────────────────────────────────
@@ -299,25 +302,32 @@ class TikTokNotifier {
     }
 
     async _checkLive(guild, db, account) {
-        const isLive  = await this._isLive(account.username);
-        const liveKey = `tiktok-liveActive-${guild.id}-${account.username}`;
-        const failKey = `tiktok-liveFail-${guild.id}-${account.username}`;
-        const wasLive = !!db.get(liveKey);
+        const isLive     = await this._isLive(account.username);
+        const liveKey    = `tiktok-liveActive-${guild.id}-${account.username}`;
+        const failKey    = `tiktok-liveFail-${guild.id}-${account.username}`;
+        const notifAtKey = `tiktok-liveNotifAt-${guild.id}-${account.username}`;
+        const wasLive    = !!db.get(liveKey);
 
         if (isLive) {
             db.delete(failKey);
             if (!wasLive) {
+                // Cooldown: jangan kirim ulang jika sudah notif dalam 2 jam terakhir
+                const lastNotif = parseInt(db.get(notifAtKey) || '0', 10);
+                if (Date.now() - lastNotif < LIVE_NOTIF_COOLDOWN_MS) {
+                    db.set(liveKey, String(Date.now())); // tandai live aktif tapi skip notif
+                    return;
+                }
                 db.set(liveKey, String(Date.now()));
+                db.set(notifAtKey, String(Date.now()));
                 info(`[TikTok/Live] LIVE terdeteksi: ${account.username} → ${guild.name}`);
                 await this._sendLiveNotification(guild, account).catch(err =>
                     warn(`[TikTok/Live] Failed to send notification: ${err.message}`)
                 );
             }
         } else if (wasLive) {
-            // Butuh 2x cek berturut-turut gagal sebelum dianggap live berakhir
-            // Mencegah notifikasi duplikat akibat koneksi WebSocket yang tidak stabil
+            // Butuh LIVE_FAIL_THRESHOLD kali gagal berturut-turut sebelum live dianggap berakhir
             const fails = parseInt(db.get(failKey) || '0') + 1;
-            if (fails >= 2) {
+            if (fails >= LIVE_FAIL_THRESHOLD) {
                 db.delete(liveKey);
                 db.delete(failKey);
                 info(`[TikTok/Live] Live berakhir: ${account.username}`);
@@ -328,6 +338,26 @@ class TikTokNotifier {
     }
 
     async _isLive(username) {
+        // Cache hasil per username selama 2 menit — semua guild berbagi hasil yang sama
+        // dan tidak perlu membuka koneksi WebSocket berulang-ulang
+        const cached = this._isLiveCache.get(username);
+        if (cached && cached.expiresAt > Date.now()) return cached.result;
+
+        const result = await this._isLiveRaw(username);
+        this._isLiveCache.set(username, { result, expiresAt: Date.now() + 2 * 60 * 1000 });
+
+        // Bersihkan entry yang sudah expired agar Map tidak tumbuh tak terbatas
+        if (this._isLiveCache.size > 200) {
+            const now = Date.now();
+            for (const [k, v] of this._isLiveCache) {
+                if (v.expiresAt <= now) this._isLiveCache.delete(k);
+            }
+        }
+
+        return result;
+    }
+
+    async _isLiveRaw(username) {
         if (!WebcastPushConnection) return false;
         return new Promise(resolve => {
             let resolved = false;
@@ -370,12 +400,12 @@ class TikTokNotifier {
 
         const embed = new EmbedBuilder()
             .setColor(0x010101)
-            .setTitle(`🎵 ${displayName} — Video Baru!`)
+            .setTitle(`🎵 ${displayName} — New Video!`)
             .setURL(entry.url)
             .setDescription(description)
             .addFields(
-                { name: '🎬 Judul',     value: entry.title || '(tanpa judul)', inline: false },
-                { name: '🔗 Tonton di', value: `[Buka TikTok ▶](${entry.url})`, inline: false },
+                { name: '🎬 Title',     value: entry.title || '(no title)', inline: false },
+                { name: '🔗 Link', value: `[Click Me ▶](${entry.url})`, inline: false },
             );
 
         // Thumbnail profil akun (kecil, pojok kanan)
@@ -409,11 +439,11 @@ class TikTokNotifier {
 
         const embed = new EmbedBuilder()
             .setColor(0xFE2C55)
-            .setTitle(`🔴 ${displayName} is Live Now!`)
+            .setTitle(`🔴 ${displayName} is Live Right Now!`)
             .setURL(liveUrl)
             .setDescription(description)
             .addFields(
-                { name: '🔗 Tonton Live', value: `[Join sekarang ▶](${liveUrl})`, inline: false },
+                { name: '🔗 Link', value: `[Click Me ▶](${liveUrl})`, inline: false },
             );
 
         if (account.thumbnail) {

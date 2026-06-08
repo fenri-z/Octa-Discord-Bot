@@ -316,6 +316,9 @@
             <%
                 const _sub = websubMeta[ytCh.id] || {};
                 const _subStatus = _sub.status;
+                const _defVideoMsg = "Hey, **{channel}** just uploaded a new video on YouTube!\nDon't miss it, watch now! 🎉";
+                const _defShortMsg = "**{channel}** just posted a new Short!\nCheck out their quick video, don't miss out! ⚡";
+                const _defLiveMsg  = "Hey, **{channel}** is **LIVE** on YouTube right now!\nCome join and watch the stream~ 🎉";
             %>
                 <% if (ytCh.thumbnail) { %>
                 <img src="<%= ytCh.thumbnail %>" alt="" class="yt-card-avatar" referrerpolicy="no-referrer"
@@ -384,7 +387,7 @@
                     </div>
                     <div class="form-group">
                         <div class="label-with-picker">
-                            <label class="label" style="margin-bottom:0;"><%= t('youtube.additional_msg') %> <span style="font-weight:400;color:var(--text-muted);"><%= t('giveaway.required_role_hint') %></span></label>
+                            <label class="label" style="margin-bottom:0;"><%= t('youtube.additional_msg') %></label>
                             <div class="ph-picker-anchor">
                                 <button type="button" class="ph-toggle-btn" onclick="togglePicker('ytVideoPicker-<%= ytCh.id %>',event)"><%= t('youtube.placeholder_btn') %></button>
                                 <div class="ph-dropdown" id="ytVideoPicker-<%= ytCh.id %>" style="display:none;"></div>
@@ -392,7 +395,7 @@
                         </div>
                         <textarea class="textarea" id="videoMessage-<%= ytCh.id %>" rows="3"
                                   placeholder="<%- t('youtube.msg_ph_video') %>"
-                                  oninput="updateYtPreview('<%= ytCh.id %>','video')"><%= ytCh.videoMessage %></textarea>
+                                  oninput="updateYtPreview('<%= ytCh.id %>','video')"><%= ytCh.videoMessage || _defVideoMsg %></textarea>
                     </div>
                     <div class="yt-action-row" style="display:flex;justify-content:flex-end;gap:.5rem;padding-top:.25rem;">
                         <button class="btn btn-secondary" onclick="testYtNotif(this,'<%= ytCh.id %>')">
@@ -435,7 +438,7 @@
                     </div>
                     <div class="form-group">
                         <div class="label-with-picker">
-                            <label class="label" style="margin-bottom:0;"><%= t('youtube.additional_msg') %> <span style="font-weight:400;color:var(--text-muted);"><%= t('giveaway.required_role_hint') %></span></label>
+                            <label class="label" style="margin-bottom:0;"><%= t('youtube.additional_msg') %></label>
                             <div class="ph-picker-anchor">
                                 <button type="button" class="ph-toggle-btn" onclick="togglePicker('ytShortPicker-<%= ytCh.id %>',event)"><%= t('youtube.placeholder_btn') %></button>
                                 <div class="ph-dropdown" id="ytShortPicker-<%= ytCh.id %>" style="display:none;"></div>
@@ -443,7 +446,7 @@
                         </div>
                         <textarea class="textarea" id="shortMessage-<%= ytCh.id %>" rows="3"
                                   placeholder="<%- t('youtube.msg_ph_short') %>"
-                                  oninput="updateYtPreview('<%= ytCh.id %>','short')"><%= ytCh.shortMessage %></textarea>
+                                  oninput="updateYtPreview('<%= ytCh.id %>','short')"><%= ytCh.shortMessage || _defShortMsg %></textarea>
                     </div>
                     <div class="yt-action-row" style="display:flex;justify-content:flex-end;gap:.5rem;padding-top:.25rem;">
                         <button class="btn btn-secondary" onclick="testYtNotif(this,'<%= ytCh.id %>')">
@@ -485,7 +488,7 @@
                     </div>
                     <div class="form-group">
                         <div class="label-with-picker">
-                            <label class="label" style="margin-bottom:0;"><%= t('youtube.additional_msg') %> <span style="font-weight:400;color:var(--text-muted);"><%= t('giveaway.required_role_hint') %></span></label>
+                            <label class="label" style="margin-bottom:0;"><%= t('youtube.additional_msg') %></label>
                             <div class="ph-picker-anchor">
                                 <button type="button" class="ph-toggle-btn" onclick="togglePicker('ytLivePicker-<%= ytCh.id %>',event)"><%= t('youtube.placeholder_btn') %></button>
                                 <div class="ph-dropdown" id="ytLivePicker-<%= ytCh.id %>" style="display:none;"></div>
@@ -493,7 +496,7 @@
                         </div>
                         <textarea class="textarea" id="liveMessage-<%= ytCh.id %>" rows="3"
                                   placeholder="<%- t('youtube.msg_ph_live') %>"
-                                  oninput="updateYtPreview('<%= ytCh.id %>','live')"><%= ytCh.liveMessage %></textarea>
+                                  oninput="updateYtPreview('<%= ytCh.id %>','live')"><%= ytCh.liveMessage || _defLiveMsg %></textarea>
                     </div>
                     <div class="yt-action-row" style="display:flex;justify-content:flex-end;gap:.5rem;padding-top:.25rem;">
                         <button class="btn btn-secondary" onclick="testYtNotif(this,'<%= ytCh.id %>')">
@@ -632,6 +635,8 @@ function discordMd(raw) {
     s = s.replace(/~~(.+?)~~/g, '<s>$1</s>');
     // Inline code
     s = s.replace(/`([^`]+)`/g, '<code style="background:rgba(255,255,255,.07);padding:0 4px;border-radius:3px;font-size:.83em;font-family:monospace">$1</code>');
+    // Masked links [text](url)
+    s = s.replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, '<a href="$2" onclick="return false;" style="color:#00b0f4;text-decoration:none">$1</a>');
     // URLs sebagai link
     s = s.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" style="color:#00b0f4;text-decoration:none">$1</a>');
     // Blockquote
@@ -650,8 +655,8 @@ function updateYtPreview(chId, type) {
     // Channel Discord name
     const chSelect = document.getElementById(`${type}Channel-${chId}`);
     const chName   = chSelect?.selectedIndex > 0
-        ? (chSelect.options[chSelect.selectedIndex].textContent || 'pilih-channel')
-        : 'pilih-channel';
+        ? (chSelect.options[chSelect.selectedIndex].textContent || 'select-channel').replace(/^#/, '')
+        : 'select-channel';
     prevEl.querySelector('.yt-prev-ch-name').textContent = chName;
 
     // Custom message dengan Discord markdown
@@ -662,9 +667,9 @@ function updateYtPreview(chId, type) {
     const rawMsg    = msgArea?.value?.trim() || '';
 
     const defaultDescs = {
-        video: I18N_YT_DEF_VIDEO.replace('{ytChName}', ytChName),
-        short: I18N_YT_DEF_SHORT.replace('{ytChName}', ytChName),
-        live:  I18N_YT_DEF_LIVE.replace('{ytChName}', ytChName),
+        video: `Hey, **${ytChName}** just uploaded a new video on YouTube!\nDon't miss it, watch now! 🎉`,
+        short: `**${ytChName}** just posted a new Short!\nCheck out their quick video, don't miss out! ⚡`,
+        live:  `Hey, **${ytChName}** is **LIVE** on YouTube right now!\nCome join and watch the stream~ 🎉`,
     };
 
     if (rawMsg) {
@@ -677,7 +682,7 @@ function updateYtPreview(chId, type) {
         if (defaultEl) defaultEl.style.display = 'none';
     } else {
         if (customEl)  customEl.style.display = 'none';
-        if (defaultEl) { defaultEl.innerHTML = defaultDescs[type] || ''; defaultEl.style.display = ''; }
+        if (defaultEl) { defaultEl.innerHTML = discordMd(defaultDescs[type] || ''); defaultEl.style.display = ''; }
     }
 
     // Update warna pill sesuai tipe

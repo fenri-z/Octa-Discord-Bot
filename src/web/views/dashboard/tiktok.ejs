@@ -84,8 +84,6 @@
 
 /* ── Account card ────────────────────────────────────────────────────────── */
 .tt-channel-card {
-    background: var(--card-bg, #1e1f22);
-    border: 1px solid var(--border, rgba(255,255,255,.06));
     border-radius: 10px; padding: 1.1rem; margin-bottom: 1.25rem;
 }
 .tt-card-header {
@@ -288,7 +286,7 @@
                         <span id="ttStatusText" style="font-size:.83rem;color:#FE2C55;font-weight:600;"></span>
                         <span class="tt-dot-row"><span></span><span></span><span></span></span>
                     </div>
-                    <div style="font-size:.74rem;color:var(--text-muted);margin-top:.15rem;">This process may take a moment, please wait</div>
+                    <div style="font-size:.74rem;color:var(--text-muted);margin-top:.15rem;"><%= t('tiktok.searching_wait') %></div>
                 </div>
             </div>
 
@@ -419,7 +417,7 @@
                         </div>
                         <div class="form-group" style="margin-bottom:0;">
                             <div class="label-with-picker">
-                                <label class="label" style="margin-bottom:0;"><%= t('tiktok.additional_msg') %> <span style="font-weight:400;color:var(--text-muted);"><%= t('giveaway.required_role_hint') %></span></label>
+                                <label class="label" style="margin-bottom:0;"><%= t('tiktok.additional_msg') %></label>
                                 <div class="ph-picker-anchor">
                                     <button type="button" class="ph-toggle-btn" onclick="togglePicker('vidPicker-<%= key %>',event)">{…} Placeholder</button>
                                     <div class="ph-dropdown" id="vidPicker-<%= key %>" style="display:none;"></div>
@@ -427,9 +425,9 @@
                             </div>
                             <textarea class="textarea" rows="3" id="vidMessage-<%= key %>"
                                       style="font-size:.82rem;"
-                                      placeholder="🎵 {account} baru upload video! Tonton: {url}"
+                                      placeholder="🎵 {account} just uploaded a video! Watch: {url}"
                                       oninput="updatePreview('<%= key %>')"
-                            ><%= acc.videoMessage||'' %></textarea>
+                            ><%= acc.videoMessage || "**{account}** just posted a new video on TikTok!\nDon't miss it, watch now! 🎉" %></textarea>
                         </div>
                     </div>
 
@@ -461,7 +459,7 @@
                         </div>
                         <div class="form-group" style="margin-bottom:0;">
                             <div class="label-with-picker">
-                                <label class="label" style="margin-bottom:0;"><%= t('tiktok.additional_msg') %> <span style="font-weight:400;color:var(--text-muted);"><%= t('giveaway.required_role_hint') %></span></label>
+                                <label class="label" style="margin-bottom:0;"><%= t('tiktok.additional_msg') %></label>
                                 <% if (liveSupported) { %>
                                 <div class="ph-picker-anchor">
                                     <button type="button" class="ph-toggle-btn" onclick="togglePicker('livePicker-<%= key %>',event)">{…} Placeholder</button>
@@ -474,7 +472,7 @@
                                       placeholder="🔴 {account} is LIVE on TikTok! {url}"
                                       <%= !liveSupported?'disabled':'' %>
                                       oninput="updatePreview('<%= key %>')"
-                            ><%= acc.liveMessage||'' %></textarea>
+                            ><%= acc.liveMessage || "Hey, **{account}** is **LIVE** on TikTok right now!\nCome join and watch the stream~ 🎉" %></textarea>
                         </div>
                     </div>
 
@@ -496,7 +494,7 @@
                     <div class="dc-window">
                         <div class="dc-channel-bar">
                             <span class="dc-channel-hash">#</span>
-                            <span id="prevCh-<%= key %>">pilih-channel</span>
+                            <span id="prevCh-<%= key %>"><%= ((locals.channels||[]).find(c=>c.id===acc.videoChannelId)||{}).name || 'select-channel' %></span>
                         </div>
                         <div class="dc-messages">
                             <div class="dc-message">
@@ -523,11 +521,11 @@
                                                     </div>
                                                     <div class="dc-embed-field">
                                                         <div class="dc-field-name">🎬 Title</div>
-                                                        <div class="dc-field-value" style="color:#dbdee1;">(judul video TikTok)</div>
+                                                        <div class="dc-field-value" style="color:#dbdee1;">[TEST] Example Video Notification from <%= acc.name||acc.username %></div>
                                                     </div>
                                                     <div class="dc-embed-field">
-                                                        <div class="dc-field-name">🔗 Tonton di</div>
-                                                        <div class="dc-field-value">Buka TikTok ▶</div>
+                                                        <div class="dc-field-name">🔗 Link</div>
+                                                        <div class="dc-field-value">Click Me ▶</div>
                                                     </div>
                                                 </div>
                                                 <% if (acc.thumbnail) { %>
@@ -555,11 +553,11 @@
                                                 <div style="flex:1;min-width:0;">
                                                     <div class="dc-embed-title" style="color:#FE2C55;">🔴 <%= acc.name||acc.username %> is Live Now!</div>
                                                     <div class="dc-embed-desc" id="prevLiveDesc-<%= key %>">
-                                                        Hey, <strong><%= acc.name||acc.username %></strong> lagi <strong>LIVE</strong> di TikTok sekarang!<br>Yuk, join dan saksikan streamnya~ 🎉
+                                                        Hey, <strong><%= acc.name||acc.username %></strong> is <strong>LIVE</strong> on TikTok right now!<br>Come join and watch the stream~ 🎉
                                                     </div>
                                                     <div class="dc-embed-field">
-                                                        <div class="dc-field-name">🔗 Tonton Live</div>
-                                                        <div class="dc-field-value">Join sekarang ▶</div>
+                                                        <div class="dc-field-name">🔗 Link</div>
+                                                        <div class="dc-field-value">Click Me ▶</div>
                                                     </div>
                                                 </div>
                                                 <% if (acc.thumbnail) { %>
@@ -603,6 +601,16 @@ const I18N_TT_CONFIRM_DEL  = '<%= t("tiktok.confirm_delete") %>';
 const I18N_TT_ERR_VIDEO_CH = '<%= t("tiktok.err_no_video_channel") %>';
 const I18N_TT_ERR_LIVE_CH  = '<%= t("tiktok.err_no_live_channel") %>';
 const I18N_TT_SEARCH_BTN   = '<%= t("tiktok.search_btn") %>';
+const I18N_TT_SEARCHING    = '<%= t("tiktok.searching") %>';
+const I18N_TT_TIP_1        = '<%= t("tiktok.tip_1") %>';
+const I18N_TT_TIP_2        = '<%= t("tiktok.tip_2") %>';
+const I18N_TT_TIP_3        = '<%= t("tiktok.tip_3") %>';
+const I18N_TT_TIP_4        = '<%= t("tiktok.tip_4") %>';
+const I18N_TT_ERR_CONN     = '<%= t("tiktok.err_conn") %>';
+const I18N_TT_ERR_CONNECT  = '<%= t("tiktok.err_connect") %>';
+const I18N_TT_SENDING_TEST = '<%= t("tiktok.sending_test") %>';
+const I18N_TT_THUMB_OK     = '<%= t("tiktok.thumbnail_updated") %>';
+const I18N_TT_PREV_NO_CH   = '<%= t("common.preview_no_channel") %>';
 
 // ── Lookup ────────────────────────────────────────────────────────────────────
 let _lookupData = null;
@@ -625,15 +633,10 @@ async function lookupTikTok() {
 
     // Loading state
     btn.disabled   = true;
-    btn.innerHTML  = '<span class="tt-spinner"></span> Mencari...';
+    btn.innerHTML  = `<span class="tt-spinner"></span> ${I18N_TT_SEARCHING}`;
 
     // Status bar
-    const tips = [
-        'Mencari akun TikTok',
-        'Memverifikasi akun',
-        'Mengambil info profil',
-        'Hampir selesai',
-    ];
+    const tips = [I18N_TT_TIP_1, I18N_TT_TIP_2, I18N_TT_TIP_3, I18N_TT_TIP_4];
     let tipIdx = 0;
     const statusTextEl = document.getElementById('ttStatusText');
     if (statusTextEl) statusTextEl.textContent = tips[0];
@@ -663,7 +666,7 @@ async function lookupTikTok() {
         document.getElementById('ttLookupUsername').textContent = _lookupData.username;
         resEl.style.display = 'block';
     } catch (err) {
-        if (msgEl) showMsg(msgEl, 'Gagal terhubung ke server: ' + err.message, 'error', true);
+        if (msgEl) showMsg(msgEl, I18N_TT_ERR_CONN + err.message, 'error', true);
     } finally {
         clearInterval(tipTimer);
         statusEl.style.display   = 'none';
@@ -685,6 +688,27 @@ async function addAccount() {
     else alert(data.message);
 }
 
+// ── Discord Markdown renderer ──────────────────────────────────────────────────
+function discordMd(raw) {
+    if (!raw) return '';
+    let s = raw.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    s = s.replace(/^### (.+)$/gm, '<span style="font-size:.88em;font-weight:700;line-height:1.6;display:block">$1</span>');
+    s = s.replace(/^## (.+)$/gm,  '<span style="font-size:1em;font-weight:700;line-height:1.75;display:block">$1</span>');
+    s = s.replace(/^# (.+)$/gm,   '<span style="font-size:1.15em;font-weight:700;line-height:2;display:block">$1</span>');
+    s = s.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
+    s = s.replace(/\*\*(.+?)\*\*/g,     '<strong>$1</strong>');
+    s = s.replace(/\*([^*\n]+?)\*/g,    '<em>$1</em>');
+    s = s.replace(/_([^_\n]+?)_/g,      '<em>$1</em>');
+    s = s.replace(/__([^_\n]+?)__/g,    '<u>$1</u>');
+    s = s.replace(/~~(.+?)~~/g,         '<s>$1</s>');
+    s = s.replace(/`([^`]+)`/g, '<code style="background:rgba(255,255,255,.07);padding:0 4px;border-radius:3px;font-size:.83em;font-family:monospace">$1</code>');
+    s = s.replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, '<a href="$2" onclick="return false;" style="color:#00b0f4;text-decoration:none">$1</a>');
+    s = s.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" style="color:#00b0f4;text-decoration:none">$1</a>');
+    s = s.replace(/^&gt; (.+)$/gm, '<span style="border-left:3px solid #4e5058;padding-left:.5em;color:#b5bac1;display:block">$1</span>');
+    s = s.replace(/\n/g, '<br>');
+    return s;
+}
+
 // ── Tab switching ─────────────────────────────────────────────────────────────
 function switchTab(key, tab) {
     const isVideo = tab === 'video';
@@ -703,7 +727,7 @@ function switchTab(key, tab) {
 // ── Update preview ────────────────────────────────────────────────────────────
 function updatePreview(key) {
     const chanId  = document.getElementById(`vidChannel-${key}`)?.value || '';
-    document.getElementById(`prevCh-${key}`).textContent = chanId && CHANNELS[chanId] ? CHANNELS[chanId] : 'pilih-channel';
+    document.getElementById(`prevCh-${key}`).textContent = chanId && CHANNELS[chanId] ? CHANNELS[chanId] : I18N_TT_PREV_NO_CH;
 
     // Ambil nama akun dari header card
     const accName = document.getElementById(`ttCard-${key}`)?.querySelector('.tt-card-name')?.textContent?.trim() || key;
@@ -711,7 +735,7 @@ function updatePreview(key) {
     const ph = s => s
         .replace(/{account}/g,  accName)
         .replace(/{username}/g, '@' + key)
-        .replace(/{title}/g,    '(judul video)')
+        .replace(/{title}/g,    '(Video Title)')
         .replace(/{url}/g,      'https://tiktok.com/...')
         .replace(/{id}/g,       '0000000000');
 
@@ -720,7 +744,7 @@ function updatePreview(key) {
     const videoDescEl = document.getElementById(`prevVideoDesc-${key}`);
     if (videoDescEl) {
         if (videoMsg) {
-            videoDescEl.innerHTML = ph(videoMsg).replace(/\n/g, '<br>');
+            videoDescEl.innerHTML = discordMd(ph(videoMsg));
         } else {
             videoDescEl.innerHTML = `<strong>${accName}</strong> just posted a new video on TikTok!<br>Don't miss it, watch now! 🎉`;
         }
@@ -731,7 +755,7 @@ function updatePreview(key) {
     const liveDescEl = document.getElementById(`prevLiveDesc-${key}`);
     if (liveDescEl) {
         if (liveMsg) {
-            liveDescEl.innerHTML = ph(liveMsg).replace(/\n/g, '<br>');
+            liveDescEl.innerHTML = discordMd(ph(liveMsg));
         } else {
             liveDescEl.innerHTML = `Hey, <strong>${accName}</strong> is <strong>LIVE</strong> on TikTok right now!<br>Come join and watch the stream~ 🎉`;
         }
@@ -783,7 +807,7 @@ async function testNotif(username, key) {
     const msgEl = document.getElementById(`msg-${key}`);
     const btn   = document.getElementById(`testBtn-${key}`);
     const tab   = btn?.dataset.tab || 'video';
-    showMsg(msgEl, `Mengirim test ${tab}...`, 'info');
+    showMsg(msgEl, I18N_TT_SENDING_TEST, 'info');
     const r    = await fetch(`/api/guild/${GUILD_ID}/tiktok/accounts/${encodeURIComponent(username)}/test`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ type: tab }),
@@ -804,7 +828,7 @@ async function refreshThumbnail(username, btn) {
         const r    = await fetch(`/api/guild/${GUILD_ID}/tiktok/accounts/${encodeURIComponent(username)}/refresh-thumbnail`, { method: 'POST' });
         const data = await r.json();
         if (data.success) {
-            showMsg(msgEl, 'Thumbnail updated.', 'success');
+            showMsg(msgEl, I18N_TT_THUMB_OK, 'success');
             // Update semua gambar profil akun ini di halaman
             if (data.thumbnail) {
                 document.querySelectorAll(`img[data-tt-thumb="${username}"]`).forEach(img => {
@@ -816,7 +840,7 @@ async function refreshThumbnail(username, btn) {
             showMsg(msgEl, data.message, 'error');
         }
     } catch {
-        showMsg(msgEl, 'Gagal terhubung ke server.', 'error');
+        showMsg(msgEl, I18N_TT_ERR_CONNECT, 'error');
     } finally {
         btn.disabled  = false;
         btn.innerHTML = orig;

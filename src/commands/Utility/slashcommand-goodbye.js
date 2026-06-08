@@ -55,11 +55,6 @@ function getConfig(client, guildId) {
         cardUsernameColor:  client.database.get(`goodbye-cardUsernameColor-${guildId}`)  ?? '',
         cardMsgColor:       client.database.get(`goodbye-cardMsgColor-${guildId}`)       ?? '#cccccc',
         cardFont:           client.database.get(`goodbye-cardFont-${guildId}`)           ?? 'impact',
-        // ── Toggle per-field ────────────────────────────────────────────
-        showMember:      getBool(client, `goodbye-showMember-${guildId}`,      false),
-        showBergabung:   getBool(client, `goodbye-showBergabung-${guildId}`,   false),
-        showAkunDibuat:  getBool(client, `goodbye-showAkunDibuat-${guildId}`,  false),
-        showTotalMember: getBool(client, `goodbye-showTotalMember-${guildId}`, false),
     };
 }
 
@@ -112,26 +107,6 @@ module.exports = new ApplicationCommand({
                 description: 'Show or hide the member profile picture in the embed.',
                 type: 1,
                 options: [{ name: 'show', description: 'true = show, false = hide', type: 5, required: true }]
-            },
-            {
-                name: 'fields',
-                description: 'Enable or disable info fields in the embed.',
-                type: 1,
-                options: [
-                    {
-                        name: 'field',
-                        description: 'Choose the field to toggle',
-                        type: 3,
-                        required: true,
-                        choices: [
-                            { name: '👤 Member',       value: 'member'       },
-                            { name: '📅 Joined',    value: 'bergabung'    },
-                            { name: '📅 Account Created',  value: 'akun_dibuat'  },
-                            { name: '👥 Total Members', value: 'total_member' },
-                        ]
-                    },
-                    { name: 'show', description: 'true = show, false = hide', type: 5, required: true }
-                ]
             },
             {
                 name: 'card',
@@ -188,12 +163,8 @@ module.exports = new ApplicationCommand({
                     { name: s.field_description,     value: `\`${cfg.description}\``,                                             inline: false },
                     { name: s.field_plain_text,      value: cfg.plainText  ? `\`${cfg.plainText.slice(0, 100)}\`` : s.val_none,   inline: false },
                     { name: s.field_card,            value: cfg.cardEnabled ? c.enabled : c.disabled,                             inline: true  },
-                    { name: s.field_footer,          value: cfg.footerText  ? `\`${cfg.footerText}\`` : s.val_none,               inline: false },
-                    { name: s.field_thumbnail,       value: cfg.thumbnail       ? on : off, inline: true },
-                    { name: s.field_member,          value: cfg.showMember      ? on : off, inline: true },
-                    { name: s.field_joined,          value: cfg.showBergabung   ? on : off, inline: true },
-                    { name: s.field_account_created, value: cfg.showAkunDibuat  ? on : off, inline: true },
-                    { name: s.field_total_members,   value: cfg.showTotalMember ? on : off, inline: true },
+                    { name: s.field_footer,    value: cfg.footerText ? `\`${cfg.footerText}\`` : s.val_none, inline: false },
+                    { name: s.field_thumbnail, value: cfg.thumbnail  ? on : off, inline: true },
                 )
                 .setFooter({ text: s.status_footer })
                 .setTimestamp();
@@ -334,25 +305,6 @@ module.exports = new ApplicationCommand({
             });
         }
 
-        // ── FIELDS ────────────────────────────────────────────────────────
-        if (sub === 'fields') {
-            const field = interaction.options.getString('field');
-            const val   = interaction.options.getBoolean('show');
-            const fieldMap = {
-                member:       { key: `goodbye-showMember-${guildId}`,      label: s.field_member          },
-                bergabung:    { key: `goodbye-showBergabung-${guildId}`,    label: s.field_joined          },
-                akun_dibuat:  { key: `goodbye-showAkunDibuat-${guildId}`,   label: s.field_account_created },
-                total_member: { key: `goodbye-showTotalMember-${guildId}`,  label: s.field_total_members   },
-            };
-            const target = fieldMap[field];
-            if (!target) return interaction.reply({ content: s.invalid_field, flags: MessageFlags.Ephemeral });
-            setBool(client, target.key, val);
-            return interaction.reply({
-                content: val ? s.field_show(target.label) : s.field_hide(target.label),
-                flags: MessageFlags.Ephemeral
-            });
-        }
-
         // ── CARD ─────────────────────────────────────────────────────────
         if (sub === 'card') {
             const action = interaction.options.getString('action');
@@ -442,8 +394,7 @@ module.exports = new ApplicationCommand({
             ['enabled', 'channel', 'messageType', 'plainText', 'title', 'description', 'color', 'footer', 'thumbnail',
              'cardEnabled', 'cardBgColor', 'cardBgColor2', 'cardAccent', 'cardTextColor', 'cardWelcomeText', 'cardSubText',
              'cardAvatarShape', 'cardBgType', 'cardBgImageUrl', 'cardOverlayColor', 'cardOverlayOpacity',
-             'cardTitleColor', 'cardUsernameColor', 'cardMsgColor', 'cardFont',
-             'showMember', 'showBergabung', 'showAkunDibuat', 'showTotalMember']
+             'cardTitleColor', 'cardUsernameColor', 'cardMsgColor', 'cardFont']
                 .forEach(k => client.database.delete(`goodbye-${k}-${guildId}`));
             return interaction.reply({ content: s.reset_done, flags: MessageFlags.Ephemeral });
         }
@@ -507,14 +458,7 @@ module.exports = new ApplicationCommand({
 
             // Plain text mode
             if (cfg.messageType === 'plain') {
-                let content = parse(cfg.plainText).trim();
-                const infoLines = [];
-                if (cfg.showMember)      infoLines.push(s.preview_member(member.user.tag));
-                if (cfg.showBergabung)   infoLines.push(s.preview_joined(`<t:${Math.floor(member.joinedTimestamp / 1000)}:R>`));
-                if (cfg.showAkunDibuat)  infoLines.push(s.preview_account(`<t:${Math.floor(member.user.createdTimestamp / 1000)}:R>`));
-                if (cfg.showTotalMember) infoLines.push(s.preview_members(interaction.guild.memberCount));
-                if (infoLines.length > 0) content += (content ? '\n' : '') + infoLines.join('\n');
-                content = content.trim();
+                const content = parse(cfg.plainText).trim();
                 if (content || cardAttachment) {
                     const payload = { flags: MessageFlags.Ephemeral };
                     payload.content = `${s.preview_mode}${content ? '\n' + content : ''}`;
@@ -525,10 +469,9 @@ module.exports = new ApplicationCommand({
             }
 
             // Embed mode
-            const hasText   = cfg.title.trim() || cfg.description.trim();
-            const hasFields = cfg.showMember || cfg.showBergabung || cfg.showAkunDibuat || cfg.showTotalMember;
+            const hasText = cfg.title.trim() || cfg.description.trim();
 
-            if (!hasText && !hasFields && !cardAttachment) {
+            if (!hasText && !cardAttachment) {
                 return interaction.reply({ content: s.preview_mode_empty, flags: MessageFlags.Ephemeral });
             }
 
@@ -539,15 +482,8 @@ module.exports = new ApplicationCommand({
 
             if (parseTitle(cfg.title))  embed.setTitle(parseTitle(cfg.title));
             if (parse(cfg.description)) embed.setDescription(parse(cfg.description));
-            if (cfg.footerText)         embed.setFooter({ text: parseTitle(cfg.footerText) });
-            if (cfg.thumbnail)          embed.setThumbnail(member.user.displayAvatarURL({ dynamic: true, size: 256 }));
-
-            const fields = [];
-            if (cfg.showMember)      fields.push({ name: s.field_member,          value: member.user.tag, inline: true });
-            if (cfg.showBergabung)   fields.push({ name: s.field_joined,          value: member.joinedTimestamp ? `<t:${Math.floor(member.joinedTimestamp / 1000)}:R>` : '`Unknown`', inline: true });
-            if (cfg.showAkunDibuat)  fields.push({ name: s.field_account_created, value: `<t:${Math.floor(member.user.createdTimestamp / 1000)}:R>`, inline: true });
-            if (cfg.showTotalMember) fields.push({ name: s.field_total_members,   value: `**${interaction.guild.memberCount}**`, inline: true });
-            if (fields.length > 0) embed.addFields(...fields);
+            if (cfg.footerText) embed.setFooter({ text: parseTitle(cfg.footerText) });
+            if (cfg.thumbnail)  embed.setThumbnail(member.user.displayAvatarURL({ dynamic: true, size: 256 }));
             if (cardAttachment) embed.setImage('attachment://goodbye-card.png');
 
             const payload = { embeds: [embed], flags: MessageFlags.Ephemeral };

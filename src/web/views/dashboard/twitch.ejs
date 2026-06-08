@@ -44,11 +44,11 @@
 .dc-embed-author { display:flex; align-items:center; gap:.4rem; margin-bottom:.3rem; }
 .dc-embed-author img { width:18px;height:18px;border-radius:50%; }
 .dc-embed-author span { font-size:.78rem;font-weight:600;color:#dbdee1; }
-.dc-embed-title  { font-size: .88rem; font-weight: 700; color: #9146FF; word-break: break-word; margin-bottom: .25rem; }
+.dc-embed-title  { font-size: .88rem; font-weight: 700; color: #00b0f4; word-break: break-word; margin-bottom: .25rem; }
 .dc-embed-desc   { font-size: .8rem; color: #dbdee1; line-height: 1.4; }
 .dc-embed-field  { margin-top: .4rem; }
 .dc-field-name   { font-size: .72rem; font-weight: 700; color: #dbdee1; }
-.dc-field-value  { font-size: .78rem; color: #9146FF; }
+.dc-field-value  { font-size: .78rem; color: #00b0f4; }
 .dc-embed-thumb  { width:64px;height:64px;border-radius:4px;object-fit:cover;flex-shrink:0;margin:.55rem .55rem .55rem 0;align-self:flex-start; }
 .tw-thumb-mock {
     border-radius: 4px; overflow: hidden;
@@ -57,8 +57,6 @@
 
 /* ── Account card ────────────────────────────────────────────────────────── */
 .tw-channel-card {
-    background: var(--card-bg, #1e1f22);
-    border: 1px solid var(--border, rgba(255,255,255,.06));
     border-radius: 10px; padding: 1.1rem; margin-bottom: 1.25rem;
 }
 .tw-card-header {
@@ -185,7 +183,7 @@
         <!-- Stats -->
         <div class="stats-grid tw-stats-grid" style="margin-bottom:1.5rem;">
             <div class="stat-card">
-                <div class="stat-icon" style="color:#9146FF;background:rgba(145,70,255,.15);">
+                <div class="stat-icon" style="color:#9146FF;">
                     <svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"/></svg>
                 </div>
                 <div class="stat-info">
@@ -194,7 +192,7 @@
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon" style="color:#57F287;background:rgba(87,242,135,.15);">
+                <div class="stat-icon" style="color:#57F287;">
                     <i data-lucide="radio"></i>
                 </div>
                 <div class="stat-info">
@@ -203,7 +201,7 @@
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon" style="color:#80848e;background:rgba(128,132,142,.12);">
+                <div class="stat-icon" style="color:#80848e;">
                     <i data-lucide="list"></i>
                 </div>
                 <div class="stat-info">
@@ -276,7 +274,7 @@
                         <div id="twLookupLogin" style="font-size:.78rem;color:var(--text-muted);"></div>
                     </div>
                     <button class="btn btn-success" onclick="addStreamer()" style="flex-shrink:0;">
-                        <i data-lucide="plus" style="width:14px;height:14px;"></i> Add
+                        <i data-lucide="plus" style="width:14px;height:14px;"></i> <%= t('twitch.add_btn') %>
                     </button>
                 </div>
             </div>
@@ -354,7 +352,7 @@
                     </div>
                     <div class="form-group" style="margin-bottom:0;">
                         <div class="label-with-picker">
-                            <label class="label" style="margin-bottom:0;"><%= t('twitch.custom_msg_label') %> <span style="font-weight:400;color:var(--text-muted);"><%= t('common.footer_optional') %></span></label>
+                            <label class="label" style="margin-bottom:0;"><%= t('twitch.custom_msg_label') %></label>
                             <div class="ph-picker-anchor">
                                 <button type="button" class="ph-toggle-btn" onclick="togglePicker('twPicker-<%= acc.userId %>',event)">{…} Placeholder</button>
                                 <div class="ph-dropdown" id="twPicker-<%= acc.userId %>" style="display:none;"></div>
@@ -362,9 +360,8 @@
                         </div>
                         <textarea class="textarea" rows="3" id="twMessage-<%= acc.userId %>"
                                   style="font-size:.82rem;"
-                                  placeholder="🔴 {account} is LIVE! Playing {game} — {url}"
                                   oninput="updatePreview('<%= acc.userId %>')"
-                        ><%= acc.message||'' %></textarea>
+                        ><%= acc.message || "Hey, **{account}** is **LIVE** on Twitch right now!\nCome join and watch the stream~ 🎉" %></textarea>
                     </div>
 
                     <!-- Tombol aksi -->
@@ -385,7 +382,7 @@
                     <div class="dc-window">
                         <div class="dc-channel-bar">
                             <span class="dc-channel-hash">#</span>
-                            <span id="prevCh-<%= acc.userId %>"><%= t('twitch.preview_no_channel') %></span>
+                            <span id="prevCh-<%= acc.userId %>"><%= ((locals.channels||[]).find(c=>c.id===acc.channelId)||{}).name || 'select-channel' %></span>
                         </div>
                         <div class="dc-messages">
                             <div class="dc-message">
@@ -398,7 +395,7 @@
                                     </span>
                                     <span class="dc-timestamp">Today at 12:00 PM</span>
 
-                                    <!-- Embed preview (struktur sama dengan YouTube) -->
+                                    <!-- Embed preview -->
                                     <div id="prev-<%= acc.userId %>" class="dc-embed" style="max-width:100%;">
                                         <div style="width:4px;flex-shrink:0;background:#9146FF;"></div>
                                         <div class="dc-embed-inner" style="flex:1;min-width:0;">
@@ -406,23 +403,21 @@
                                             <!-- Baris judul + thumbnail profil (kanan) -->
                                             <div style="display:flex;align-items:flex-start;gap:.5rem;">
                                                 <div style="flex:1;min-width:0;">
-                                                    <div class="dc-embed-author">
-                                                        <% if (acc.thumbnail) { %>
-                                                        <img src="<%= acc.thumbnail %>" referrerpolicy="no-referrer" onerror="this.style.display='none'">
-                                                        <% } %>
-                                                        <span><%= acc.displayName||acc.login %> <%= t('twitch.preview_live_on') %></span>
+                                                    <div class="dc-embed-title">
+                                                        🔴 <%= acc.displayName||acc.login %> is Live Now!
                                                     </div>
-                                                    <div class="dc-embed-title" id="prevTitle-<%= acc.userId %>">
-                                                        <%= t('twitch.preview_stream_title') %>
-                                                    </div>
-                                                    <div class="dc-embed-desc" id="prevDesc-<%= acc.userId %>"></div>
+                                                    <div class="dc-embed-desc" id="prevDesc-<%= acc.userId %>" style="margin-bottom:.35rem;font-size:.8rem;color:#dbdee1;line-height:1.4;"></div>
                                                     <div class="dc-embed-field">
-                                                        <div class="dc-field-name">🎮 Game</div>
+                                                        <div class="dc-field-name">🎙️ Stream Title</div>
+                                                        <div class="dc-field-value">[TEST] Example Live Notification</div>
+                                                    </div>
+                                                    <div class="dc-embed-field">
+                                                        <div class="dc-field-name">🎮 Category</div>
                                                         <div class="dc-field-value" style="color:#dbdee1;">Just Chatting</div>
                                                     </div>
                                                     <div class="dc-embed-field">
-                                                        <div class="dc-field-name"><%= t('twitch.preview_field_watch') %></div>
-                                                        <div class="dc-field-value" style="color:#9146FF;"><%= t('twitch.preview_open_twitch') %></div>
+                                                        <div class="dc-field-name">🔗 Link</div>
+                                                        <div class="dc-field-value">Click Me ▶</div>
                                                     </div>
                                                 </div>
                                                 <% if (acc.thumbnail) { %>
@@ -591,15 +586,36 @@ async function removeStreamer(userId, name) {
     else alert(data.message);
 }
 
+// ── Discord Markdown renderer ──────────────────────────────────────────────────
+function discordMd(raw) {
+    if (!raw) return '';
+    let s = raw.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    s = s.replace(/^### (.+)$/gm, '<span style="font-size:.88em;font-weight:700;line-height:1.6;display:block">$1</span>');
+    s = s.replace(/^## (.+)$/gm,  '<span style="font-size:1em;font-weight:700;line-height:1.75;display:block">$1</span>');
+    s = s.replace(/^# (.+)$/gm,   '<span style="font-size:1.15em;font-weight:700;line-height:2;display:block">$1</span>');
+    s = s.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
+    s = s.replace(/\*\*(.+?)\*\*/g,     '<strong>$1</strong>');
+    s = s.replace(/\*([^*\n]+?)\*/g,    '<em>$1</em>');
+    s = s.replace(/_([^_\n]+?)_/g,      '<em>$1</em>');
+    s = s.replace(/__([^_\n]+?)__/g,    '<u>$1</u>');
+    s = s.replace(/~~(.+?)~~/g,         '<s>$1</s>');
+    s = s.replace(/`([^`]+)`/g, '<code style="background:rgba(255,255,255,.07);padding:0 4px;border-radius:3px;font-size:.83em;font-family:monospace">$1</code>');
+    s = s.replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, '<a href="$2" onclick="return false;" style="color:#00b0f4;text-decoration:none">$1</a>');
+    s = s.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" style="color:#00b0f4;text-decoration:none">$1</a>');
+    s = s.replace(/^&gt; (.+)$/gm, '<span style="border-left:3px solid #4e5058;padding-left:.5em;color:#b5bac1;display:block">$1</span>');
+    s = s.replace(/\n/g, '<br>');
+    return s;
+}
+
 // ── Update preview ────────────────────────────────────────────────────────────
 function updatePreview(userId) {
     const chanId = document.getElementById(`twChannel-${userId}`)?.value || '';
     document.getElementById(`prevCh-${userId}`).textContent = chanId && CHANNELS[chanId] ? CHANNELS[chanId] : I18N_TW_NO_CH;
 
-    const accName  = document.getElementById(`twCard-${userId}`)?.querySelector('.tw-card-name')?.textContent?.trim() || userId;
-    const msgRaw   = (document.getElementById(`twMessage-${userId}`)?.value || '').trim();
-    const descEl   = document.getElementById(`prevDesc-${userId}`);
-    if (descEl && msgRaw) {
+    const accName = document.getElementById(`twCard-${userId}`)?.querySelector('.tw-card-name')?.textContent?.trim() || userId;
+    const msgRaw  = (document.getElementById(`twMessage-${userId}`)?.value || '').trim();
+    const descEl  = document.getElementById(`prevDesc-${userId}`);
+    if (descEl) {
         const ph = s => s
             .replace(/{account}/g,  accName)
             .replace(/{login}/g,    userId)
@@ -607,9 +623,8 @@ function updatePreview(userId) {
             .replace(/{game}/g,     'Just Chatting')
             .replace(/{title}/g,    I18N_TW_STREAM_TITLE)
             .replace(/{viewers}/g,  '1234');
-        descEl.innerHTML = ph(msgRaw).replace(/\n/g, '<br>');
-    } else if (descEl) {
-        descEl.innerHTML = '';
+        const defaultDesc = `Hey, <strong>${accName}</strong> is <strong>LIVE</strong> on Twitch right now!<br>Come join and watch the stream~ 🎉`;
+        descEl.innerHTML = msgRaw ? discordMd(ph(msgRaw)) : defaultDesc;
     }
 }
 
@@ -664,6 +679,7 @@ function insertPh(targetId, ph) {
 
 // Init
 buildPickers();
+document.querySelectorAll('[id^="twMessage-"]').forEach(el => updatePreview(el.id.replace('twMessage-', '')));
 document.getElementById('twLookupInput')?.addEventListener('keydown', e => { if (e.key === 'Enter') lookupTwitch(); });
 </script>
 

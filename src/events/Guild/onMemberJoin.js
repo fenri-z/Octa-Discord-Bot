@@ -54,14 +54,6 @@ module.exports = new Event({
         const cardFont         = __client__.database.get(`welcome-cardFont-${guild.id}`)         ?? 'impact';
         const plainText        = __client__.database.get(`welcome-plainText-${guild.id}`)     ?? '';
         const thumbnail        = getBool(__client__, `welcome-thumbnail-${guild.id}`,          false);
-        // ── Toggle per-field ─────────────────────────────────────────────
-        const showMemberNew    = getBool(__client__, `welcome-showMemberNew-${guild.id}`,      false);
-        const showAkunDibuat   = getBool(__client__, `welcome-showAkunDibuat-${guild.id}`,     false);
-        const showTotalMember  = getBool(__client__, `welcome-showTotalMember-${guild.id}`,    false);
-        const showDiundangOleh = getBool(__client__, `welcome-showDiundangOleh-${guild.id}`,   false);
-        const showKodeInvite   = getBool(__client__, `welcome-showKodeInvite-${guild.id}`,     false);
-        const showTotalUndangan= getBool(__client__, `welcome-showTotalUndangan-${guild.id}`,  false);
-
         // ── Cari channel sambutan ─────────────────────────────────────────
         const welcomeChannel =
             (channelId && guild.channels.cache.get(channelId)) ||
@@ -160,17 +152,7 @@ module.exports = new Event({
 
         // ── Kirim pesan sesuai tipe ───────────────────────────────────────
         if (messageType === 'plain') {
-            // Mode teks biasa — field info ditulis sebagai baris teks di bawah pesan
             let content = parse(plainText).trim();
-            const infoLines = [];
-            if (showMemberNew)     infoLines.push(`👤 **New Member:** ${member.user.tag}`);
-            if (showAkunDibuat)    infoLines.push(`📅 **Account Created:** <t:${Math.floor(member.user.createdTimestamp / 1000)}:R>`);
-            if (showTotalMember)   infoLines.push(`👥 **Total Members:** ${totalMembers} member(s)`);
-            if (showDiundangOleh)  infoLines.push(`📨 **Diundang Oleh:** ${inviter ? inviter.tag : 'Unknown'}`);
-            if (showKodeInvite)    infoLines.push(`🔗 **Kode Invite:** ${usedInvite ? `\`${usedInvite.code}\`` : 'Unknown'}`);
-            if (showTotalUndangan) infoLines.push(`📊 **Total Invites:** ${inviter ? `${inviterTotalUses} invite(s)` : '-'}`);
-            if (infoLines.length > 0) content += (content ? '\n' : '') + infoLines.join('\n');
-
             if (content) {
                 const plainPayload = { content, allowedMentions: { users: [member.id] } };
                 if (cardAttachment) plainPayload.files = [cardAttachment];
@@ -182,9 +164,8 @@ module.exports = new Event({
             // Mode embed (default)
             const colorHex = color.startsWith('#') ? color : `#${color}`;
             const hasText   = title.trim() || description.trim();
-            const hasFields = showMemberNew || showAkunDibuat || showTotalMember || showDiundangOleh || showKodeInvite || showTotalUndangan;
 
-            if (!hasText && !hasFields) {
+            if (!hasText) {
                 if (cardAttachment) {
                     const cardOnlyEmbed = new EmbedBuilder().setColor(colorHex).setImage('attachment://welcome-card.png');
                     await welcomeChannel.send({ embeds: [cardOnlyEmbed], files: [cardAttachment] }).catch(() => null);
@@ -198,16 +179,6 @@ module.exports = new Event({
 
             if (footerText) embed.setFooter({ text: parseTitle(footerText) });
             if (thumbnail)  embed.setThumbnail(member.user.displayAvatarURL({ dynamic: true, size: 256 }));
-
-            // ── Tambahkan field secara kondisional ────────────────────────
-            const fields = [];
-            if (showMemberNew)     fields.push({ name: '👤 New Member',    value: member.user.tag, inline: true });
-            if (showAkunDibuat)    fields.push({ name: '📅 Account Created',    value: `<t:${Math.floor(member.user.createdTimestamp / 1000)}:R>`, inline: true });
-            if (showTotalMember)   fields.push({ name: '👥 Total Members',   value: `**${totalMembers}** member(s)`, inline: true });
-            if (showDiundangOleh)  fields.push({ name: '📨 Invited By',  value: inviter ? inviter.tag : '`Unknown`', inline: true });
-            if (showKodeInvite)    fields.push({ name: '🔗 Invite Code',    value: usedInvite ? `\`${usedInvite.code}\`` : '`Unknown`', inline: true });
-            if (showTotalUndangan) fields.push({ name: '📊 Total Invites', value: inviter ? `**${inviterTotalUses}** invite(s)` : '`-`', inline: true });
-            if (fields.length > 0) embed.addFields(...fields);
             if (cardAttachment) embed.setImage('attachment://welcome-card.png');
 
             const embedPayload = { embeds: [embed] };

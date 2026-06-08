@@ -39,11 +39,20 @@ class YouTubeNotifier {
         this._secret   = process.env.YOUTUBE_WEBSUB_SECRET || '';
         this._baseUrl  = (process.env.BASE_URL || '').replace(/\/$/, '');
         this._useWebSub = !!this._baseUrl;
+        this._apiKey   = process.env.YOUTUBE_API_KEY || '';
+        // Cache hasil _isLive() selama 2 menit — cegah duplikat call antar guild untuk videoId sama
+        this._liveCache = new Map(); // videoId → { result, expiresAt }
     }
 
     // ─── Lifecycle ─────────────────────────────────────────────────────────────
 
     start() {
+        if (this._apiKey) {
+            info('[YouTube] YouTube Data API v3 aktif — deteksi live lebih akurat.');
+        } else {
+            warn('[YouTube] YOUTUBE_API_KEY tidak di-set — menggunakan InnerTube (kurang akurat). Set YOUTUBE_API_KEY di .env.');
+        }
+
         if (this._useWebSub) {
             info('[YouTube] WebSub aktif (notifikasi instan) + RSS fallback 30 menit + live poll 3 menit.');
             setTimeout(() => this._subscribeAll(), 5_000);
@@ -185,7 +194,7 @@ class YouTubeNotifier {
 
         const channelId   = channelIdM[1];
         const videoId     = videoIdM[1];
-        const title       = titleM       ? this._decodeXml(titleM[1])       : 'Video Baru';
+        const title       = titleM       ? this._decodeXml(titleM[1])       : 'New Video';
         const thumbnail   = thumbM       ? thumbM[1]
                            : `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
         const channelName = channelNameM ? this._decodeXml(channelNameM[1]) : channelId;
@@ -456,7 +465,80 @@ class YouTubeNotifier {
 
     // Mengembalikan { live: boolean, isUpcoming: boolean, isLiveContent: boolean, channelId: string|null }
     async _isLive(videoId) {
-        // Primary: InnerTube API — lebih andal, tidak kena bot-detection YouTube
+        // Cek cache dulu — cegah duplikat call antar guild untuk videoId yang sama
+        const cached = this._liveCache.get(videoId);
+        if (cached && cached.expiresAt > Date.now()) return cached.result;
+
+        let result;
+        // Primary: YouTube Data API v3 (resmi, akurat, 1 unit quota per call)
+        if (this._apiKey) {
+            try {
+                result = await this._isLiveViaAPI(videoId);
+            } catch (err) {
+                warn(`[YouTube] API v3 error untuk ${videoId}: ${err.message} — fallback ke InnerTube`);
+            }
+        }
+        // Fallback: InnerTube (tidak resmi, tidak butuh key)
+        if (!result) result = await this._isLiveViaInnerTube(videoId);
+
+        // Simpan ke cache — TTL 2 menit (sedikit kurang dari interval live poll 3 menit)
+        this._liveCache.set(videoId, { result, expiresAt: Date.now() + 2 * 60 * 1000 });
+        // Bersihkan entry cache yang sudah expired agar tidak membengkak
+        if (this._liveCache.size > 100) {
+            const now = Date.now();
+            for (const [key, val] of this._liveCache) {
+                if (val.expiresAt <= now) this._liveCache.delete(key);
+            }
+        }
+        return result;
+    }
+
+    async _isLiveViaAPI(videoId) {
+        const url = `https://www.googleapis.com/youtube/v3/videos?part=snippet,liveStreamingDetails&id=${encodeURIComponent(videoId)}&key=${encodeURIComponent(this._apiKey)}`;
+        const res = await fetch(url, { signal: AbortSignal.timeout(10_000) });
+
+        if (res.status === 403) {
+            const body = await res.json().catch(() => ({}));
+            // Quota habis → throw agar fallback ke InnerTube, tapi warn lebih spesifik
+            if (body?.error?.errors?.[0]?.reason === 'quotaExceeded') {
+                warn('[YouTube] API v3 quota habis hari ini — fallback ke InnerTube sampai besok.');
+            }
+            throw new Error(`HTTP 403: ${body?.error?.message || 'Forbidden'}`);
+        }
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+        const data = await res.json();
+        if (data.error) throw new Error(data.error.message);
+
+        const item      = data.items?.[0];
+        if (!item) return { live: false, isUpcoming: false, isLiveContent: false, channelId: null };
+
+        const lbc            = item.snippet?.liveBroadcastContent; // "live" | "upcoming" | "none"
+        const channelId      = item.snippet?.channelId || null;
+        const hasActualStart = !!item.liveStreamingDetails?.actualStartTime;
+
+        // "live" = sedang siaran sekarang
+        if (lbc === 'live') {
+            return { live: true, isUpcoming: false, isLiveContent: true, channelId };
+        }
+        // actualStartTime ada tapi lbc belum update = stream sudah dimulai
+        if (hasActualStart && lbc !== 'upcoming') {
+            return { live: true, isUpcoming: false, isLiveContent: true, channelId };
+        }
+        // "upcoming" = waiting room / scheduled
+        if (lbc === 'upcoming') {
+            return { live: false, isUpcoming: true, isLiveContent: true, channelId };
+        }
+        // liveStreamingDetails ada tapi belum live = live content, API delay
+        if (item.liveStreamingDetails) {
+            return { live: false, isUpcoming: false, isLiveContent: true, channelId };
+        }
+        // Video biasa
+        return { live: false, isUpcoming: false, isLiveContent: false, channelId };
+    }
+
+    async _isLiveViaInnerTube(videoId) {
+        // InnerTube API — tidak resmi, tidak butuh key
         try {
             const res = await fetch('https://www.youtube.com/youtubei/v1/player', {
                 method: 'POST',
@@ -469,45 +551,33 @@ class YouTubeNotifier {
                 },
                 body: JSON.stringify({
                     videoId,
-                    context: {
-                        client: {
-                            clientName:    'WEB',
-                            clientVersion: '2.20231121.09.00',
-                            hl: 'en', gl: 'US',
-                        },
-                    },
+                    context: { client: { clientName: 'WEB', clientVersion: '2.20231121.09.00', hl: 'en', gl: 'US' } },
                 }),
                 signal: AbortSignal.timeout(10_000),
             });
 
             if (res.ok) {
-                const data           = await res.json();
-                const details        = data?.videoDetails;
-                const channelId      = details?.channelId || null;
-                const isLiveContent  = details?.isLiveContent === true;
-                const isUpcoming     = details?.isUpcoming === true;
-                const hasDashUrl     = !!data?.streamingData?.dashManifestUrl;
+                const data          = await res.json();
+                const details       = data?.videoDetails;
+                const channelId     = details?.channelId || null;
+                const isLiveContent = details?.isLiveContent === true;
+                const isUpcoming    = details?.isUpcoming === true;
+                const hasDashUrl    = !!data?.streamingData?.dashManifestUrl;
 
-                // isLive:true = sedang live sekarang (bukan upcoming, bukan VOD)
                 if (details?.isLive === true) {
                     return { live: true, isUpcoming: false, isLiveContent: true, channelId };
                 }
-                // dashManifestUrl tersedia = stream sudah benar-benar aktif, override isUpcoming
-                // (YouTube kadang masih return isUpcoming:true padahal stream sudah berjalan)
                 if (isLiveContent && hasDashUrl) {
                     return { live: true, isUpcoming: false, isLiveContent: true, channelId };
                 }
-                // Waiting room / scheduled premiere — belum dimulai
                 if (isUpcoming) {
                     return { live: false, isUpcoming: true, isLiveContent: true, channelId };
                 }
-                // isLiveContent:true tapi isLive belum true = live baru saja dimulai, API belum update
-                // Kembalikan isLiveContent agar caller bisa skip (biarkan live poll yang handle)
                 return { live: false, isUpcoming: false, isLiveContent, channelId };
             }
-        } catch { /* jatuh ke fallback */ }
+        } catch { /* jatuh ke scrape */ }
 
-        // Fallback: scrape halaman watch
+        // Last resort: scrape halaman watch
         try {
             const res = await fetch(`https://www.youtube.com/watch?v=${videoId}`, {
                 signal: AbortSignal.timeout(10_000), headers: BROWSER_HEADERS,
@@ -515,13 +585,10 @@ class YouTubeNotifier {
             if (!res.ok) return { live: false, isUpcoming: false, isLiveContent: false, channelId: null };
             const html = await res.text();
 
-            // Cegah false-positive: waiting room memiliki "isUpcoming":true di HTML
-            if (html.includes('"isUpcoming":true')) {
-                return { live: false, isUpcoming: true, isLiveContent: true, channelId: null };
-            }
-            if (html.includes('"isLive":true'))    return { live: true, isUpcoming: false, isLiveContent: true, channelId: null };
-            if (html.includes('"isLiveNow":true')) return { live: true, isUpcoming: false, isLiveContent: true, channelId: null };
-            if (html.includes('"isLiveContent":true')) return { live: false, isUpcoming: false, isLiveContent: true, channelId: null };
+            if (html.includes('"isUpcoming":true'))     return { live: false, isUpcoming: true,  isLiveContent: true,  channelId: null };
+            if (html.includes('"isLive":true'))         return { live: true,  isUpcoming: false, isLiveContent: true,  channelId: null };
+            if (html.includes('"isLiveNow":true'))      return { live: true,  isUpcoming: false, isLiveContent: true,  channelId: null };
+            if (html.includes('"isLiveContent":true'))  return { live: false, isUpcoming: false, isLiveContent: true,  channelId: null };
             return { live: false, isUpcoming: false, isLiveContent: false, channelId: null };
         } catch { return { live: false, isUpcoming: false, isLiveContent: false, channelId: null }; }
     }
@@ -629,9 +696,9 @@ class YouTubeNotifier {
         const titles = {
             video: `📹 ${data.channel} — New Video!`,
             short: `🎬 ${data.channel} — New Short!`,
-            live:  `🔴 ${data.channel} is Live Now!`,
+            live:  `🔴 ${data.channel} is Live Right Now!`,
         };
-        const fields = { video: '🎬 Judul Video', short: '🎬 Judul Short', live: '🎙️ Judul Stream' };
+        const fields = { video: '🎬 Video Title', short: '🎬 Short Title', live: '🎙️ Stream Title' };
         const colors = { video: 0xFF0000, short: 0xFF6B35, live: 0xCC0000 };
 
         // Default description menarik jika user tidak isi pesan tambahan
@@ -654,7 +721,7 @@ class YouTubeNotifier {
 
         embed.addFields(
             { name: fields[type], value: `[${data.title}](${data.url})`, inline: false },
-            { name: '🔗 Link',    value: `[Tonton sekarang ▶](${data.url})`, inline: false },
+            { name: '🔗 Link',    value: `[Click Me ▶](${data.url})`, inline: false },
         );
         if (data.thumbnail) embed.setImage(data.thumbnail);
 

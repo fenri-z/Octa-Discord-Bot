@@ -56,13 +56,6 @@ function getConfig(client, guildId) {
         cardUsernameColor:  client.database.get(`welcome-cardUsernameColor-${guildId}`)  ?? '',
         cardMsgColor:       client.database.get(`welcome-cardMsgColor-${guildId}`)       ?? '#cccccc',
         cardFont:           client.database.get(`welcome-cardFont-${guildId}`)           ?? 'impact',
-        // ── Toggle per-field ────────────────────────────────────────────
-        showMemberNew:     getBool(client, `welcome-showMemberNew-${guildId}`,      false),
-        showAkunDibuat:    getBool(client, `welcome-showAkunDibuat-${guildId}`,     false),
-        showTotalMember:   getBool(client, `welcome-showTotalMember-${guildId}`,    false),
-        showDiundangOleh:  getBool(client, `welcome-showDiundangOleh-${guildId}`,   false),
-        showKodeInvite:    getBool(client, `welcome-showKodeInvite-${guildId}`,     false),
-        showTotalUndangan: getBool(client, `welcome-showTotalUndangan-${guildId}`,  false),
     };
 }
 
@@ -118,28 +111,6 @@ module.exports = new ApplicationCommand({
                 description: 'Show or hide the member profile picture in the embed.',
                 type: 1,
                 options: [{ name: 'show', description: 'true = show, false = hide', type: 5, required: true }]
-            },
-            {
-                name: 'fields',
-                description: 'Enable or disable info fields in the embed (member & inviter).',
-                type: 1,
-                options: [
-                    {
-                        name: 'field',
-                        description: 'Choose the field to toggle',
-                        type: 3,
-                        required: true,
-                        choices: [
-                            { name: '👤 New Member',    value: 'member_baru'    },
-                            { name: '📅 Account Created',    value: 'akun_dibuat'    },
-                            { name: '👥 Total Members',   value: 'total_member'   },
-                            { name: '📨 Invited By',  value: 'diundang_oleh'  },
-                            { name: '🔗 Invite Code',    value: 'kode_invite'    },
-                            { name: '📊 Total Invites', value: 'total_undangan' },
-                        ]
-                    },
-                    { name: 'show', description: 'true = show, false = hide', type: 5, required: true }
-                ]
             },
             {
                 name: 'card',
@@ -210,13 +181,7 @@ module.exports = new ApplicationCommand({
                     { name: s.field_plain_text,       value: `\`${cfg.plainText}\``,                                               inline: false },
                     { name: s.field_card,             value: cfg.cardEnabled ? c.enabled : c.disabled,                             inline: true  },
                     { name: s.field_footer,           value: cfg.footerText  ? `\`${cfg.footerText}\`` : s.val_none,               inline: false },
-                    { name: s.field_thumbnail,        value: cfg.thumbnail          ? on : off, inline: true  },
-                    { name: s.field_new_member,       value: cfg.showMemberNew      ? on : off, inline: true  },
-                    { name: s.field_account_created,  value: cfg.showAkunDibuat     ? on : off, inline: true  },
-                    { name: s.field_total_members,    value: cfg.showTotalMember    ? on : off, inline: true  },
-                    { name: s.field_invited_by,       value: cfg.showDiundangOleh   ? on : off, inline: true  },
-                    { name: s.field_invite_code,      value: cfg.showKodeInvite     ? on : off, inline: true  },
-                    { name: s.field_total_invites,    value: cfg.showTotalUndangan  ? on : off, inline: true  },
+                    { name: s.field_thumbnail,        value: cfg.thumbnail ? on : off, inline: true },
                 )
                 .setFooter({ text: s.status_footer })
                 .setTimestamp();
@@ -356,30 +321,6 @@ module.exports = new ApplicationCommand({
             setBool(client, `welcome-thumbnail-${guildId}`, val);
             return interaction.reply({
                 content: val ? s.thumbnail_on : s.thumbnail_off,
-                flags: MessageFlags.Ephemeral
-            });
-        }
-
-        // ── FIELDS ────────────────────────────────────────────────────────
-        if (sub === 'fields') {
-            const field = interaction.options.getString('field');
-            const val   = interaction.options.getBoolean('show');
-
-            const fieldMap = {
-                member_baru:    { key: `welcome-showMemberNew-${guildId}`,     label: s.field_new_member      },
-                akun_dibuat:    { key: `welcome-showAkunDibuat-${guildId}`,    label: s.field_account_created },
-                total_member:   { key: `welcome-showTotalMember-${guildId}`,   label: s.field_total_members   },
-                diundang_oleh:  { key: `welcome-showDiundangOleh-${guildId}`,  label: s.field_invited_by      },
-                kode_invite:    { key: `welcome-showKodeInvite-${guildId}`,    label: s.field_invite_code     },
-                total_undangan: { key: `welcome-showTotalUndangan-${guildId}`, label: s.field_total_invites   },
-            };
-
-            const target = fieldMap[field];
-            if (!target) return interaction.reply({ content: s.invalid_field, flags: MessageFlags.Ephemeral });
-
-            setBool(client, target.key, val);
-            return interaction.reply({
-                content: val ? s.field_show(target.label) : s.field_hide(target.label),
                 flags: MessageFlags.Ephemeral
             });
         }
@@ -538,8 +479,8 @@ module.exports = new ApplicationCommand({
         if (sub === 'reset') {
             ['enabled', 'channel', 'messageType', 'plainText', 'title', 'description', 'color', 'footer', 'thumbnail',
              'cardEnabled', 'cardBgColor', 'cardBgColor2', 'cardAccent', 'cardTextColor', 'cardWelcomeText', 'cardUserPrefix', 'cardSubText',
-             'showMemberNew', 'showAkunDibuat', 'showTotalMember',
-             'showDiundangOleh', 'showKodeInvite', 'showTotalUndangan']
+             'cardAvatarShape', 'cardBgType', 'cardBgImageUrl', 'cardOverlayColor', 'cardOverlayOpacity',
+             'cardTitleColor', 'cardUsernameColor', 'cardMsgColor', 'cardFont']
                 .forEach(k => client.database.delete(`welcome-${k}-${guildId}`));
             return interaction.reply({ content: s.reset_done, flags: MessageFlags.Ephemeral });
         }
@@ -593,17 +534,7 @@ module.exports = new ApplicationCommand({
 
             // Plain text mode
             if (cfg.messageType === 'plain') {
-                let content = parse(cfg.plainText).trim();
-                const infoLines = [];
-                if (cfg.showMemberNew)     infoLines.push(s.preview_new_member(member.user.tag));
-                if (cfg.showAkunDibuat)    infoLines.push(s.preview_account(`<t:${Math.floor(member.user.createdTimestamp / 1000)}:R>`));
-                if (cfg.showTotalMember)   infoLines.push(s.preview_members(interaction.guild.memberCount));
-                if (cfg.showDiundangOleh)  infoLines.push(s.preview_invited(member.user.tag));
-                if (cfg.showKodeInvite)    infoLines.push(s.preview_inv_code);
-                if (cfg.showTotalUndangan) infoLines.push(s.preview_inv_total);
-                if (infoLines.length > 0) content += (content ? '\n' : '') + infoLines.join('\n');
-                content = content.trim();
-
+                const content = parse(cfg.plainText).trim();
                 if (content) {
                     const payload = {
                         content: `${s.preview_mode}\n${content}`,
@@ -626,11 +557,9 @@ module.exports = new ApplicationCommand({
             }
 
             // Embed mode
-            const hasText   = cfg.title.trim() || cfg.description.trim();
-            const hasFields = cfg.showMemberNew || cfg.showAkunDibuat || cfg.showTotalMember
-                           || cfg.showDiundangOleh || cfg.showKodeInvite || cfg.showTotalUndangan;
+            const hasText = cfg.title.trim() || cfg.description.trim();
 
-            if (!hasText && !hasFields) {
+            if (!hasText) {
                 if (cardAttachment) {
                     const cardOnlyEmbed = new EmbedBuilder()
                         .setColor(colorHex)
@@ -659,16 +588,6 @@ module.exports = new ApplicationCommand({
 
             if (cfg.footerText) embed.setFooter({ text: parse(cfg.footerText) });
             if (cfg.thumbnail)  embed.setThumbnail(member.user.displayAvatarURL({ dynamic: true, size: 256 }));
-
-            const fields = [];
-            if (cfg.showMemberNew)     fields.push({ name: s.field_new_member,      value: member.user.tag, inline: true });
-            if (cfg.showAkunDibuat)    fields.push({ name: s.field_account_created, value: `<t:${Math.floor(member.user.createdTimestamp / 1000)}:R>`, inline: true });
-            if (cfg.showTotalMember)   fields.push({ name: s.field_total_members,   value: `**${interaction.guild.memberCount}**`, inline: true });
-            if (cfg.showDiundangOleh)  fields.push({ name: s.field_invited_by,      value: `${member.user.tag} (example)`, inline: true });
-            if (cfg.showKodeInvite)    fields.push({ name: s.field_invite_code,     value: '`abc123` (example)', inline: true });
-            if (cfg.showTotalUndangan) fields.push({ name: s.field_total_invites,   value: '**42** (example)', inline: true });
-            if (fields.length > 0) embed.addFields(...fields);
-
             if (cardAttachment) embed.setImage('attachment://welcome-card.png');
 
             const payload = { embeds: [embed], flags: MessageFlags.Ephemeral };

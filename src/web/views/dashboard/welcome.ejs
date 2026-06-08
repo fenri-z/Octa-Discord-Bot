@@ -118,42 +118,6 @@
 
                 </div><!-- /embedPanel -->
 
-                <div id="fieldsPanel" class="form-group">
-                    <label class="label" style="margin-bottom:.75rem;"><%= t('common.info_fields') %></label>
-                    <div style="display:flex;flex-direction:column;gap:.6rem;">
-                        <label class="toggle-label">
-                            <input type="checkbox" id="field_member_baru" class="toggle-input field-toggle"
-                                   <%= welcomeData.showMemberNew ? 'checked' : '' %>>
-                            <span class="toggle-slider"></span><span><%= t('welcome.field_new_member') %></span>
-                        </label>
-                        <label class="toggle-label">
-                            <input type="checkbox" id="field_akun_dibuat" class="toggle-input field-toggle"
-                                   <%= welcomeData.showAkunDibuat ? 'checked' : '' %>>
-                            <span class="toggle-slider"></span><span><%= t('welcome.field_account_created') %></span>
-                        </label>
-                        <label class="toggle-label">
-                            <input type="checkbox" id="field_total_member" class="toggle-input field-toggle"
-                                   <%= welcomeData.showTotalMember ? 'checked' : '' %>>
-                            <span class="toggle-slider"></span><span><%= t('welcome.field_total_members') %></span>
-                        </label>
-                        <label class="toggle-label">
-                            <input type="checkbox" id="field_diundang_oleh" class="toggle-input field-toggle"
-                                   <%= welcomeData.showDiundangOleh ? 'checked' : '' %>>
-                            <span class="toggle-slider"></span><span><%= t('welcome.field_invited_by') %></span>
-                        </label>
-                        <label class="toggle-label">
-                            <input type="checkbox" id="field_kode_invite" class="toggle-input field-toggle"
-                                   <%= welcomeData.showKodeInvite ? 'checked' : '' %>>
-                            <span class="toggle-slider"></span><span><%= t('welcome.field_invite_code') %></span>
-                        </label>
-                        <label class="toggle-label">
-                            <input type="checkbox" id="field_total_undangan" class="toggle-input field-toggle"
-                                   <%= welcomeData.showTotalUndangan ? 'checked' : '' %>>
-                            <span class="toggle-slider"></span><span><%= t('welcome.field_total_invites') %></span>
-                        </label>
-                    </div>
-                </div>
-
                 <div class="form-group" style="margin-top:1.5rem;border-top:1px solid var(--border);padding-top:1.25rem;">
                     <label class="label" style="margin-bottom:.75rem;"><%= t('welcome.card_section') %></label>
                     <label class="toggle-label">
@@ -866,8 +830,7 @@ function _syncCardPlacement() {
     if (isPlain) {
         // Plain mode: card menyatu di bawah teks jika pesan tidak kosong
         const plainVal    = (document.getElementById('welcomePlainText') || {}).value || '';
-        const activeFields = FIELD_DEFS.filter(f => document.getElementById(f.id).checked);
-        const hasContent  = plainVal.trim() || activeFields.length > 0;
+        const hasContent  = !!plainVal.trim();
 
         wrap.style.display = hasContent ? 'none'  : 'block';
         if (imgEmbed) imgEmbed.style.display = 'none';
@@ -1158,16 +1121,6 @@ function insertPh(targetId, ph) {
     el.dispatchEvent(new Event('input'));
     document.querySelectorAll('.ph-dropdown').forEach(d => d.style.display = 'none');
 }
-// ── Fields sample data ─────────────────────────────────────────────────────
-const FIELD_DEFS = [
-    { id: 'field_member_baru',    name: '👤 New Member',        value: SAMPLE.displayName   },
-    { id: 'field_akun_dibuat',    name: '📅 Account Created',   value: '3 years ago'        },
-    { id: 'field_total_member',   name: '👥 Total Members',     value: SAMPLE.count         },
-    { id: 'field_diundang_oleh',  name: '📨 Invited By',        value: 'OctaUser#1234'      },
-    { id: 'field_kode_invite',    name: '🔗 Invite Code',       value: 'abc123'             },
-    { id: 'field_total_undangan', name: '📊 Total Invites',     value: '5 people'           },
-];
-
 // ── Channels map untuk preview nama channel ────────────────────────────────
 const CHANNELS = <%- JSON.stringify(
     Object.fromEntries((locals.channels || []).map(ch => [ch.id, ch.name]))
@@ -1198,12 +1151,6 @@ function updatePreview() {
         const plainVal = (document.getElementById('welcomePlainText') || {}).value || '';
         let plainHtml = resolveHtmlMentions(mdToHtml(resolvePlaceholders(plainVal)));
 
-        const activeFields = FIELD_DEFS.filter(f => document.getElementById(f.id).checked);
-        if (activeFields.length > 0) {
-            if (plainHtml) plainHtml += '\n';
-            plainHtml += activeFields.map(f => `<strong>${f.name}:</strong> ${f.value}`).join('\n');
-        }
-
         const msgsEl = document.querySelector('.dc-messages');
         if (plainHtml.trim()) {
             document.getElementById('previewPlainMsg').innerHTML = plainHtml;
@@ -1222,10 +1169,9 @@ function updatePreview() {
     // Cek apakah embed punya konten untuk ditampilkan
     const _titleVal = document.getElementById('welcomeTitle').value.trim();
     const _descVal  = document.getElementById('welcomeDescription').value.trim();
-    const _hasActiveFields = FIELD_DEFS.some(f => document.getElementById(f.id).checked);
     const _msgsEl = document.querySelector('.dc-messages');
 
-    if (!_titleVal && !_descVal && !_hasActiveFields) {
+    if (!_titleVal && !_descVal) {
         // Bersihkan semua elemen embed agar konten lama tidak tertinggal
         document.getElementById('previewTitle').innerHTML  = '';
         document.getElementById('previewDesc').innerHTML   = '';
@@ -1268,17 +1214,6 @@ function updatePreview() {
     const thumbEl = document.getElementById('previewThumb');
     thumbEl.style.display = thumb ? 'block' : 'none';
 
-    // Fields (hanya auto-fields; custom fields sudah masuk ke deskripsi)
-    const fieldsEl = document.getElementById('previewFields');
-    fieldsEl.innerHTML = '';
-    FIELD_DEFS.forEach(f => {
-        if (document.getElementById(f.id).checked) {
-            const div = document.createElement('div');
-            div.innerHTML = `<div class="dc-field-name">${f.name}</div><div class="dc-field-value">${f.value}</div>`;
-            fieldsEl.appendChild(div);
-        }
-    });
-
     // Channel name
     const chanName = chanId && CHANNELS[chanId] ? CHANNELS[chanId] : I18N_NO_CH;
     document.getElementById('prevChannelName').textContent = chanName;
@@ -1297,10 +1232,6 @@ function updatePreview() {
         if (el) el.addEventListener('input', updatePreview);
         if (el) el.addEventListener('change', updatePreview);
     });
-
-document.querySelectorAll('.field-toggle').forEach(el =>
-    el.addEventListener('change', updatePreview)
-);
 
 buildPicker('embedPicker', 'embed');
 buildPicker('plainPicker', 'plain');
@@ -1338,12 +1269,6 @@ async function saveWelcome(guildId) {
         cardUsernameColor:  document.getElementById('cardUsernameColor')?.value.trim() || '#5865F2',
         cardMsgColor:       document.getElementById('cardMsgColor')?.value.trim()      || '#cccccc',
         cardFont:           document.getElementById('cardFont')?.value                 || 'impact',
-        showMemberNew:     document.getElementById('field_member_baru').checked,
-        showAkunDibuat:    document.getElementById('field_akun_dibuat').checked,
-        showTotalMember:   document.getElementById('field_total_member').checked,
-        showDiundangOleh:  document.getElementById('field_diundang_oleh').checked,
-        showKodeInvite:    document.getElementById('field_kode_invite').checked,
-        showTotalUndangan: document.getElementById('field_total_undangan').checked,
     };
     const res  = await fetch(`/api/guild/${guildId}/welcome`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },

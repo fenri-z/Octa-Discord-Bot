@@ -1,11 +1,11 @@
 <%
 const _colors  = { video: '#FF0000', short: '#FF6B35', live: '#CC0000' };
-const _titles  = { video: `📹 ${ytCh.name} — Video Baru!`, short: `🎬 ${ytCh.name} — Short Baru!`, live: `🔴 ${ytCh.name} is Live Now!` };
+const _titles  = { video: `📹 ${ytCh.name} — New Video!`, short: `🎬 ${ytCh.name} — New Short!`, live: `🔴 ${ytCh.name} is Live Right Now!` };
 const _fields  = { video: '🎬 Video Title', short: '🎬 Short Title', live: '🎙️ Stream Title' };
 const _pill    = _colors[type]  || '#5865F2';
 const _title   = _titles[type] || '';
 const _field   = _fields[type] || 'Title';
-const _mockTitle = type === 'live'  ? 'Malam Jumat Membership'
+const _mockTitle = type === 'live'  ? 'Live Stream Title Example'
                  : type === 'short' ? 'Example Short Title #shorts'
                  : 'Example Video Title That Will Appear';
 const _mockUrl = 'https://youtube.com/watch?v=dQw4w9WgXcQ';
@@ -14,12 +14,25 @@ const _defaultDescs = {
     short: `**${ytCh.name}** just posted a new Short!\nCheck out their quick video, don't miss out! ⚡`,
     live:  `Hey, **${ytCh.name}** is **LIVE** on YouTube right now!\nCome join and watch the stream~ 🎉`,
 };
+// Simple markdown renderer for initial server-side render (bold + newlines)
+const _md = s => (s || '')
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\n/g, '<br>');
 const _prevId  = `ytPrev-${ytCh.id}-${type}`;
+const _chIdKeys = { video: 'videoChannelId', short: 'shortChannelId', live: 'liveChannelId' };
+const _initChName = (() => {
+    const chId = ytCh[_chIdKeys[type]];
+    if (!chId) return 'select-channel';
+    const ch = (locals.channels || []).find(c => c.id === chId);
+    return ch ? ch.name : 'select-channel';
+})();
 %>
 <div class="dc-window" id="<%= _prevId %>">
     <div class="dc-channel-bar">
         <span class="dc-channel-hash">#</span>
-        <span class="yt-prev-ch-name">pilih-channel</span>
+        <span class="yt-prev-ch-name"><%= _initChName %></span>
     </div>
     <div class="dc-messages">
         <div class="dc-message">
@@ -38,16 +51,17 @@ const _prevId  = `ytPrev-${ytCh.id}-${type}`;
                         <!-- Embed title + thumbnail kanan -->
                         <div style="display:flex;align-items:flex-start;gap:.5rem;">
                             <div style="flex:1;min-width:0;">
-                                <div style="font-size:.88rem;font-weight:700;color:#00b0f4;margin-bottom:.35rem;
-                                            word-break:break-word;line-height:1.3;">
+                                <a href="<%= _mockUrl %>" onclick="return false;"
+                                   style="font-size:.88rem;font-weight:700;color:#00b0f4;margin-bottom:.35rem;
+                                          word-break:break-word;line-height:1.3;text-decoration:none;display:block;">
                                     <%= _title %>
-                                </div>
+                                </a>
 
                                 <!-- Description: custom message atau default -->
                                 <div class="dc-plain-msg yt-prev-msg yt-prev-desc"
                                      style="color:#dbdee1;font-size:.80rem;margin-bottom:.45rem;
-                                            line-height:1.45;white-space:pre-wrap;word-break:break-word;">
-                                    <%= _defaultDescs[type] %>
+                                            line-height:1.45;word-break:break-word;">
+                                    <%- _md(_defaultDescs[type]) %>
                                 </div>
                                 <!-- Override saat user ketik custom message (via JS) -->
                                 <div class="dc-plain-msg yt-prev-msg"
@@ -68,7 +82,7 @@ const _prevId  = `ytPrev-${ytCh.id}-${type}`;
                                     <%= _field %>
                                 </div>
                                 <div style="font-size:.8rem;color:#00b0f4;">
-                                    <a href="<%= _mockUrl %>" style="color:#00b0f4;text-decoration:none;">
+                                    <a href="<%= _mockUrl %>" onclick="return false;" style="color:#00b0f4;text-decoration:none;">
                                         <%= _mockTitle %>
                                     </a>
                                 </div>
@@ -78,8 +92,8 @@ const _prevId  = `ytPrev-${ytCh.id}-${type}`;
                                     🔗 Link
                                 </div>
                                 <div style="font-size:.8rem;">
-                                    <a href="<%= _mockUrl %>" style="color:#00b0f4;text-decoration:none;">
-                                        Tonton sekarang ▶
+                                    <a href="<%= _mockUrl %>" onclick="return false;" style="color:#00b0f4;text-decoration:none;">
+                                        Click Me ▶
                                     </a>
                                 </div>
                             </div>

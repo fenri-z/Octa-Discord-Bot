@@ -1999,9 +1999,9 @@ router.post('/guild/:guildId/youtube/channels/:ytChannelId/test', requireLogin, 
         await notifier._sendNotification(req.botGuild, ytCh, type, {
             videoId:   'dQw4w9WgXcQ',
             url:       'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-            title:     `[TEST] Contoh Notifikasi ${typeLabels[type]} dari ${ytCh.name}`,
+            title:     `[TEST] Example ${typeLabels[type]} Notification from ${ytCh.name}`,
             channel:   ytCh.name,
-            thumbnail: null,
+            thumbnail: 'https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg',
         });
         res.json({ success: true, message: `${typeLabels[type]} test notification successfully sent to Discord!` });
     } catch (err) {
@@ -2206,7 +2206,7 @@ router.post('/guild/:guildId/tiktok/accounts/:username/test', requireLogin, requ
         await notifier._sendNotification(req.botGuild, account, type, {
             id:    '0000000000000000000',
             url:   `https://www.tiktok.com/${username}/video/0000000000000000000`,
-            title: `[TEST] Contoh Notifikasi ${type === 'live' ? 'Live' : 'Video'} dari ${account.name || username}`,
+            title: `[TEST] Example ${type === 'live' ? 'Live' : 'Video'} Notification from ${account.name || username}`,
         });
         res.json({ success: true, message: `${type === 'live' ? 'Live' : 'Video'} test notification sent successfully!` });
     } catch (err) {

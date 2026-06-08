@@ -48,12 +48,6 @@ module.exports = new Event({
         const cardUsernameColor  = __client__.database.get(`goodbye-cardUsernameColor-${guild.id}`)  ?? '';
         const cardMsgColor       = __client__.database.get(`goodbye-cardMsgColor-${guild.id}`)       ?? '#cccccc';
         const cardFont           = __client__.database.get(`goodbye-cardFont-${guild.id}`)           ?? 'impact';
-        // ── Toggle per-field ─────────────────────────────────────────────
-        const showMember      = getBool(__client__, `goodbye-showMember-${guild.id}`,      false);
-        const showBergabung   = getBool(__client__, `goodbye-showBergabung-${guild.id}`,   false);
-        const showAkunDibuat  = getBool(__client__, `goodbye-showAkunDibuat-${guild.id}`,  false);
-        const showTotalMember = getBool(__client__, `goodbye-showTotalMember-${guild.id}`, false);
-
         // ── Cari channel tujuan ───────────────────────────────────────────
         const goodbyeChannel =
             (channelId && guild.channels.cache.get(channelId)) ||
@@ -118,15 +112,7 @@ module.exports = new Event({
 
         // ── Mode teks biasa ───────────────────────────────────────────────
         if (messageType === 'plain') {
-            let content = parse(plainText).trim();
-            const infoLines = [];
-            if (showMember)      infoLines.push(`👤 **Member:** ${member.user.tag}`);
-            if (showBergabung)   infoLines.push(`📅 **Joined:** ${member.joinedTimestamp ? `<t:${Math.floor(member.joinedTimestamp / 1000)}:R>` : '`Unknown`'}`);
-            if (showAkunDibuat)  infoLines.push(`📅 **Account Created:** <t:${Math.floor(member.user.createdTimestamp / 1000)}:R>`);
-            if (showTotalMember) infoLines.push(`👥 **Total Members:** ${totalMembers} member(s)`);
-            if (infoLines.length > 0) content += (content ? '\n' : '') + infoLines.join('\n');
-            content = content.trim();
-
+            const content = parse(plainText).trim();
             if (content || cardAttachment) {
                 const payload = {};
                 if (content) { payload.content = content; payload.allowedMentions = { users: [member.id] }; }
@@ -147,13 +133,6 @@ module.exports = new Event({
 
         if (footerText) embed.setFooter({ text: parseTitle(footerText) });
         if (thumbnail)  embed.setThumbnail(member.user.displayAvatarURL({ dynamic: true, size: 256 }));
-
-        const fields = [];
-        if (showMember)      fields.push({ name: '👤 Member',       value: member.user.tag, inline: true });
-        if (showBergabung)   fields.push({ name: '📅 Joined',    value: member.joinedTimestamp ? `<t:${Math.floor(member.joinedTimestamp / 1000)}:R>` : '`Unknown`', inline: true });
-        if (showAkunDibuat)  fields.push({ name: '📅 Account Created',  value: `<t:${Math.floor(member.user.createdTimestamp / 1000)}:R>`, inline: true });
-        if (showTotalMember) fields.push({ name: '👥 Total Members', value: `**${totalMembers}** member(s)`, inline: true });
-        if (fields.length > 0) embed.addFields(...fields);
         if (cardAttachment) embed.setImage('attachment://goodbye-card.png');
 
         const payload = { embeds: [embed] };

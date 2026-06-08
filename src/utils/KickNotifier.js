@@ -263,49 +263,45 @@ class KickNotifier {
         const displayName = account.displayName || account.slug;
         const streamUrl   = `https://kick.com/${account.slug}`;
 
-        let content = (account.message || '').trim();
-        if (content) {
-            content = content
-                .replace(/{account}/g,   displayName)
-                .replace(/{slug}/g,      account.slug)
-                .replace(/{url}/g,       streamUrl)
-                .replace(/{category}/g,  streamData?.categories?.[0]?.name || '')
-                .replace(/{title}/g,     streamData?.stream_title || streamData?.session_title || '')
-                .replace(/{viewers}/g,   String(streamData?.viewer_count ?? streamData?.viewers ?? 0));
-        }
+        const fill = s => (s || '')
+            .replace(/{account}/g,   displayName)
+            .replace(/{slug}/g,      account.slug)
+            .replace(/{url}/g,       streamUrl)
+            .replace(/{category}/g,  streamData?.categories?.[0]?.name || streamData?.category?.name || '')
+            .replace(/{title}/g,     streamData?.stream_title || streamData?.session_title || '')
+            .replace(/{viewers}/g,   String(streamData?.viewer_count ?? streamData?.viewers ?? 0));
+
+        const defaultDesc = `Hey, **${displayName}** is **LIVE** on Kick right now!\nCome join and watch the stream~ 🎉`;
+        const description = fill(account.message || '').trim() || defaultDesc;
 
         const title    = streamData?.stream_title || 'Live Stream';
         const category = streamData?.category?.name || '';
-        const viewers  = streamData?.viewer_count ?? 0;
         const thumbUrl = streamData?.thumbnail || '';
 
         const embed = new EmbedBuilder()
             .setColor(0x53FC18)
-            .setAuthor({
-                name:    `${displayName} is LIVE on Kick!`,
-                iconURL: account.thumbnail || undefined,
-                url:     streamUrl,
-            })
-            .setTitle(title)
+            .setTitle(`🔴 ${displayName} is Live Right Now!`)
             .setURL(streamUrl)
+            .setDescription(description)
             .setTimestamp();
 
-        if (category) embed.addFields({ name: '🎮 Kategori', value: category, inline: true });
-        embed.addFields({ name: '🔗 Tonton', value: `[Buka Kick](${streamUrl})`, inline: true });
+        embed.addFields({ name: '🎙️ Stream Title', value: title, inline: false });
+        if (category) embed.addFields({ name: '🎮 Category', value: category, inline: true });
+        embed.addFields({ name: '🔗 Link', value: `[Click Me ▶](${streamUrl})`, inline: true });
 
         if (thumbUrl)          embed.setImage(thumbUrl);
         if (account.thumbnail) embed.setThumbnail(account.thumbnail);
 
-        await channel.send({ content: content || undefined, embeds: [embed] });
+        await channel.send({ embeds: [embed] });
     }
 
     async sendTestNotification(guild, account) {
         return this._sendNotification(guild, account, {
             slug:         account.slug,
-            stream_title: '[TEST] Contoh judul stream',
+            stream_title: '[TEST] Example stream title',
             category:     { name: 'Just Chatting' },
             viewer_count: 1234,
-            thumbnail:    '',
+            thumbnail:    account.thumbnail || '',
         });
     }
 
