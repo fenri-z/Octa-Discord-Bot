@@ -47,6 +47,9 @@ module.exports = new ApplicationCommand({
         const sub   = interaction.options.getSubcommand();
         const guild = interaction.guild;
 
+        if (!guild.members.me?.permissions.has(PermissionFlagsBits.BanMembers))
+            return interaction.reply({ content: s.no_permission, flags: MessageFlags.Ephemeral });
+
         // ── Ban ─────────────────────────────────────────────────────────────────
         if (sub === 'member') {
             const target    = interaction.options.getUser('user');
@@ -118,8 +121,9 @@ module.exports = new ApplicationCommand({
 
             try {
                 await guild.bans.fetch(target.id);
-            } catch {
-                return interaction.reply({ content: s.not_banned(target.tag), flags: MessageFlags.Ephemeral });
+            } catch (err) {
+                const msg = err?.code === 10026 ? s.not_banned(target.tag) : s.unban_failed;
+                return interaction.reply({ content: msg, flags: MessageFlags.Ephemeral });
             }
 
             try {

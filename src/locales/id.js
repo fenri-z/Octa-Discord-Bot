@@ -317,6 +317,7 @@ module.exports = {
         cannot_bot         : '❌ Tidak bisa mem-ban bot ini.',
         role_too_high_bot  : '❌ Role target lebih tinggi atau sama dengan role bot.',
         role_too_high_user : '❌ Kamu tidak bisa mem-ban member dengan role lebih tinggi atau sama denganmu.',
+        no_permission      : '❌ Bot tidak memiliki permission **Ban Members**.',
         failed             : '❌ Gagal mem-ban member. Periksa izin bot.',
         not_banned         : (tag) => `❌ **${tag}** tidak ada dalam daftar ban.`,
         unban_failed       : '❌ Gagal melakukan unban. Periksa izin bot.',
