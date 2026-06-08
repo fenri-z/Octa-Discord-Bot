@@ -18,7 +18,7 @@ module.exports = new ApplicationCommand({
         name: 'ban',
         description: 'Ban or unban a member from the server',
         type: 1,
-        default_member_permissions: String(PermissionFlagsBits.BanMembers),
+        default_member_permissions: String(PermissionFlagsBits.ManageGuild),
         options: [
             {
                 type: 1,
