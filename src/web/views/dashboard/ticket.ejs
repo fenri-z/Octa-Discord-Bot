@@ -198,7 +198,19 @@
                     <div class="tk-ticket-num">#<%= String(tk.ticketNumber).padStart(4,'0') %></div>
                     <div class="tk-ticket-body">
                         <div class="tk-ticket-user"><%= tk.username %></div>
-                        <div class="tk-ticket-time"><%= t('ticket.ticket_opened') %> <span title="<%= new Date(tk.openedAt).toLocaleString('id-ID') %>"><%= t('ticket.minutes_ago', { n: Math.floor((Date.now()-tk.openedAt)/60000) }) %></span></div>
+                        <%
+                            const _diff = Date.now() - tk.openedAt;
+                            const _min  = Math.floor(_diff / 60000);
+                            const _hr   = Math.floor(_diff / 3600000);
+                            const _day  = Math.floor(_diff / 86400000);
+                            const _remH = _hr - _day * 24;
+                            const _dur  = _day >= 1
+                                ? (_remH > 0 ? t('ticket.days_ago', { d: _day, h: _remH }) : t('ticket.days_only_ago', { d: _day }))
+                                : _hr >= 1
+                                    ? t('ticket.hours_ago', { n: _hr })
+                                    : t('ticket.minutes_ago', { n: _min });
+                        %>
+                        <div class="tk-ticket-time"><%= t('ticket.ticket_opened') %> <span title="<%= new Date(tk.openedAt).toLocaleString('id-ID') %>"><%= _dur %></span></div>
                     </div>
                     <a href="https://discord.com/channels/<%= guild.id %>/<%= tk.channelId %>" target="_blank" class="btn btn-outline btn-sm" style="flex-shrink:0;"><%= t('ticket.view_btn') %></a>
                 </div>
