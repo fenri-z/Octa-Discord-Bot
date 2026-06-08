@@ -38,7 +38,7 @@
 .dc-timestamp    { font-size: .66rem; color: #80848e; margin-left: .45rem; }
 .dc-embed {
     display: flex; background: #2b2d31; border-radius: 4px;
-    margin-top: .3rem; overflow: hidden; max-width: 420px;
+    margin-top: .3rem; overflow: hidden; max-width: min(420px, 100%);
 }
 .dc-embed-inner  { padding: .55rem .7rem; flex: 1; min-width: 0; }
 .dc-embed-author { display:flex; align-items:center; gap:.4rem; margin-bottom:.3rem; }
@@ -145,11 +145,36 @@
     .tw-card-header .btn-sm { padding: .3rem .45rem; }
     .label-with-picker { flex-wrap: wrap; gap: .35rem; }
 }
+
+/* ── Responsive: Mobile kecil (≤ 380px) ─────────────────────────────────── */
+@media (max-width: 380px) {
+    .dash-main        { padding: .85rem .6rem 1.5rem !important; }
+    .tw-channel-card  { padding: .65rem; }
+
+    /* Card header: wrap action buttons */
+    .tw-card-header   { flex-wrap: wrap; gap: .35rem !important; }
+    .tw-card-header > a.btn,
+    .tw-card-header > button.btn { padding: .2rem .32rem !important; }
+
+    /* Page header: stack */
+    .page-header      { flex-direction: column !important; align-items: flex-start !important; }
+
+    /* Textarea kompak */
+    .form-group .textarea { min-height: 70px; }
+
+    /* Preview dc-window lebih kecil */
+    .dc-window        { font-size: 12px; }
+    .dc-messages      { padding: .6rem; }
+
+    /* Lookup result wraps */
+    .tw-lookup-result-inner { flex-wrap: wrap !important; }
+    .tw-lookup-result-inner .btn { width: 100%; justify-content: center; margin-top: .3rem; }
+}
 </style>
 
 <div class="dash-layout">
     <%- include('../partials/sidebar', { activePage: 'twitch' }) %>
-    <main class="dash-main">
+    <main class="dash-main" style="max-width:100%;overflow-x:hidden;">
     <div class="dash-content-wide">
         <%- include('../partials/perm-notice') %>
 

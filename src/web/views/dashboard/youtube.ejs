@@ -48,11 +48,11 @@
 .dc-timestamp   { font-size: .66rem; color: #80848e; margin-left: .45rem; }
 .dc-plain-msg   {
     margin-top: .3rem; font-size: .82rem; color: #dbdee1;
-    line-height: 1.45; word-break: break-word; white-space: pre-wrap; max-width: 420px;
+    line-height: 1.45; word-break: break-word; white-space: pre-wrap; max-width: min(420px, 100%);
 }
 .dc-embed {
     display: flex; background: #2b2d31; border-radius: 4px;
-    margin-top: .3rem; overflow: hidden; max-width: 420px;
+    margin-top: .3rem; overflow: hidden; max-width: min(420px, 100%);
 }
 .dc-embed-pill   { width: 4px; flex-shrink: 0; background: #5865f2; }
 .dc-embed-inner  { padding: .55rem .7rem; flex: 1; min-width: 0; }
@@ -201,13 +201,41 @@
     .dash-main {
         padding: .85rem .6rem 1.5rem !important;
     }
+
+    /* Card header: wrap action buttons below name */
+    .yt-card-header {
+        flex-wrap: wrap;
+        gap: .4rem !important;
+    }
+    .yt-card-header > div[style] {
+        flex: 1 1 0;
+        min-width: 0;
+    }
+    /* Button group wraps to right side */
+    .yt-card-header > a.btn,
+    .yt-card-header > button.btn {
+        padding: .22rem .35rem !important;
+    }
+
+    /* Page header: stack vertically */
+    .page-header[style] {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+    }
+
+    /* Textarea lebih pendek di mobile kecil */
+    .yt-form-col .textarea { min-height: 70px; }
+
+    /* Preview label + mock: lebih kompak */
+    .dc-window { font-size: 12px; }
+    .dc-messages { padding: .6rem; }
 }
 </style>
 
 <div class="dash-layout">
     <%- include('../partials/sidebar', { activePage: 'youtube' }) %>
 
-    <main class="dash-main">
+    <main class="dash-main" style="max-width:100%;overflow-x:hidden;">
     <div class="dash-content-wide">
         <%- include('../partials/perm-notice') %>
         <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
