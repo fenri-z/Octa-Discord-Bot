@@ -81,7 +81,9 @@
     "feat_youtube_title": "YouTube Notification",
     "feat_tiktok_title": "TikTok Notification",
     "feat_twitch_title": "Twitch Notification",
-    "feat_kick_title": "Kick Notification"
+    "feat_kick_title": "Kick Notification",
+    "ping": "Ping",
+    "active_tickets": "Active Tickets"
   },
   "common": {
     "save": "Save",

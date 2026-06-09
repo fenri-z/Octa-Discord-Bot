@@ -7,7 +7,32 @@
 
 const express              = require('express');
 const { PermissionsBitField } = require('discord.js');
+const { body }             = require('express-validator');
+const { handleValidation } = require('../middleware/validate');
 const router  = express.Router();
+
+// ── Shared regex ──────────────────────────────────────────────────────────────
+const HEX_COLOR   = /^#[0-9A-Fa-f]{6}$/;
+const SNOWFLAKE   = /^\d{17,20}$/;
+
+// ── Reusable validator sets ───────────────────────────────────────────────────
+const vChannelId = body('channelId')
+    .notEmpty().withMessage('Target channel is required.')
+    .matches(SNOWFLAKE).withMessage('Invalid channel ID.');
+
+const vHexColor = (field, def) =>
+    body(field).optional({ checkFalsy: true })
+        .matches(HEX_COLOR).withMessage(`${field}: invalid hex color (e.g. ${def}).`);
+
+const vNotifFields = [
+    vChannelId,
+    vHexColor('color', '#5865F2'),
+    body('messageType').optional().isIn(['embed', 'plain']).withMessage('Invalid message type.'),
+    body('plainText').optional().isString().trim().isLength({ max: 2000 }).withMessage('Plain text is too long (max 2000 chars).'),
+    body('title').optional().isString().trim().isLength({ max: 256 }).withMessage('Title is too long (max 256 chars).'),
+    body('description').optional().isString().trim().isLength({ max: 4096 }).withMessage('Description is too long (max 4096 chars).'),
+    body('footerText').optional().isString().trim().isLength({ max: 2048 }).withMessage('Footer text is too long (max 2048 chars).'),
+];
 
 // ── Permission helpers ────────────────────────────────────────────────────────
 const PERM_LABELS = {
@@ -90,7 +115,7 @@ router.get('/guild/:guildId', requireLogin, requireManageGuild, (req, res) => {
 });
 
 // ── POST /api/guild/:guildId/welcome ──────────────────────────────────────────
-router.post('/guild/:guildId/welcome', requireLogin, requireManageGuild, (req, res) => {
+router.post('/guild/:guildId/welcome', requireLogin, requireManageGuild, vNotifFields, handleValidation, (req, res) => {
     const {
         enabled, channelId,
         messageType, plainText,
@@ -185,7 +210,7 @@ router.post('/guild/:guildId/welcome', requireLogin, requireManageGuild, (req, r
 });
 
 // ── POST /api/guild/:guildId/goodbye ──────────────────────────────────────────
-router.post('/guild/:guildId/goodbye', requireLogin, requireManageGuild, (req, res) => {
+router.post('/guild/:guildId/goodbye', requireLogin, requireManageGuild, vNotifFields, handleValidation, (req, res) => {
     const {
         enabled, channelId,
         messageType, plainText,
@@ -3060,6 +3085,44 @@ router.post('/guild/:guildId/modlog/config', requireLogin, requireManageGuild, (
     db.set(`modlog-events-${guildId}`, JSON.stringify(evtObj));
 
     res.json({ success: true, message: 'Mod Log configuration saved successfully.' });
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// SERVER-SENT EVENTS — live guild stats
+// ══════════════════════════════════════════════════════════════════════════════
+
+// GET /api/guild/:guildId/stats/stream
+// Streams memberCount, bot ping, and active ticket count every 30 seconds.
+router.get('/guild/:guildId/stats/stream', requireLogin, requireManageGuild, (req, res) => {
+    const guild  = req.botGuild;
+    const client = req.discordClient;
+    const db     = client?.database;
+
+    res.setHeader('Content-Type',  'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection',    'keep-alive');
+    res.flushHeaders();
+
+    function getStats() {
+        let activeTickets = 0;
+        try {
+            const raw = db?.get(`ticket-open-list-${guild.id}`);
+            activeTickets = raw ? JSON.parse(raw).length : 0;
+        } catch { /* ignore parse error */ }
+        return {
+            memberCount:   guild.memberCount,
+            ping:          client?.ws?.ping ?? -1,
+            activeTickets,
+        };
+    }
+
+    function send(data) {
+        res.write(`data: ${JSON.stringify(data)}\n\n`);
+    }
+
+    send(getStats());
+    const timer = setInterval(() => send(getStats()), 30_000);
+    req.on('close', () => clearInterval(timer));
 });
 
 module.exports = router;

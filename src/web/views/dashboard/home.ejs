@@ -30,7 +30,7 @@
                     <i data-lucide="users"></i>
                 </div>
                 <div class="ov-stat-body">
-                    <div class="ov-stat-value"><%= guild.memberCount %></div>
+                    <div class="ov-stat-value" id="ov-stat-member-count"><%= guild.memberCount %></div>
                     <div class="ov-stat-label"><%= t('home.total_members') %></div>
                 </div>
                 <div class="ov-stat-bar"></div>
@@ -65,6 +65,18 @@
                 </div>
                 <div class="ov-stat-bar"></div>
             </div>
+        </div>
+
+        <!-- ── Live Status Bar ───────────────────────────────────── -->
+        <div class="ov-live-bar" id="ov-live-bar" style="display:none;">
+            <span class="ov-live-dot"></span>
+            <span class="ov-live-label">LIVE</span>
+            <span class="ov-live-sep">·</span>
+            <i data-lucide="activity" style="width:13px;height:13px;opacity:.7;"></i>
+            <span><%= t('home.ping') %>: <strong id="ov-stat-ping">—</strong></span>
+            <span class="ov-live-sep">·</span>
+            <i data-lucide="ticket" style="width:13px;height:13px;opacity:.7;"></i>
+            <span><%= t('home.active_tickets') %>: <strong id="ov-stat-tickets">—</strong></span>
         </div>
 
         <!-- ── Permission Status ──────────────────────────────────── -->
@@ -399,6 +411,27 @@
 }
 .ov-server-sub { color: rgba(255,255,255,.5); font-size: .875rem; margin: 0; }
 
+/* ── Live Bar ── */
+.ov-live-bar {
+    display: flex; align-items: center; gap: .45rem;
+    font-size: .78rem; color: rgba(255,255,255,.55);
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 8px; padding: .4rem .85rem;
+    margin-bottom: 1rem;
+}
+.ov-live-bar strong { color: rgba(255,255,255,.85); font-weight: 600; }
+.ov-live-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: #57F287; flex-shrink: 0;
+    animation: ov-blink 2s ease-in-out infinite;
+}
+@keyframes ov-blink {
+    0%,100% { opacity: 1; }
+    50%      { opacity: .35; }
+}
+.ov-live-label { color: #57F287; font-weight: 700; font-size: .72rem; letter-spacing: .05em; }
+.ov-live-sep   { opacity: .3; }
+
 /* ── Stats Grid ── */
 .ov-stats-grid {
     display: grid;
@@ -556,6 +589,35 @@
 </style>
 
 <script>
+// ── SSE: live guild stats ─────────────────────────────────────────────────────
+(function () {
+    const guildId = '<%= guild.id %>';
+    const bar     = document.getElementById('ov-live-bar');
+    const elMembers = document.getElementById('ov-stat-member-count');
+    const elPing    = document.getElementById('ov-stat-ping');
+    const elTickets = document.getElementById('ov-stat-tickets');
+
+    if (!window.EventSource) return;
+
+    const es = new EventSource(`/api/guild/${guildId}/stats/stream`);
+
+    es.onmessage = function (e) {
+        try {
+            const d = JSON.parse(e.data);
+            if (elMembers && d.memberCount != null) elMembers.textContent = d.memberCount.toLocaleString();
+            if (elPing)    elPing.textContent    = d.ping >= 0 ? `${d.ping} ms` : '—';
+            if (elTickets) elTickets.textContent = d.activeTickets ?? '—';
+            if (bar) bar.style.display = 'flex';
+        } catch { /* ignore */ }
+    };
+
+    es.onerror = function () {
+        if (bar) bar.style.display = 'none';
+    };
+
+    window.addEventListener('beforeunload', () => es.close());
+})();
+
 async function saveNickname(guildId) {
     const nickname = document.getElementById('nicknameInput').value.trim();
     const msg      = document.getElementById('nicknameMsg');
