@@ -74,7 +74,8 @@
                     <button class="period-btn"         data-period="today" onclick="setPeriod(this,'today')" ><%= t('invites.filter_today') %></button>
                     <span class="inv-filter-hint" style="font-size:.75rem;color:var(--text-muted);"><%= t('invites.filter_hint') %></span>
                 </div>
-                <input type="text" id="searchInput" class="input inv-search" placeholder="<%= t('invites.search_placeholder') %>"
+                <input type="text" id="searchInput" class="input inv-search" data-flt-ignore
+                       placeholder="<%= t('invites.search_placeholder') %>"
                        style="width:220px;font-size:.85rem;padding:.38rem .75rem;flex-shrink:0;"
                        oninput="currentPage=1;applyFilter()">
             </div>

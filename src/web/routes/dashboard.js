@@ -525,6 +525,11 @@ router.get('/:guildId/booster', requireLogin, requireManageGuild, async (req, re
             .map(c => ({ id: c.id, name: c.name }))
             .sort((a, b) => a.name.localeCompare(b.name));
 
+        const roles = [...guild.roles.cache.values()]
+            .filter(r => r.id !== guild.id)
+            .map(r => ({ id: r.id, name: r.name, color: r.hexColor === '#000000' ? '#99aab5' : r.hexColor }))
+            .sort((a, b) => a.name.localeCompare(b.name));
+
         const u = req.user || {};
         let loginMember = null;
         loginMember = await _getMember(guild, u.id);
@@ -557,6 +562,7 @@ router.get('/:guildId/booster', requireLogin, requireManageGuild, async (req, re
             title: boosterTab,
             guild,
             channels,
+            roles,
             missingPerms: getMissingPerms(guild),
             boostData,
             unboostData,
@@ -982,10 +988,17 @@ router.get('/:guildId/tiktok', requireLogin, requireManageGuild, async (req, res
                 ? botMember.displayHexColor : '#ffffff',
         };
 
+        await _ensureRoles(guild);
+        const roles = [...guild.roles.cache.values()]
+            .filter(r => r.id !== guild.id)
+            .map(r => ({ id: r.id, name: r.name, color: r.hexColor === '#000000' ? '#99aab5' : r.hexColor }))
+            .sort((a, b) => b.position - a.position);
+
         res.render('dashboard/tiktok', {
             title: 'TikTok Notification',
             guild,
             channels,
+            roles,
             ttAccounts,
             lastVideoIds,
             rsshubBase,
@@ -1080,10 +1093,17 @@ router.get('/:guildId/twitch', requireLogin, requireManageGuild, async (req, res
                 ? botMember.displayHexColor : '#ffffff',
         };
 
+        await _ensureRoles(guild);
+        const roles = [...guild.roles.cache.values()]
+            .filter(r => r.id !== guild.id)
+            .map(r => ({ id: r.id, name: r.name, color: r.hexColor === '#000000' ? '#99aab5' : r.hexColor }))
+            .sort((a, b) => b.position - a.position);
+
         res.render('dashboard/twitch', {
             title: 'Twitch Notification',
             guild,
             channels,
+            roles,
             twAccounts,
             isConfigured,
             maxAccounts: 10,
@@ -1122,10 +1142,17 @@ router.get('/:guildId/kick', requireLogin, requireManageGuild, async (req, res) 
 
         const isConfigured = !!(req.discordClient?.kickNotifier?.isConfigured);
 
+        await _ensureRoles(guild);
+        const roles = [...guild.roles.cache.values()]
+            .filter(r => r.id !== guild.id)
+            .map(r => ({ id: r.id, name: r.name, color: r.hexColor === '#000000' ? '#99aab5' : r.hexColor }))
+            .sort((a, b) => b.position - a.position);
+
         res.render('dashboard/kick', {
             title: 'Kick Notification',
             guild,
             channels,
+            roles,
             kickAccounts,
             maxAccounts: 10,
             isConfigured,
@@ -1166,6 +1193,12 @@ router.get('/:guildId/youtube', requireLogin, requireManageGuild, async (req, re
 
         const useWebSub = !!process.env.BASE_URL;
 
+        await _ensureRoles(guild);
+        const roles = [...guild.roles.cache.values()]
+            .filter(r => r.id !== guild.id)
+            .map(r => ({ id: r.id, name: r.name, color: r.hexColor === '#000000' ? '#99aab5' : r.hexColor }))
+            .sort((a, b) => b.position - a.position);
+
         // Ambil last video ID dan WebSub metadata per channel
         const lastVideoIds = {};
         const websubMeta   = {};
@@ -1179,6 +1212,7 @@ router.get('/:guildId/youtube', requireLogin, requireManageGuild, async (req, re
             title: 'YouTube Notification',
             guild,
             channels,
+            roles,
             ytChannels,
             useWebSub,
             lastVideoIds,

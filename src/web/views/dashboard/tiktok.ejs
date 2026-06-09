@@ -616,8 +616,10 @@
 <%- include('../partials/bottom-nav') %>
 
 <script>
-const GUILD_ID  = '<%= guild.id %>';
-const CHANNELS  = <%- JSON.stringify(Object.fromEntries((locals.channels||[]).map(ch=>[ch.id,ch.name]))) %>;
+const GUILD_ID    = '<%= guild.id %>';
+const CHANNELS    = <%- JSON.stringify(Object.fromEntries((locals.channels||[]).map(ch=>[ch.id,ch.name]))) %>;
+const ROLES_MAP   = <%- JSON.stringify(Object.fromEntries((locals.roles||[]).map(r=>[r.id,r]))) %>;
+const CHANNELS_MAP= <%- JSON.stringify(Object.fromEntries((locals.channels||[]).map(c=>[c.id,c]))) %>;
 
 const I18N_TT_CONFIRM_DEL  = '<%= t("tiktok.confirm_delete") %>';
 const I18N_TT_ERR_VIDEO_CH = '<%= t("tiktok.err_no_video_channel") %>';
@@ -713,7 +715,14 @@ async function addAccount() {
 // ── Discord Markdown renderer ──────────────────────────────────────────────────
 function discordMd(raw) {
     if (!raw) return '';
-    let s = raw.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const _t=[]; const _T=i=>`\x00${i}\x00`;
+    let _src = raw
+        .replace(/<@&(\d+)>/g,  (_,id)=>{ const r=ROLES_MAP[id],c=r?.color||'#5865F2'; _t.push(`<span class="dc-mention" style="color:${c};background:${c}1a;">@${r?r.name:id}</span>`); return _T(_t.length-1); })
+        .replace(/<@!?(\d+)>/g, (_,id)=>{ _t.push(`<span class="dc-mention">@${id}</span>`); return _T(_t.length-1); })
+        .replace(/<#(\d+)>/g,   (_,id)=>{ const ch=CHANNELS_MAP[id]; _t.push(`<span class="dc-mention">#${ch?ch.name:id}</span>`); return _T(_t.length-1); })
+        .replace(/@everyone\b/g,()=>{ _t.push('<span class="dc-mention">@everyone</span>'); return _T(_t.length-1); })
+        .replace(/@here\b/g,    ()=>{ _t.push('<span class="dc-mention">@here</span>'); return _T(_t.length-1); });
+    let s = _src.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     s = s.replace(/^### (.+)$/gm, '<span style="font-size:.88em;font-weight:700;line-height:1.6;display:block">$1</span>');
     s = s.replace(/^## (.+)$/gm,  '<span style="font-size:1em;font-weight:700;line-height:1.75;display:block">$1</span>');
     s = s.replace(/^# (.+)$/gm,   '<span style="font-size:1.15em;font-weight:700;line-height:2;display:block">$1</span>');
@@ -728,6 +737,7 @@ function discordMd(raw) {
     s = s.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" style="color:#00b0f4;text-decoration:none">$1</a>');
     s = s.replace(/^&gt; (.+)$/gm, '<span style="border-left:3px solid #4e5058;padding-left:.5em;color:#b5bac1;display:block">$1</span>');
     s = s.replace(/\n/g, '<br>');
+    s = s.replace(/\x00(\d+)\x00/g, (_,i)=>_t[+i]);
     return s;
 }
 
@@ -958,11 +968,13 @@ function togglePicker(id, event) {
     const el        = document.getElementById(id);
     const wasHidden = el.style.display === 'none';
     document.querySelectorAll('.ph-dropdown').forEach(d => d.style.display = 'none');
-    if (wasHidden) el.style.display = 'grid';
+    document.querySelectorAll('.ph-toggle-btn').forEach(b => b.classList.remove('active'));
+    if (wasHidden) { el.style.display = 'grid'; if (event?.currentTarget) event.currentTarget.classList.add('active'); }
 }
-document.addEventListener('click', () =>
-    document.querySelectorAll('.ph-dropdown').forEach(d => d.style.display = 'none')
-);
+document.addEventListener('click', () => {
+    document.querySelectorAll('.ph-dropdown').forEach(d => d.style.display = 'none');
+    document.querySelectorAll('.ph-toggle-btn').forEach(b => b.classList.remove('active'));
+});
 
 function insertPh(targetId, ph) {
     const el = document.getElementById(targetId);
@@ -979,6 +991,51 @@ function insertPh(targetId, ph) {
 buildPickers();
 document.querySelectorAll('[id^="testBtn-"]').forEach(btn => btn.dataset.tab = 'video');
 document.getElementById('ttLookupInput')?.addEventListener('keydown', e => { if (e.key==='Enter') lookupTikTok(); });
+
+// ── Mention picker ─────────────────────────────────────────────────────────────
+document.querySelectorAll('.ph-picker-anchor:not(.mention-anchor)').forEach(anchor => {
+    const ta = anchor.closest('.form-group')?.querySelector('textarea');
+    if (!ta) return;
+    const ma = document.createElement('div');
+    ma.className = 'ph-picker-anchor mention-anchor';
+    const btn = document.createElement('button');
+    btn.type='button'; btn.className='ph-toggle-btn'; btn.textContent='@ Mention';
+    const dd = document.createElement('div');
+    dd.className='ph-dropdown mention-dd'; dd.style.display='none';
+    btn.addEventListener('click', e => {
+        e.stopPropagation();
+        document.querySelectorAll('.ph-dropdown').forEach(d=>{ if(d!==dd) d.style.display='none'; });
+        document.querySelectorAll('.ph-toggle-btn').forEach(b=>{ if(b!==btn) b.classList.remove('active'); });
+        if(dd.style.display!=='none'){ dd.style.display='none'; btn.classList.remove('active'); return; }
+        if(!dd.dataset.built){ dd.dataset.built='1'; _buildMentionDd(dd,ta); }
+        dd.style.display='grid';
+        btn.classList.add('active');
+    });
+    ma.appendChild(btn); ma.appendChild(dd);
+    const grp = document.createElement('div');
+    grp.className = 'ph-btn-group';
+    anchor.parentNode.insertBefore(grp, anchor);
+    grp.appendChild(anchor);
+    grp.appendChild(ma);
+});
+function _buildMentionDd(dd, ta) {
+    function item(html, mention) {
+        const b=document.createElement('button'); b.type='button'; b.className='ph-item';
+        b.innerHTML=html;
+        b.addEventListener('click',()=>{ const s=ta.selectionStart,e=ta.selectionEnd; ta.value=ta.value.slice(0,s)+mention+ta.value.slice(e); ta.selectionStart=ta.selectionEnd=s+mention.length; ta.focus(); ta.dispatchEvent(new Event('input',{bubbles:true})); dd.style.display='none'; });
+        return b;
+    }
+    function hdr(t){ const h=document.createElement('div'); h.className='ph-group-label'; h.textContent=t; return h; }
+    const inp=document.createElement('input'); inp.type='text'; inp.className='mention-search-input'; inp.placeholder='Search...';
+    inp.addEventListener('click',e=>e.stopPropagation());
+    inp.addEventListener('input',()=>{ const q=inp.value.toLowerCase(); dd.querySelectorAll('.ph-item').forEach(el=>{ el.style.display=el.textContent.toLowerCase().includes(q)?'':'none'; }); });
+    dd.appendChild(inp);
+    dd.appendChild(hdr('Special')); dd.appendChild(item('<code>@everyone</code>','@everyone')); dd.appendChild(item('<code>@here</code>','@here'));
+    const rKeys=Object.keys(ROLES_MAP);
+    if(rKeys.length){ dd.appendChild(hdr('Roles')); rKeys.forEach(id=>{ const r=ROLES_MAP[id]; dd.appendChild(item(`<span style="color:${r.color}">@${r.name}</span>`,`<@&${r.id}>`)); }); }
+    const cKeys=Object.keys(CHANNELS_MAP);
+    if(cKeys.length){ dd.appendChild(hdr('Channels')); cKeys.forEach(id=>{ const c=CHANNELS_MAP[id]; dd.appendChild(item(`<span>#${c.name}</span>`,`<#${c.id}>`)); }); }
+}
 
 const _ttAllUsers = <%- JSON.stringify(ttAccounts.map(a => a.username)) %>;
 window._floatSave = async function () {

@@ -69,16 +69,16 @@ module.exports = new Event({
             .replace(/{tag}/g,          member.user.tag)
             .replace(/{server}/g,       guild.name)
             .replace(/{count}/g,        String(totalMembers))
-            .replace(/{akun\.dibuat}/g, createdRelative);
+            .replace(/{account\.created}/g, createdRelative);
 
         // Untuk description & plain text: {member} → mention <@ID>
         const parse = (str) => str
-            .replace(/{member}/g,       `<@${member.id}>`)
-            .replace(/{username}/g,     member.user.username)
-            .replace(/{tag}/g,          member.user.tag)
-            .replace(/{server}/g,       guild.name)
-            .replace(/{count}/g,        String(totalMembers))
-            .replace(/{akun\.dibuat}/g, createdRelative);
+            .replace(/{member}/g,          `<@${member.id}>`)
+            .replace(/{username}/g,        member.user.username)
+            .replace(/{tag}/g,             member.user.tag)
+            .replace(/{server}/g,          guild.name)
+            .replace(/{count}/g,           String(totalMembers))
+            .replace(/{account\.created}/g,createdRelative);
 
         // ── Generate goodbye card ─────────────────────────────────────────
         let cardAttachment = null;

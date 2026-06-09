@@ -272,16 +272,6 @@ function showMsg(el, text, type) {
     if (type === 'success') setTimeout(() => { el.textContent = ''; el.className = 'form-message'; }, 3500);
 }
 
-document.getElementById('ssEnabled')?.addEventListener('change', async function () {
-    const msg = document.getElementById('statusMsg');
-    const res  = await fetch(`/api/guild/${GUILD_ID}/serverstats`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ enabled: this.checked }),
-    });
-    const data = await res.json();
-    showMsg(msg, data.message, data.success ? 'success' : 'error');
-    if (!data.success) this.checked = !this.checked;
-});
 </script>
 
 <%- include('../partials/footer') %>

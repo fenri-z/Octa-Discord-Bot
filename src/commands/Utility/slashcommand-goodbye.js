@@ -415,16 +415,16 @@ module.exports = new ApplicationCommand({
                 .replace(/{tag}/g,          member.user.tag)
                 .replace(/{server}/g,       interaction.guild.name)
                 .replace(/{count}/g,        String(interaction.guild.memberCount))
-                .replace(/{akun\.dibuat}/g, createdRelative);
+                .replace(/{account\.created}/g, createdRelative);
 
             // For description & plain text: {member} → mention <@ID>
             const parse = (str) => str
-                .replace(/{member}/g,       `<@${member.id}>`)
-                .replace(/{username}/g,     member.user.username)
-                .replace(/{tag}/g,          member.user.tag)
-                .replace(/{server}/g,       interaction.guild.name)
-                .replace(/{count}/g,        String(interaction.guild.memberCount))
-                .replace(/{akun\.dibuat}/g, createdRelative);
+                .replace(/{member}/g,          `<@${member.id}>`)
+                .replace(/{username}/g,        member.user.username)
+                .replace(/{tag}/g,             member.user.tag)
+                .replace(/{server}/g,          interaction.guild.name)
+                .replace(/{count}/g,           String(interaction.guild.memberCount))
+                .replace(/{account\.created}/g,createdRelative);
 
             // Generate goodbye card
             let cardAttachment = null;

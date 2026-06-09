@@ -137,8 +137,8 @@
 
             <!-- Toolbar -->
             <div class="mb-toolbar">
-                <button class="btn btn-primary" onclick="openCreatePanel()">＋ New Panel</button>
-                <input type="text" class="input mb-search" placeholder="<%= t('autorole.search_panel_ph') %>" oninput="filterPanels(this.value)">
+                <button class="btn btn-primary" onclick="openCreatePanel()"><%= t('autorole.new_panel_btn') %></button>
+                <input type="text" class="input mb-search" data-flt-ignore placeholder="<%= t('autorole.search_panel_ph') %>" oninput="filterPanels(this.value)">
             </div>
 
             <!-- Layout 2 kolom: list kiri + preview kanan -->
@@ -152,7 +152,7 @@
                         <p style="font-size:2rem;margin-bottom:.5rem">🔘</p>
                         <p><%- t('autorole.btn_no_panels') %></p>
                         <p style="color:var(--text-muted);font-size:.85rem;margin-top:.5rem">
-                            Panel juga bisa dibuat lewat Discord dengan perintah
+                            <%= t('autorole.discord_cmd_hint') %>
                             <code>/autorole-button create</code>.
                         </p>
                     </div>
@@ -200,11 +200,11 @@
                                     </span>
                                 <% }) %>
                             <% } else { %>
-                                <span style="color:var(--text-muted);font-size:.8rem">No buttons yet</span>
+                                <span style="color:var(--text-muted);font-size:.8rem"><%= t('autorole.no_buttons_yet') %></span>
                             <% } %>
                         </div>
                         <div class="ar-panel-actions">
-                            <button class="btn btn-outline btn-sm" onclick="openEditPanel('<%= p.name %>')">✏️ Edit Panel</button>
+                            <button class="btn btn-outline btn-sm" onclick="openEditPanel('<%= p.name %>')"><%= t('autorole.edit_panel_btn') %></button>
                             <% if (sentP) { %>
                                 <a class="btn btn-outline btn-sm"
                                    href="https://discord.com/channels/<%= guild.id %>/<%= sentP.channelId %>/<%= sentP.messageId %>"
@@ -275,8 +275,8 @@
 
             <!-- Toolbar -->
             <div class="mb-toolbar">
-                <button class="btn btn-primary" onclick="openCreateReactPanel()">＋ New Panel</button>
-                <input type="text" class="input mb-search" placeholder="<%= t('autorole.search_panel_ph') %>" oninput="filterReactPanels(this.value)">
+                <button class="btn btn-primary" onclick="openCreateReactPanel()"><%= t('autorole.new_panel_btn') %></button>
+                <input type="text" class="input mb-search" data-flt-ignore placeholder="<%= t('autorole.search_panel_ph') %>" oninput="filterReactPanels(this.value)">
             </div>
 
             <!-- Layout 2 kolom: list kiri + preview kanan -->
@@ -290,7 +290,7 @@
                         <p style="font-size:2rem;margin-bottom:.5rem">✨</p>
                         <p><%- t('autorole.react_no_panels') %></p>
                         <p style="color:var(--text-muted);font-size:.85rem;margin-top:.5rem">
-                            Panel juga bisa dibuat lewat Discord dengan perintah
+                            <%= t('autorole.discord_cmd_hint') %>
                             <code>/autorole-reaction create</code>.
                         </p>
                     </div>
@@ -340,15 +340,15 @@
                                     </span>
                                 <% }) %>
                             <% } else { %>
-                                <span style="color:var(--text-muted);font-size:.8rem">No reactions yet</span>
+                                <span style="color:var(--text-muted);font-size:.8rem"><%= t('autorole.no_reactions_yet') %></span>
                             <% } %>
                         </div>
                         <div class="ar-panel-actions">
-                            <button class="btn btn-outline btn-sm" onclick="openEditReactPanel('<%= p.name %>')">✏️ Edit Panel</button>
+                            <button class="btn btn-outline btn-sm" onclick="openEditReactPanel('<%= p.name %>')"><%= t('autorole.edit_panel_btn') %></button>
                             <% if (sentRP) { %>
                                 <a class="btn btn-outline btn-sm"
                                    href="https://discord.com/channels/<%= guild.id %>/<%= sentRP.channelId %>/<%= sentRP.messageId %>"
-                                   target="_blank">🔗 Lihat</a>
+                                   target="_blank"><%= t('autorole.view_btn') %></a>
                             <% } else { %>
                                 <button class="btn btn-outline btn-sm" onclick="openSendReactPanel('<%= p.name %>')">📨 Send</button>
                             <% } %>
@@ -425,7 +425,7 @@
      (Sinkron dengan modal Discord: title, description, footer + color picker)
 ══════════════════════════════════════ -->
 <div class="mb-modal-backdrop" id="panelBackdrop" onclick="closePanelModal()"></div>
-<div class="mb-modal mb-modal-full" id="panelModal">
+<div class="mb-modal mb-modal-full" id="panelModal" data-flt-ignore>
     <div class="mb-modal-header">
         <h2 id="panelModalTitle">New Panel</h2>
         <button class="mb-modal-close" onclick="closePanelModal()">✕</button>
@@ -439,13 +439,13 @@
             <div class="mb-editor-form">
 
                 <div class="form-group">
-                    <label class="label">Panel Name</label>
+                    <label class="label"><%= t('autorole.panel_name_label') %></label>
                     <input type="text" id="panelName" class="input" placeholder="e.g.: choose-role" maxlength="32">
-                    <div class="hint">Hanya huruf, angka, <code>-</code>, <code>_</code> (maks 32 karakter).</div>
+                    <div class="hint"><%- t('autorole.panel_name_hint') %></div>
                 </div>
 
                 <div class="form-group" id="panelChannelGroup">
-                    <label class="label">Send to Channel</label>
+                    <label class="label"><%= t('autorole.send_to_channel') %></label>
                     <select id="panelSendChannelInline" class="select">
                         <option value="">— Select channel —</option>
                         <% channels.forEach(c => { %>
@@ -455,19 +455,19 @@
                 </div>
 
                 <div class="form-group">
-                    <label class="label">Mode</label>
+                    <label class="label"><%= t('autorole.mode_label') %></label>
                     <select id="panelMode" class="select">
-                        <option value="multi">☑️ Multi — can select multiple roles</option>
-                        <option value="single">🔘 Single — only 1 active role (radio)</option>
+                        <option value="multi"><%= t('autorole.mode_multi') %></option>
+                        <option value="single"><%= t('autorole.mode_single') %></option>
                     </select>
                 </div>
 
                 <div class="form-group">
-                    <label class="label">Message Type</label>
+                    <label class="label"><%= t('common.message_type') %></label>
                     <div style="display:flex;gap:.75rem;">
                         <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;">
                             <input type="radio" name="panelMessageType" id="panelTypeEmbed" value="embed" checked>
-                            <span>Embed</span>
+                            <span><%= t('common.embed') %></span>
                         </label>
                         <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;">
                             <input type="radio" name="panelMessageType" id="panelTypePlain" value="plain">
@@ -479,9 +479,9 @@
                 <!-- Plain text panel -->
                 <div id="panelPlainPanel" style="display:none;">
                     <div class="form-group">
-                        <label class="label">Plain Text Message</label>
+                        <label class="label"><%= t('common.plain_text_message') %></label>
                         <textarea id="panelPlainText" class="textarea" rows="5"
-                                  placeholder="Write your message here..."
+                                  placeholder="<%= t('autorole.plain_text_ph') %>"
                                   oninput="updatePanelPreview()"></textarea>
                     </div>
                 </div>
@@ -489,41 +489,41 @@
                 <!-- Embed panel -->
                 <div id="panelEmbedPanel">
                 <div class="ar-divider"></div>
-                <div style="font-size:.8rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:.75rem;">Tampilan Embed</div>
+                <div style="font-size:.8rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:.75rem;"><%= t('autorole.embed_display') %></div>
 
                 <div class="form-group">
-                    <label class="label">Title</label>
+                    <label class="label"><%= t('autorole.embed_title_label') %></label>
                     <input type="text" id="panelEmbedTitle" class="input" placeholder="Example: Choose Your Role"
                            maxlength="256" oninput="updatePanelPreview()">
                 </div>
 
                 <div class="form-group">
-                    <label class="label">Description</label>
+                    <label class="label"><%= t('autorole.embed_desc_label') %></label>
                     <textarea id="panelEmbedDescription" class="textarea" rows="4"
                               placeholder="Describe the buttons here..." maxlength="4000"
                               oninput="updatePanelPreview()"></textarea>
                 </div>
 
                 <div class="form-group">
-                    <label class="label">Footer</label>
-                    <input type="text" id="panelEmbedFooter" class="input" placeholder="Teks di bagian bawah embed..."
+                    <label class="label"><%= t('common.footer_label') %></label>
+                    <input type="text" id="panelEmbedFooter" class="input" placeholder="<%= t('autorole.footer_ph') %>"
                            maxlength="2048" oninput="updatePanelPreview()">
                 </div>
 
                 <div class="form-group">
-                    <label class="label">Image URL <span class="hint-inline">(below embed, optional)</span></label>
+                    <label class="label"><%= t('autorole.image_url_label') %> <span class="hint-inline">(<%= t('autorole.image_url_hint') %>)</span></label>
                     <input type="text" id="panelEmbedImage" class="input" placeholder="https://... (type - to remove)"
                            oninput="updatePanelPreview()">
                 </div>
 
                 <div class="form-group">
-                    <label class="label">Thumbnail URL <span class="hint-inline">(top right, optional)</span></label>
+                    <label class="label"><%= t('autorole.thumbnail_url_label') %> <span class="hint-inline">(<%= t('autorole.thumbnail_url_hint') %>)</span></label>
                     <input type="text" id="panelEmbedThumbnail" class="input" placeholder="https://... (type - to remove)"
                            oninput="updatePanelPreview()">
                 </div>
 
                 <div class="form-group">
-                    <label class="label">Embed Color</label>
+                    <label class="label"><%= t('common.embed_color') %></label>
                     <div style="display:flex;gap:.75rem;align-items:center;">
                         <input type="color" id="panelColorPicker" value="#5865F2"
                                style="width:44px;height:36px;border:none;border-radius:6px;cursor:pointer;padding:0;background:none;"
@@ -572,7 +572,7 @@
                     </div>
                 </div>
                 <div id="panelPreviewHint" style="margin-top:.75rem;font-size:.78rem;color:var(--text-muted);">
-                    💡 Button changes below will be saved together with the embed when you click <strong>Save</strong>.
+                    <%- t('autorole.btn_save_hint') %>
                 </div>
             </div>
         </div>
@@ -591,7 +591,7 @@
             </div>
             <div id="inlineBtnTable"></div>
             <p id="inlineBtnEmpty" style="color:var(--text-muted);font-size:.85rem;padding:.4rem 0;">
-                No buttons yet. Click <strong>＋ Add Button</strong> to add one, or skip and add later.
+                <%- t('autorole.no_inline_buttons_hint') %>
             </p>
         </div>
 
@@ -600,8 +600,8 @@
     <div class="mb-modal-footer">
         <!-- State 1: Form aktif -->
         <div id="panelFooterForm" style="display:flex;gap:.75rem;justify-content:flex-end;">
-            <button class="btn btn-outline" onclick="closePanelModal()">Batal</button>
-            <button class="btn btn-primary" id="panelSaveBtn" onclick="savePanel()">Save</button>
+            <button class="btn btn-outline" onclick="closePanelModal()"><%= t('common.cancel') %></button>
+            <button class="btn btn-primary" id="panelSaveBtn" onclick="savePanel()"><%= t('common.save') %></button>
         </div>
         <!-- State 2: Setelah simpan berhasil, panel belum terkirim -->
         <div id="panelFooterSend" style="display:none;">
@@ -629,7 +629,7 @@
      MODAL: Kelola Tombol (Bulk Editor)
 ══════════════════════════════════════ -->
 <div class="mb-modal-backdrop" id="btnBackdrop" onclick="closeBtnModal()"></div>
-<div class="mb-modal mb-modal-wide" id="btnModal">
+<div class="mb-modal mb-modal-wide" id="btnModal" data-flt-ignore>
     <div class="mb-modal-header">
         <h2>🔘 Manage Buttons — <span id="btnModalPanelName"></span></h2>
         <button class="mb-modal-close" onclick="closeBtnModal()">✕</button>
@@ -653,9 +653,9 @@
     </div>
     <div class="mb-modal-footer">
         <div style="display:flex;gap:.75rem;justify-content:space-between;align-items:center;flex-wrap:wrap;">
-            <span style="font-size:.8rem;color:var(--text-muted)">Click "Save All" to save changes.</span>
+            <span style="font-size:.8rem;color:var(--text-muted)"><%= t('autorole.save_all_hint') %></span>
             <div style="display:flex;gap:.75rem;">
-                <button class="btn btn-outline" onclick="closeBtnModal()">Batal</button>
+                <button class="btn btn-outline" onclick="closeBtnModal()"><%= t('common.cancel') %></button>
                 <button class="btn btn-primary" onclick="saveAllButtons()">💾 Save All</button>
             </div>
         </div>
@@ -666,7 +666,7 @@
      MODAL: Add Multiple Buttons
 ══════════════════════════════════════ -->
 <div class="mb-modal-backdrop" id="multiBackdrop" onclick="closeMultiModal()"></div>
-<div class="mb-modal mb-modal-sm" id="multiModal">
+<div class="mb-modal mb-modal-sm" id="multiModal" data-flt-ignore>
     <div class="mb-modal-header">
         <h2>＋＋ Add Multiple Buttons</h2>
         <button class="mb-modal-close" onclick="closeMultiModal()">✕</button>
@@ -693,7 +693,7 @@
         </div>
     </div>
     <div class="mb-modal-footer">
-        <button class="btn btn-outline" onclick="closeMultiModal()">Batal</button>
+        <button class="btn btn-outline" onclick="closeMultiModal()"><%= t('common.cancel') %></button>
     </div>
 </div>
 
@@ -701,7 +701,7 @@
      MODAL: Kirim Panel
 ══════════════════════════════════════ -->
 <div class="mb-modal-backdrop" id="sendPanelBackdrop" onclick="closeSendPanel()"></div>
-<div class="mb-modal mb-modal-sm" id="sendPanelModal">
+<div class="mb-modal mb-modal-sm" id="sendPanelModal" data-flt-ignore>
     <div class="mb-modal-header">
         <h2>📨 Send Panel</h2>
         <button class="mb-modal-close" onclick="closeSendPanel()">✕</button>
@@ -717,14 +717,13 @@
             <% }) %>
         </select>
         <div class="hint" style="margin-top:.5rem;">
-            ⚠️ Panel can only be sent <strong>once</strong>. After sending, use
-            <strong>Edit Panel</strong> to update the embed or buttons.
+            <%- t('autorole.send_btn_once_hint') %>
         </div>
         <div id="sendPanelMsg" class="form-message" style="margin-top:.75rem;"></div>
     </div>
     <div class="mb-modal-footer">
         <div style="display:flex;gap:.75rem;justify-content:flex-end;">
-            <button class="btn btn-outline" onclick="closeSendPanel()">Batal</button>
+            <button class="btn btn-outline" onclick="closeSendPanel()"><%= t('common.cancel') %></button>
             <button class="btn btn-primary" onclick="doSendPanel()">Send</button>
         </div>
     </div>
@@ -734,7 +733,7 @@
      MODAL: Buat / Edit Panel Reaction
 ══════════════════════════════════════ -->
 <div class="mb-modal-backdrop" id="reactPanelBackdrop" onclick="closeReactPanelModal()"></div>
-<div class="mb-modal mb-modal-full" id="reactPanelModal">
+<div class="mb-modal mb-modal-full" id="reactPanelModal" data-flt-ignore>
     <div class="mb-modal-header">
         <h2 id="reactPanelModalTitle">New Reaction Panel</h2>
         <button class="mb-modal-close" onclick="closeReactPanelModal()">✕</button>
@@ -747,13 +746,13 @@
             <div class="mb-editor-form">
 
                 <div class="form-group">
-                    <label class="label">Panel Name</label>
+                    <label class="label"><%= t('autorole.panel_name_label') %></label>
                     <input type="text" id="reactPanelName" class="input" placeholder="e.g.: choose-role" maxlength="32">
-                    <div class="hint">Letters, numbers, <code>-</code>, <code>_</code> only (max 32 chars).</div>
+                    <div class="hint"><%- t('autorole.panel_name_hint') %></div>
                 </div>
 
                 <div class="form-group" id="reactPanelChannelGroup">
-                    <label class="label">Send to Channel</label>
+                    <label class="label"><%= t('autorole.send_to_channel') %></label>
                     <select id="reactPanelSendChannelInline" class="select">
                         <option value="">— Select channel —</option>
                         <% channels.forEach(c => { %>
@@ -763,19 +762,19 @@
                 </div>
 
                 <div class="form-group">
-                    <label class="label">Mode</label>
+                    <label class="label"><%= t('autorole.mode_label') %></label>
                     <select id="reactPanelMode" class="select">
-                        <option value="multi">☑️ Multi — can select multiple roles</option>
-                        <option value="single">🔘 Single — only 1 active role (radio)</option>
+                        <option value="multi"><%= t('autorole.mode_multi') %></option>
+                        <option value="single"><%= t('autorole.mode_single') %></option>
                     </select>
                 </div>
 
                 <div class="form-group">
-                    <label class="label">Message Type</label>
+                    <label class="label"><%= t('common.message_type') %></label>
                     <div style="display:flex;gap:.75rem;">
                         <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;">
                             <input type="radio" name="reactPanelMessageType" id="reactPanelTypeEmbed" value="embed" checked>
-                            <span>Embed</span>
+                            <span><%= t('common.embed') %></span>
                         </label>
                         <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;">
                             <input type="radio" name="reactPanelMessageType" id="reactPanelTypePlain" value="plain">
@@ -786,45 +785,45 @@
 
                 <div id="reactPanelPlainPanel" style="display:none;">
                     <div class="form-group">
-                        <label class="label">Plain Text Message</label>
+                        <label class="label"><%= t('common.plain_text_message') %></label>
                         <textarea id="reactPanelPlainText" class="textarea" rows="5"
-                                  placeholder="Write your message here..."
+                                  placeholder="<%= t('autorole.plain_text_ph') %>"
                                   oninput="updateReactPanelPreview()"></textarea>
                     </div>
                 </div>
 
                 <div id="reactPanelEmbedPanel">
                 <div class="ar-divider"></div>
-                <div style="font-size:.8rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:.75rem;">Tampilan Embed</div>
+                <div style="font-size:.8rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:.75rem;"><%= t('autorole.embed_display') %></div>
 
                 <div class="form-group">
-                    <label class="label">Judul</label>
+                    <label class="label"><%= t('autorole.embed_title_label') %></label>
                     <input type="text" id="reactPanelEmbedTitle" class="input" placeholder="Example: Choose Your Role"
                            maxlength="256" oninput="updateReactPanelPreview()">
                 </div>
                 <div class="form-group">
-                    <label class="label">Deskripsi</label>
+                    <label class="label"><%= t('autorole.embed_desc_label') %></label>
                     <textarea id="reactPanelEmbedDescription" class="textarea" rows="4"
-                              placeholder="Jelaskan cara menggunakan reaction di sini..." maxlength="4000"
+                              placeholder="Describe how to use reactions here..." maxlength="4000"
                               oninput="updateReactPanelPreview()"></textarea>
                 </div>
                 <div class="form-group">
-                    <label class="label">Footer</label>
-                    <input type="text" id="reactPanelEmbedFooter" class="input" placeholder="Teks di bagian bawah embed..."
+                    <label class="label"><%= t('common.footer_label') %></label>
+                    <input type="text" id="reactPanelEmbedFooter" class="input" placeholder="<%= t('autorole.footer_ph') %>"
                            maxlength="2048" oninput="updateReactPanelPreview()">
                 </div>
                 <div class="form-group">
-                    <label class="label">URL Gambar <span class="hint-inline">(bawah embed, opsional)</span></label>
+                    <label class="label"><%= t('autorole.image_url_label') %> <span class="hint-inline">(<%= t('autorole.image_url_hint') %>)</span></label>
                     <input type="text" id="reactPanelEmbedImage" class="input" placeholder="https://... (type - to remove)"
                            oninput="updateReactPanelPreview()">
                 </div>
                 <div class="form-group">
-                    <label class="label">URL Thumbnail <span class="hint-inline">(pojok kanan, opsional)</span></label>
+                    <label class="label"><%= t('autorole.thumbnail_url_label') %> <span class="hint-inline">(<%= t('autorole.thumbnail_url_hint') %>)</span></label>
                     <input type="text" id="reactPanelEmbedThumbnail" class="input" placeholder="https://... (type - to remove)"
                            oninput="updateReactPanelPreview()">
                 </div>
                 <div class="form-group">
-                    <label class="label">Embed Color</label>
+                    <label class="label"><%= t('common.embed_color') %></label>
                     <div style="display:flex;gap:.75rem;align-items:center;">
                         <input type="color" id="reactPanelColorPicker" value="#5865F2"
                                style="width:44px;height:36px;border:none;border-radius:6px;cursor:pointer;padding:0;background:none;"
@@ -871,7 +870,7 @@
                     </div>
                 </div>
                 <div style="margin-top:.75rem;font-size:.78rem;color:var(--text-muted);">
-                    💡 Reaction changes below will be saved together with the embed when you click <strong>Save</strong>.
+                    <%- t('autorole.react_save_hint') %>
                 </div>
             </div>
         </div>
@@ -891,12 +890,11 @@
             <div id="inlineReactTable"></div>
             <div id="inlineReactEmpty" style="text-align:center;padding:1.5rem 1rem;color:var(--text-muted);border:2px dashed var(--border);border-radius:10px;margin:.5rem 0;">
                 <div style="font-size:2rem;margin-bottom:.4rem;">✨</div>
-                <div style="font-size:.85rem;">No reactions yet. Click <strong style="color:var(--text);">＋ Add Reaction</strong> to addtuk menambahkan.</div>
+                <div style="font-size:.85rem;"><%- t('autorole.no_inline_react_hint') %></div>
             </div>
             <div style="margin-top:.75rem;padding:.6rem .75rem;background:rgba(88,101,242,.08);border-radius:8px;border:1px solid rgba(88,101,242,.2);font-size:.78rem;color:var(--text-muted);line-height:1.6;">
                 💡 <strong style="color:var(--text);">Tips:</strong>
-                Gunakan emoji unicode seperti <span style="font-size:1rem;">👍 🎮 ⭐ 🎭</span> atau emoji kustom server dengan format <code style="background:var(--bg3);padding:1px 4px;border-radius:3px;">&lt;:nama:id&gt;</code>.
-                Maks <strong style="color:var(--text);">20 reaction</strong> per panel.
+                <%- t('autorole.react_tips_body') %>
             </div>
         </div>
 
@@ -904,8 +902,8 @@
     </div>
     <div class="mb-modal-footer">
         <div id="reactPanelFooterForm" style="display:flex;gap:.75rem;justify-content:flex-end;">
-            <button class="btn btn-outline" onclick="closeReactPanelModal()">Batal</button>
-            <button class="btn btn-primary" id="reactPanelSaveBtn" onclick="saveReactPanel()">Save</button>
+            <button class="btn btn-outline" onclick="closeReactPanelModal()"><%= t('common.cancel') %></button>
+            <button class="btn btn-primary" id="reactPanelSaveBtn" onclick="saveReactPanel()"><%= t('common.save') %></button>
         </div>
         <div id="reactPanelFooterSend" style="display:none;">
             <div style="display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;justify-content:space-between;">
@@ -932,14 +930,14 @@
      MODAL: Kirim Panel Reaction
 ══════════════════════════════════════ -->
 <div class="mb-modal-backdrop" id="sendReactPanelBackdrop" onclick="closeSendReactPanel()"></div>
-<div class="mb-modal mb-modal-sm" id="sendReactPanelModal">
+<div class="mb-modal mb-modal-sm" id="sendReactPanelModal" data-flt-ignore>
     <div class="mb-modal-header">
         <h2>📨 Send Reaction Panel</h2>
         <button class="mb-modal-close" onclick="closeSendReactPanel()">✕</button>
     </div>
     <div class="mb-modal-body">
         <p style="margin-bottom:1rem;color:var(--text-muted);font-size:.9rem;">
-            Kirim panel <strong id="sendReactPanelName"></strong> ke channel:
+            <%= t('autorole.send_panel_pre') %> <strong id="sendReactPanelName"></strong> <%= t('autorole.send_panel_post') %>
         </p>
         <select id="sendReactPanelChannel" class="select">
             <option value="">— Select channel —</option>
@@ -948,14 +946,13 @@
             <% }) %>
         </select>
         <div class="hint" style="margin-top:.5rem;">
-            ⚠️ Panel hanya bisa dikirim <strong>1 kali</strong>. Setelah terkirim, gunakan
-            <strong>Edit Panel</strong> untuk memperbarui embed atau reaction.
+            <%- t('autorole.send_react_once_hint') %>
         </div>
         <div id="sendReactPanelMsg" class="form-message" style="margin-top:.75rem;"></div>
     </div>
     <div class="mb-modal-footer">
         <div style="display:flex;gap:.75rem;justify-content:flex-end;">
-            <button class="btn btn-outline" onclick="closeSendReactPanel()">Batal</button>
+            <button class="btn btn-outline" onclick="closeSendReactPanel()"><%= t('common.cancel') %></button>
             <button class="btn btn-primary" onclick="doSendReactPanel()">Send</button>
         </div>
     </div>
@@ -1650,16 +1647,16 @@ function filterPanels(q) {
 // AUTOROLE JOIN
 // ══════════════════════════════════════════════════════════════════════════════
 async function saveJoin() {
-    const msg = document.getElementById('joinMsg');
-    const payload = {
-        memberEnabled: document.getElementById('joinMemberEnabled').checked,
-        memberRoleId:  document.getElementById('joinMemberRole').value,
-        botEnabled:    document.getElementById('joinBotEnabled').checked,
-        botRoleId:     document.getElementById('joinBotRole').value,
-    };
+    const msg           = document.getElementById('joinMsg');
+    const memberEnabled = document.getElementById('joinMemberEnabled').checked;
+    const memberRoleId  = document.getElementById('joinMemberRole').value;
+    const botEnabled    = document.getElementById('joinBotEnabled').checked;
+    const botRoleId     = document.getElementById('joinBotRole').value;
+    if (memberEnabled && !memberRoleId) { showMsg(msg, '<%= t("autorole.error_join_member_role") %>', 'error'); return; }
+    if (botEnabled    && !botRoleId)    { showMsg(msg, '<%= t("autorole.error_join_bot_role") %>',    'error'); return; }
     const res  = await fetch(`/api/guild/${GUILD_ID}/autorole-join`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({ memberEnabled, memberRoleId, botEnabled, botRoleId })
     });
     const data = await res.json();
     showMsg(msg, data.message, data.success ? 'success' : 'error');
@@ -1669,15 +1666,14 @@ async function saveJoin() {
 // AUTOROLE BOOSTER
 // ══════════════════════════════════════════════════════════════════════════════
 async function saveBooster() {
-    const msg = document.getElementById('boosterMsg');
-    const payload = {
-        autoroleEnabled:   document.getElementById('boosterAutoroleEnabled').checked,
-        autoroleRoleId:    document.getElementById('boosterAutoroleRole').value,
-        autoremoveEnabled: document.getElementById('boosterAutoremoveEnabled').checked,
-    };
+    const msg             = document.getElementById('boosterMsg');
+    const autoroleEnabled = document.getElementById('boosterAutoroleEnabled').checked;
+    const autoroleRoleId  = document.getElementById('boosterAutoroleRole').value;
+    const autoremoveEnabled = document.getElementById('boosterAutoremoveEnabled').checked;
+    if (autoroleEnabled && !autoroleRoleId) { showMsg(msg, '<%= t("autorole.error_booster_role") %>', 'error'); return; }
     const res  = await fetch(`/api/guild/${GUILD_ID}/autorole-booster`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({ autoroleEnabled, autoroleRoleId, autoremoveEnabled })
     });
     const data = await res.json();
     showMsg(msg, data.message, data.success ? 'success' : 'error');
@@ -1774,7 +1770,7 @@ function _resetPanelForm() {
 }
 
 function openCreatePanel() {
-    document.getElementById('panelModalTitle').textContent = 'Panel Baru';
+    document.getElementById('panelModalTitle').textContent = '<%= t("autorole.new_panel_title") %>';
     document.getElementById('panelOriginalName').value     = '';
     document.getElementById('panelIsSent').value           = '0';
     document.getElementById('panelName').disabled          = false;
@@ -1791,7 +1787,7 @@ function openCreatePanel() {
 }
 
 async function openEditPanel(name) {
-    document.getElementById('panelModalTitle').textContent = `Edit Panel: ${name}`;
+    document.getElementById('panelModalTitle').textContent = '<%= t("autorole.edit_panel_title") %>: ' + name;
     document.getElementById('panelOriginalName').value     = name;
     document.getElementById('panelName').value             = name;
     document.getElementById('panelName').disabled          = true;
@@ -2103,10 +2099,10 @@ let _btnData      = [];
 
 // Map: value di select → ButtonStyle integer (Primary=1, Secondary=2, Success=3, Danger=4)
 const STYLE_OPTIONS = [
-    { v: '1', l: '🔵 Biru (Primary)'    },
-    { v: '3', l: '🟢 Hijau (Success)'   },
-    { v: '4', l: '🔴 Merah (Danger)'    },
-    { v: '2', l: '⚪ Abu-abu (Secondary)'},
+    { v: '1', l: '<%= t("autorole.style_blue") %>'  },
+    { v: '3', l: '<%= t("autorole.style_green") %>' },
+    { v: '4', l: '<%= t("autorole.style_red") %>'   },
+    { v: '2', l: '<%= t("autorole.style_gray") %>'  },
 ];
 
 function buildRoleOptions(selectedId = '') {
@@ -2432,7 +2428,7 @@ function _showReactPanelFooter(state) {
 }
 
 function openCreateReactPanel() {
-    document.getElementById('reactPanelModalTitle').textContent = 'Panel Reaction Baru';
+    document.getElementById('reactPanelModalTitle').textContent = '<%= t("autorole.new_react_panel_title") %>';
     document.getElementById('reactPanelOriginalName').value     = '';
     document.getElementById('reactPanelName').disabled          = false;
     _resetReactPanelForm();
@@ -2444,7 +2440,7 @@ function openCreateReactPanel() {
 }
 
 async function openEditReactPanel(name) {
-    document.getElementById('reactPanelModalTitle').textContent = `Edit Panel: ${name}`;
+    document.getElementById('reactPanelModalTitle').textContent = '<%= t("autorole.edit_panel_title") %>: ' + name;
     document.getElementById('reactPanelOriginalName').value     = name;
     document.getElementById('reactPanelName').value             = name;
     document.getElementById('reactPanelName').disabled          = true;
@@ -2625,7 +2621,7 @@ function renderInlineReactTable() {
                     <span class="react-emoji-prefix">✨</span>
                     <input type="text" class="react-input${inputVal ? ' emoji-valid' : ''}" id="inreact-emoji-${i}"
                            value="${inputVal.replace(/"/g, '&quot;')}"
-                           placeholder="Ketuk emoji…" maxlength="8"
+                           placeholder="<%= t('autorole.emoji_ph') %>" maxlength="8"
                            oninput="_onEmojiInput(${i})"
                            onpaste="_onEmojiPaste(event,${i})">
                 </div>
@@ -2887,7 +2883,7 @@ async function saveAllButtons() {
 }
 
 window._floatSave = async function () {
-    const tabMap = { join: saveJoin, booster: saveBooster, button: savePanel, reaction: saveReactPanel };
+    const tabMap = { join: saveJoin, booster: saveBooster };
     for (const [id, fn] of Object.entries(tabMap)) {
         if (document.getElementById('tab-' + id)?.style.display !== 'none') { await fn(); break; }
     }

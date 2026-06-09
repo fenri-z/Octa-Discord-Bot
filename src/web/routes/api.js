@@ -162,11 +162,8 @@ router.post('/guild/:guildId/welcome', requireLogin, requireManageGuild, vNotifF
     const _pt = (plainText   ?? '').trim();
     if (_pt) db.set(`welcome-plainText-${guildId}`, _pt); else db.delete(`welcome-plainText-${guildId}`);
 
-    const _t  = (title       ?? '').trim();
-    if (_t)  db.set(`welcome-title-${guildId}`, _t);       else db.delete(`welcome-title-${guildId}`);
-
-    const _d  = (description ?? '').trim();
-    if (_d)  db.set(`welcome-description-${guildId}`, _d); else db.delete(`welcome-description-${guildId}`);
+    db.set(`welcome-title-${guildId}`,       (title       ?? '').trim());
+    db.set(`welcome-description-${guildId}`, (description ?? '').trim());
     db.set(`welcome-color-${guildId}`,                    color?.trim()       || '#5865F2');
 
     // Footer: string kosong = hapus footer
@@ -1214,9 +1211,34 @@ router.post('/guild/:guildId/ticket/config', requireLogin, requireManageGuild, (
     if (logChannelId) db.set(`ticket-log-channel-${guildId}`, logChannelId);
     else              db.delete(`ticket-log-channel-${guildId}`);
 
-    db.set(`ticket-staff-roles-${guildId}`, JSON.stringify(Array.isArray(staffRoles) ? staffRoles : []));
+    if (Array.isArray(staffRoles)) db.set(`ticket-staff-roles-${guildId}`, JSON.stringify(staffRoles));
 
     res.json({ success: true, message: 'Ticket configuration saved successfully.' });
+});
+
+// ── POST /api/guild/:guildId/ticket/staff-roles — tambah satu role ───────────
+router.post('/guild/:guildId/ticket/staff-roles', requireLogin, requireManageGuild, (req, res) => {
+    const db      = req.discordClient?.database;
+    const guildId = req.params.guildId;
+    const { roleId } = req.body;
+    if (!roleId) return res.json({ success: false, message: 'No role ID provided.' });
+
+    const key   = `ticket-staff-roles-${guildId}`;
+    const roles = JSON.parse(db.get(key) || '[]');
+    if (!roles.includes(roleId)) { roles.push(roleId); db.set(key, JSON.stringify(roles)); }
+    res.json({ success: true, message: 'Staff role added.' });
+});
+
+// ── DELETE /api/guild/:guildId/ticket/staff-roles/:roleId — hapus satu role ──
+router.delete('/guild/:guildId/ticket/staff-roles/:roleId', requireLogin, requireManageGuild, (req, res) => {
+    const db      = req.discordClient?.database;
+    const guildId = req.params.guildId;
+    const roleId  = req.params.roleId;
+
+    const key   = `ticket-staff-roles-${guildId}`;
+    const roles = JSON.parse(db.get(key) || '[]').filter(id => id !== roleId);
+    db.set(key, JSON.stringify(roles));
+    res.json({ success: true, message: 'Staff role removed.' });
 });
 
 // ── POST /api/guild/:guildId/ticket/panel-embed ────────────────────────────

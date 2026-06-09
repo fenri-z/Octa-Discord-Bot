@@ -498,9 +498,9 @@ module.exports = new ApplicationCommand({
                 .replace(/{server}/g,          interaction.guild.name)
                 .replace(/{count}/g,           String(interaction.guild.memberCount))
                 .replace(/{inviter}/g,         member.user.tag + ' (example)')
-                .replace(/{kode\.invite}/g,    'abc123 (example)')
-                .replace(/{total\.undangan}/g, '42 (example)')
-                .replace(/{akun\.dibuat}/g,    `<t:${Math.floor(member.user.createdTimestamp / 1000)}:R>`);
+                .replace(/{invite\.code}/g,    'abc123 (example)')
+                .replace(/{total\.invites}/g,  '42 (example)')
+                .replace(/{account\.created}/g,`<t:${Math.floor(member.user.createdTimestamp / 1000)}:R>`);
 
             // Generate welcome card if cardEnabled
             let cardAttachment = null;

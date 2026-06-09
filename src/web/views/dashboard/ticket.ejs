@@ -65,21 +65,20 @@
                 <div style="font-size:.8rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;"><%= t('ticket.staff_roles') %></div>
                 <span style="font-size:.72rem;padding:.15rem .45rem;border-radius:999px;background:var(--bg2);border:1px solid var(--border);color:var(--text-muted);" id="staffRoleCounter"><%= validStaffRoles.length %> role</span>
             </div>
-            <div id="staffRoleList" style="display:flex;flex-direction:column;gap:.45rem;margin-bottom:.75rem;">
+            <div id="staffRoleList" style="display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:.75rem;min-height:1.5rem;">
                 <% validStaffRoles.forEach(roleId => { %>
                     <% const role = roles.find(r => r.id === roleId); %>
-                    <div class="tk-role-chip" data-id="<%= role.id %>">
-                        <span class="tk-role-dot" style="background:<%= role.color %>;"></span>
-                        <span>@<%= role.name %></span>
-                        <button class="tk-role-remove" onclick="removeStaffRole('<%= role.id %>')" title="<%= t('ticket.role_remove_title') %>">✕</button>
-                    </div>
+                    <span class="am-word-chip" data-id="<%= role.id %>" style="border-color:<%= role.color || 'var(--border)' %>;">
+                        <span style="font-size:.8rem;color:<%= role.color || 'inherit' %>;">@<%= role.name %></span>
+                        <button class="am-chip-del" onclick="removeStaffRole('<%= role.id %>')" title="<%= t('ticket.role_remove_title') %>">×</button>
+                    </span>
                 <% }) %>
-                <div id="staffRoleEmpty" style="color:var(--text-muted);font-size:.82rem;padding:.3rem 0;<%= validStaffRoles.length > 0 ? 'display:none;' : '' %>">
+                <span id="staffRoleEmpty" style="color:var(--text-muted);font-size:.82rem;<%= validStaffRoles.length > 0 ? 'display:none;' : '' %>">
                     <%= t('ticket.staff_empty') %>
-                </div>
+                </span>
             </div>
             <div style="display:flex;gap:.5rem;">
-                <select id="staffRoleAdd" class="select" style="flex:1;">
+                <select id="staffRoleAdd" class="select" style="flex:1;" data-flt-ignore>
                     <option value=""><%= t('common.select_role') %></option>
                     <% roles.forEach(r => { %>
                         <option value="<%= r.id %>" style="color:<%= r.color %>">@<%= r.name %></option>
@@ -87,6 +86,7 @@
                 </select>
                 <button class="btn btn-primary btn-sm" onclick="addStaffRole()"><%= t('ticket.add_btn') %></button>
             </div>
+            <div id="staffRoleMsg" class="form-message" style="margin-top:.4rem;"></div>
             <div class="hint" style="margin-top:.5rem;"><%= t('ticket.staff_hint') %></div>
         </div>
 
@@ -162,7 +162,7 @@
                 <select id="panelSendChannel" class="select">
                     <option value=""><%= t('common.select_channel') %></option>
                     <% channels.forEach(c => { %>
-                        <option value="<%= c.id %>">#<%= c.name %></option>
+                        <option value="<%= c.id %>" <%= ticketData.panelChannelId === c.id ? 'selected' : '' %>>#<%= c.name %></option>
                     <% }) %>
                 </select>
                 <% if (ticketData.panelSent) { %>
@@ -250,22 +250,19 @@
 @media(max-width:860px) { .tk-layout { grid-template-columns: 1fr; } }
 
 /* Role chips */
-.tk-role-chip {
-    display: flex; align-items: center; gap: .5rem;
-    background: var(--bg3); border: 1px solid var(--border);
-    border-radius: 8px; padding: .35rem .65rem;
-    font-size: .82rem;
+.am-word-chip {
+    display: inline-flex; align-items: center; gap: .3rem;
+    padding: .25rem .5rem .25rem .6rem;
+    background: var(--bg-3, rgba(255,255,255,.05));
+    border: 1px solid var(--border, rgba(255,255,255,.1));
+    border-radius: 6px; font-size: .82rem; line-height: 1.4;
 }
-.tk-role-dot {
-    width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
-}
-.tk-role-chip span:nth-child(2) { flex: 1; }
-.tk-role-remove {
+.am-chip-del {
     background: none; border: none; color: var(--text-muted);
-    cursor: pointer; font-size: .85rem; padding: 0 .2rem;
-    border-radius: 4px; transition: color .15s;
+    cursor: pointer; padding: 0 2px; font-size: 1rem; line-height: 1;
+    border-radius: 3px; transition: color .15s, background .15s; flex-shrink: 0;
 }
-.tk-role-remove:hover { color: var(--red); }
+.am-chip-del:hover { color: #ED4245; background: rgba(237,66,69,.1); }
 
 /* Ticket row */
 .tk-ticket-row {
@@ -302,7 +299,6 @@ const I18N_TK_BTN_DEF       = '<%= t("ticket.btn_label_default") %>';
 const I18N_TK_REMOVE_TITLE  = '<%= t("ticket.role_remove_title") %>';
 const ROLES_MAP = <%- JSON.stringify(Object.fromEntries(roles.map(r => [r.id, { name: r.name, color: r.color }]))) %>;
 let _staffRoles = <%- JSON.stringify(validStaffRoles) %>;
-let _initialStaffRoles = [..._staffRoles];
 
 // ── Color sync ────────────────────────────────────────────────────────────────
 function syncHex(hexId, pickId) {
@@ -327,31 +323,47 @@ function updateTicketPreview() {
 }
 
 // ── Staff roles ───────────────────────────────────────────────────────────────
-function addStaffRole() {
+async function addStaffRole() {
     const sel    = document.getElementById('staffRoleAdd');
     const roleId = sel.value;
     if (!roleId) return;
     if (_staffRoles.includes(roleId)) { sel.value = ''; return; }
 
-    const roleName  = sel.options[sel.selectedIndex].textContent;
+    const msg = document.getElementById('staffRoleMsg');
+    const res  = await fetch(`/api/guild/${GUILD_ID}/ticket/staff-roles`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ roleId }),
+    });
+    const data = await res.json();
+    if (!data.success) { showMsg(msg, data.message, 'error'); return; }
+
+    const r = ROLES_MAP[roleId];
     _staffRoles.push(roleId);
     sel.value = '';
-
-    const list = document.getElementById('staffRoleList');
-    document.getElementById('staffRoleEmpty').style.display = 'none';
-    const chip = document.createElement('div');
-    chip.className = 'tk-role-chip';
+    const list  = document.getElementById('staffRoleList');
+    const empty = document.getElementById('staffRoleEmpty');
+    if (empty) empty.style.display = 'none';
+    const chip = document.createElement('span');
+    chip.className  = 'am-word-chip';
     chip.dataset.id = roleId;
-    chip.innerHTML = `<span class="tk-role-dot" style="background:gray;"></span><span>${roleName}</span><button class="tk-role-remove" onclick="removeStaffRole('${roleId}')" title="${I18N_TK_REMOVE_TITLE}">✕</button>`;
+    if (r?.color) chip.style.borderColor = r.color;
+    chip.innerHTML = `<span style="font-size:.8rem;${r?.color ? `color:${r.color};` : ''}">@${r?.name || roleId}</span><button class="am-chip-del" onclick="removeStaffRole('${roleId}')" title="${I18N_TK_REMOVE_TITLE}">×</button>`;
     list.appendChild(chip);
     document.getElementById('staffRoleCounter').textContent = `${_staffRoles.length} role`;
+    showMsg(msg, data.message, 'success');
 }
 
-function removeStaffRole(roleId) {
+async function removeStaffRole(roleId) {
+    const msg  = document.getElementById('staffRoleMsg');
+    const res  = await fetch(`/api/guild/${GUILD_ID}/ticket/staff-roles/${roleId}`, { method: 'DELETE' });
+    const data = await res.json();
+    if (!data.success) { showMsg(msg, data.message, 'error'); return; }
+
     _staffRoles = _staffRoles.filter(id => id !== roleId);
-    document.querySelector(`.tk-role-chip[data-id="${roleId}"]`)?.remove();
+    document.querySelector(`.am-word-chip[data-id="${roleId}"]`)?.remove();
     document.getElementById('staffRoleCounter').textContent = `${_staffRoles.length} role`;
     if (_staffRoles.length === 0) document.getElementById('staffRoleEmpty').style.display = '';
+    showMsg(msg, data.message, 'success');
 }
 
 // ── showMsg helper ────────────────────────────────────────────────────────────
@@ -368,7 +380,6 @@ async function saveConfig(quiet = false) {
         enabled:      document.getElementById('ticketEnabled').checked,
         categoryId:   document.getElementById('ticketCategory').value,
         logChannelId: document.getElementById('ticketLogChannel').value,
-        staffRoles:   _staffRoles,
     };
     const res  = await fetch(`/api/guild/${GUILD_ID}/ticket/config`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -421,26 +432,8 @@ window._floatSave = async function () {
     const [d1, d2] = await Promise.all([saveConfig(true), savePanelEmbed(true)]);
     const msg = document.getElementById('configMsg');
     const ok = d1.success && d2.success;
-    if (ok) _initialStaffRoles = [..._staffRoles];
     showMsg(msg, ok ? d1.message : (d1.success ? d2.message : d1.message), ok ? 'success' : 'error');
     if (!ok) throw new Error();
-};
-
-window._floatReset = function () {
-    _staffRoles = [..._initialStaffRoles];
-    const list = document.getElementById('staffRoleList');
-    list.querySelectorAll('.tk-role-chip').forEach(function (c) { c.remove(); });
-    _staffRoles.forEach(function (roleId) {
-        const r = ROLES_MAP[roleId];
-        if (!r) return;
-        const chip = document.createElement('div');
-        chip.className = 'tk-role-chip';
-        chip.dataset.id = roleId;
-        chip.innerHTML = '<span class="tk-role-dot" style="background:' + r.color + ';"></span><span>@' + r.name + '</span><button class="tk-role-remove" onclick="removeStaffRole(\'' + roleId + '\')" title="' + I18N_TK_REMOVE_TITLE + '">✕</button>';
-        list.appendChild(chip);
-    });
-    document.getElementById('staffRoleEmpty').style.display = _staffRoles.length === 0 ? '' : 'none';
-    document.getElementById('staffRoleCounter').textContent = _staffRoles.length + ' role';
 };
 </script>
 

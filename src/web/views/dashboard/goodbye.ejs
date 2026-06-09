@@ -56,9 +56,15 @@
                 <div id="plainTextPanel" class="form-group" style="display:none;">
                     <div class="label-with-picker">
                         <label class="label" style="margin-bottom:0;"><%= t('common.plain_text_message') %></label>
-                        <div class="ph-picker-anchor">
-                            <button type="button" class="ph-toggle-btn" onclick="togglePicker('plainPicker',event)">{…} Placeholder</button>
-                            <div class="ph-dropdown" id="plainPicker" style="display:none;"></div>
+                        <div class="ph-btn-group">
+                            <div class="ph-picker-anchor">
+                                <button type="button" class="ph-toggle-btn" onclick="togglePicker('plainPicker',event)">{…} Placeholder</button>
+                                <div class="ph-dropdown" id="plainPicker" style="display:none;"></div>
+                            </div>
+                            <div class="ph-picker-anchor mention-anchor">
+                                <button type="button" class="ph-toggle-btn" onclick="togglePicker('plainMentionPicker',event)">@ Mention</button>
+                                <div class="ph-dropdown mention-dd" id="plainMentionPicker" style="display:none;"></div>
+                            </div>
                         </div>
                     </div>
                     <textarea id="goodbyePlainText" class="textarea" rows="3"
@@ -71,9 +77,15 @@
                 <div class="form-group">
                     <div class="label-with-picker">
                         <label class="label" style="margin-bottom:0;"><%= t('common.embed_title') %></label>
-                        <div class="ph-picker-anchor">
-                            <button type="button" class="ph-toggle-btn" onclick="togglePicker('embedPicker',event)">{…} Placeholder</button>
-                            <div class="ph-dropdown" id="embedPicker" style="display:none;"></div>
+                        <div class="ph-btn-group">
+                            <div class="ph-picker-anchor">
+                                <button type="button" class="ph-toggle-btn" onclick="togglePicker('embedPicker',event)">{…} Placeholder</button>
+                                <div class="ph-dropdown" id="embedPicker" style="display:none;"></div>
+                            </div>
+                            <div class="ph-picker-anchor mention-anchor">
+                                <button type="button" class="ph-toggle-btn" onclick="togglePicker('embedMentionPicker',event)">@ Mention</button>
+                                <div class="ph-dropdown mention-dd" id="embedMentionPicker" style="display:none;"></div>
+                            </div>
                         </div>
                     </div>
                     <input type="text" id="goodbyeTitle" class="input"
@@ -386,13 +398,23 @@
 .dc-embed-thumb { width: 60px; height: 60px; border-radius: 4px; object-fit: cover; flex-shrink: 0; margin: .6rem .6rem .6rem 0; align-self: flex-start; }
 .label-with-picker { display: flex; align-items: center; justify-content: space-between; gap: .5rem; margin-bottom: .35rem; }
 .ph-picker-anchor { position: relative; }
-.ph-toggle-btn { font-size: .72rem; padding: 2px 9px; border: 1px solid var(--border, #3f4147); border-radius: 4px; background: rgba(255,255,255,.05); color: var(--text-muted, #80848e); cursor: pointer; font-family: monospace; white-space: nowrap; line-height: 1.6; transition: background .15s, color .15s; }
-.ph-toggle-btn:hover { background: rgba(255,255,255,.12); color: var(--text, #dbdee1); }
+.ph-toggle-btn { font-size: .72rem; padding: 3px 10px; border: 1px solid var(--border, #3f4147); border-radius: 5px; background: rgba(255,255,255,.04); color: rgba(255,255,255,.5); cursor: pointer; font-family: inherit; white-space: nowrap; line-height: 1.6; transition: background .15s, color .15s, border-color .15s; display: inline-flex; align-items: center; gap: 4px; }
+.ph-toggle-btn:hover { background: rgba(255,255,255,.1); color: var(--text, #dbdee1); border-color: rgba(255,255,255,.2); }
+.ph-toggle-btn.active { background: rgba(88,101,242,.18); border-color: rgba(88,101,242,.5); color: #c0c7ff; }
+.ph-btn-group { display: flex; align-items: stretch; flex-shrink: 0; }
+.ph-btn-group .ph-picker-anchor:first-child .ph-toggle-btn { border-radius: 5px 0 0 5px; }
+.ph-btn-group .ph-picker-anchor:last-child  .ph-toggle-btn { border-radius: 0 5px 5px 0; border-left: none; }
+.ph-btn-group .ph-picker-anchor:only-child  .ph-toggle-btn { border-radius: 5px; }
 .ph-dropdown { position: absolute; top: calc(100% + 4px); right: 0; z-index: 200; background: #2b2d31; border: 1px solid #3f4147; border-radius: 8px; padding: .5rem; min-width: 260px; box-shadow: 0 8px 28px rgba(0,0,0,.55); display: grid; grid-template-columns: 1fr 1fr; gap: .25rem; }
 .ph-item { display: flex; flex-direction: column; align-items: flex-start; padding: .32rem .5rem; border: 1px solid transparent; border-radius: 5px; background: transparent; cursor: pointer; text-align: left; width: 100%; transition: background .12s; }
 .ph-item:hover { background: rgba(255,255,255,.09); border-color: #4f5660; }
 .ph-item code { font-size: .76rem; color: #7289da; font-family: monospace; }
 .ph-item span { font-size: .67rem; color: #80848e; margin-top: 1px; }
+.mention-dd { grid-template-columns: 1fr; min-width: 200px; max-height: 280px; overflow-y: auto; padding: .35rem; }
+.mention-dd .ph-item span { font-size: .82rem; color: inherit; margin-top: 0; }
+.ph-group-label { font-size: .67rem; font-weight: 700; color: #80848e; text-transform: uppercase; letter-spacing: .04em; padding: .45rem .5rem .1rem; pointer-events: none; }
+.mention-search-input { width: 100%; box-sizing: border-box; padding: .28rem .45rem; font-size: .8rem; background: rgba(255,255,255,.06); border: 1px solid #3f4147; border-radius: 4px; color: #dbdee1; outline: none; margin-bottom: .15rem; }
+.mention-search-input:focus { border-color: var(--accent, #5865F2); }
 </style>
 
 <script>
@@ -404,7 +426,7 @@ const SAMPLE = {
     avatarUrl:   <%- JSON.stringify(loginUser.avatarUrl) %>,
     server:      <%- JSON.stringify(guild.name) %>,
     count:       '<%= guild.memberCount %>',
-    akun_dibuat: '3 years ago',
+    account_created: '3 years ago',
 };
 
 const guildId = '<%= guild.id %>';
@@ -514,19 +536,19 @@ function resolvePlaceholdersTitle(text) {
         .replace(/\{tag\}/g,         SAMPLE.tag)
         .replace(/\{server\}/g,      SAMPLE.server)
         .replace(/\{count\}/g,       SAMPLE.count)
-        .replace(/\{akun\.dibuat\}/g,SAMPLE.akun_dibuat);
+        .replace(/\{account\.created\}/g,SAMPLE.account_created);
 }
 
 // Untuk description/plain — {member} → marker mention badge
 function resolvePlaceholders(text) {
     if (!text) return '';
     return text
-        .replace(/\{member\}/g,      '\x00MENTION_MEMBER\x00')
-        .replace(/\{username\}/g,    SAMPLE.username)
-        .replace(/\{tag\}/g,         SAMPLE.tag)
-        .replace(/\{server\}/g,      SAMPLE.server)
-        .replace(/\{count\}/g,       SAMPLE.count)
-        .replace(/\{akun\.dibuat\}/g,SAMPLE.akun_dibuat);
+        .replace(/\{member\}/g,          '\x00MENTION_MEMBER\x00')
+        .replace(/\{username\}/g,        SAMPLE.username)
+        .replace(/\{tag\}/g,             SAMPLE.tag)
+        .replace(/\{server\}/g,          SAMPLE.server)
+        .replace(/\{count\}/g,           SAMPLE.count)
+        .replace(/\{account\.created\}/g,SAMPLE.account_created);
 }
 
 function resolveHtmlMentions(html) {
@@ -726,13 +748,19 @@ function syncPicker(inputId, pickerId) {
 }
 
 // ── Placeholder picker ────────────────────────────────────────────────────────
+const I18N_GB_PH_MENTION         = '<%= t("goodbye.ph_mention") %>';
+const I18N_GB_PH_USERNAME        = '<%= t("goodbye.ph_username") %>';
+const I18N_GB_PH_TAG             = '<%= t("goodbye.ph_tag") %>';
+const I18N_GB_PH_SERVER          = '<%= t("goodbye.ph_server") %>';
+const I18N_GB_PH_COUNT           = '<%= t("goodbye.ph_count") %>';
+const I18N_GB_PH_ACCOUNT_CREATED = '<%= t("goodbye.ph_account_created") %>';
 const PLACEHOLDERS = [
-    ['{member}',      'Mention member'],
-    ['{username}',    'Nama pengguna'],
-    ['{tag}',         'Username#tag'],
-    ['{server}',      'Nama server'],
-    ['{count}',       'Total member'],
-    ['{akun.dibuat}', 'Tanggal buat akun'],
+    ['{member}',          I18N_GB_PH_MENTION],
+    ['{username}',        I18N_GB_PH_USERNAME],
+    ['{tag}',             I18N_GB_PH_TAG],
+    ['{server}',          I18N_GB_PH_SERVER],
+    ['{count}',           I18N_GB_PH_COUNT],
+    ['{account.created}', I18N_GB_PH_ACCOUNT_CREATED],
 ];
 
 let _lastFocusedEmbed = 'goodbyeDescription';
@@ -753,9 +781,13 @@ function togglePicker(id, event) {
     const el = document.getElementById(id);
     const wasHidden = el.style.display === 'none';
     document.querySelectorAll('.ph-dropdown').forEach(d => d.style.display = 'none');
-    if (wasHidden) el.style.display = 'grid';
+    document.querySelectorAll('.ph-toggle-btn').forEach(b => b.classList.remove('active'));
+    if (wasHidden) { el.style.display = 'grid'; if (event?.currentTarget) event.currentTarget.classList.add('active'); }
 }
-document.addEventListener('click', () => document.querySelectorAll('.ph-dropdown').forEach(d => d.style.display = 'none'));
+document.addEventListener('click', () => {
+    document.querySelectorAll('.ph-dropdown').forEach(d => d.style.display = 'none');
+    document.querySelectorAll('.ph-toggle-btn').forEach(b => b.classList.remove('active'));
+});
 function insertPh(targetId, ph) {
     const el = document.getElementById(targetId);
     if (!el) return;
@@ -845,6 +877,49 @@ function updatePreview() {
     });
 buildPicker('embedPicker', 'embed');
 buildPicker('plainPicker', 'plain');
+function _buildMentionDd(dd, getTarget) {
+    function item(html, mention) {
+        const b = document.createElement('button');
+        b.type = 'button'; b.className = 'ph-item';
+        b.innerHTML = html;
+        b.addEventListener('click', () => {
+            const ta = typeof getTarget === 'function' ? getTarget() : getTarget;
+            if (!ta) return;
+            const s = ta.selectionStart ?? ta.value.length;
+            const ep = ta.selectionEnd ?? ta.value.length;
+            ta.value = ta.value.slice(0, s) + mention + ta.value.slice(ep);
+            ta.selectionStart = ta.selectionEnd = s + mention.length;
+            ta.focus(); ta.dispatchEvent(new Event('input', {bubbles: true}));
+            document.querySelectorAll('.ph-dropdown').forEach(d => d.style.display = 'none');
+            document.querySelectorAll('.ph-toggle-btn').forEach(b => b.classList.remove('active'));
+        });
+        return b;
+    }
+    function hdr(t) { const h = document.createElement('div'); h.className = 'ph-group-label'; h.textContent = t; return h; }
+    const inp = document.createElement('input');
+    inp.type = 'text'; inp.className = 'mention-search-input'; inp.placeholder = 'Search...';
+    inp.addEventListener('click', e => e.stopPropagation());
+    inp.addEventListener('input', () => {
+        const q = inp.value.toLowerCase();
+        dd.querySelectorAll('.ph-item').forEach(el => { el.style.display = el.textContent.toLowerCase().includes(q) ? '' : 'none'; });
+    });
+    dd.appendChild(inp);
+    dd.appendChild(hdr('Special'));
+    dd.appendChild(item('<code>@everyone</code>', '@everyone'));
+    dd.appendChild(item('<code>@here</code>', '@here'));
+    const rKeys = Object.keys(ROLES);
+    if (rKeys.length) {
+        dd.appendChild(hdr('Roles'));
+        rKeys.forEach(id => { const r = ROLES[id]; dd.appendChild(item(`<span style="color:${r.color}">@${r.name}</span>`, `<@&${id}>`)); });
+    }
+    const cKeys = Object.keys(CHANNELS);
+    if (cKeys.length) {
+        dd.appendChild(hdr('Channels'));
+        cKeys.forEach(id => { const name = CHANNELS[id]; dd.appendChild(item(`<span>#${name}</span>`, `<#${id}>`)); });
+    }
+}
+_buildMentionDd(document.getElementById('embedMentionPicker'), () => document.getElementById(_lastFocusedEmbed));
+_buildMentionDd(document.getElementById('plainMentionPicker'), () => document.getElementById('goodbyePlainText'));
 // Gambar card selesai dulu sebelum updatePreview (cegah race condition canvas vs imgPlain)
 toggleCardPanel().then(() => toggleMessageTypePanel());
 

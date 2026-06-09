@@ -56,9 +56,15 @@
                 <div id="plainTextPanel" class="form-group" style="display:none;">
                     <div class="label-with-picker">
                         <label class="label" style="margin-bottom:0;"><%= t('common.plain_text_message') %></label>
-                        <div class="ph-picker-anchor">
-                            <button type="button" class="ph-toggle-btn" onclick="togglePicker('plainPicker',event)">{…} Placeholder</button>
-                            <div class="ph-dropdown" id="plainPicker" style="display:none;"></div>
+                        <div class="ph-btn-group">
+                            <div class="ph-picker-anchor">
+                                <button type="button" class="ph-toggle-btn" onclick="togglePicker('plainPicker',event)">{…} Placeholder</button>
+                                <div class="ph-dropdown" id="plainPicker" style="display:none;"></div>
+                            </div>
+                            <div class="ph-picker-anchor mention-anchor">
+                                <button type="button" class="ph-toggle-btn" onclick="togglePicker('plainMentionPicker',event)">@ Mention</button>
+                                <div class="ph-dropdown mention-dd" id="plainMentionPicker" style="display:none;"></div>
+                            </div>
                         </div>
                     </div>
                     <textarea id="welcomePlainText" class="textarea" rows="3"
@@ -71,9 +77,15 @@
                 <div class="form-group">
                     <div class="label-with-picker">
                         <label class="label" style="margin-bottom:0;"><%= t('common.embed_title') %></label>
-                        <div class="ph-picker-anchor">
-                            <button type="button" class="ph-toggle-btn" onclick="togglePicker('embedPicker',event)">{…} Placeholder</button>
-                            <div class="ph-dropdown" id="embedPicker" style="display:none;"></div>
+                        <div class="ph-btn-group">
+                            <div class="ph-picker-anchor">
+                                <button type="button" class="ph-toggle-btn" onclick="togglePicker('embedPicker',event)">{…} Placeholder</button>
+                                <div class="ph-dropdown" id="embedPicker" style="display:none;"></div>
+                            </div>
+                            <div class="ph-picker-anchor mention-anchor">
+                                <button type="button" class="ph-toggle-btn" onclick="togglePicker('embedMentionPicker',event)">@ Mention</button>
+                                <div class="ph-dropdown mention-dd" id="embedMentionPicker" style="display:none;"></div>
+                            </div>
                         </div>
                     </div>
                     <input type="text" id="welcomeTitle" class="input"
@@ -450,7 +462,7 @@
     align-self: flex-start;
 }
 
-/* ── Placeholder picker ── */
+/* ── Placeholder + Mention picker ── */
 .label-with-picker {
     display: flex;
     align-items: center;
@@ -460,19 +472,19 @@
 }
 .ph-picker-anchor { position: relative; }
 .ph-toggle-btn {
-    font-size: .72rem;
-    padding: 2px 9px;
-    border: 1px solid var(--border, #3f4147);
-    border-radius: 4px;
-    background: rgba(255,255,255,.05);
-    color: var(--text-muted, #80848e);
-    cursor: pointer;
-    font-family: monospace;
-    white-space: nowrap;
-    line-height: 1.6;
-    transition: background .15s, color .15s;
+    font-size: .72rem; padding: 3px 10px;
+    border: 1px solid var(--border, #3f4147); border-radius: 5px;
+    background: rgba(255,255,255,.04); color: rgba(255,255,255,.5);
+    cursor: pointer; font-family: inherit; white-space: nowrap;
+    line-height: 1.6; transition: background .15s, color .15s, border-color .15s;
+    display: inline-flex; align-items: center; gap: 4px;
 }
-.ph-toggle-btn:hover { background: rgba(255,255,255,.12); color: var(--text, #dbdee1); }
+.ph-toggle-btn:hover { background: rgba(255,255,255,.1); color: var(--text, #dbdee1); border-color: rgba(255,255,255,.2); }
+.ph-toggle-btn.active { background: rgba(88,101,242,.18); border-color: rgba(88,101,242,.5); color: #c0c7ff; }
+.ph-btn-group { display: flex; align-items: stretch; flex-shrink: 0; }
+.ph-btn-group .ph-picker-anchor:first-child .ph-toggle-btn { border-radius: 5px 0 0 5px; }
+.ph-btn-group .ph-picker-anchor:last-child  .ph-toggle-btn { border-radius: 0 5px 5px 0; border-left: none; }
+.ph-btn-group .ph-picker-anchor:only-child  .ph-toggle-btn { border-radius: 5px; }
 .ph-dropdown {
     position: absolute;
     top: calc(100% + 4px);
@@ -504,6 +516,11 @@
 .ph-item:hover { background: rgba(255,255,255,.09); border-color: #4f5660; }
 .ph-item code { font-size: .76rem; color: #7289da; font-family: monospace; }
 .ph-item span { font-size: .67rem; color: #80848e; margin-top: 1px; }
+.mention-dd { grid-template-columns: 1fr; min-width: 200px; max-height: 280px; overflow-y: auto; padding: .35rem; }
+.mention-dd .ph-item span { font-size: .82rem; color: inherit; margin-top: 0; }
+.ph-group-label { font-size: .67rem; font-weight: 700; color: #80848e; text-transform: uppercase; letter-spacing: .04em; padding: .45rem .5rem .1rem; pointer-events: none; }
+.mention-search-input { width: 100%; box-sizing: border-box; padding: .28rem .45rem; font-size: .8rem; background: rgba(255,255,255,.06); border: 1px solid #3f4147; border-radius: 4px; color: #dbdee1; outline: none; margin-bottom: .15rem; }
+.mention-search-input:focus { border-color: var(--accent, #5865F2); }
 
 </style>
 
@@ -519,9 +536,9 @@ const SAMPLE = {
     server:         <%- JSON.stringify(guild.name) %>,
     count:          '<%= guild.memberCount %>',
     inviter:        'OctaUser#1234',
-    kode_invite:    'abc123',
-    total_undangan: '42',
-    akun_dibuat:    '3 years ago',
+    invite_code:    'abc123',
+    total_invites:  '42',
+    account_created:'3 years ago',
 };
 
 // Markdown Discord → HTML
@@ -738,9 +755,9 @@ function resolvePlaceholdersTitle(text) {
         .replace(/\{server\}/g,          SAMPLE.server)
         .replace(/\{count\}/g,           SAMPLE.count)
         .replace(/\{inviter\}/g,         SAMPLE.inviter)
-        .replace(/\{kode\.invite\}/g,    SAMPLE.kode_invite)
-        .replace(/\{total\.undangan\}/g, SAMPLE.total_undangan)
-        .replace(/\{akun\.dibuat\}/g,    SAMPLE.akun_dibuat);
+        .replace(/\{invite\.code\}/g,    SAMPLE.invite_code)
+        .replace(/\{total\.invites\}/g,  SAMPLE.total_invites)
+        .replace(/\{account\.created\}/g,SAMPLE.account_created);
 }
 
 // Fase 1b: untuk description/plain — {member} → marker yang akan jadi mention badge
@@ -753,9 +770,9 @@ function resolvePlaceholders(text) {
         .replace(/\{server\}/g,          SAMPLE.server)
         .replace(/\{count\}/g,           SAMPLE.count)
         .replace(/\{inviter\}/g,         SAMPLE.inviter)
-        .replace(/\{kode\.invite\}/g,    SAMPLE.kode_invite)
-        .replace(/\{total\.undangan\}/g, SAMPLE.total_undangan)
-        .replace(/\{akun\.dibuat\}/g,    SAMPLE.akun_dibuat);
+        .replace(/\{invite\.code\}/g,    SAMPLE.invite_code)
+        .replace(/\{total\.invites\}/g,  SAMPLE.total_invites)
+        .replace(/\{account\.created\}/g,SAMPLE.account_created);
 }
 
 // Fase 2: inject HTML badge untuk mention Discord (setelah mdToHtml sudah escape)
@@ -1073,16 +1090,25 @@ function syncPicker(inputId, pickerId) {
 }
 
 // ── Placeholder picker ────────────────────────────────────────────────────
+const I18N_WL_PH_MENTION         = '<%= t("welcome.ph_mention") %>';
+const I18N_WL_PH_USERNAME        = '<%= t("welcome.ph_username") %>';
+const I18N_WL_PH_TAG             = '<%= t("welcome.ph_tag") %>';
+const I18N_WL_PH_SERVER          = '<%= t("welcome.ph_server") %>';
+const I18N_WL_PH_COUNT           = '<%= t("welcome.ph_count") %>';
+const I18N_WL_PH_INVITER         = '<%= t("welcome.ph_inviter") %>';
+const I18N_WL_PH_INVITE_CODE     = '<%= t("welcome.ph_invite_code") %>';
+const I18N_WL_PH_TOTAL_INVITES   = '<%= t("welcome.ph_total_invites") %>';
+const I18N_WL_PH_ACCOUNT_CREATED = '<%= t("welcome.ph_account_created") %>';
 const PLACEHOLDERS = [
-    ['{member}',         'Mention member'],
-    ['{username}',       'Nama pengguna'],
-    ['{tag}',            'Username#tag'],
-    ['{server}',         'Server name'],
-    ['{count}',          'Total members'],
-    ['{inviter}',        'Inviter name'],
-    ['{kode.invite}',    'Invite code'],
-    ['{total.undangan}', 'Total invites'],
-    ['{akun.dibuat}',    'Account creation date'],
+    ['{member}',         I18N_WL_PH_MENTION],
+    ['{username}',       I18N_WL_PH_USERNAME],
+    ['{tag}',            I18N_WL_PH_TAG],
+    ['{server}',         I18N_WL_PH_SERVER],
+    ['{count}',          I18N_WL_PH_COUNT],
+    ['{inviter}',        I18N_WL_PH_INVITER],
+    ['{invite.code}',    I18N_WL_PH_INVITE_CODE],
+    ['{total.invites}',  I18N_WL_PH_TOTAL_INVITES],
+    ['{account.created}',I18N_WL_PH_ACCOUNT_CREATED],
 ];
 
 let _lastFocusedEmbed = 'welcomeDescription';
@@ -1103,10 +1129,12 @@ function togglePicker(id, event) {
     const el = document.getElementById(id);
     const wasHidden = el.style.display === 'none';
     document.querySelectorAll('.ph-dropdown').forEach(d => d.style.display = 'none');
-    if (wasHidden) el.style.display = 'grid';
+    document.querySelectorAll('.ph-toggle-btn').forEach(b => b.classList.remove('active'));
+    if (wasHidden) { el.style.display = 'grid'; if (event?.currentTarget) event.currentTarget.classList.add('active'); }
 }
 document.addEventListener('click', () => {
     document.querySelectorAll('.ph-dropdown').forEach(d => d.style.display = 'none');
+    document.querySelectorAll('.ph-toggle-btn').forEach(b => b.classList.remove('active'));
 });
 function insertPh(targetId, ph) {
     const el = document.getElementById(targetId);
@@ -1232,6 +1260,49 @@ function updatePreview() {
 
 buildPicker('embedPicker', 'embed');
 buildPicker('plainPicker', 'plain');
+function _buildMentionDd(dd, getTarget) {
+    function item(html, mention) {
+        const b = document.createElement('button');
+        b.type = 'button'; b.className = 'ph-item';
+        b.innerHTML = html;
+        b.addEventListener('click', () => {
+            const ta = typeof getTarget === 'function' ? getTarget() : getTarget;
+            if (!ta) return;
+            const s = ta.selectionStart ?? ta.value.length;
+            const ep = ta.selectionEnd ?? ta.value.length;
+            ta.value = ta.value.slice(0, s) + mention + ta.value.slice(ep);
+            ta.selectionStart = ta.selectionEnd = s + mention.length;
+            ta.focus(); ta.dispatchEvent(new Event('input', {bubbles: true}));
+            document.querySelectorAll('.ph-dropdown').forEach(d => d.style.display = 'none');
+            document.querySelectorAll('.ph-toggle-btn').forEach(b => b.classList.remove('active'));
+        });
+        return b;
+    }
+    function hdr(t) { const h = document.createElement('div'); h.className = 'ph-group-label'; h.textContent = t; return h; }
+    const inp = document.createElement('input');
+    inp.type = 'text'; inp.className = 'mention-search-input'; inp.placeholder = 'Search...';
+    inp.addEventListener('click', e => e.stopPropagation());
+    inp.addEventListener('input', () => {
+        const q = inp.value.toLowerCase();
+        dd.querySelectorAll('.ph-item').forEach(el => { el.style.display = el.textContent.toLowerCase().includes(q) ? '' : 'none'; });
+    });
+    dd.appendChild(inp);
+    dd.appendChild(hdr('Special'));
+    dd.appendChild(item('<code>@everyone</code>', '@everyone'));
+    dd.appendChild(item('<code>@here</code>', '@here'));
+    const rKeys = Object.keys(ROLES);
+    if (rKeys.length) {
+        dd.appendChild(hdr('Roles'));
+        rKeys.forEach(id => { const r = ROLES[id]; dd.appendChild(item(`<span style="color:${r.color}">@${r.name}</span>`, `<@&${id}>`)); });
+    }
+    const cKeys = Object.keys(CHANNELS);
+    if (cKeys.length) {
+        dd.appendChild(hdr('Channels'));
+        cKeys.forEach(id => { const name = CHANNELS[id]; dd.appendChild(item(`<span>#${name}</span>`, `<#${id}>`)); });
+    }
+}
+_buildMentionDd(document.getElementById('embedMentionPicker'), () => document.getElementById(_lastFocusedEmbed));
+_buildMentionDd(document.getElementById('plainMentionPicker'), () => document.getElementById('welcomePlainText'));
 // Gambar card selesai dulu sebelum updatePreview (cegah race condition canvas vs imgPlain)
 toggleCardPanel().then(() => toggleMessageTypePanel());
 // ── Save ───────────────────────────────────────────────────────────────────

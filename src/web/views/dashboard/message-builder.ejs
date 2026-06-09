@@ -15,7 +15,7 @@
         <!-- ── Toolbar: buat baru + search ── -->
         <div class="mb-toolbar">
             <button class="btn btn-primary" onclick="openCreateModal()">＋ <%= t('message_builder.new_template_btn') %></button>
-            <input type="text" class="input mb-search" placeholder="🔍 <%= t('message_builder.search_placeholder') %>" oninput="filterTemplates(this.value)">
+            <input type="text" class="input mb-search" data-flt-ignore placeholder="🔍 <%= t('message_builder.search_placeholder') %>" oninput="filterTemplates(this.value)">
         </div>
 
         <!-- ── Page layout: list kiri, preview kanan ── -->
@@ -126,7 +126,7 @@
      MODAL: Buat / Edit Template
 ══════════════════════════════════════════════ -->
 <div class="mb-modal-backdrop" id="editBackdrop" onclick="closeEditModal()"></div>
-<div class="mb-modal" id="editModal">
+<div class="mb-modal" id="editModal" data-flt-ignore>
     <div class="mb-modal-header">
         <h2 id="editModalTitle"><%= t('message_builder.modal_new_title') %></h2>
         <button class="mb-modal-close" onclick="closeEditModal()">✕</button>
@@ -281,7 +281,7 @@
      MODAL: Send to Channel
 ══════════════════════════════════════════════ -->
 <div class="mb-modal-backdrop" id="sendBackdrop" onclick="closeSendModal()"></div>
-<div class="mb-modal mb-modal-sm" id="sendModal">
+<div class="mb-modal mb-modal-sm" id="sendModal" data-flt-ignore>
     <div class="mb-modal-header">
         <h2><i data-lucide="send"></i> <%= t('message_builder.send_modal_title') %></h2>
         <button class="mb-modal-close" onclick="closeSendModal()">✕</button>

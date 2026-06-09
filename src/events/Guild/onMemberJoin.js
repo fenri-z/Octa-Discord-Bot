@@ -104,9 +104,9 @@ module.exports = new Event({
             .replace(/{server}/g,          guild.name)
             .replace(/{count}/g,           String(totalMembers))
             .replace(/{inviter}/g,         inviter ? inviter.tag : 'Unknown')
-            .replace(/{kode\.invite}/g,    usedInvite ? usedInvite.code : 'Unknown')
-            .replace(/{total\.undangan}/g, inviter ? String(inviterTotalUses) : '-')
-            .replace(/{akun\.dibuat}/g,    createdRelative);
+            .replace(/{invite\.code}/g,    usedInvite ? usedInvite.code : 'Unknown')
+            .replace(/{total\.invites}/g,  inviter ? String(inviterTotalUses) : '-')
+            .replace(/{account\.created}/g,createdRelative);
 
         // Untuk description & plain text: {member} → mention <@ID>
         const parse = (str) => str
@@ -116,9 +116,9 @@ module.exports = new Event({
             .replace(/{server}/g,          guild.name)
             .replace(/{count}/g,           String(totalMembers))
             .replace(/{inviter}/g,         inviter ? inviter.tag : 'Unknown')
-            .replace(/{kode\.invite}/g,    usedInvite ? usedInvite.code : 'Unknown')
-            .replace(/{total\.undangan}/g, inviter ? String(inviterTotalUses) : '-')
-            .replace(/{akun\.dibuat}/g,    createdRelative);
+            .replace(/{invite\.code}/g,    usedInvite ? usedInvite.code : 'Unknown')
+            .replace(/{total\.invites}/g,  inviter ? String(inviterTotalUses) : '-')
+            .replace(/{account\.created}/g,createdRelative);
 
         // ── Generate welcome card (jika aktif) ───────────────────────────
         let cardAttachment = null;

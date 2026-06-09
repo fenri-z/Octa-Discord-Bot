@@ -107,6 +107,7 @@
         document.querySelectorAll('input, select, textarea').forEach(function (el) {
             if (el.closest('#flt-bar')) return;
             if ('fltIgnore' in el.dataset) return;
+            if (el.closest('[data-flt-ignore]')) return;
             _initials.set(el, el.type === 'checkbox' || el.type === 'radio' ? el.checked : el.value);
         });
     }
@@ -137,6 +138,7 @@
         if (e.target.closest('#flt-bar')) return;
         if (!e.target.matches('input, select, textarea')) return;
         if ('fltIgnore' in e.target.dataset) return;
+        if (e.target.closest('[data-flt-ignore]')) return;
         isClean() ? hide() : show();
     }
 
