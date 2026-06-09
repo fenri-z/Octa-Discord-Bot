@@ -277,9 +277,6 @@
 
                 </div><!-- /cardPanel -->
 
-                <div class="form-actions">
-                    <button class="btn btn-primary" onclick="saveGoodbye('<%= guild.id %>')"><%= t('common.save') %></button>
-                </div>
                 <div id="goodbyeMsg" class="form-message"></div>
             </div>
 
@@ -896,6 +893,8 @@ function showMsg(el, text, type) {
     el.className   = `form-message msg-${type}`;
     setTimeout(() => { el.textContent = ''; el.className = 'form-message'; }, 3000);
 }
+
+window._floatSave = () => saveGoodbye('<%= guild.id %>');
 </script>
 
 <%- include('../partials/footer') %>

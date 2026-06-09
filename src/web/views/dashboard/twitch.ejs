@@ -251,7 +251,7 @@
                 <div class="tw-search-row" style="display:flex;gap:.6rem;">
                     <input type="text" id="twLookupInput" class="input"
                            placeholder="username  atau  https://twitch.tv/username"
-                           style="flex:1;min-width:0;" maxlength="200"
+                           style="flex:1;min-width:0;" maxlength="200" data-flt-ignore
                            onkeydown="if(event.key==='Enter') lookupTwitch()">
                     <button class="btn btn-primary" onclick="lookupTwitch()" id="twLookupBtn"
                             style="white-space:nowrap;flex-shrink:0;<% if (!isConfigured) { %>opacity:.5;cursor:not-allowed;<% } %>"
@@ -393,9 +393,6 @@
                     <div class="tw-action-row" style="display:flex;justify-content:flex-end;gap:.5rem;padding-top:.85rem;">
                         <button class="btn btn-secondary" onclick="testNotif('<%= acc.userId %>')">
                             <i data-lucide="send" style="width:14px;height:14px;"></i> <%= t('twitch.test_notif_btn') %>
-                        </button>
-                        <button class="btn btn-primary" onclick="saveStreamer('<%= acc.userId %>')">
-                            <i data-lucide="save" style="width:14px;height:14px;"></i> <%= t('common.save') %>
                         </button>
                     </div>
                     <div id="msg-<%= acc.userId %>" class="form-message" style="margin-top:.4rem;"></div>
@@ -571,7 +568,7 @@ async function addStreamer() {
 }
 
 // ── Simpan ────────────────────────────────────────────────────────────────────
-async function saveStreamer(userId) {
+async function saveStreamer(userId, quiet = false) {
     const msgEl    = document.getElementById(`msg-${userId}`);
     const enabled  = document.getElementById(`twEnabled-${userId}`)?.checked  || false;
     const channelId = document.getElementById(`twChannel-${userId}`)?.value   || '';
@@ -580,7 +577,7 @@ async function saveStreamer(userId) {
     if (enabled && !channelId) {
         showMsg(msgEl, I18N_TW_ERR_NO_CH, 'error');
         document.getElementById(`twChannel-${userId}`)?.focus();
-        return;
+        return { success: false, message: I18N_TW_ERR_NO_CH };
     }
 
     const r    = await fetch(`/api/guild/${GUILD_ID}/twitch/accounts/${encodeURIComponent(userId)}`, {
@@ -588,7 +585,8 @@ async function saveStreamer(userId) {
         body: JSON.stringify({ enabled, channelId, message }),
     });
     const data = await r.json();
-    showMsg(msgEl, data.message, data.success ? 'success' : 'error');
+    if (!quiet || !data.success) showMsg(msgEl, data.message, data.success ? 'success' : 'error');
+    return data;
 }
 
 // ── Test notif ────────────────────────────────────────────────────────────────
@@ -706,6 +704,15 @@ function insertPh(targetId, ph) {
 buildPickers();
 document.querySelectorAll('[id^="twMessage-"]').forEach(el => updatePreview(el.id.replace('twMessage-', '')));
 document.getElementById('twLookupInput')?.addEventListener('keydown', e => { if (e.key === 'Enter') lookupTwitch(); });
+
+const _twAllIds = <%- JSON.stringify(twAccounts.map(a => a.userId)) %>;
+window._floatSave = async function () {
+    if (_twAllIds.length === 0) return;
+    const results = await Promise.allSettled(_twAllIds.map(id => saveStreamer(id, true)));
+    const ok = results.every(r => r.status === 'fulfilled' && r.value?.success);
+    if (ok) showMsg(null, results[0].value.message, 'success');
+    else throw new Error();
+};
 </script>
 
 <%- include('../partials/footer') %>

@@ -295,7 +295,7 @@
                 <div class="tt-search-row" style="display:flex;gap:.6rem;">
                     <input type="text" id="ttLookupInput" class="input"
                            placeholder="@username  atau  https://tiktok.com/@username"
-                           style="flex:1;min-width:0;" maxlength="200"
+                           style="flex:1;min-width:0;" maxlength="200" data-flt-ignore
                            onkeydown="if(event.key==='Enter') lookupTikTok()">
                     <button class="btn btn-primary" onclick="lookupTikTok()" id="ttLookupBtn" style="white-space:nowrap;flex-shrink:0;">
                         <i data-lucide="search" style="width:14px;height:14px;"></i> <%= t('tiktok.search_btn') %>
@@ -505,9 +505,6 @@
                     <div class="tt-action-row" style="display:flex;justify-content:flex-end;gap:.5rem;padding-top:.25rem;">
                         <button class="btn btn-secondary" id="testBtn-<%= key %>" onclick="testNotif('<%= acc.username %>','<%= key %>')">
                             <i data-lucide="send" style="width:14px;height:14px;"></i> <%= t('tiktok.test_notif_btn') %>
-                        </button>
-                        <button class="btn btn-primary" onclick="saveAccount('<%= acc.username %>')">
-                            <i data-lucide="save" style="width:14px;height:14px;"></i> <%= t('common.save') %>
                         </button>
                     </div>
                     <div id="msg-<%= key %>" class="form-message" style="margin-top:.4rem;"></div>
@@ -788,7 +785,7 @@ function updatePreview(key) {
 }
 
 // ── Simpan ────────────────────────────────────────────────────────────────────
-async function saveAccount(username) {
+async function saveAccount(username, quiet = false) {
     const key   = username.replace('@','').replace(/\./g,'_');
     const msgEl = document.getElementById(`msg-${key}`);
 
@@ -802,13 +799,13 @@ async function saveAccount(username) {
         switchTab(key, 'video');
         showMsg(msgEl, I18N_TT_ERR_VIDEO_CH, 'error');
         document.getElementById(`vidChannel-${key}`)?.focus();
-        return;
+        return { success: false, message: I18N_TT_ERR_VIDEO_CH };
     }
     if (liveEnabled && !liveChannelId) {
         switchTab(key, 'live');
         showMsg(msgEl, I18N_TT_ERR_LIVE_CH, 'error');
         document.getElementById(`liveChannel-${key}`)?.focus();
-        return;
+        return { success: false, message: I18N_TT_ERR_LIVE_CH };
     }
 
     const payload = {
@@ -824,7 +821,8 @@ async function saveAccount(username) {
         body: JSON.stringify(payload),
     });
     const data = await r.json();
-    showMsg(msgEl, data.message, data.success ? 'success' : 'error');
+    if (!quiet || !data.success) showMsg(msgEl, data.message, data.success ? 'success' : 'error');
+    return data;
 }
 
 // ── Test notif ────────────────────────────────────────────────────────────────
@@ -981,6 +979,15 @@ function insertPh(targetId, ph) {
 buildPickers();
 document.querySelectorAll('[id^="testBtn-"]').forEach(btn => btn.dataset.tab = 'video');
 document.getElementById('ttLookupInput')?.addEventListener('keydown', e => { if (e.key==='Enter') lookupTikTok(); });
+
+const _ttAllUsers = <%- JSON.stringify(ttAccounts.map(a => a.username)) %>;
+window._floatSave = async function () {
+    if (_ttAllUsers.length === 0) return;
+    const results = await Promise.allSettled(_ttAllUsers.map(u => saveAccount(u, true)));
+    const ok = results.every(r => r.status === 'fulfilled' && r.value?.success);
+    if (ok) showMsg(null, results[0].value.message, 'success');
+    else throw new Error();
+};
 </script>
 
 <%- include('../partials/footer') %>

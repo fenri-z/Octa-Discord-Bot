@@ -50,7 +50,7 @@
             <p class="section-desc" style="margin-bottom:1rem;"><%= t('serverstats.status_desc') %></p>
             <div class="form-group">
                 <label class="toggle-label">
-                    <input type="checkbox" id="ssEnabled" class="toggle-input" <%= serverstatsData.enabled ? 'checked' : '' %>
+                    <input type="checkbox" id="ssEnabled" class="toggle-input" data-flt-ignore <%= serverstatsData.enabled ? 'checked' : '' %>
                            <% if (!serverstatsData.categoryId || !serverstatsData.totalId) { %>disabled title="<%= t('serverstats.setup_first') %>"<% } %>>
                     <span class="toggle-slider"></span>
                     <span><%= t('serverstats.enable_toggle') %></span>
@@ -67,7 +67,7 @@
 
             <div class="form-group" style="margin-top:1.25rem;">
                 <label class="label"><%= t('serverstats.category_name') %></label>
-                <input type="text" id="lblCategory" class="input" maxlength="90"
+                <input type="text" id="lblCategory" class="input" maxlength="90" data-flt-ignore
                        value="<%= serverstatsData.categoryLabel %>" placeholder="📊 Server Stats">
                 <div style="font-size:.78rem;color:var(--text-muted);margin-top:.3rem;">
                     Preview: <strong id="previewCategory"><%= serverstatsData.categoryLabel %></strong>
@@ -76,7 +76,7 @@
 
             <div class="form-group">
                 <label class="label"><%= t('serverstats.total_format') %></label>
-                <input type="text" id="lblTotal" class="input" maxlength="90"
+                <input type="text" id="lblTotal" class="input" maxlength="90" data-flt-ignore
                        value="<%= serverstatsData.totalLabel %>" placeholder="👥 Total Member: {count}">
                 <div style="font-size:.78rem;color:var(--text-muted);margin-top:.3rem;">
                     Preview: <strong id="previewTotal"></strong>
@@ -85,7 +85,7 @@
 
             <div class="form-group">
                 <label class="label"><%= t('serverstats.users_format') %></label>
-                <input type="text" id="lblHuman" class="input" maxlength="90"
+                <input type="text" id="lblHuman" class="input" maxlength="90" data-flt-ignore
                        value="<%= serverstatsData.humanLabel %>" placeholder="👤 User: {count}">
                 <div style="font-size:.78rem;color:var(--text-muted);margin-top:.3rem;">
                     Preview: <strong id="previewHuman"></strong>
@@ -94,15 +94,17 @@
 
             <div class="form-group">
                 <label class="label"><%= t('serverstats.bots_format') %></label>
-                <input type="text" id="lblBot" class="input" maxlength="90"
+                <input type="text" id="lblBot" class="input" maxlength="90" data-flt-ignore
                        value="<%= serverstatsData.botLabel %>" placeholder="🤖 Bot: {count}">
                 <div style="font-size:.78rem;color:var(--text-muted);margin-top:.3rem;">
                     Preview: <strong id="previewBot"></strong>
                 </div>
             </div>
 
-            <div class="form-row" style="gap:.75rem;margin-top:.5rem;">
-                <button class="btn btn-primary" onclick="saveLabels('<%= guild.id %>')"><%= t('common.save') %></button>
+            <div class="form-row" style="margin-top:1rem;">
+                <button class="btn btn-primary" onclick="saveLabels('<%= guild.id %>')">
+                    <i data-lucide="save" style="width:14px;height:14px;"></i> <%= t('common.save_changes') %>
+                </button>
             </div>
             <div id="labelsMsg" class="form-message"></div>
         </div>
@@ -128,7 +130,7 @@
             </div>
             <div class="form-group">
                 <label class="label"><%= t('serverstats.category_name') %> <span style="color:var(--text-muted);font-weight:400;"><%= t('giveaway.required_role_hint') %></span></label>
-                <input type="text" id="setupCategoryName" class="input" maxlength="90"
+                <input type="text" id="setupCategoryName" class="input" maxlength="90" data-flt-ignore
                        placeholder="📊 Server Stats" style="max-width:320px;">
             </div>
             <div class="form-row">
@@ -269,6 +271,17 @@ function showMsg(el, text, type) {
     el.className   = `form-message msg-${type}`;
     if (type === 'success') setTimeout(() => { el.textContent = ''; el.className = 'form-message'; }, 3500);
 }
+
+document.getElementById('ssEnabled')?.addEventListener('change', async function () {
+    const msg = document.getElementById('statusMsg');
+    const res  = await fetch(`/api/guild/${GUILD_ID}/serverstats`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enabled: this.checked }),
+    });
+    const data = await res.json();
+    showMsg(msg, data.message, data.success ? 'success' : 'error');
+    if (!data.success) this.checked = !this.checked;
+});
 </script>
 
 <%- include('../partials/footer') %>

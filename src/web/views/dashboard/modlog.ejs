@@ -61,9 +61,6 @@
                             <option value="<%= ch.id %>" <%= logChannelId === ch.id ? 'selected' : '' %>>#<%= ch.name %></option>
                         <% }); %>
                     </select>
-                    <button class="btn btn-primary ml-channel-btn" onclick="saveConfig()">
-                        <i data-lucide="save"></i> <%= t('common.save') %>
-                    </button>
                 </div>
             </div>
             <div id="mlMsg" class="form-message"></div>
@@ -78,35 +75,35 @@
 
             <div class="form-group">
                 <label class="toggle-label">
-                    <input type="checkbox" id="evtBan" class="toggle-input" <%= events.ban ? 'checked' : '' %>>
+                    <input type="checkbox" id="evtBan" class="toggle-input" data-flt-ignore <%= events.ban ? 'checked' : '' %>>
                     <span class="toggle-slider"></span>
                     <span><%= t('modlog.evt_ban') %></span>
                 </label>
             </div>
             <div class="form-group">
                 <label class="toggle-label">
-                    <input type="checkbox" id="evtUnban" class="toggle-input" <%= events.unban ? 'checked' : '' %>>
+                    <input type="checkbox" id="evtUnban" class="toggle-input" data-flt-ignore <%= events.unban ? 'checked' : '' %>>
                     <span class="toggle-slider"></span>
                     <span><%= t('modlog.evt_unban') %></span>
                 </label>
             </div>
             <div class="form-group">
                 <label class="toggle-label">
-                    <input type="checkbox" id="evtKick" class="toggle-input" <%= events.kick ? 'checked' : '' %>>
+                    <input type="checkbox" id="evtKick" class="toggle-input" data-flt-ignore <%= events.kick ? 'checked' : '' %>>
                     <span class="toggle-slider"></span>
                     <span><%= t('modlog.evt_kick') %></span>
                 </label>
             </div>
             <div class="form-group">
                 <label class="toggle-label">
-                    <input type="checkbox" id="evtTimeout" class="toggle-input" <%= events.timeout ? 'checked' : '' %>>
+                    <input type="checkbox" id="evtTimeout" class="toggle-input" data-flt-ignore <%= events.timeout ? 'checked' : '' %>>
                     <span class="toggle-slider"></span>
                     <span><%= t('modlog.evt_timeout') %></span>
                 </label>
             </div>
             <div class="form-group">
                 <label class="toggle-label">
-                    <input type="checkbox" id="evtWarn" class="toggle-input" <%= events.warn ? 'checked' : '' %>>
+                    <input type="checkbox" id="evtWarn" class="toggle-input" data-flt-ignore <%= events.warn ? 'checked' : '' %>>
                     <span class="toggle-slider"></span>
                     <span><%= t('modlog.evt_warn') %></span>
                 </label>
@@ -206,6 +203,8 @@ function getEvents() {
         if (!data.success) this.checked = !this.checked;
     });
 });
+
+window._floatSave = () => saveConfig();
 </script>
 
 <%- include('../partials/footer') %>

@@ -114,7 +114,10 @@
     "view_in_discord": "Lihat di Discord",
     "cancel": "Batal",
     "delete": "Hapus",
-    "preview_no_channel": "select-channel"
+    "preview_no_channel": "select-channel",
+    "unsaved_changes": "Ada perubahan yang belum disimpan",
+    "save_changes": "Simpan Perubahan",
+    "reset": "Reset"
   },
   "welcome": {
     "page_title": "Notifkasi Sambutan",

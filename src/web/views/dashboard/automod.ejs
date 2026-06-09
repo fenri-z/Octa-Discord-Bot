@@ -96,11 +96,6 @@
 
             </div>
 
-            <div class="form-row" style="margin-top:.5rem;">
-                <button class="btn btn-primary" onclick="saveGeneral()">
-                    <i data-lucide="save"></i> <%= t('automod.save_config') %>
-                </button>
-            </div>
             <div id="generalMsg" class="form-message"></div>
         </div>
 
@@ -111,21 +106,21 @@
 
             <div class="form-group">
                 <label class="toggle-label">
-                    <input type="checkbox" id="toggleAntilink" class="toggle-input" <%= automodData.antilink ? 'checked' : '' %>>
+                    <input type="checkbox" id="toggleAntilink" class="toggle-input" data-flt-ignore <%= automodData.antilink ? 'checked' : '' %>>
                     <span class="toggle-slider"></span>
                     <span><%= t('automod.antilink_label') %></span>
                 </label>
             </div>
             <div class="form-group">
                 <label class="toggle-label">
-                    <input type="checkbox" id="toggleAntiinvite" class="toggle-input" <%= automodData.antiinvite ? 'checked' : '' %>>
+                    <input type="checkbox" id="toggleAntiinvite" class="toggle-input" data-flt-ignore <%= automodData.antiinvite ? 'checked' : '' %>>
                     <span class="toggle-slider"></span>
                     <span><%= t('automod.antiinvite_label') %></span>
                 </label>
             </div>
             <div class="form-group">
                 <label class="toggle-label">
-                    <input type="checkbox" id="toggleAttachments" class="toggle-input" <%= automodData.attachments ? 'checked' : '' %>>
+                    <input type="checkbox" id="toggleAttachments" class="toggle-input" data-flt-ignore <%= automodData.attachments ? 'checked' : '' %>>
                     <span class="toggle-slider"></span>
                     <span><%= t('automod.antiattach_label') %></span>
                 </label>
@@ -161,11 +156,6 @@
                 </div>
             </div>
 
-            <div class="form-row" style="margin-top:.75rem;">
-                <button class="btn btn-primary" onclick="saveSpam()">
-                    <i data-lucide="save"></i> <%= t('automod.save') %>
-                </button>
-            </div>
             <div id="spamMsg" class="form-message"></div>
         </div>
 
@@ -191,11 +181,6 @@
                 </div>
             </div>
 
-            <div class="form-row" style="margin-top:.75rem;">
-                <button class="btn btn-primary" onclick="saveMassMention()">
-                    <i data-lucide="save"></i> <%= t('automod.save') %>
-                </button>
-            </div>
             <div id="mentionMsg" class="form-message"></div>
         </div>
 
@@ -227,11 +212,6 @@
                 </div>
             </div>
 
-            <div class="form-row" style="margin-top:.75rem;">
-                <button class="btn btn-primary" onclick="saveAntiRaid()">
-                    <i data-lucide="save"></i> <%= t('automod.save') %>
-                </button>
-            </div>
             <div id="raidMsg" class="form-message"></div>
         </div>
 
@@ -254,7 +234,7 @@
 
             <div class="form-row am-words-add-row">
                 <input type="text" id="newWord" class="input am-words-input" placeholder="<%= t('automod.words_placeholder') %>"
-                       maxlength="50"
+                       maxlength="50" data-flt-ignore
                        onkeydown="if(event.key==='Enter')addWord()">
                 <button class="btn btn-primary am-words-btn" onclick="addWord()">
                     <i data-lucide="plus"></i> <%= t('automod.words_add') %>
@@ -288,7 +268,7 @@
                         <% }); %>
                     </div>
                     <div class="am-wl-add-row">
-                        <select id="wlAddChannel" class="select am-wl-select">
+                        <select id="wlAddChannel" class="select am-wl-select" data-flt-ignore>
                             <option value=""><%= t('automod.whitelist_select_channel') %></option>
                             <% textChannels.forEach(function(c) { %>
                                 <option value="<%= c.id %>">#<%= c.name %></option>
@@ -319,7 +299,7 @@
                         <% }); %>
                     </div>
                     <div class="am-wl-add-row">
-                        <select id="wlAddRole" class="select am-wl-select">
+                        <select id="wlAddRole" class="select am-wl-select" data-flt-ignore>
                             <option value=""><%= t('automod.whitelist_select_role') %></option>
                             <% roles.forEach(function(r) { %>
                                 <option value="<%= r.id %>" style="color:<%= r.color || 'inherit' %>;">@<%= r.name %></option>
@@ -543,14 +523,15 @@ async function apiFetch(path, method, body) {
 }
 
 // ── Konfigurasi Umum ──────────────────────────────────────────────────────────
-async function saveGeneral() {
+async function saveGeneral(quiet = false) {
     const msg = document.getElementById('generalMsg');
     const data = await apiFetch('/automod/general', 'POST', {
         action:       document.getElementById('automodAction').value,
         muteDuration: document.getElementById('automodMuteDuration').value,
         auditLogId:   document.getElementById('automodAuditLog').value || null,
     });
-    showMsg(msg, data.message, data.success ? 'success' : 'error');
+    if (!quiet || !data.success) showMsg(msg, data.message, data.success ? 'success' : 'error');
+    return data;
 }
 
 // ── Toggle handlers (simpan langsung saat diubah) ─────────────────────────────
@@ -580,14 +561,15 @@ document.getElementById('spamEnabled')?.addEventListener('change', function () {
     document.getElementById('spamConfig').style.display = this.checked ? 'flex' : 'none';
 });
 
-async function saveSpam() {
+async function saveSpam(quiet = false) {
     const msg = document.getElementById('spamMsg');
     const data = await apiFetch('/automod/spam', 'POST', {
         enabled:  document.getElementById('spamEnabled').checked,
         limit:    parseInt(document.getElementById('spamLimit')?.value)    || 5,
         interval: parseInt(document.getElementById('spamInterval')?.value) || 5,
     });
-    showMsg(msg, data.message, data.success ? 'success' : 'error');
+    if (!quiet || !data.success) showMsg(msg, data.message, data.success ? 'success' : 'error');
+    return data;
 }
 
 // ── Anti Mass-Mention ─────────────────────────────────────────────────────────
@@ -595,13 +577,14 @@ document.getElementById('mentionEnabled')?.addEventListener('change', function (
     document.getElementById('mentionConfig').style.display = this.checked ? 'block' : 'none';
 });
 
-async function saveMassMention() {
+async function saveMassMention(quiet = false) {
     const msg = document.getElementById('mentionMsg');
     const data = await apiFetch('/automod/massmention', 'POST', {
         enabled: document.getElementById('mentionEnabled').checked,
         limit:   parseInt(document.getElementById('mentionLimit')?.value) || 5,
     });
-    showMsg(msg, data.message, data.success ? 'success' : 'error');
+    if (!quiet || !data.success) showMsg(msg, data.message, data.success ? 'success' : 'error');
+    return data;
 }
 
 // ── Anti-Raid ─────────────────────────────────────────────────────────────────
@@ -609,14 +592,15 @@ document.getElementById('raidEnabled')?.addEventListener('change', function () {
     document.getElementById('raidConfig').style.display = this.checked ? 'flex' : 'none';
 });
 
-async function saveAntiRaid() {
+async function saveAntiRaid(quiet = false) {
     const msg = document.getElementById('raidMsg');
     const data = await apiFetch('/automod/antiraid', 'POST', {
         enabled:   document.getElementById('raidEnabled').checked,
         joinLimit: parseInt(document.getElementById('raidJoinLimit')?.value) || 10,
         interval:  parseInt(document.getElementById('raidInterval')?.value)  || 10,
     });
-    showMsg(msg, data.message, data.success ? 'success' : 'error');
+    if (!quiet || !data.success) showMsg(msg, data.message, data.success ? 'success' : 'error');
+    return data;
 }
 
 // ── Kata Terlarang ────────────────────────────────────────────────────────────
@@ -752,6 +736,13 @@ async function removeWhitelist(type, id) {
         list.appendChild(empty);
     }
 }
+
+window._floatSave = async function () {
+    const results = await Promise.allSettled([saveGeneral(true), saveSpam(true), saveMassMention(true), saveAntiRaid(true)]);
+    const ok = results.every(r => r.status === 'fulfilled' && r.value?.success);
+    if (ok) showMsg(null, results[0].value.message, 'success');
+    else throw new Error();
+};
 </script>
 
 <%- include('../partials/footer') %>

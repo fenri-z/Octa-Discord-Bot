@@ -1,0 +1,191 @@
+<style>
+.flt-bar {
+    position: fixed;
+    bottom: -80px;
+    left: 0; right: 0;
+    z-index: 9998;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: .8rem 1.5rem;
+    background: #1e1f22;
+    border-top: 2px solid var(--accent, #5865F2);
+    box-shadow: 0 -4px 28px rgba(0,0,0,.45);
+    transition: bottom .25s cubic-bezier(.2,.8,.2,1);
+}
+.flt-bar.flt-visible { bottom: 0; }
+
+.flt-bar-left {
+    display: flex; align-items: center; gap: .6rem;
+    font-size: .875rem; color: rgba(255,255,255,.75);
+    flex: 1; min-width: 0;
+}
+.flt-pulse {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #fee75c; flex-shrink: 0;
+    animation: flt-blink 1.4s ease-in-out infinite;
+}
+@keyframes flt-blink {
+    0%,100% { opacity: 1; transform: scale(1); }
+    50%      { opacity: .4; transform: scale(.75); }
+}
+.flt-bar-right { display: flex; gap: .5rem; flex-shrink: 0; }
+
+.flt-btn-reset {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,.18);
+    color: rgba(255,255,255,.7);
+    padding: .45rem 1rem;
+    border-radius: 6px;
+    font-size: .82rem; font-weight: 600;
+    cursor: pointer;
+    transition: background .15s, border-color .15s, color .15s;
+}
+.flt-btn-reset:hover {
+    background: rgba(255,255,255,.08);
+    border-color: rgba(255,255,255,.35);
+    color: #fff;
+}
+.flt-btn-save {
+    display: flex; align-items: center; gap: .35rem;
+    background: var(--accent, #5865F2);
+    border: none; color: #fff;
+    padding: .45rem 1.1rem;
+    border-radius: 6px;
+    font-size: .82rem; font-weight: 600;
+    cursor: pointer;
+    transition: filter .15s, opacity .15s;
+}
+.flt-btn-save:hover { filter: brightness(1.12); }
+.flt-btn-save:disabled { opacity: .55; cursor: default; filter: none; }
+
+.flt-spin {
+    display: inline-block;
+    width: 13px; height: 13px;
+    border: 2px solid rgba(255,255,255,.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: flt-spin .6s linear infinite;
+}
+@keyframes flt-spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 480px) {
+    .flt-bar { padding: .7rem 1rem; flex-wrap: wrap; gap: .5rem; }
+    .flt-bar-left { font-size: .8rem; }
+    .flt-btn-reset, .flt-btn-save { padding: .4rem .75rem; font-size: .78rem; }
+}
+</style>
+
+<div id="flt-bar" class="flt-bar" role="status" aria-live="polite">
+    <div class="flt-bar-left">
+        <span class="flt-pulse"></span>
+        <span><%= t('common.unsaved_changes') %></span>
+    </div>
+    <div class="flt-bar-right">
+        <button id="flt-reset" class="flt-btn-reset"><%= t('common.reset') %></button>
+        <button id="flt-save" class="flt-btn-save">
+            <i data-lucide="save" style="width:13px;height:13px;"></i>
+            <%= t('common.save_changes') %>
+        </button>
+    </div>
+</div>
+
+<script>
+(function () {
+    const bar     = document.getElementById('flt-bar');
+    const saveBtn = document.getElementById('flt-save');
+    const resetBtn= document.getElementById('flt-reset');
+    if (!bar || !saveBtn || !resetBtn) return;
+
+    let dirty = false;
+    let _restoring = false;
+    const _initials = new Map();
+
+    function captureInitials() {
+        _initials.clear();
+        document.querySelectorAll('input, select, textarea').forEach(function (el) {
+            if (el.closest('#flt-bar')) return;
+            if ('fltIgnore' in el.dataset) return;
+            _initials.set(el, el.type === 'checkbox' || el.type === 'radio' ? el.checked : el.value);
+        });
+    }
+
+    function isClean() {
+        for (const [el, init] of _initials) {
+            if (!el.isConnected) continue;
+            const cur = el.type === 'checkbox' || el.type === 'radio' ? el.checked : el.value;
+            if (cur !== init) return false;
+        }
+        return true;
+    }
+
+    function show() {
+        if (dirty) return;
+        dirty = true;
+        bar.classList.add('flt-visible');
+        if (window.lucide) lucide.createIcons();
+    }
+
+    function hide() {
+        dirty = false;
+        bar.classList.remove('flt-visible');
+    }
+
+    function check(e) {
+        if (_restoring) return;
+        if (e.target.closest('#flt-bar')) return;
+        if (!e.target.matches('input, select, textarea')) return;
+        if ('fltIgnore' in e.target.dataset) return;
+        isClean() ? hide() : show();
+    }
+
+    document.addEventListener('input', check);
+    document.addEventListener('change', check);
+
+    saveBtn.addEventListener('click', async function () {
+        if (typeof window._floatSave !== 'function') return;
+        const origHTML = saveBtn.innerHTML;
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<span class="flt-spin"></span>';
+        try {
+            await window._floatSave();
+            captureInitials();
+            hide();
+        } catch { }
+        finally {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = origHTML;
+            if (window.lucide) lucide.createIcons();
+        }
+    });
+
+    resetBtn.addEventListener('click', function () {
+        _restoring = true;
+        _initials.forEach(function (initVal, el) {
+            if (!el.isConnected) return;
+            if (el.type === 'checkbox' || el.type === 'radio') {
+                if (el.checked !== initVal) {
+                    el.checked = initVal;
+                    el.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+            } else {
+                if (el.value !== initVal) {
+                    el.value = initVal;
+                    el.dispatchEvent(new Event('input', { bubbles: true }));
+                    el.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+            }
+        });
+        _restoring = false;
+        if (typeof window._floatReset === 'function') window._floatReset();
+        hide();
+    });
+
+    setTimeout(captureInitials, 0);
+
+    window._floatDirty = show;
+    window._floatClean = hide;
+    window._floatCapture = captureInitials;
+}());
+</script>

@@ -75,9 +75,6 @@
                     </div>
                 </div>
 
-                <div class="form-actions">
-                    <button class="btn btn-primary" onclick="saveJoin()"><%= t('common.save') %></button>
-                </div>
                 <div id="joinMsg" class="form-message"></div>
             </div>
         </div>
@@ -129,9 +126,6 @@
                     </div>
                 </div>
 
-                <div class="form-actions">
-                    <button class="btn btn-primary" onclick="saveBooster()"><%= t('common.save') %></button>
-                </div>
                 <div id="boosterMsg" class="form-message"></div>
             </div>
         </div>
@@ -2891,6 +2885,13 @@ async function saveAllButtons() {
     renderBtnEditorTable();
     setTimeout(() => { closeBtnModal(); _reloadKeepHash(); }, 800);
 }
+
+window._floatSave = async function () {
+    const tabMap = { join: saveJoin, booster: saveBooster, button: savePanel, reaction: saveReactPanel };
+    for (const [id, fn] of Object.entries(tabMap)) {
+        if (document.getElementById('tab-' + id)?.style.display !== 'none') { await fn(); break; }
+    }
+};
 </script>
 
 <%- include('../partials/footer') %>

@@ -114,7 +114,10 @@
     "view_in_discord": "View in Discord",
     "cancel": "Cancel",
     "delete": "Delete",
-    "preview_no_channel": "select-channel"
+    "preview_no_channel": "select-channel",
+    "unsaved_changes": "You have unsaved changes",
+    "save_changes": "Save Changes",
+    "reset": "Reset"
   },
   "welcome": {
     "page_title": "Welcome Notification",

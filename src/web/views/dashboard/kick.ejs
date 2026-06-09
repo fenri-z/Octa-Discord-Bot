@@ -247,7 +247,7 @@
                 <div class="kk-search-row" style="display:flex;gap:.6rem;">
                     <input type="text" id="kkLookupInput" class="input"
                            placeholder="username  atau  https://kick.com/username"
-                           style="flex:1;min-width:0;" maxlength="200"
+                           style="flex:1;min-width:0;" maxlength="200" data-flt-ignore
                            onkeydown="if(event.key==='Enter') lookupKick()">
                     <button class="btn btn-primary" onclick="lookupKick()" id="kkLookupBtn"
                             style="white-space:nowrap;flex-shrink:0;<% if (!isConfigured) { %>opacity:.5;cursor:not-allowed;<% } %>"
@@ -394,9 +394,6 @@
                     <div class="kk-action-row" style="display:flex;justify-content:flex-end;gap:.5rem;padding-top:.85rem;">
                         <button class="btn btn-secondary" onclick="testKickNotif('<%= acc.slug %>','<%= cardKey %>')">
                             <i data-lucide="send" style="width:14px;height:14px;"></i> <%= t('kick.test_notif_btn') %>
-                        </button>
-                        <button class="btn btn-primary" onclick="saveKickStreamer('<%= acc.slug %>','<%= cardKey %>')">
-                            <i data-lucide="save" style="width:14px;height:14px;"></i> <%= t('common.save') %>
                         </button>
                     </div>
                     <div id="kkMsg-<%= cardKey %>" class="form-message" style="margin-top:.4rem;"></div>
@@ -563,7 +560,7 @@ async function addKickStreamer() {
 }
 
 // ── Save ──────────────────────────────────────────────────────────────────────
-async function saveKickStreamer(slug, key) {
+async function saveKickStreamer(slug, key, quiet = false) {
     const msgEl     = document.getElementById(`kkMsg-${key}`);
     const btn       = document.querySelector(`#kkCard-${key} .kk-action-row .btn-primary`);
     const enabled   = document.getElementById(`kkEnabled-${key}`)?.checked  || false;
@@ -573,7 +570,7 @@ async function saveKickStreamer(slug, key) {
     if (enabled && !channelId) {
         showMsg(msgEl, I18N_KK_ERR_NO_CH, 'error');
         document.getElementById(`kkChannel-${key}`)?.focus();
-        return;
+        return { success: false, message: I18N_KK_ERR_NO_CH };
     }
 
     const orig = btn?.innerHTML;
@@ -585,9 +582,11 @@ async function saveKickStreamer(slug, key) {
             body: JSON.stringify({ enabled, channelId, message }),
         });
         const data = await r.json();
-        showMsg(msgEl, data.message, data.success ? 'success' : 'error');
+        if (!quiet || !data.success) showMsg(msgEl, data.message, data.success ? 'success' : 'error');
+        return data;
     } catch {
         showMsg(msgEl, I18N_KK_ERR_CONNECT, 'error');
+        return { success: false, message: I18N_KK_ERR_CONNECT };
     } finally {
         if (btn) { btn.disabled = false; btn.innerHTML = orig; if (window.lucide) lucide.createIcons(); }
     }
@@ -728,6 +727,15 @@ function insertKkPh(targetId, ph) {
 buildKkPickers();
 document.querySelectorAll('[id^="kkMessage-"]').forEach(el => updateKickPreview(el.id.replace('kkMessage-', '')));
 document.getElementById('kkLookupInput')?.addEventListener('keydown', e => { if (e.key === 'Enter') lookupKick(); });
+
+const _kkAllAccounts = <%- JSON.stringify(kickAccounts.map(a => ({ slug: a.slug, key: a.slug.replace(/[^a-zA-Z0-9]/g,'_') }))) %>;
+window._floatSave = async function () {
+    if (_kkAllAccounts.length === 0) return;
+    const results = await Promise.allSettled(_kkAllAccounts.map(a => saveKickStreamer(a.slug, a.key, true)));
+    const ok = results.every(r => r.status === 'fulfilled' && r.value?.success);
+    if (ok) showMsg(null, results[0].value.message, 'success');
+    else throw new Error();
+};
 </script>
 
 <%- include('../partials/footer') %>

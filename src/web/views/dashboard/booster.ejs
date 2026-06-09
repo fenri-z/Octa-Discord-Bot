@@ -267,9 +267,6 @@
                     </div>
                 </div>
 
-                <div class="form-actions">
-                    <button class="btn btn-primary" onclick="saveBoost()"><%= t('common.save') %></button>
-                </div>
                 <div id="boostMsg" class="form-message"></div>
             </div>
 
@@ -570,9 +567,6 @@
                     </div>
                 </div>
 
-                <div class="form-actions">
-                    <button class="btn btn-primary" onclick="saveUnboost()"><%= t('common.save') %></button>
-                </div>
                 <div id="unboostMsg" class="form-message"></div>
             </div>
 
@@ -1219,6 +1213,12 @@ Promise.all([drawBoostCard(), drawUnboostCard()]).then(() => {
     toggleBoostType();
     toggleUnboostType();
 });
+
+window._floatSave = async function () {
+    const activeTab = document.getElementById('tab-boost')?.style.display !== 'none' ? 'boost' : 'unboost';
+    if (activeTab === 'boost') await saveBoost();
+    else await saveUnboost();
+};
 </script>
 
 <%- include('../partials/footer') %>

@@ -298,7 +298,7 @@
                 <div class="yt-search-row" style="display:flex;gap:.6rem;">
                     <input type="text" id="ytLookupInput" class="input"
                            placeholder="<%= t('youtube.input_placeholder') %>"
-                           style="flex:1;min-width:0;" maxlength="200">
+                           style="flex:1;min-width:0;" maxlength="200" data-flt-ignore>
                     <button class="btn btn-primary" onclick="lookupYtChannel()" style="white-space:nowrap;flex-shrink:0;">
                         <i data-lucide="search" style="width:14px;height:14px;"></i> <%= t('youtube.search_btn') %>
                     </button>
@@ -440,9 +440,6 @@
                         <button class="btn btn-secondary" onclick="testYtNotif(this,'<%= ytCh.id %>')">
                             <i data-lucide="send" style="width:14px;height:14px;"></i> <%= t('youtube.test_notif_btn') %>
                         </button>
-                        <button class="btn btn-primary" onclick="saveYtSettings('<%= ytCh.id %>')">
-                            <i data-lucide="save" style="width:14px;height:14px;"></i> <%= t('common.save') %>
-                        </button>
                     </div>
                 </div>
                 <!-- Preview -->
@@ -539,9 +536,6 @@
                         <button class="btn btn-secondary" onclick="testYtNotif(this,'<%= ytCh.id %>')">
                             <i data-lucide="send" style="width:14px;height:14px;"></i> <%= t('youtube.test_notif_btn') %>
                         </button>
-                        <button class="btn btn-primary" onclick="saveYtSettings('<%= ytCh.id %>')">
-                            <i data-lucide="save" style="width:14px;height:14px;"></i> <%= t('common.save') %>
-                        </button>
                     </div>
                 </div>
                 <div class="yt-preview-col">
@@ -636,9 +630,6 @@
                     <div class="yt-action-row" style="display:flex;justify-content:flex-end;gap:.5rem;padding-top:.25rem;">
                         <button class="btn btn-secondary" onclick="testYtNotif(this,'<%= ytCh.id %>')">
                             <i data-lucide="send" style="width:14px;height:14px;"></i> <%= t('youtube.test_notif_btn') %>
-                        </button>
-                        <button class="btn btn-primary" onclick="saveYtSettings('<%= ytCh.id %>')">
-                            <i data-lucide="save" style="width:14px;height:14px;"></i> <%= t('common.save') %>
                         </button>
                     </div>
                 </div>
@@ -918,7 +909,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ── Save settings ──────────────────────────────────────────────────────────────
-async function saveYtSettings(chId) {
+async function saveYtSettings(chId, quiet = false) {
     const body = {
         videoEnabled:   document.getElementById(`videoEnabled-${chId}`)?.checked  ?? false,
         videoChannelId: document.getElementById(`videoChannel-${chId}`)?.value    ?? '',
@@ -938,9 +929,11 @@ async function saveYtSettings(chId) {
             body: JSON.stringify(body),
         });
         const data = await r.json();
-        showMsg(null, data.message, data.success ? 'success' : 'error');
+        if (!quiet || !data.success) showMsg(null, data.message, data.success ? 'success' : 'error');
+        return data;
     } catch {
         showMsg(null, I18N_YT_ERR_CONN, 'error');
+        return { success: false, message: I18N_YT_ERR_CONN };
     }
 }
 
@@ -1048,4 +1041,13 @@ document.addEventListener('click', () => {
 document.getElementById('ytLookupInput')?.addEventListener('keydown', e => {
     if (e.key === 'Enter') lookupYtChannel();
 });
+
+const _ytAllChIds = <%- JSON.stringify(ytChannels.map(c => c.id)) %>;
+window._floatSave = async function () {
+    if (_ytAllChIds.length === 0) return;
+    const results = await Promise.allSettled(_ytAllChIds.map(id => saveYtSettings(id, true)));
+    const ok = results.every(r => r.status === 'fulfilled' && r.value?.success);
+    if (ok) showMsg(null, results[0].value.message, 'success');
+    else throw new Error();
+};
 </script>

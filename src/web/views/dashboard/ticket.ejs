@@ -60,22 +60,21 @@
 
         <!-- Staff Roles -->
         <div class="settings-card" style="margin-bottom:1rem;">
+            <% const validStaffRoles = ticketData.staffRoles.filter(id => roles.find(r => r.id === id)); %>
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.9rem;flex-wrap:wrap;gap:.5rem;">
                 <div style="font-size:.8rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;"><%= t('ticket.staff_roles') %></div>
-                <span style="font-size:.72rem;padding:.15rem .45rem;border-radius:999px;background:var(--bg2);border:1px solid var(--border);color:var(--text-muted);" id="staffRoleCounter"><%= ticketData.staffRoles.length %> role</span>
+                <span style="font-size:.72rem;padding:.15rem .45rem;border-radius:999px;background:var(--bg2);border:1px solid var(--border);color:var(--text-muted);" id="staffRoleCounter"><%= validStaffRoles.length %> role</span>
             </div>
             <div id="staffRoleList" style="display:flex;flex-direction:column;gap:.45rem;margin-bottom:.75rem;">
-                <% ticketData.staffRoles.forEach(roleId => { %>
+                <% validStaffRoles.forEach(roleId => { %>
                     <% const role = roles.find(r => r.id === roleId); %>
-                    <% if (role) { %>
                     <div class="tk-role-chip" data-id="<%= role.id %>">
                         <span class="tk-role-dot" style="background:<%= role.color %>;"></span>
                         <span>@<%= role.name %></span>
                         <button class="tk-role-remove" onclick="removeStaffRole('<%= role.id %>')" title="<%= t('ticket.role_remove_title') %>">✕</button>
                     </div>
-                    <% } %>
                 <% }) %>
-                <div id="staffRoleEmpty" style="color:var(--text-muted);font-size:.82rem;padding:.3rem 0;<%= ticketData.staffRoles.length > 0 ? 'display:none;' : '' %>">
+                <div id="staffRoleEmpty" style="color:var(--text-muted);font-size:.82rem;padding:.3rem 0;<%= validStaffRoles.length > 0 ? 'display:none;' : '' %>">
                     <%= t('ticket.staff_empty') %>
                 </div>
             </div>
@@ -91,11 +90,7 @@
             <div class="hint" style="margin-top:.5rem;"><%= t('ticket.staff_hint') %></div>
         </div>
 
-        <!-- Save Configuration -->
-        <div style="display:flex;justify-content:flex-end;margin-bottom:1rem;">
-            <button class="btn btn-primary" onclick="saveConfig()">💾 <%= t('common.save') %></button>
-        </div>
-        <div id="configMsg" class="form-message"></div>
+        <div id="configMsg" class="form-message" style="margin-bottom:1rem;"></div>
 
         </div><!-- /tk-config-col -->
 
@@ -179,7 +174,6 @@
             </div>
 
             <div style="display:flex;gap:.75rem;margin-top:1rem;flex-wrap:wrap;">
-                <button class="btn btn-outline" onclick="savePanelEmbed()">💾 <%= t('common.save') %></button>
                 <button class="btn btn-primary" onclick="sendPanel()"><%= t('ticket.send_panel_btn') %></button>
             </div>
             <div id="panelMsg" class="form-message" style="margin-top:.5rem;"></div>
@@ -306,7 +300,9 @@ const I18N_TK_TITLE_DEF     = '<%= t("ticket.embed_title_default") %>';
 const I18N_TK_DESC_DEF      = '<%= t("ticket.embed_desc_default") %>';
 const I18N_TK_BTN_DEF       = '<%= t("ticket.btn_label_default") %>';
 const I18N_TK_REMOVE_TITLE  = '<%= t("ticket.role_remove_title") %>';
-let _staffRoles = <%- JSON.stringify(ticketData.staffRoles) %>;
+const ROLES_MAP = <%- JSON.stringify(Object.fromEntries(roles.map(r => [r.id, { name: r.name, color: r.color }]))) %>;
+let _staffRoles = <%- JSON.stringify(validStaffRoles) %>;
+let _initialStaffRoles = [..._staffRoles];
 
 // ── Color sync ────────────────────────────────────────────────────────────────
 function syncHex(hexId, pickId) {
@@ -366,7 +362,7 @@ function showMsg(el, text, type) {
 }
 
 // ── Simpan konfigurasi ────────────────────────────────────────────────────────
-async function saveConfig() {
+async function saveConfig(quiet = false) {
     const msg = document.getElementById('configMsg');
     const payload = {
         enabled:      document.getElementById('ticketEnabled').checked,
@@ -379,11 +375,12 @@ async function saveConfig() {
         body: JSON.stringify(payload)
     });
     const data = await res.json();
-    showMsg(msg, data.message, data.success ? 'success' : 'error');
+    if (!quiet) showMsg(msg, data.message, data.success ? 'success' : 'error');
+    return data;
 }
 
 // ── Simpan embed panel ────────────────────────────────────────────────────────
-async function savePanelEmbed() {
+async function savePanelEmbed(quiet = false) {
     const msg = document.getElementById('panelMsg');
     const payload = {
         embedTitle: document.getElementById('panelTitle').value.trim(),
@@ -396,7 +393,8 @@ async function savePanelEmbed() {
         body: JSON.stringify(payload)
     });
     const data = await res.json();
-    showMsg(msg, data.message, data.success ? 'success' : 'error');
+    if (!quiet) showMsg(msg, data.message, data.success ? 'success' : 'error');
+    return data;
 }
 
 // ── Kirim panel ───────────────────────────────────────────────────────────────
@@ -418,6 +416,32 @@ async function sendPanel() {
 
     if (data.success) setTimeout(() => location.reload(), 1200);
 }
+
+window._floatSave = async function () {
+    const [d1, d2] = await Promise.all([saveConfig(true), savePanelEmbed(true)]);
+    const msg = document.getElementById('configMsg');
+    const ok = d1.success && d2.success;
+    if (ok) _initialStaffRoles = [..._staffRoles];
+    showMsg(msg, ok ? d1.message : (d1.success ? d2.message : d1.message), ok ? 'success' : 'error');
+    if (!ok) throw new Error();
+};
+
+window._floatReset = function () {
+    _staffRoles = [..._initialStaffRoles];
+    const list = document.getElementById('staffRoleList');
+    list.querySelectorAll('.tk-role-chip').forEach(function (c) { c.remove(); });
+    _staffRoles.forEach(function (roleId) {
+        const r = ROLES_MAP[roleId];
+        if (!r) return;
+        const chip = document.createElement('div');
+        chip.className = 'tk-role-chip';
+        chip.dataset.id = roleId;
+        chip.innerHTML = '<span class="tk-role-dot" style="background:' + r.color + ';"></span><span>@' + r.name + '</span><button class="tk-role-remove" onclick="removeStaffRole(\'' + roleId + '\')" title="' + I18N_TK_REMOVE_TITLE + '">✕</button>';
+        list.appendChild(chip);
+    });
+    document.getElementById('staffRoleEmpty').style.display = _staffRoles.length === 0 ? '' : 'none';
+    document.getElementById('staffRoleCounter').textContent = _staffRoles.length + ' role';
+};
 </script>
 
 <%- include('../partials/footer') %>

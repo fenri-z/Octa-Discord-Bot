@@ -199,12 +199,12 @@
                 <!-- Prize -->
                 <div class="form-group" style="grid-column:1/-1;margin-bottom:0;">
                     <label class="label"><%= t('giveaway.prize_label') %> <span style="color:#ed4245;">*</span></label>
-                    <input type="text" id="gwPrize" class="input" placeholder="<%= t('giveaway.prize_placeholder') %>" maxlength="200">
+                    <input type="text" id="gwPrize" class="input" placeholder="<%= t('giveaway.prize_placeholder') %>" maxlength="200" data-flt-ignore>
                 </div>
                 <!-- Channel -->
                 <div class="form-group" style="margin-bottom:0;">
                     <label class="label">📢 Channel <span style="color:#ed4245;">*</span></label>
-                    <select id="gwChannel" class="select">
+                    <select id="gwChannel" class="select" data-flt-ignore>
                         <option value=""><%= t('common.select_channel') %></option>
                         <% (channels||[]).forEach(ch => { %>
                         <option value="<%= ch.id %>">#<%= ch.name %></option>
@@ -214,14 +214,14 @@
                 <!-- Winners -->
                 <div class="form-group" style="margin-bottom:0;">
                     <label class="label"><%= t('giveaway.winners_label') %> <span style="color:#ed4245;">*</span></label>
-                    <input type="number" id="gwWinnerCount" class="input" value="1" min="1" max="20" placeholder="1">
+                    <input type="number" id="gwWinnerCount" class="input" value="1" min="1" max="20" placeholder="1" data-flt-ignore>
                 </div>
                 <!-- Duration -->
                 <div class="form-group" style="margin-bottom:0;">
                     <label class="label"><%= t('giveaway.duration_label') %> <span style="color:#ed4245;">*</span></label>
                     <div class="gw-duration-row">
-                        <input type="number" id="gwDurValue" class="input" value="1" min="1" max="999" placeholder="1">
-                        <select id="gwDurUnit" class="select" style="flex:1;">
+                        <input type="number" id="gwDurValue" class="input" value="1" min="1" max="999" placeholder="1" data-flt-ignore>
+                        <select id="gwDurUnit" class="select" style="flex:1;" data-flt-ignore>
                             <option value="60000"><%= t('giveaway.dur_minutes') %></option>
                             <option value="3600000" selected><%= t('giveaway.dur_hours') %></option>
                             <option value="86400000"><%= t('giveaway.dur_days') %></option>
@@ -231,7 +231,7 @@
                 <!-- Required Role (optional) -->
                 <div class="form-group" style="margin-bottom:0;">
                     <label class="label"><%= t('giveaway.required_role') %> <span style="font-weight:400;color:var(--text-muted);"><%= t('giveaway.required_role_hint') %></span></label>
-                    <select id="gwRole" class="select">
+                    <select id="gwRole" class="select" data-flt-ignore>
                         <option value=""><%= t('giveaway.all_members') %></option>
                         <% (roles||[]).forEach(r => { %>
                         <option value="<%= r.id %>"><%= r.name %></option>

@@ -277,9 +277,6 @@
 
                 </div>
 
-                <div class="form-actions">
-                    <button class="btn btn-primary" onclick="saveWelcome('<%= guild.id %>')"><%= t('common.save') %></button>
-                </div>
                 <div id="welcomeMsg" class="form-message"></div>
             </div>
 
@@ -1283,6 +1280,8 @@ function showMsg(el, text, type) {
     el.className   = `form-message msg-${type}`;
     setTimeout(() => { el.textContent = ''; el.className = 'form-message'; }, 3000);
 }
+
+window._floatSave = () => saveWelcome('<%= guild.id %>');
 </script>
 
 <%- include('../partials/footer') %>
