@@ -42,8 +42,6 @@ class YouTubeNotifier {
         this._apiKey   = process.env.YOUTUBE_API_KEY || '';
         // Cache hasil _isLive() selama 2 menit — cegah duplikat call antar guild untuk videoId sama
         this._liveCache = new Map(); // videoId → { result, expiresAt }
-        // Startup window: seed DB tanpa kirim notif untuk cegah spam saat restart
-        this._startupUntil = Date.now() + 5 * 60 * 1000;
     }
 
     // ─── Lifecycle ─────────────────────────────────────────────────────────────
@@ -654,12 +652,6 @@ class YouTubeNotifier {
             // Tandai dulu sebelum kirim (hindari double-send jika poll overlap)
             db.set(notifKey, String(Date.now()));
 
-            // Startup window: tandai tanpa kirim — cegah spam saat bot restart
-            if (Date.now() < this._startupUntil) {
-                info(`[YouTube/Live] Startup seed (no notification): ${entry.title} → guild ${guild.name}`);
-                continue;
-            }
-
             const videoUrl  = `https://www.youtube.com/watch?v=${entry.id}`;
             const thumbnail = entry.thumbnail || `https://i.ytimg.com/vi/${entry.id}/hqdefault.jpg`;
 
@@ -678,7 +670,7 @@ class YouTubeNotifier {
         for (const entry of entries) {
             const notifKey = `youtube-liveNotified-${guild.id}-${entry.id}`;
             const ts = parseInt(db.get(notifKey) || '0', 10);
-            if (ts && Date.now() - ts > 48 * 60 * 60 * 1000) {
+            if (ts && Date.now() - ts > 7 * 24 * 60 * 60 * 1000) {
                 db.delete(notifKey);
             }
         }
