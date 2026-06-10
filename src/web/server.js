@@ -99,10 +99,12 @@ app.use(passport.session());
 app.use(i18nextMiddleware.handle(i18next));
 
 // ─── Inject client ke semua request ──────────────────────────────────────────
+const ASSET_VER = Date.now(); // di-set sekali saat server start, ganti tiap restart/deploy
 let discordClient = null;
 app.use((req, res, next) => {
-    req.discordClient = discordClient;
-    res.locals.user   = req.user || null;
+    req.discordClient  = discordClient;
+    res.locals.user    = req.user || null;
+    res.locals.assetVer = ASSET_VER;
 
     const botClientUser = discordClient?.user;
     res.locals.botNavName   = botClientUser?.username || 'OCTA BOT';
