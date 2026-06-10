@@ -13,6 +13,31 @@
             <p><%= t('warnings.page_desc') %></p>
         </div>
 
+        <!-- ── Stats ─────────────────────────────────────────────────────────── -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon" style="color:#FEE75C;"><i data-lucide="triangle-alert"></i></div>
+                <div class="stat-info">
+                    <div class="stat-value"><%= warnLog.length %></div>
+                    <div class="stat-label"><%= t('warnings.total_warns') %></div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="color:#5865F2;"><i data-lucide="shield-alert"></i></div>
+                <div class="stat-info">
+                    <div class="stat-value"><%= activeThresholds %></div>
+                    <div class="stat-label"><%= t('warnings.active_threshold') %></div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="color:#ED4245;"><i data-lucide="users"></i></div>
+                <div class="stat-info">
+                    <div class="stat-value" id="statUniqueUsers">—</div>
+                    <div class="stat-label"><%= t('warnings.unique_users') %></div>
+                </div>
+            </div>
+        </div>
+
         <!-- ── How to Use ──────────────────────────────────────────────────────────── -->
         <div class="settings-card" style="margin-bottom:1.5rem;--guide-accent:#FEE75C;">
             <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.25rem;">
@@ -37,31 +62,6 @@
                 </div>
             </div>
             <div class="guide-tip">💡 <%- t('warnings.tip') %></div>
-        </div>
-
-        <!-- ── Stats ─────────────────────────────────────────────────────────── -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-icon" style="color:#FEE75C;"><i data-lucide="triangle-alert"></i></div>
-                <div class="stat-info">
-                    <div class="stat-value"><%= warnLog.length %></div>
-                    <div class="stat-label"><%= t('warnings.total_warns') %></div>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon" style="color:#5865F2;"><i data-lucide="shield-alert"></i></div>
-                <div class="stat-info">
-                    <div class="stat-value"><%= activeThresholds %></div>
-                    <div class="stat-label"><%= t('warnings.active_threshold') %></div>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon" style="color:#ED4245;"><i data-lucide="users"></i></div>
-                <div class="stat-info">
-                    <div class="stat-value" id="statUniqueUsers">—</div>
-                    <div class="stat-label"><%= t('warnings.unique_users') %></div>
-                </div>
-            </div>
         </div>
 
         <!-- ── Threshold Configuration ─────────────────────────────────────────── -->
