@@ -231,11 +231,6 @@
                 <h1><%= t('tiktok.page_title') %></h1>
                 <p><%= t('tiktok.page_desc') %></p>
             </div>
-            <% if (ttAccounts.length > 0) { %>
-            <button class="btn btn-secondary" onclick="forcePoll(this)" style="flex-shrink:0;margin-top:.25rem;" title="Paksa cek video baru sekarang">
-                <i data-lucide="refresh-cw" style="width:14px;height:14px;"></i> <%= t('tiktok.poll_now') %>
-            </button>
-            <% } %>
         </div>
 
         <!-- Live warning -->
@@ -390,12 +385,6 @@
                 <a href="https://www.tiktok.com/<%= acc.username %>" target="_blank" class="btn btn-sm" style="flex-shrink:0;" title="Buka di TikTok">
                     <i data-lucide="external-link" style="width:13px;height:13px;"></i>
                 </a>
-                <button class="btn btn-sm" onclick="refreshThumbnail('<%= acc.username %>', this)" style="flex-shrink:0;" title="Refresh thumbnail profil">
-                    <i data-lucide="image" style="width:13px;height:13px;"></i>
-                </button>
-                <button class="btn btn-sm" onclick="resetLastVideo('<%= acc.username %>')" style="flex-shrink:0;" title="Reset posisi video terakhir">
-                    <i data-lucide="rotate-ccw" style="width:13px;height:13px;"></i>
-                </button>
                 <button class="btn btn-sm btn-danger"
                         data-username="<%= acc.username %>"
                         data-name="<%= (acc.name||acc.username).replace(/"/g,'&quot;') %>"
@@ -633,7 +622,6 @@ const I18N_TT_TIP_4        = '<%= t("tiktok.tip_4") %>';
 const I18N_TT_ERR_CONN     = '<%= t("tiktok.err_conn") %>';
 const I18N_TT_ERR_CONNECT  = '<%= t("tiktok.err_connect") %>';
 const I18N_TT_SENDING_TEST = '<%= t("tiktok.sending_test") %>';
-const I18N_TT_THUMB_OK     = '<%= t("tiktok.thumbnail_updated") %>';
 const I18N_TT_PREV_NO_CH   = '<%= t("common.preview_no_channel") %>';
 
 // ── Lookup ────────────────────────────────────────────────────────────────────
@@ -849,47 +837,6 @@ async function testNotif(username, key) {
     showMsg(msgEl, data.message, data.success ? 'success' : 'error');
 }
 
-// ── Refresh thumbnail ─────────────────────────────────────────────────────────
-async function refreshThumbnail(username, btn) {
-    const orig = btn.innerHTML;
-    btn.disabled = true;
-    btn.innerHTML = '<span style="width:11px;height:11px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:tt-spin .65s linear infinite;display:inline-block;vertical-align:middle;"></span>';
-
-    const key   = username.replace('@','').replace(/\./g,'_');
-    const msgEl = document.getElementById(`msg-${key}`);
-    try {
-        const r    = await fetch(`/api/guild/${GUILD_ID}/tiktok/accounts/${encodeURIComponent(username)}/refresh-thumbnail`, { method: 'POST' });
-        const data = await r.json();
-        if (data.success) {
-            showMsg(msgEl, I18N_TT_THUMB_OK, 'success');
-            // Update semua gambar profil akun ini di halaman
-            if (data.thumbnail) {
-                document.querySelectorAll(`img[data-tt-thumb="${username}"]`).forEach(img => {
-                    img.src = data.thumbnail;
-                    img.style.display = '';
-                });
-            }
-        } else {
-            showMsg(msgEl, data.message, 'error');
-        }
-    } catch {
-        showMsg(msgEl, I18N_TT_ERR_CONNECT, 'error');
-    } finally {
-        btn.disabled  = false;
-        btn.innerHTML = orig;
-        if (window.lucide) lucide.createIcons();
-    }
-}
-
-// ── Reset last video ──────────────────────────────────────────────────────────
-async function resetLastVideo(username) {
-    const key   = username.replace('@','').replace(/\./g,'_');
-    const msgEl = document.getElementById(`msg-${key}`);
-    const r     = await fetch(`/api/guild/${GUILD_ID}/tiktok/accounts/${encodeURIComponent(username)}/reset`, { method: 'POST' });
-    const data  = await r.json();
-    showMsg(msgEl, data.message, data.success ? 'success' : 'error');
-}
-
 // ── Hapus akun ────────────────────────────────────────────────────────────────
 async function removeAccount(username, name) {
     if (!confirm(I18N_TT_CONFIRM_DEL.replace('{{name}}', name))) return;
@@ -897,26 +844,6 @@ async function removeAccount(username, name) {
     const data = await r.json();
     if (data.success) location.reload();
     else alert(data.message);
-}
-
-// ── Force poll ────────────────────────────────────────────────────────────────
-async function forcePoll(btn) {
-    const orig = btn.innerHTML;
-    btn.disabled = true;
-    btn.innerHTML = '<i data-lucide="loader" style="width:14px;height:14px;"></i> Polling...';
-    if (window.lucide) lucide.createIcons();
-    try {
-        const r    = await fetch(`/api/guild/${GUILD_ID}/tiktok/force-poll`, { method: 'POST' });
-        const data = await r.json();
-        showMsg(null, data.message, data.success ? 'success' : 'error');
-        if (data.success) setTimeout(() => location.reload(), 1500);
-    } catch {
-        showMsg(null, 'Gagal terhubung ke server.', 'error');
-    } finally {
-        btn.disabled  = false;
-        btn.innerHTML = orig;
-        if (window.lucide) lucide.createIcons();
-    }
 }
 
 // ── Helper ────────────────────────────────────────────────────────────────────

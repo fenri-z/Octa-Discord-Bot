@@ -341,9 +341,6 @@
                 <a href="https://kick.com/<%= acc.slug %>" target="_blank" class="btn btn-sm" title="<%= t('kick.open_on_kick') %>">
                     <i data-lucide="external-link" style="width:13px;height:13px;"></i>
                 </a>
-                <button class="btn btn-sm" onclick="refreshKickThumbnail('<%= acc.slug %>','<%= cardKey %>')" title="Refresh thumbnail">
-                    <i data-lucide="image" style="width:13px;height:13px;"></i>
-                </button>
                 <button class="btn btn-sm btn-danger"
                         data-slug="<%= acc.slug %>"
                         data-name="<%= (acc.displayName||acc.slug).replace(/"/g,'&quot;') %>"
@@ -491,7 +488,6 @@ const I18N_KK_TIPS        = ['<%= t("kick.tip_1") %>','<%= t("kick.tip_2") %>','
 const I18N_KK_ERR_CONN    = '<%= t("kick.err_conn") %>';
 const I18N_KK_ERR_CONNECT = '<%= t("kick.err_connect") %>';
 const I18N_KK_SENDING_TEST= '<%= t("kick.sending_test") %>';
-const I18N_KK_REFRESHING  = '<%= t("kick.refreshing_thumb") %>';
 const I18N_KK_NO_CHANNEL  = '<%= t("kick.preview_no_channel") %>';
 const I18N_KK_PH_ACCOUNT  = '<%= t("kick.ph_account") %>';
 const I18N_KK_PH_SLUG     = '<%= t("kick.ph_slug") %>';
@@ -604,27 +600,6 @@ async function testKickNotif(slug, key) {
         showMsg(msgEl, data.message, data.success ? 'success' : 'error');
     } catch {
         showMsg(msgEl, 'Gagal terhubung ke server.', 'error');
-    }
-}
-
-// ── Refresh Thumbnail ─────────────────────────────────────────────────────────
-async function refreshKickThumbnail(slug, key) {
-    const msgEl = document.getElementById(`kkMsg-${key}`);
-    showMsg(msgEl, I18N_KK_REFRESHING, 'info');
-    const r    = await fetch(`/api/guild/${GUILD_ID}/kick/accounts/${encodeURIComponent(slug)}/refresh-thumbnail`, { method: 'POST' });
-    const data = await r.json();
-    if (data.success) {
-        showMsg(msgEl, data.message, 'success');
-        if (data.thumbnail) {
-            document.querySelectorAll(`img[data-kick-thumb="${slug}"]`).forEach(img => { img.src = data.thumbnail; img.style.display = ''; });
-        }
-        if (data.displayName) {
-            const card = document.getElementById(`kkCard-${key}`);
-            const nameEl = card?.querySelector('[data-kick-name]');
-            if (nameEl) nameEl.textContent = data.displayName;
-        }
-    } else {
-        showMsg(msgEl, data.message, 'error');
     }
 }
 

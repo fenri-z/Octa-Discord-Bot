@@ -1942,7 +1942,11 @@ router.post('/guild/:guildId/youtube/channels', requireLogin, requireManageGuild
 
     // WebSub: subscribe ke hub agar notifikasi instan
     const notifier = req.discordClient?.youtubeNotifier;
-    if (notifier) notifier.subscribe(id).catch(() => {});
+    if (notifier) {
+        notifier.subscribe(id).catch(() => {});
+        // Inisialisasi lastVideo sekarang agar tidak ada notif untuk video lama
+        notifier.pollGuild(guildId).catch(() => {});
+    }
 
     res.json({ success: true, message: `Channel "${name}" added successfully.` });
 });
@@ -2056,33 +2060,6 @@ router.post('/guild/:guildId/youtube/channels/:ytChannelId/test', requireLogin, 
     }
 });
 
-// POST /api/guild/:guildId/youtube/force-poll — paksa poll sekarang
-router.post('/guild/:guildId/youtube/force-poll', requireLogin, requireManageGuild, async (req, res) => {
-    const notifier = req.discordClient?.youtubeNotifier;
-    if (!notifier) return res.json({ success: false, message: 'YouTubeNotifier is not available.' });
-    try {
-        await notifier.pollGuild(req.params.guildId);
-        res.json({ success: true, message: 'Poll completed. Check the bot console for details.' });
-    } catch (err) {
-        res.json({ success: false, message: `Failed: ${err.message}` });
-    }
-});
-
-// POST /api/guild/:guildId/youtube/channels/:ytChannelId/reset — reset last video ID
-router.post('/guild/:guildId/youtube/channels/:ytChannelId/reset', requireLogin, requireManageGuild, (req, res) => {
-    const db      = req.discordClient?.database;
-    const guildId = req.params.guildId;
-    const ytId    = req.params.ytChannelId;
-    if (!db) return res.status(500).json({ success: false, message: 'Database not available.' });
-
-    const channels = getYtChannels(db, guildId);
-    const ytCh     = channels.find(c => c.id === ytId);
-    if (!ytCh) return res.json({ success: false, message: 'Channel not found.' });
-
-    db.delete(`youtube-lastVideo-${guildId}-${ytId}`);
-    res.json({ success: true, message: `Reset successful. The next poll will reinitialize from the latest video of "${ytCh.name}".` });
-});
-
 // DELETE /api/guild/:guildId/youtube/channels/:ytChannelId — hapus channel
 router.delete('/guild/:guildId/youtube/channels/:ytChannelId', requireLogin, requireManageGuild, (req, res) => {
     const db      = req.discordClient?.database;
@@ -2170,6 +2147,11 @@ router.post('/guild/:guildId/tiktok/accounts', requireLogin, requireManageGuild,
         addedAt:        Date.now(),
     });
     setTtAccounts(db, guildId, accounts);
+
+    // Inisialisasi lastVideo sekarang agar tidak ada notif untuk video lama
+    const notifier = req.discordClient?.tiktokNotifier;
+    if (notifier) notifier.pollGuild(guildId).catch(() => {});
+
     res.json({ success: true, message: `Account "${username}" added successfully.` });
 });
 
@@ -2218,6 +2200,19 @@ router.put('/guild/:guildId/tiktok/accounts/:username', requireLogin, requireMan
         liveMessage:    liveMessage    || '',
     };
     setTtAccounts(db, guildId, accounts);
+
+    // Auto-refresh thumbnail di background
+    const notifier = req.discordClient?.tiktokNotifier;
+    if (notifier) {
+        notifier.lookupAccount(username).then(info => {
+            if (info?.thumbnail) {
+                const accs = getTtAccounts(db, guildId);
+                const i = accs.findIndex(a => a.username === username);
+                if (i !== -1) { accs[i].thumbnail = info.thumbnail; setTtAccounts(db, guildId, accs); }
+            }
+        }).catch(() => {});
+    }
+
     res.json({ success: true, message: 'Settings saved successfully.' });
 });
 
@@ -2258,57 +2253,6 @@ router.post('/guild/:guildId/tiktok/accounts/:username/test', requireLogin, requ
         res.json({ success: true, message: `${type === 'live' ? 'Live' : 'Video'} test notification sent successfully!` });
     } catch (err) {
         res.json({ success: false, message: `Failed to send: ${err.message}` });
-    }
-});
-
-// POST /api/guild/:guildId/tiktok/force-poll — paksa poll sekarang
-router.post('/guild/:guildId/tiktok/force-poll', requireLogin, requireManageGuild, async (req, res) => {
-    const notifier = req.discordClient?.tiktokNotifier;
-    if (!notifier) return res.json({ success: false, message: 'TikTokNotifier is not available.' });
-    try {
-        await notifier.pollGuild(req.params.guildId);
-        res.json({ success: true, message: 'Poll selesai.' });
-    } catch (err) {
-        res.json({ success: false, message: `Failed: ${err.message}` });
-    }
-});
-
-// POST /api/guild/:guildId/tiktok/accounts/:username/reset — reset last video
-router.post('/guild/:guildId/tiktok/accounts/:username/reset', requireLogin, requireManageGuild, (req, res) => {
-    const db       = req.discordClient?.database;
-    const guildId  = req.params.guildId;
-    const username = decodeURIComponent(req.params.username);
-    if (!db) return res.status(500).json({ success: false, message: 'Database not available.' });
-
-    const accounts = getTtAccounts(db, guildId);
-    if (!accounts.find(a => a.username === username))
-        return res.json({ success: false, message: 'Account not found.' });
-
-    db.delete(`tiktok-lastVideo-${guildId}-${username}`);
-    res.json({ success: true, message: `Reset successful for ${username}.` });
-});
-
-// POST /api/guild/:guildId/tiktok/accounts/:username/refresh-thumbnail — perbarui thumbnail
-router.post('/guild/:guildId/tiktok/accounts/:username/refresh-thumbnail', requireLogin, requireManageGuild, async (req, res) => {
-    const db       = req.discordClient?.database;
-    const guildId  = req.params.guildId;
-    const username = decodeURIComponent(req.params.username);
-    if (!db) return res.status(500).json({ success: false, message: 'Database not available.' });
-
-    const accounts = getTtAccounts(db, guildId);
-    const idx      = accounts.findIndex(a => a.username === username);
-    if (idx === -1) return res.json({ success: false, message: 'Account not found.' });
-
-    const notifier = req.discordClient?.tiktokNotifier;
-    if (!notifier) return res.status(500).json({ success: false, message: 'TikTokNotifier is not available.' });
-
-    try {
-        const info = await notifier.lookupAccount(username);
-        accounts[idx] = { ...accounts[idx], thumbnail: info.thumbnail || accounts[idx].thumbnail };
-        setTtAccounts(db, guildId, accounts);
-        res.json({ success: true, message: 'Thumbnail updated successfully.', thumbnail: accounts[idx].thumbnail });
-    } catch (err) {
-        res.json({ success: false, message: `Failed to refresh thumbnail: ${err.message}` });
     }
 });
 
@@ -2662,6 +2606,25 @@ router.put('/guild/:guildId/kick/accounts/:slug', requireLogin, requireManageGui
 
     accounts[idx] = { ...accounts[idx], enabled: !!enabled, channelId: channelId || '', message: message || '' };
     setKickAccounts(db, guildId, accounts);
+
+    // Auto-refresh thumbnail di background
+    const notifier = req.discordClient?.kickNotifier;
+    if (notifier) {
+        notifier.lookupChannel(slug).then(info => {
+            const accs = getKickAccounts(db, guildId);
+            const i = accs.findIndex(a => a.slug === slug);
+            if (i !== -1) {
+                accs[i] = {
+                    ...accs[i],
+                    userId:      info.userId      || accs[i].userId,
+                    displayName: info.displayName || accs[i].displayName,
+                    thumbnail:   info.thumbnail   || accs[i].thumbnail,
+                };
+                setKickAccounts(db, guildId, accs);
+            }
+        }).catch(() => {});
+    }
+
     res.json({ success: true, message: 'Settings saved successfully.' });
 });
 
@@ -2686,35 +2649,6 @@ router.post('/guild/:guildId/kick/accounts/:slug/test', requireLogin, requireMan
         res.json({ success: true, message: 'Test notification successfully sent!' });
     } catch (err) {
         res.json({ success: false, message: err.message });
-    }
-});
-
-// POST /api/guild/:guildId/kick/accounts/:slug/refresh-thumbnail — perbarui thumbnail
-router.post('/guild/:guildId/kick/accounts/:slug/refresh-thumbnail', requireLogin, requireManageGuild, async (req, res) => {
-    const db      = req.discordClient?.database;
-    const guildId = req.params.guildId;
-    const slug    = decodeURIComponent(req.params.slug);
-    if (!db) return res.status(500).json({ success: false, message: 'Database not available.' });
-
-    const notifier = req.discordClient?.kickNotifier;
-    if (!notifier) return res.status(500).json({ success: false, message: 'KickNotifier is not available.' });
-
-    const accounts = getKickAccounts(db, guildId);
-    const idx      = accounts.findIndex(a => a.slug === slug);
-    if (idx === -1) return res.json({ success: false, message: 'Account not found.' });
-
-    try {
-        const info = await notifier.lookupChannel(slug);
-        accounts[idx] = {
-            ...accounts[idx],
-            userId:      info.userId      || accounts[idx].userId,
-            displayName: info.displayName || accounts[idx].displayName,
-            thumbnail:   info.thumbnail   || accounts[idx].thumbnail,
-        };
-        setKickAccounts(db, guildId, accounts);
-        res.json({ success: true, message: 'Thumbnail & name updated successfully.', thumbnail: accounts[idx].thumbnail, displayName: accounts[idx].displayName });
-    } catch (err) {
-        res.json({ success: false, message: `Failed to refresh: ${err.message}` });
     }
 });
 

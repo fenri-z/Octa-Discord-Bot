@@ -243,11 +243,6 @@
                 <h1><%= t('youtube.page_title') %></h1>
                 <p><%= t('youtube.page_desc') %></p>
             </div>
-            <% if (ytChannels.length > 0) { %>
-            <button class="btn btn-secondary" onclick="forcePoll(this)" style="flex-shrink:0;margin-top:.25rem;">
-                <i data-lucide="refresh-cw" style="width:14px;height:14px;"></i> <%= t('youtube.poll_now') %>
-            </button>
-            <% } %>
         </div>
 
 
@@ -377,9 +372,6 @@
                 <a href="https://www.youtube.com/channel/<%= ytCh.id %>" target="_blank" class="btn btn-sm" style="flex-shrink:0;" title="<%= t('youtube.btn_open_youtube') %>">
                     <i data-lucide="external-link" style="width:13px;height:13px;"></i>
                 </a>
-                <button class="btn btn-sm" onclick="resetLastVideo('<%= ytCh.id %>')" style="flex-shrink:0;" title="<%= t('youtube.btn_reset_position') %>">
-                    <i data-lucide="rotate-ccw" style="width:13px;height:13px;"></i>
-                </button>
                 <button class="btn btn-sm btn-danger" data-id="<%= ytCh.id %>" data-name="<%= ytCh.name.replace(/"/g, '&quot;') %>" onclick="deleteYtChannel(this.dataset.id, this.dataset.name)" style="flex-shrink:0;" title="<%= t('youtube.btn_delete_channel') %>">
                     <i data-lucide="trash-2" style="width:13px;height:13px;"></i>
                 </button>
@@ -705,11 +697,9 @@ const GUILD_ID      = '<%- guild.id %>';
 const ROLES_MAP     = <%- JSON.stringify(Object.fromEntries((locals.roles||[]).map(r=>[r.id,r]))) %>;
 const CHANNELS_MAP  = <%- JSON.stringify(Object.fromEntries((locals.channels||[]).map(c=>[c.id,c]))) %>;
 const I18N_YT_CONFIRM_DELETE = <%- JSON.stringify(t("youtube.confirm_delete")) %>;
-const I18N_YT_CONFIRM_RESET  = <%- JSON.stringify(t("youtube.confirm_reset")) %>;
 const I18N_YT_ERR_INPUT      = <%- JSON.stringify(t("youtube.err_enter_input")) %>;
 const I18N_YT_ERR_CONN       = <%- JSON.stringify(t("youtube.err_connection")) %>;
 const I18N_YT_SENDING        = <%- JSON.stringify(t("youtube.sending")) %>;
-const I18N_YT_POLLING        = <%- JSON.stringify(t("youtube.polling")) %>;
 const I18N_YT_DEF_VIDEO      = <%- JSON.stringify(t("youtube.default_video_desc")) %>;
 const I18N_YT_DEF_SHORT      = <%- JSON.stringify(t("youtube.default_short_desc")) %>;
 const I18N_YT_DEF_LIVE       = <%- JSON.stringify(t("youtube.default_live_desc")) %>;
@@ -1002,38 +992,6 @@ document.querySelectorAll('.ph-dropdown[id^="ytVideo"], .ph-dropdown[id^="ytShor
         dd.appendChild(btn);
     });
 });
-
-// ── Force Poll ────────────────────────────────────────────────────────────────
-async function forcePoll(btn) {
-    const orig = btn.innerHTML;
-    btn.disabled = true;
-    btn.innerHTML = `<i data-lucide="loader" style="width:13px;height:13px;"></i> ${I18N_YT_POLLING}`;
-    if (window.lucide) lucide.createIcons();
-    try {
-        const r    = await fetch(`/api/guild/${GUILD_ID}/youtube/force-poll`, { method: 'POST' });
-        const data = await r.json();
-        showMsg(null, data.message, data.success ? 'success' : 'error');
-        if (data.success) setTimeout(() => location.reload(), 1500);
-    } catch {
-        showMsg(null, I18N_YT_ERR_CONN, 'error');
-    } finally {
-        btn.disabled  = false;
-        btn.innerHTML = orig;
-        if (window.lucide) lucide.createIcons();
-    }
-}
-
-// ── Reset Last Video ───────────────────────────────────────────────────────────
-async function resetLastVideo(chId) {
-    if (!confirm(I18N_YT_CONFIRM_RESET)) return;
-    try {
-        const r    = await fetch(`/api/guild/${GUILD_ID}/youtube/channels/${chId}/reset`, { method: 'POST' });
-        const data = await r.json();
-        showMsg(null, data.message, data.success ? 'success' : 'error');
-    } catch {
-        showMsg(null, I18N_YT_ERR_CONN, 'error');
-    }
-}
 
 // ── Placeholder picker toggle ──────────────────────────────────────────────────
 function togglePicker(id, event) {
