@@ -199,12 +199,12 @@
                 <!-- Prize -->
                 <div class="form-group" style="grid-column:1/-1;margin-bottom:0;">
                     <label class="label"><%= t('giveaway.prize_label') %> <span style="color:#ed4245;">*</span></label>
-                    <input type="text" id="gwPrize" class="input" placeholder="<%= t('giveaway.prize_placeholder') %>" maxlength="200" data-flt-ignore>
+                    <input type="text" id="gwPrize" class="input" placeholder="<%= t('giveaway.prize_placeholder') %>" maxlength="200">
                 </div>
                 <!-- Channel -->
                 <div class="form-group" style="margin-bottom:0;">
                     <label class="label">📢 Channel <span style="color:#ed4245;">*</span></label>
-                    <select id="gwChannel" class="select" data-flt-ignore>
+                    <select id="gwChannel" class="select">
                         <option value=""><%= t('common.select_channel') %></option>
                         <% (channels||[]).forEach(ch => { %>
                         <option value="<%= ch.id %>">#<%= ch.name %></option>
@@ -214,14 +214,14 @@
                 <!-- Winners -->
                 <div class="form-group" style="margin-bottom:0;">
                     <label class="label"><%= t('giveaway.winners_label') %> <span style="color:#ed4245;">*</span></label>
-                    <input type="number" id="gwWinnerCount" class="input" value="1" min="1" max="20" placeholder="1" data-flt-ignore>
+                    <input type="number" id="gwWinnerCount" class="input" value="1" min="1" max="20" placeholder="1">
                 </div>
                 <!-- Duration -->
                 <div class="form-group" style="margin-bottom:0;">
                     <label class="label"><%= t('giveaway.duration_label') %> <span style="color:#ed4245;">*</span></label>
                     <div class="gw-duration-row">
-                        <input type="number" id="gwDurValue" class="input" value="1" min="1" max="999" placeholder="1" data-flt-ignore>
-                        <select id="gwDurUnit" class="select" style="flex:1;" data-flt-ignore>
+                        <input type="number" id="gwDurValue" class="input" value="1" min="1" max="999" placeholder="1">
+                        <select id="gwDurUnit" class="select" style="flex:1;">
                             <option value="60000"><%= t('giveaway.dur_minutes') %></option>
                             <option value="3600000" selected><%= t('giveaway.dur_hours') %></option>
                             <option value="86400000"><%= t('giveaway.dur_days') %></option>
@@ -231,7 +231,7 @@
                 <!-- Required Role (optional) -->
                 <div class="form-group" style="margin-bottom:0;">
                     <label class="label"><%= t('giveaway.required_role') %> <span style="font-weight:400;color:var(--text-muted);"><%= t('giveaway.required_role_hint') %></span></label>
-                    <select id="gwRole" class="select" data-flt-ignore>
+                    <select id="gwRole" class="select">
                         <option value=""><%= t('giveaway.all_members') %></option>
                         <% (roles||[]).forEach(r => { %>
                         <option value="<%= r.id %>"><%= r.name %></option>
@@ -239,12 +239,7 @@
                     </select>
                 </div>
             </div>
-            <div class="gw-form-action-row" style="margin-top:1.1rem;display:flex;justify-content:flex-end;gap:.5rem;align-items:center;">
-                <div id="gwCreateMsg" class="form-message"></div>
-                <button class="btn btn-primary" onclick="createGiveaway(this)" style="background:#F0A032;border-color:#F0A032;white-space:nowrap;">
-                    <i data-lucide="gift" style="width:14px;height:14px;"></i> <%= t('giveaway.start_btn') %>
-                </button>
-            </div>
+            <div id="gwCreateMsg" class="form-message" style="margin-top:1rem;"></div>
         </div>
 
         <!-- Daftar Giveaway -->
@@ -407,7 +402,7 @@ updateCountdowns();
 setInterval(updateCountdowns, 1000);
 
 // ── Create ────────────────────────────────────────────────────────────────────
-async function createGiveaway(btn) {
+async function createGiveaway() {
     const prize       = document.getElementById('gwPrize').value.trim();
     const channelId   = document.getElementById('gwChannel').value;
     const winnerCount = parseInt(document.getElementById('gwWinnerCount').value);
@@ -416,37 +411,33 @@ async function createGiveaway(btn) {
     const roleId      = document.getElementById('gwRole').value;
     const msgEl       = document.getElementById('gwCreateMsg');
 
-    if (!prize)                       return showMsg(msgEl, I18N_GW_ERR_PRIZE, 'error');
-    if (!channelId)                   return showMsg(msgEl, I18N_GW_ERR_CHANNEL, 'error');
-    if (!winnerCount || winnerCount < 1) return showMsg(msgEl, I18N_GW_ERR_WINNERS, 'error');
-    if (!durValue || durValue < 1)    return showMsg(msgEl, I18N_GW_ERR_DURATION, 'error');
+    if (!prize)                          { showMsg(msgEl, I18N_GW_ERR_PRIZE,    'error'); throw new Error(); }
+    if (!channelId)                      { showMsg(msgEl, I18N_GW_ERR_CHANNEL,  'error'); throw new Error(); }
+    if (!winnerCount || winnerCount < 1) { showMsg(msgEl, I18N_GW_ERR_WINNERS,  'error'); throw new Error(); }
+    if (!durValue || durValue < 1)       { showMsg(msgEl, I18N_GW_ERR_DURATION, 'error'); throw new Error(); }
 
     const durationMs = durValue * durUnit;
-
-    const orig     = btn.innerHTML;
-    btn.disabled   = true;
-    btn.innerHTML  = '<span style="width:13px;height:13px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .65s linear infinite;display:inline-block;vertical-align:middle;"></span> Membuat...';
-
+    let r, data;
     try {
-        const r    = await fetch(`/api/guild/${GUILD_ID}/giveaway`, {
+        r    = await fetch(`/api/guild/${GUILD_ID}/giveaway`, {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ channelId, prize, durationMs, winnerCount, requiredRoleId: roleId || null }),
         });
-        const data = await r.json();
-        if (data.success) {
-            showMsg(msgEl, data.message, 'success');
-            setTimeout(() => location.reload(), 1500);
-        } else {
-            showMsg(msgEl, data.message, 'error');
-        }
+        data = await r.json();
     } catch (err) {
         showMsg(msgEl, I18N_GW_ERR_CONNECT, 'error');
-    } finally {
-        btn.disabled  = false;
-        btn.innerHTML = orig;
-        if (window.lucide) lucide.createIcons();
+        throw err;
+    }
+    if (data.success) {
+        showMsg(msgEl, data.message, 'success');
+        setTimeout(() => location.reload(), 1500);
+    } else {
+        showMsg(msgEl, data.message, 'error');
+        throw new Error(data.message);
     }
 }
+
+window._floatSave = async () => createGiveaway();
 
 // ── End ───────────────────────────────────────────────────────────────────────
 async function endGiveaway(id) {

@@ -530,7 +530,7 @@
      (Sinkron dengan modal Discord: title, description, footer + color picker)
 ══════════════════════════════════════ -->
 <div class="mb-modal-backdrop" id="panelBackdrop" onclick="closePanelModal()"></div>
-<div class="mb-modal mb-modal-full" id="panelModal" data-flt-ignore>
+<div class="mb-modal mb-modal-full" id="panelModal">
     <div class="mb-modal-header">
         <h2 id="panelModalTitle">New Panel</h2>
         <button class="mb-modal-close" onclick="closePanelModal()">✕</button>
@@ -706,7 +706,7 @@
                     <span style="font-size:1rem;line-height:1;">＋</span> Add Button
                 </button>
             </div>
-            <div id="inlineBtnTable"></div>
+            <div id="inlineBtnTable" data-flt-ignore></div>
             <p id="inlineBtnEmpty" style="color:var(--text-muted);font-size:.85rem;padding:.4rem 0;">
                 <%- t('autorole.no_inline_buttons_hint') %>
             </p>
@@ -716,10 +716,7 @@
     </div>
     <div class="mb-modal-footer">
         <!-- State 1: Form aktif -->
-        <div id="panelFooterForm" style="display:flex;gap:.75rem;justify-content:flex-end;">
-            <button class="btn btn-outline" onclick="closePanelModal()"><%= t('common.cancel') %></button>
-            <button class="btn btn-primary" id="panelSaveBtn" onclick="savePanel()"><%= t('common.save') %></button>
-        </div>
+        <div id="panelFooterForm" style="display:none;"></div>
         <!-- State 2: Setelah simpan berhasil, panel belum terkirim -->
         <div id="panelFooterSend" style="display:none;">
             <div style="display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;justify-content:space-between;">
@@ -850,7 +847,7 @@
      MODAL: Buat / Edit Panel Reaction
 ══════════════════════════════════════ -->
 <div class="mb-modal-backdrop" id="reactPanelBackdrop" onclick="closeReactPanelModal()"></div>
-<div class="mb-modal mb-modal-full" id="reactPanelModal" data-flt-ignore>
+<div class="mb-modal mb-modal-full" id="reactPanelModal">
     <div class="mb-modal-header">
         <h2 id="reactPanelModalTitle">New Reaction Panel</h2>
         <button class="mb-modal-close" onclick="closeReactPanelModal()">✕</button>
@@ -1016,7 +1013,7 @@
                     <span style="font-size:1rem;line-height:1;">＋</span> Add Reaction
                 </button>
             </div>
-            <div id="inlineReactTable"></div>
+            <div id="inlineReactTable" data-flt-ignore></div>
             <div id="inlineReactEmpty" style="text-align:center;padding:1.5rem 1rem;color:var(--text-muted);border:2px dashed var(--border);border-radius:10px;margin:.5rem 0;">
                 <div style="font-size:2rem;margin-bottom:.4rem;">✨</div>
                 <div style="font-size:.85rem;"><%- t('autorole.no_inline_react_hint') %></div>
@@ -1030,10 +1027,7 @@
         <div id="reactPanelMsg" class="form-message" style="margin-top:.75rem;"></div>
     </div>
     <div class="mb-modal-footer">
-        <div id="reactPanelFooterForm" style="display:flex;gap:.75rem;justify-content:flex-end;">
-            <button class="btn btn-outline" onclick="closeReactPanelModal()"><%= t('common.cancel') %></button>
-            <button class="btn btn-primary" id="reactPanelSaveBtn" onclick="saveReactPanel()"><%= t('common.save') %></button>
-        </div>
+        <div id="reactPanelFooterForm" style="display:none;"></div>
         <div id="reactPanelFooterSend" style="display:none;">
             <div style="display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;justify-content:space-between;">
                 <div style="display:flex;gap:.6rem;align-items:center;flex:1;min-width:200px;">
@@ -1783,14 +1777,15 @@ async function saveJoin() {
     const memberRoleId  = document.getElementById('joinMemberRole').value;
     const botEnabled    = document.getElementById('joinBotEnabled').checked;
     const botRoleId     = document.getElementById('joinBotRole').value;
-    if (memberEnabled && !memberRoleId) { showMsg(msg, '<%= t("autorole.error_join_member_role") %>', 'error'); return; }
-    if (botEnabled    && !botRoleId)    { showMsg(msg, '<%= t("autorole.error_join_bot_role") %>',    'error'); return; }
+    if (memberEnabled && !memberRoleId) { showMsg(msg, '<%= t("autorole.error_join_member_role") %>', 'error'); throw new Error(); }
+    if (botEnabled    && !botRoleId)    { showMsg(msg, '<%= t("autorole.error_join_bot_role") %>',    'error'); throw new Error(); }
     const res  = await fetch(`/api/guild/${GUILD_ID}/autorole-join`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ memberEnabled, memberRoleId, botEnabled, botRoleId })
     });
     const data = await res.json();
-    showMsg(msg, data.message, data.success ? 'success' : 'error');
+    if (!data.success) { showMsg(msg, data.message, 'error'); throw new Error(data.message); }
+    showMsg(msg, data.message, 'success');
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -1801,13 +1796,14 @@ async function saveBooster() {
     const autoroleEnabled = document.getElementById('boosterAutoroleEnabled').checked;
     const autoroleRoleId  = document.getElementById('boosterAutoroleRole').value;
     const autoremoveEnabled = document.getElementById('boosterAutoremoveEnabled').checked;
-    if (autoroleEnabled && !autoroleRoleId) { showMsg(msg, '<%= t("autorole.error_booster_role") %>', 'error'); return; }
+    if (autoroleEnabled && !autoroleRoleId) { showMsg(msg, '<%= t("autorole.error_booster_role") %>', 'error'); throw new Error(); }
     const res  = await fetch(`/api/guild/${GUILD_ID}/autorole-booster`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ autoroleEnabled, autoroleRoleId, autoremoveEnabled })
     });
     const data = await res.json();
-    showMsg(msg, data.message, data.success ? 'success' : 'error');
+    if (!data.success) { showMsg(msg, data.message, 'error'); throw new Error(data.message); }
+    showMsg(msg, data.message, 'success');
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -1915,6 +1911,9 @@ function openCreatePanel() {
     // Reset footer ke state form
     _showPanelFooter('form');
     openModal('panelBackdrop', 'panelModal');
+    window._floatSave  = async () => savePanel();
+    window._floatReset = () => { _inlineBtns = []; renderInlineBtnTable(); window._floatCapture?.(); };
+    setTimeout(() => window._floatCapture?.(), 80);
 }
 
 async function openEditPanel(name) {
@@ -1949,9 +1948,18 @@ async function openEditPanel(name) {
     // Reset footer ke state form
     _showPanelFooter('form');
     openModal('panelBackdrop', 'panelModal');
+    const _btnsSnap = _inlineBtns.map(b => ({...b}));
+    window._floatSave  = async () => savePanel();
+    window._floatReset = () => { _inlineBtns = _btnsSnap.map(b => ({...b})); renderInlineBtnTable(); window._floatCapture?.(); };
+    setTimeout(() => window._floatCapture?.(), 80);
 }
 
-function closePanelModal() { closeModal('panelBackdrop', 'panelModal'); }
+function closePanelModal() {
+    closeModal('panelBackdrop', 'panelModal');
+    window._floatClean?.();
+    window._floatSave  = _arDefaultFloatSave;
+    window._floatReset = undefined;
+}
 
 function _showPanelFooter(state) {
     document.getElementById('panelFooterForm').style.display = state === 'form' ? '' : 'none';
@@ -1980,8 +1988,9 @@ async function savePanel() {
     const originalName = document.getElementById('panelOriginalName').value;
     const name         = originalName || document.getElementById('panelName').value.trim().toLowerCase();
 
-    if (!name || !/^[a-zA-Z0-9_-]{1,32}$/.test(name))
-        return showMsg(msg, 'Invalid panel name. Use letters, numbers, - or _.', 'error');
+    if (!name || !/^[a-zA-Z0-9_-]{1,32}$/.test(name)) {
+        showMsg(msg, 'Invalid panel name. Use letters, numbers, - or _.', 'error'); throw new Error();
+    }
 
     const isPlainType      = document.getElementById('panelTypePlain').checked;
     const embedTitle       = document.getElementById('panelEmbedTitle').value.trim();
@@ -1994,27 +2003,19 @@ async function savePanel() {
     const panelPlainText   = document.getElementById('panelPlainText').value.trim();
 
     if (isPlainType) {
-        if (!panelPlainText) return showMsg(msg, 'Plain text message cannot be empty.', 'error');
+        if (!panelPlainText) { showMsg(msg, 'Plain text message cannot be empty.', 'error'); throw new Error(); }
     } else {
-        // Validasi URL gambar jika diisi (bukan '-')
         const urlOk = v => !v || v === '-' || /^https?:\/\/.+\..+/.test(v);
-        if (!urlOk(rawImage)) return showMsg(msg, 'Invalid image URL. Must start with https://...', 'error');
-        if (!urlOk(rawThumb)) return showMsg(msg, 'Invalid thumbnail URL. Must start with https://...', 'error');
-
-        // Validasi warna hex
-        if (!/^#[0-9A-Fa-f]{6}$/.test(embedColor))
-            return showMsg(msg, 'Invalid embed color. Example: #5865F2', 'error');
+        if (!urlOk(rawImage)) { showMsg(msg, 'Invalid image URL. Must start with https://...', 'error'); throw new Error(); }
+        if (!urlOk(rawThumb)) { showMsg(msg, 'Invalid thumbnail URL. Must start with https://...', 'error'); throw new Error(); }
+        if (!/^#[0-9A-Fa-f]{6}$/.test(embedColor)) { showMsg(msg, 'Invalid embed color. Example: #5865F2', 'error'); throw new Error(); }
     }
 
-    // Validasi khusus panel baru
     if (!originalName) {
         const inlineChannelVal = document.getElementById('panelSendChannelInline').value;
-        if (!inlineChannelVal)
-            return showMsg(msg, 'Please select a channel to send the panel to.', 'error');
-
+        if (!inlineChannelVal) { showMsg(msg, 'Please select a channel to send the panel to.', 'error'); throw new Error(); }
         const validBtns = _inlineBtns.filter(b => b.roleId && b.label);
-        if (validBtns.length === 0)
-            return showMsg(msg, 'Add at least 1 role button before saving the panel.', 'error');
+        if (validBtns.length === 0) { showMsg(msg, 'Add at least 1 role button before saving the panel.', 'error'); throw new Error(); }
     }
 
     const payload = {
@@ -2039,7 +2040,7 @@ async function savePanel() {
         body: JSON.stringify(payload)
     });
     const data = await res.json();
-    if (!data.success) return showMsg(msg, data.message, 'error');
+    if (!data.success) { showMsg(msg, data.message, 'error'); throw new Error(data.message); }
 
     // Simpan tombol inline — untuk panel baru maupun edit
     const btns = _inlineBtns.filter(b => b.roleId && b.label);
@@ -2151,12 +2152,14 @@ function updateInlineBtn(i) {
     }
     document.getElementById('inlineBtnCounter').textContent = `${_inlineBtns.length}/25`;
     updatePanelPreviewBtns();
+    window._floatDirty?.();
 }
 
 function addInlineBtnRow() {
     if (_inlineBtns.length >= 25) return alert('Max 25 buttons per panel.');
     _inlineBtns.push({ roleId: '', label: '', style: 1 });
     renderInlineBtnTable();
+    window._floatDirty?.();
     const body = document.getElementById('panelModal').querySelector('.mb-modal-body');
     setTimeout(() => { body.scrollTop = body.scrollHeight; }, 50);
 }
@@ -2164,6 +2167,7 @@ function addInlineBtnRow() {
 function removeInlineBtn(i) {
     _inlineBtns.splice(i, 1);
     renderInlineBtnTable();
+    window._floatDirty?.();
 }
 
 function updatePanelPreviewBtns() {
@@ -2568,6 +2572,9 @@ function openCreateReactPanel() {
     document.getElementById('reactPanelSendChannelInline').value       = '';
     _showReactPanelFooter('form');
     openModal('reactPanelBackdrop', 'reactPanelModal');
+    window._floatSave  = async () => saveReactPanel();
+    window._floatReset = () => { _inlineReacts = []; renderInlineReactTable(); window._floatCapture?.(); };
+    setTimeout(() => window._floatCapture?.(), 80);
 }
 
 async function openEditReactPanel(name) {
@@ -2591,9 +2598,18 @@ async function openEditReactPanel(name) {
 
     _showReactPanelFooter('form');
     openModal('reactPanelBackdrop', 'reactPanelModal');
+    const _reactsSnap = _inlineReacts.map(r => ({...r}));
+    window._floatSave  = async () => saveReactPanel();
+    window._floatReset = () => { _inlineReacts = _reactsSnap.map(r => ({...r})); renderInlineReactTable(); window._floatCapture?.(); };
+    setTimeout(() => window._floatCapture?.(), 80);
 }
 
-function closeReactPanelModal() { closeModal('reactPanelBackdrop', 'reactPanelModal'); }
+function closeReactPanelModal() {
+    closeModal('reactPanelBackdrop', 'reactPanelModal');
+    window._floatClean?.();
+    window._floatSave  = _arDefaultFloatSave;
+    window._floatReset = undefined;
+}
 
 let _savedReactPanelName = '';
 
@@ -2617,8 +2633,9 @@ async function saveReactPanel() {
     const originalName = document.getElementById('reactPanelOriginalName').value;
     const name         = originalName || document.getElementById('reactPanelName').value.trim().toLowerCase();
 
-    if (!name || !/^[a-zA-Z0-9_-]{1,32}$/.test(name))
-        return showMsg(msg, 'Invalid panel name. Use letters, numbers, - or _.', 'error');
+    if (!name || !/^[a-zA-Z0-9_-]{1,32}$/.test(name)) {
+        showMsg(msg, 'Invalid panel name. Use letters, numbers, - or _.', 'error'); throw new Error();
+    }
 
     const isPlainType      = document.getElementById('reactPanelTypePlain').checked;
     const embedTitle       = document.getElementById('reactPanelEmbedTitle').value.trim();
@@ -2631,23 +2648,19 @@ async function saveReactPanel() {
     const panelPlainText   = document.getElementById('reactPanelPlainText').value.trim();
 
     if (isPlainType) {
-        if (!panelPlainText) return showMsg(msg, 'Plain text message cannot be empty.', 'error');
+        if (!panelPlainText) { showMsg(msg, 'Plain text message cannot be empty.', 'error'); throw new Error(); }
     } else {
         const urlOk = v => !v || v === '-' || /^https?:\/\/.+\..+/.test(v);
-        if (!urlOk(rawImage)) return showMsg(msg, 'Invalid image URL. Must start with https://...', 'error');
-        if (!urlOk(rawThumb)) return showMsg(msg, 'Invalid thumbnail URL. Must start with https://...', 'error');
-        if (!/^#[0-9A-Fa-f]{6}$/.test(embedColor))
-            return showMsg(msg, 'Invalid embed color. Example: #5865F2', 'error');
+        if (!urlOk(rawImage)) { showMsg(msg, 'Invalid image URL. Must start with https://...', 'error'); throw new Error(); }
+        if (!urlOk(rawThumb)) { showMsg(msg, 'Invalid thumbnail URL. Must start with https://...', 'error'); throw new Error(); }
+        if (!/^#[0-9A-Fa-f]{6}$/.test(embedColor)) { showMsg(msg, 'Invalid embed color. Example: #5865F2', 'error'); throw new Error(); }
     }
 
     if (!originalName) {
         const inlineChannelVal = document.getElementById('reactPanelSendChannelInline').value;
-        if (!inlineChannelVal)
-            return showMsg(msg, 'Please select a channel to send the panel to.', 'error');
-
+        if (!inlineChannelVal) { showMsg(msg, 'Please select a channel to send the panel to.', 'error'); throw new Error(); }
         const validReacts = _inlineReacts.filter(r => r.emoji && r.roleId);
-        if (validReacts.length === 0)
-            return showMsg(msg, 'Add at least 1 reaction before saving the panel.', 'error');
+        if (validReacts.length === 0) { showMsg(msg, 'Add at least 1 reaction before saving the panel.', 'error'); throw new Error(); }
     }
 
     const payload = {
@@ -2667,7 +2680,7 @@ async function saveReactPanel() {
         body: JSON.stringify(payload)
     });
     const data = await res.json();
-    if (!data.success) return showMsg(msg, data.message, 'error');
+    if (!data.success) { showMsg(msg, data.message, 'error'); throw new Error(data.message); }
 
     // Simpan reactions inline
     const reacts = _inlineReacts.filter(r => r.emoji && r.roleId);
@@ -2915,12 +2928,14 @@ function updateInlineReact(i) {
 
     document.getElementById('inlineReactCounter').textContent = `${_inlineReacts.length}/20`;
     updateReactPanelPreviewReacts();
+    window._floatDirty?.();
 }
 
 function addInlineReactRow() {
     if (_inlineReacts.length >= 20) return alert('Maks 20 reaction per panel.');
     _inlineReacts.push({ emoji: '', roleId: '' });
     renderInlineReactTable();
+    window._floatDirty?.();
     const body = document.getElementById('reactPanelModal').querySelector('.mb-modal-body');
     setTimeout(() => { body.scrollTop = body.scrollHeight; }, 50);
 }
@@ -2928,6 +2943,7 @@ function addInlineReactRow() {
 function removeInlineReact(i) {
     _inlineReacts.splice(i, 1);
     renderInlineReactTable();
+    window._floatDirty?.();
 }
 
 function updateReactPanelPreviewReacts() {
@@ -3013,12 +3029,13 @@ async function saveAllButtons() {
     setTimeout(() => { closeBtnModal(); _reloadKeepHash(); }, 800);
 }
 
-window._floatSave = async function () {
+async function _arDefaultFloatSave() {
     const tabMap = { join: saveJoin, booster: saveBooster };
     for (const [id, fn] of Object.entries(tabMap)) {
         if (document.getElementById('tab-' + id)?.style.display !== 'none') { await fn(); break; }
     }
-};
+}
+window._floatSave = _arDefaultFloatSave;
 
 function togglePicker(id, event) {
     if (event) event.stopPropagation();

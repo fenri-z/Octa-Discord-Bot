@@ -152,7 +152,7 @@
      MODAL: Buat / Edit Template
 ══════════════════════════════════════════════ -->
 <div class="mb-modal-backdrop" id="editBackdrop" onclick="closeEditModal()"></div>
-<div class="mb-modal" id="editModal" data-flt-ignore>
+<div class="mb-modal" id="editModal">
     <div class="mb-modal-header">
         <h2 id="editModalTitle"><%= t('message_builder.modal_new_title') %></h2>
         <button class="mb-modal-close" onclick="closeEditModal()">✕</button>
@@ -308,10 +308,6 @@
     </div>
     <div class="mb-modal-footer">
         <div id="editMsg" class="form-message"></div>
-        <div style="display:flex;gap:.75rem;justify-content:flex-end;">
-            <button class="btn btn-outline" onclick="closeEditModal()"><%= t('common.cancel') %></button>
-            <button class="btn btn-primary" onclick="saveTemplate()"><%= t('common.save') %></button>
-        </div>
     </div>
 </div>
 
@@ -938,6 +934,9 @@ function openCreateModal() {
     document.getElementById('editMsg').textContent    = '';
     toggleMbTypePanel();
     openModal('editBackdrop', 'editModal');
+    window._floatSave  = async () => saveTemplate();
+    window._floatReset = () => { window._floatCapture?.(); };
+    setTimeout(() => window._floatCapture?.(), 80);
 }
 
 // ── Buka modal edit ───────────────────────────────────────────────────────
@@ -969,9 +968,17 @@ async function openEditModal(name) {
     document.getElementById('editMsg').textContent   = '';
     toggleMbTypePanel();
     openModal('editBackdrop', 'editModal');
+    window._floatSave  = async () => saveTemplate();
+    window._floatReset = () => { window._floatCapture?.(); };
+    setTimeout(() => window._floatCapture?.(), 80);
 }
 
-function closeEditModal() { closeModal('editBackdrop', 'editModal'); }
+function closeEditModal() {
+    closeModal('editBackdrop', 'editModal');
+    window._floatClean?.();
+    window._floatSave  = undefined;
+    window._floatReset = undefined;
+}
 
 // ── Simpan template ───────────────────────────────────────────────────────
 async function saveTemplate() {
@@ -980,8 +987,8 @@ async function saveTemplate() {
     const name         = isEdit ? originalName : document.getElementById('editName').value.trim();
     const msg          = document.getElementById('editMsg');
 
-    if (!name) return showMsg(msg, I18N_MB_ERR_EMPTY, 'error');
-    if (!/^[a-zA-Z0-9_-]{1,32}$/.test(name)) return showMsg(msg, I18N_MB_ERR_INVALID, 'error');
+    if (!name) { showMsg(msg, I18N_MB_ERR_EMPTY, 'error'); throw new Error(); }
+    if (!/^[a-zA-Z0-9_-]{1,32}$/.test(name)) { showMsg(msg, I18N_MB_ERR_INVALID, 'error'); throw new Error(); }
 
     const isPlain    = document.getElementById('mbTypePlain').checked;
     const payload = {
@@ -1004,7 +1011,7 @@ async function saveTemplate() {
         body: JSON.stringify(payload)
     });
     const data = await res.json();
-    if (!data.success) return showMsg(msg, data.message, 'error');
+    if (!data.success) { showMsg(msg, data.message, 'error'); throw new Error(data.message); }
 
     showMsg(msg, data.message, 'success');
     setTimeout(() => { closeEditModal(); location.reload(); }, 800);
