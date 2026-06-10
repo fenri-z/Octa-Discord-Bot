@@ -73,12 +73,14 @@
     var sidebar = document.querySelector('.sidebar');
     var active  = sidebar && sidebar.querySelector('.sidebar-link.active, .sidebar-sublink.active');
     if (sidebar && active) {
-        var itemTop    = active.offsetTop;
-        var itemHeight = active.offsetHeight;
-        var sidebarH   = sidebar.clientHeight;
-        // Scroll hanya jika item aktif tidak terlihat
-        if (itemTop + itemHeight > sidebar.scrollTop + sidebarH) {
-            sidebar.scrollTop = itemTop - sidebarH / 2 + itemHeight / 2;
+        var sRect  = sidebar.getBoundingClientRect();
+        var aRect  = active.getBoundingClientRect();
+        var relTop = aRect.top    - sRect.top;
+        var relBot = aRect.bottom - sRect.top;
+        var sH     = sidebar.clientHeight;
+        // Scroll hanya jika item aktif tidak sepenuhnya terlihat
+        if (relTop < 0 || relBot > sH) {
+            sidebar.scrollTop += relTop - sH / 2 + active.offsetHeight / 2;
         }
     }
 })();

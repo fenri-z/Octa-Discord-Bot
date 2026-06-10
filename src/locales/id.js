@@ -2,14 +2,28 @@
 module.exports = {
 
     common: {
-        enabled:   '✅ Aktif',
-        disabled:  '❌ Nonaktif',
-        shown:     '✅ Ditampilkan',
-        hidden:    '❌ Disembunyikan',
-        not_set:   '`Belum diatur`',
-        none:      '`Tidak ada`',
-        yes:       'Ya',
-        no:        'Tidak',
+        enabled:        '✅ Aktif',
+        disabled:       '❌ Nonaktif',
+        shown:          '✅ Ditampilkan',
+        hidden:         '❌ Disembunyikan',
+        not_set:        '`Belum diatur`',
+        none:           '`Tidak ada`',
+        yes:            'Ya',
+        no:             'Tidak',
+        no_reason:      'Tidak ada alasan',
+        field_member:   '👤 Member',
+        field_moderator:'🛡️ Moderator',
+        field_channel:  '📌 Channel',
+        lbl_status:     '**Status:**',
+        lbl_channel:    '**Channel:**',
+        lbl_type:       '**Tipe:**',
+        lbl_message:    '**Pesan:**',
+        lbl_title:      '**Judul:**',
+        lbl_color:      '**Warna:**',
+        lbl_role:       '**Role:**',
+        lbl_remove:     '**Hapus saat unboost:**',
+        type_plain:     '📝 Teks Biasa',
+        type_embed:     '🖼️ Embed',
     },
 
     // ── /ping ─────────────────────────────────────────────────────────────────
@@ -313,6 +327,8 @@ module.exports = {
 
     // ── /ban ─────────────────────────────────────────────────────────────────
     ban: {
+        del_days           : (n) => `${n} hari`,
+        del_none           : 'Tidak',
         cannot_self        : '❌ Kamu tidak bisa mem-ban dirimu sendiri.',
         cannot_bot         : '❌ Tidak bisa mem-ban bot ini.',
         role_too_high_bot  : '❌ Role target lebih tinggi atau sama dengan role bot.',
@@ -349,6 +365,13 @@ module.exports = {
 
     // ── /mute ─────────────────────────────────────────────────────────────────
     mute: {
+        invalid_format  : '❌ Format durasi tidak valid. Contoh: `30s`, `10m`, `2h`, `1d`.',
+        max_duration    : '❌ Durasi timeout maksimal adalah **28 hari**.',
+        member_not_found: '❌ Member tidak ditemukan di server ini.',
+        dur_second      : (n) => `${n} detik`,
+        dur_minute      : (n) => `${n} menit`,
+        dur_hour        : (n) => `${n} jam`,
+        dur_day         : (n) => `${n} hari`,
         cannot_self        : '❌ Kamu tidak bisa mute dirimu sendiri.',
         cannot_bot         : '❌ Tidak bisa mute bot ini.',
         role_too_high_bot  : '❌ Role target lebih tinggi atau sama dengan role bot.',
@@ -374,6 +397,28 @@ module.exports = {
 
     // ── /warn ─────────────────────────────────────────────────────────────────
     warn: {
+        member_nf      : '❌ Member tidak ditemukan.',
+        issued_title   : '⚠️ Peringatan Diberikan',
+        removed_title  : '✅ Peringatan Dihapus',
+        cleared_title  : '✅ Semua Peringatan Dihapus',
+        list_header    : '📋 Daftar Peringatan',
+        field_total    : '📊 Total',
+        total_val      : (n) => `${n} peringatan`,
+        auto_action    : '⚡ Aksi Otomatis',
+        footer_total   : (n, extra) => `Total: ${n} peringatan${extra ? ` ${extra}` : ''}`,
+        footer_recent  : '(10 terbaru)',
+        dur_second     : (n) => `${n} detik`,
+        dur_minute     : (n) => `${n} menit`,
+        dur_hour       : (n) => `${n} jam`,
+        thresh_to_title: '🔇 Kamu Mendapat Timeout',
+        thresh_to_desc : (guild, time, count) => `Kamu mendapat timeout di **${guild}** selama **${time}**\nkarena mencapai **${count} peringatan**.`,
+        thresh_to_act  : (time) => `🔇 Timeout ${time}`,
+        thresh_kk_title: '👢 Kamu Telah Di-kick',
+        thresh_kk_desc : (guild, count) => `Kamu di-kick dari **${guild}** karena mencapai **${count} peringatan**.`,
+        thresh_kk_act  : '👢 Kick',
+        thresh_bn_title: '🔨 Kamu Telah Di-ban',
+        thresh_bn_desc : (guild, count) => `Kamu di-ban dari **${guild}** karena mencapai **${count} peringatan**.`,
+        thresh_bn_act  : '🔨 Ban',
         cannot_self        : '❌ Kamu tidak bisa memberi peringatan pada dirimu sendiri.',
         cannot_bot         : '❌ Tidak bisa memberi peringatan pada bot.',
         role_too_high_user : '❌ Kamu tidak bisa memperingatkan member dengan role lebih tinggi atau sama denganmu.',
@@ -398,6 +443,11 @@ module.exports = {
 
     // ── /purge ────────────────────────────────────────────────────────────────
     purge: {
+        log_title    : '🗑️ Purge Berhasil',
+        field_deleted: '📦 Terhapus',
+        field_target : '👤 Target',
+        deleted_val  : (n) => `**${n}** pesan`,
+        no_perm      : '❌ Bot tidak memiliki izin **Manage Messages** atau **Read Message History** di channel ini.',
         invalid_amount  : (min, max) => `❌ Masukkan angka antara ${min} dan ${max}.`,
         too_old         : '⚠️ Beberapa atau semua pesan berusia lebih dari 14 hari dan tidak bisa dihapus oleh Discord.',
         deleted         : (n) => `✅ Berhasil menghapus **${n}** pesan.`,
@@ -409,6 +459,19 @@ module.exports = {
 
     // ── /lock ─────────────────────────────────────────────────────────────────
     lock: {
+        text_only           : '❌ Hanya bisa mengunci text channel.',
+        no_bot_perm         : (ch) => `❌ Bot tidak memiliki izin **Manage Channels** di ${ch}.`,
+        status_locked_title : '🔒 Channel Dikunci',
+        status_unlocked_title:'🔓 Channel Dibuka',
+        status_locked_desc  : (ch) => `${ch} saat ini **dikunci**.`,
+        status_unlocked_desc: (ch) => `${ch} saat ini **tidak dikunci**.`,
+        mode_field          : 'Mode',
+        mode_strict         : (bypass) => `🔴 **Strict** — semua role diblokir${bypass ? `, kecuali @${bypass}` : ''}`,
+        mode_normal         : '🟡 **Normal** — role dengan izin eksplisit masih bisa kirim pesan',
+        mode_none           : '—',
+        log_locked_title    : '🔒 Channel Dikunci',
+        log_unlocked_title  : '🔓 Channel Dibuka',
+        field_mode          : '⚙️ Mode',
         locked           : (ch) => `🔒 Channel ${ch} telah dikunci.`,
         unlocked         : (ch) => `🔓 Channel ${ch} telah dibuka.`,
         already_locked   : (ch) => `⚠️ Channel ${ch} sudah terkunci.`,
@@ -419,7 +482,19 @@ module.exports = {
 
     // ── /slowmode ─────────────────────────────────────────────────────────────
     slowmode: {
-        set     : (sec, ch) => `✅ Slowmode diatur ke **${sec}d** di ${ch}.`,
+        text_only      : '❌ Slowmode hanya bisa diatur di text channel.',
+        no_bot_perm    : (ch) => `❌ Bot tidak memiliki izin **Manage Channels** di ${ch}.`,
+        no_active      : (ch) => `❌ ${ch} tidak sedang dalam mode slowmode.`,
+        invalid_format : '❌ Format durasi tidak valid. Contoh: `10s`, `1m`, `2h`.',
+        status_title   : '⏱️ Status Slowmode',
+        disabled_title : '⏱️ Slowmode Dinonaktifkan',
+        enabled_title  : '⏱️ Slowmode Diaktifkan',
+        field_cooldown : '⏱️ Cooldown',
+        fmt_disabled   : 'Nonaktif',
+        fmt_second     : (n) => `${n} detik`,
+        fmt_minute     : (n) => `${n} menit`,
+        fmt_hour       : (n) => `${n} jam`,
+        set     : (sec, ch) => `✅ Slowmode diatur ke **${sec}s** di ${ch}.`,
         removed : (ch) => `✅ Slowmode dihapus dari ${ch}.`,
         failed  : '❌ Gagal mengatur slowmode. Periksa izin bot.',
         invalid : (max) => `❌ Slowmode harus antara 0 dan ${max} detik.`,
@@ -436,6 +511,32 @@ module.exports = {
 
     // ── /automod ──────────────────────────────────────────────────────────────
     automod: {
+        cfg_action         : '⚔️ Aksi Pelanggaran',
+        cfg_duration       : '🔇 Durasi Timeout',
+        cfg_log_channel    : '📋 Channel Log',
+        cfg_antilink       : '🔗 Anti-Link',
+        cfg_antiinvite     : '📨 Anti-Invite',
+        cfg_attachment     : '📎 Anti-Lampiran',
+        cfg_antispam       : '🔁 Anti-Spam',
+        cfg_antispam_on    : (limit, interval) => `✅ Aktif — maks **${limit}** pesan / **${interval}** detik`,
+        cfg_massmention    : '📢 Anti Mass-Mention',
+        cfg_massmention_on : (limit) => `✅ Aktif — maks **${limit}** mention per pesan`,
+        cfg_antiraid       : '🚨 Anti-Raid',
+        cfg_antiraid_on    : (joinLimit, interval) => `✅ Aktif — maks **${joinLimit}** bergabung / **${interval}** detik`,
+        cfg_words          : '🚫 Kata Terlarang',
+        cfg_wl_channel     : '✅ Whitelist Channel',
+        cfg_wl_role        : '✅ Whitelist Role',
+        act_delete         : '🗑️ Hapus',
+        act_warn           : '⚠️ Peringatkan',
+        act_mute           : '🔇 Timeout',
+        act_kick           : '👢 Kick',
+        act_ban            : '🔨 Ban',
+        dur_1m             : '1 menit',
+        dur_5m             : '5 menit',
+        dur_10m            : '10 menit',
+        dur_30m            : '30 menit',
+        dur_1h             : '1 jam',
+        dur_1d             : '1 hari',
         config_title         : '🛡️ Konfigurasi Automod',
         saved                : '✅ Pengaturan AutoMod disimpan.',
         enabled              : (feature) => `✅ **${feature}** diaktifkan.`,
@@ -617,6 +718,10 @@ module.exports = {
 
     // ── /giveaway ─────────────────────────────────────────────────────────────
     giveaway: {
+        dur_day    : (n) => `${n} hari`,
+        dur_hour   : (n) => `${n} jam`,
+        dur_minute : (n) => `${n} menit`,
+        dur_less   : 'kurang dari 1 menit',
         started          : (ch) => `✅ Giveaway dimulai di ${ch}!`,
         ended            : (id) => `✅ Giveaway \`${id}\` telah diakhiri.`,
         rerolled         : (id) => `✅ Giveaway \`${id}\` telah di-reroll.`,
@@ -629,8 +734,15 @@ module.exports = {
         field_winners    : '🏆 Pemenang',
         field_host       : '👤 Host',
         no_permission    : '❌ Kamu memerlukan izin **Manage Server**.',
-        already_ended    : '❌ Giveaway ini sudah berakhir.',
-        invalid_duration : '❌ Format durasi tidak valid.',
+        already_ended       : '❌ Giveaway ini sudah berakhir.',
+        invalid_duration    : '❌ Format durasi tidak valid.',
+        manager_unavailable : '❌ GiveawayManager tidak tersedia.',
+        min_duration        : '❌ Durasi minimum adalah 10 detik. Contoh format: `1h`, `30m`, `1d`, `2h30m`.',
+        max_duration        : '❌ Durasi maksimum adalah 30 hari.',
+        not_ended_yet       : '❌ Giveaway belum berakhir.',
+        gw_cancelled        : '❌ Giveaway ini telah dibatalkan.',
+        no_participants     : '⚠️ Tidak ada peserta yang memenuhi syarat.',
+        list_no_active      : '📋 Tidak ada giveaway yang sedang berjalan.',
     },
 
     // ── /invites ──────────────────────────────────────────────────────────────
@@ -686,6 +798,11 @@ module.exports = {
 
     // ── /booster ─────────────────────────────────────────────────────────────
     booster: {
+        info_member        : '👤 Member',
+        info_boost_start   : '🚀 Mulai Boost',
+        info_total_boost   : '✨ Total Boost',
+        info_server_lvl    : '🏅 Level Server',
+        total_boosters     : (n, level) => `Total: **${n}** booster · Level ${level}`,
         status_title              : '⚙️ Konfigurasi Booster',
         field_boost_notif         : '🚀 Notifikasi Boost',
         field_boost_info          : '🚀 Info Field Boost',

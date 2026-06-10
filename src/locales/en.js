@@ -2,14 +2,28 @@
 module.exports = {
 
     common: {
-        enabled:   '✅ Enabled',
-        disabled:  '❌ Disabled',
-        shown:     '✅ Shown',
-        hidden:    '❌ Hidden',
-        not_set:   '`Not set`',
-        none:      '`None`',
-        yes:       'Yes',
-        no:        'No',
+        enabled:        '✅ Enabled',
+        disabled:       '❌ Disabled',
+        shown:          '✅ Shown',
+        hidden:         '❌ Hidden',
+        not_set:        '`Not set`',
+        none:           '`None`',
+        yes:            'Yes',
+        no:             'No',
+        no_reason:      'No reason provided',
+        field_member:   '👤 Member',
+        field_moderator:'🛡️ Moderator',
+        field_channel:  '📌 Channel',
+        lbl_status:     '**Status:**',
+        lbl_channel:    '**Channel:**',
+        lbl_type:       '**Type:**',
+        lbl_message:    '**Message:**',
+        lbl_title:      '**Title:**',
+        lbl_color:      '**Color:**',
+        lbl_role:       '**Role:**',
+        lbl_remove:     '**Remove on unboost:**',
+        type_plain:     '📝 Plain Text',
+        type_embed:     '🖼️ Embed',
     },
 
     // ── /ping ─────────────────────────────────────────────────────────────────
@@ -313,6 +327,8 @@ module.exports = {
 
     // ── /ban ─────────────────────────────────────────────────────────────────
     ban: {
+        del_days           : (n) => `${n} day(s)`,
+        del_none           : 'No',
         cannot_self        : '❌ You cannot ban yourself.',
         cannot_bot         : '❌ Cannot ban this bot.',
         role_too_high_bot  : "❌ Target's role is higher than or equal to the bot's role.",
@@ -349,6 +365,13 @@ module.exports = {
 
     // ── /mute ─────────────────────────────────────────────────────────────────
     mute: {
+        invalid_format  : '❌ Invalid duration format. Examples: `30s`, `10m`, `2h`, `1d`.',
+        max_duration    : '❌ Maximum timeout duration is **28 days**.',
+        member_not_found: '❌ Member not found in this server.',
+        dur_second      : (n) => `${n} second(s)`,
+        dur_minute      : (n) => `${n} minute(s)`,
+        dur_hour        : (n) => `${n} hour(s)`,
+        dur_day         : (n) => `${n} day(s)`,
         cannot_self        : '❌ You cannot mute yourself.',
         cannot_bot         : '❌ Cannot mute this bot.',
         role_too_high_bot  : "❌ Target's role is higher than or equal to the bot's role.",
@@ -374,6 +397,28 @@ module.exports = {
 
     // ── /warn ─────────────────────────────────────────────────────────────────
     warn: {
+        member_nf      : '❌ Member not found.',
+        issued_title   : '⚠️ Warning Issued',
+        removed_title  : '✅ Warning Removed',
+        cleared_title  : '✅ All Warnings Cleared',
+        list_header    : '📋 Warning List',
+        field_total    : '📊 Total',
+        total_val      : (n) => `${n} warning(s)`,
+        auto_action    : '⚡ Automatic Action',
+        footer_total   : (n, extra) => `Total: ${n} warning(s)${extra ? ` ${extra}` : ''}`,
+        footer_recent  : '(10 most recent)',
+        dur_second     : (n) => `${n} second(s)`,
+        dur_minute     : (n) => `${n} minute(s)`,
+        dur_hour       : (n) => `${n} hour(s)`,
+        thresh_to_title: '🔇 You have been Timed Out',
+        thresh_to_desc : (guild, time, count) => `You were timed out in **${guild}** for **${time}**\nfor reaching **${count} warnings**.`,
+        thresh_to_act  : (time) => `🔇 Timeout ${time}`,
+        thresh_kk_title: '👢 You have been Kicked',
+        thresh_kk_desc : (guild, count) => `You were kicked from **${guild}** for reaching **${count} warnings**.`,
+        thresh_kk_act  : '👢 Kick',
+        thresh_bn_title: '🔨 You have been Banned',
+        thresh_bn_desc : (guild, count) => `You were banned from **${guild}** for reaching **${count} warnings**.`,
+        thresh_bn_act  : '🔨 Ban',
         cannot_self        : '❌ You cannot warn yourself.',
         cannot_bot         : '❌ Cannot warn a bot.',
         role_too_high_user : '❌ You cannot warn a member with a higher or equal role than yours.',
@@ -398,6 +443,11 @@ module.exports = {
 
     // ── /purge ────────────────────────────────────────────────────────────────
     purge: {
+        log_title   : '🗑️ Purge Successful',
+        field_deleted: '📦 Deleted',
+        field_target : '👤 Target',
+        deleted_val : (n) => `**${n}** message(s)`,
+        no_perm     : '❌ Bot does not have **Manage Messages** or **Read Message History** permission in this channel.',
         invalid_amount  : (min, max) => `❌ Please enter a number between ${min} and ${max}.`,
         too_old         : '⚠️ Some or all messages are older than 14 days and cannot be deleted by Discord.',
         deleted         : (n) => `✅ Successfully deleted **${n}** message(s).`,
@@ -409,6 +459,19 @@ module.exports = {
 
     // ── /lock ─────────────────────────────────────────────────────────────────
     lock: {
+        text_only           : '❌ Can only lock text channels.',
+        no_bot_perm         : (ch) => `❌ Bot does not have **Manage Channels** permission in ${ch}.`,
+        status_locked_title : '🔒 Channel Locked',
+        status_unlocked_title:'🔓 Channel Unlocked',
+        status_locked_desc  : (ch) => `${ch} is currently **locked**.`,
+        status_unlocked_desc: (ch) => `${ch} is currently **unlocked**.`,
+        mode_field          : 'Mode',
+        mode_strict         : (bypass) => `🔴 **Strict** — all roles blocked${bypass ? `, except @${bypass}` : ''}`,
+        mode_normal         : '🟡 **Normal** — roles with explicit permissions can still send messages',
+        mode_none           : '—',
+        log_locked_title    : '🔒 Channel Locked',
+        log_unlocked_title  : '🔓 Channel Unlocked',
+        field_mode          : '⚙️ Mode',
         locked           : (ch) => `🔒 Channel ${ch} has been locked.`,
         unlocked         : (ch) => `🔓 Channel ${ch} has been unlocked.`,
         already_locked   : (ch) => `⚠️ Channel ${ch} is already locked.`,
@@ -419,6 +482,18 @@ module.exports = {
 
     // ── /slowmode ─────────────────────────────────────────────────────────────
     slowmode: {
+        text_only      : '❌ Slowmode can only be set in text channels.',
+        no_bot_perm    : (ch) => `❌ Bot does not have **Manage Channels** permission in ${ch}.`,
+        no_active      : (ch) => `❌ ${ch} does not currently have slowmode enabled.`,
+        invalid_format : '❌ Invalid duration format. Examples: `10s`, `1m`, `2h`.',
+        status_title   : '⏱️ Slowmode Status',
+        disabled_title : '⏱️ Slowmode Disabled',
+        enabled_title  : '⏱️ Slowmode Enabled',
+        field_cooldown : '⏱️ Cooldown',
+        fmt_disabled   : 'Disabled',
+        fmt_second     : (n) => `${n} second(s)`,
+        fmt_minute     : (n) => `${n} minute(s)`,
+        fmt_hour       : (n) => `${n} hour(s)`,
         set     : (sec, ch) => `✅ Slowmode set to **${sec}s** in ${ch}.`,
         removed : (ch) => `✅ Slowmode removed from ${ch}.`,
         failed  : '❌ Failed to set slowmode. Check bot permissions.',
@@ -436,6 +511,32 @@ module.exports = {
 
     // ── /automod ──────────────────────────────────────────────────────────────
     automod: {
+        cfg_action         : '⚔️ Violation Action',
+        cfg_duration       : '🔇 Timeout Duration',
+        cfg_log_channel    : '📋 Log Channel',
+        cfg_antilink       : '🔗 Anti-Link',
+        cfg_antiinvite     : '📨 Anti-Invite',
+        cfg_attachment     : '📎 Anti-Attachment',
+        cfg_antispam       : '🔁 Anti-Spam',
+        cfg_antispam_on    : (limit, interval) => `✅ Enabled — max **${limit}** messages / **${interval}** second(s)`,
+        cfg_massmention    : '📢 Anti Mass-Mention',
+        cfg_massmention_on : (limit) => `✅ Enabled — max **${limit}** mentions per message`,
+        cfg_antiraid       : '🚨 Anti-Raid',
+        cfg_antiraid_on    : (joinLimit, interval) => `✅ Enabled — max **${joinLimit}** joins / **${interval}** second(s)`,
+        cfg_words          : '🚫 Banned Words',
+        cfg_wl_channel     : '✅ Whitelist Channel',
+        cfg_wl_role        : '✅ Whitelist Role',
+        act_delete         : '🗑️ Delete',
+        act_warn           : '⚠️ Warn',
+        act_mute           : '🔇 Mute (Timeout)',
+        act_kick           : '👢 Kick',
+        act_ban            : '🔨 Ban',
+        dur_1m             : '1 minute',
+        dur_5m             : '5 minutes',
+        dur_10m            : '10 minutes',
+        dur_30m            : '30 minutes',
+        dur_1h             : '1 hour',
+        dur_1d             : '1 day',
         config_title         : '🛡️ Automod Configuration',
         saved                : '✅ AutoMod settings saved.',
         enabled              : (feature) => `✅ **${feature}** enabled.`,
@@ -617,6 +718,10 @@ module.exports = {
 
     // ── /giveaway ─────────────────────────────────────────────────────────────
     giveaway: {
+        dur_day    : (n) => `${n} day(s)`,
+        dur_hour   : (n) => `${n} hour(s)`,
+        dur_minute : (n) => `${n} minute(s)`,
+        dur_less   : 'less than 1 minute',
         started          : (ch) => `✅ Giveaway started in ${ch}!`,
         ended            : (id) => `✅ Giveaway \`${id}\` ended.`,
         rerolled         : (id) => `✅ Giveaway \`${id}\` rerolled.`,
@@ -629,8 +734,15 @@ module.exports = {
         field_winners    : '🏆 Winners',
         field_host       : '👤 Host',
         no_permission    : '❌ You need **Manage Server** permission.',
-        already_ended    : '❌ This giveaway has already ended.',
-        invalid_duration : '❌ Invalid duration format.',
+        already_ended       : '❌ This giveaway has already ended.',
+        invalid_duration    : '❌ Invalid duration format.',
+        manager_unavailable : '❌ GiveawayManager is not available.',
+        min_duration        : '❌ Minimum duration is 10 seconds. Format examples: `1h`, `30m`, `1d`, `2h30m`.',
+        max_duration        : '❌ Maximum duration is 30 days.',
+        not_ended_yet       : '❌ Giveaway has not ended yet.',
+        gw_cancelled        : '❌ This giveaway has been cancelled.',
+        no_participants     : '⚠️ No eligible participants found.',
+        list_no_active      : '📋 No giveaways are currently running.',
     },
 
     // ── /invites ──────────────────────────────────────────────────────────────
@@ -686,6 +798,11 @@ module.exports = {
 
     // ── /booster ─────────────────────────────────────────────────────────────
     booster: {
+        info_member        : '👤 Member',
+        info_boost_start   : '🚀 Boost Start',
+        info_total_boost   : '✨ Total Boosts',
+        info_server_lvl    : '🏅 Server Level',
+        total_boosters     : (n, level) => `Total: **${n}** booster(s) · Level ${level}`,
         status_title              : '⚙️ Booster Configuration',
         field_boost_notif         : '🚀 Boost Notification',
         field_boost_info          : '🚀 Boost Info Fields',

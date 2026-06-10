@@ -27,15 +27,15 @@ function parseDuration(input) {
     return ms;
 }
 
-function formatDuration(ms) {
+function formatDuration(ms, s) {
     const d = Math.floor(ms / 86_400_000);
     const h = Math.floor((ms % 86_400_000) / 3_600_000);
     const m = Math.floor((ms % 3_600_000) / 60_000);
     const parts = [];
-    if (d) parts.push(`${d} day(s)`);
-    if (h) parts.push(`${h} hour(s)`);
-    if (m) parts.push(`${m} minute(s)`);
-    return parts.join(' ') || 'less than 1 minute';
+    if (d) parts.push(s.dur_day(d));
+    if (h) parts.push(s.dur_hour(h));
+    if (m) parts.push(s.dur_minute(m));
+    return parts.join(' ') || s.dur_less;
 }
 
 // ── Command ────────────────────────────────────────────────────────────────────
@@ -161,10 +161,7 @@ module.exports = new ApplicationCommand({
         const manager = client.giveawayManager;
 
         if (!manager) {
-            return interaction.reply({
-                content: '❌ GiveawayManager is not available.',
-                flags: MessageFlags.Ephemeral,
-            });
+            return interaction.reply({ content: s.manager_unavailable, flags: MessageFlags.Ephemeral });
         }
 
         // ── /giveaway start ───────────────────────────────────────────────
@@ -179,16 +176,10 @@ module.exports = new ApplicationCommand({
 
             const durationMs = parseDuration(durasiRaw);
             if (durationMs < 10_000) {
-                return interaction.reply({
-                    content: '❌ Minimum duration is 10 seconds. Format examples: `1h`, `30m`, `1d`, `2h30m`.',
-                    flags: MessageFlags.Ephemeral,
-                });
+                return interaction.reply({ content: s.min_duration, flags: MessageFlags.Ephemeral });
             }
             if (durationMs > 30 * 86_400_000) {
-                return interaction.reply({
-                    content: '❌ Maximum duration is 30 days.',
-                    flags: MessageFlags.Ephemeral,
-                });
+                return interaction.reply({ content: s.max_duration, flags: MessageFlags.Ephemeral });
             }
 
             await interaction.deferReply({ flags: MessageFlags.Ephemeral });
@@ -207,7 +198,7 @@ module.exports = new ApplicationCommand({
                 await interaction.editReply({
                     content: [
                         `✅ Giveaway **${gw.prize}** started in ${targetChannel}!`,
-                        `⏰ Ends in **${formatDuration(durationMs)}**`,
+                        `⏰ Ends in **${formatDuration(durationMs, s)}**`,
                         `🏆 **${winnerCount}** winner(s)`,
                         requiredRole ? `🔒 Required role: ${requiredRole}` : '',
                     ].filter(Boolean).join('\n'),
@@ -249,10 +240,10 @@ module.exports = new ApplicationCommand({
                 return interaction.reply({ content: s.not_found, flags: MessageFlags.Ephemeral });
             }
             if (!gw.ended) {
-                return interaction.reply({ content: '❌ Giveaway has not ended yet.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: s.not_ended_yet, flags: MessageFlags.Ephemeral });
             }
             if (gw.cancelled) {
-                return interaction.reply({ content: '❌ This giveaway has been cancelled.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: s.gw_cancelled, flags: MessageFlags.Ephemeral });
             }
 
             await interaction.deferReply({ flags: MessageFlags.Ephemeral });
@@ -262,7 +253,7 @@ module.exports = new ApplicationCommand({
                 await interaction.editReply({
                     content: winners.length
                         ? `${s.rerolled(id)}\n🏆 ${mention}`
-                        : '⚠️ No eligible participants found.',
+                        : s.no_participants,
                 });
             } catch (err) {
                 await interaction.editReply({ content: `❌ Failed: ${err.message}` });
@@ -276,15 +267,12 @@ module.exports = new ApplicationCommand({
             const active = all.filter(g => !g.ended && !g.cancelled);
 
             if (!active.length) {
-                return interaction.reply({
-                    content: '📋 No giveaways are currently running.',
-                    flags: MessageFlags.Ephemeral,
-                });
+                return interaction.reply({ content: s.list_no_active, flags: MessageFlags.Ephemeral });
             }
 
             const embed = new EmbedBuilder()
                 .setColor(0xF0A032)
-                .setTitle('🎉 Active Giveaways')
+                .setTitle(s.list_title)
                 .setTimestamp();
 
             for (const gw of active.slice(0, 10)) {

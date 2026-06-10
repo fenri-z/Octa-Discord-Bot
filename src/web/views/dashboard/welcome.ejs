@@ -817,7 +817,9 @@ function resolveHtmlMentions(html) {
                 return mentionBadge('#7289da', '#' + cached.name, 'rgba(88,101,242,.15)');
             }
             return mentionBadge('#7289da', cached === null ? '#unknown-channel' : '#...', 'rgba(88,101,242,.15)');
-        });
+        })
+        .replace(/@everyone\b/g, () => mentionBadge('#7289da', '@everyone', 'rgba(88,101,242,.15)'))
+        .replace(/@here\b/g,     () => mentionBadge('#7289da', '@here',     'rgba(88,101,242,.15)'));
 }
 
 // ── Tentukan posisi card: di dalam embed/plain atau standalone ───────────

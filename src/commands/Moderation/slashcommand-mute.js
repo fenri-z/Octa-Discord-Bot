@@ -22,11 +22,11 @@ function parseDuration(str) {
     return n * map[unit];
 }
 
-function formatDuration(ms) {
-    if (ms < 60_000)        return `${ms / 1_000} second(s)`;
-    if (ms < 3_600_000)     return `${ms / 60_000} minute(s)`;
-    if (ms < 86_400_000)    return `${ms / 3_600_000} hour(s)`;
-    return `${ms / 86_400_000} day(s)`;
+function formatDuration(ms, s) {
+    if (ms < 60_000)        return s.dur_second(ms / 1_000);
+    if (ms < 3_600_000)     return s.dur_minute(ms / 60_000);
+    if (ms < 86_400_000)    return s.dur_hour(ms / 3_600_000);
+    return s.dur_day(ms / 86_400_000);
 }
 
 const MAX_TIMEOUT_MS = 28 * 86_400_000; // 28 hari — batas Discord
@@ -61,25 +61,24 @@ module.exports = new ApplicationCommand({
     },
 
     run: async (client, interaction) => {
-        const s     = getStrings(getLang(client.database, interaction.guild?.id)).mute;
-        const sub   = interaction.options.getSubcommand();
-        const guild = interaction.guild;
+        const strings = getStrings(getLang(client.database, interaction.guild?.id));
+        const s       = strings.mute;
+        const c       = strings.common;
+        const sub     = interaction.options.getSubcommand();
+        const guild   = interaction.guild;
 
         // ── Mute ────────────────────────────────────────────────────────────────
         if (sub === 'member') {
             const target  = interaction.options.getUser('user');
             const durStr  = interaction.options.getString('duration');
-            const alasan  = interaction.options.getString('reason') || 'No reason provided';
+            const alasan  = interaction.options.getString('reason') || c.no_reason;
 
             const durationMs = parseDuration(durStr);
             if (!durationMs)
-                return interaction.reply({
-                    content: '❌ Invalid duration format. Examples: `30s`, `10m`, `2h`, `1d`.',
-                    flags: MessageFlags.Ephemeral,
-                });
+                return interaction.reply({ content: s.invalid_format, flags: MessageFlags.Ephemeral });
 
             if (durationMs > MAX_TIMEOUT_MS)
-                return interaction.reply({ content: '❌ Maximum timeout duration is **28 days**.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: s.max_duration, flags: MessageFlags.Ephemeral });
 
             if (target.id === interaction.user.id)
                 return interaction.reply({ content: s.cannot_self, flags: MessageFlags.Ephemeral });
@@ -89,7 +88,7 @@ module.exports = new ApplicationCommand({
 
             const member = guild.members.cache.get(target.id);
             if (!member)
-                return interaction.reply({ content: '❌ Member not found in this server.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: s.member_not_found, flags: MessageFlags.Ephemeral });
 
             if (!member.moderatable)
                 return interaction.reply({ content: s.role_too_high_bot, flags: MessageFlags.Ephemeral });
@@ -112,7 +111,7 @@ module.exports = new ApplicationCommand({
                     .setColor('#EB459E')
                     .setTitle(s.dm_muted_title(guild.name))
                     .addFields(
-                        { name: s.dm_field_duration, value: formatDuration(durationMs) },
+                        { name: s.dm_field_duration, value: formatDuration(durationMs, s) },
                         { name: s.dm_field_expires,  value: `<t:${Math.floor(until.getTime() / 1000)}:R>` },
                         { name: s.dm_field_reason,   value: alasan },
                         { name: s.dm_field_mod,      value: interaction.user.tag },
@@ -125,9 +124,9 @@ module.exports = new ApplicationCommand({
                 .setTitle(s.muted_title)
                 .setThumbnail(target.displayAvatarURL({ size: 64 }))
                 .addFields(
-                    { name: '👤 Member',        value: `${target} (${target.tag})`,                   inline: true },
-                    { name: '🛡️ Moderator',    value: `${interaction.user}`,                         inline: true },
-                    { name: s.field_duration,   value: formatDuration(durationMs),                    inline: true },
+                    { name: c.field_member,     value: `${target} (${target.tag})`,                   inline: true },
+                    { name: c.field_moderator,  value: `${interaction.user}`,                         inline: true },
+                    { name: s.field_duration,   value: formatDuration(durationMs, s),                 inline: true },
                     { name: s.field_expires,    value: `<t:${Math.floor(until.getTime() / 1000)}:R>`, inline: true },
                     { name: s.field_reason,     value: alasan },
                 )
@@ -146,11 +145,11 @@ module.exports = new ApplicationCommand({
         // ── Unmute ──────────────────────────────────────────────────────────────
         if (sub === 'unmute') {
             const target = interaction.options.getUser('user');
-            const alasan = interaction.options.getString('reason') || 'No reason provided';
+            const alasan = interaction.options.getString('reason') || c.no_reason;
 
             const member = guild.members.cache.get(target.id);
             if (!member)
-                return interaction.reply({ content: '❌ Member not found in this server.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: s.member_not_found, flags: MessageFlags.Ephemeral });
 
             if (!member.communicationDisabledUntil || member.communicationDisabledUntil < new Date())
                 return interaction.reply({ content: s.not_muted, flags: MessageFlags.Ephemeral });
@@ -178,8 +177,8 @@ module.exports = new ApplicationCommand({
                 .setTitle(s.unmuted_title)
                 .setThumbnail(target.displayAvatarURL({ size: 64 }))
                 .addFields(
-                    { name: '👤 Member',    value: `${target} (${target.tag})`, inline: true },
-                    { name: '🛡️ Moderator', value: `${interaction.user}`,      inline: true },
+                    { name: c.field_member,    value: `${target} (${target.tag})`, inline: true },
+                    { name: c.field_moderator, value: `${interaction.user}`,      inline: true },
                     { name: s.field_reason, value: alasan },
                 )
                 .setTimestamp();

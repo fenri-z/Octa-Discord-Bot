@@ -479,7 +479,13 @@
                 <!-- Plain text panel -->
                 <div id="panelPlainPanel" style="display:none;">
                     <div class="form-group">
-                        <label class="label"><%= t('common.plain_text_message') %></label>
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.35rem;">
+                            <label class="label" style="margin:0;"><%= t('common.plain_text_message') %></label>
+                            <div class="ph-picker-anchor mention-anchor">
+                                <button type="button" class="ph-toggle-btn" onclick="togglePicker('panelPlainMentionPicker',event)">@ Mention</button>
+                                <div class="ph-dropdown mention-dd" id="panelPlainMentionPicker" style="display:none;"></div>
+                            </div>
+                        </div>
                         <textarea id="panelPlainText" class="textarea" rows="5"
                                   placeholder="<%= t('autorole.plain_text_ph') %>"
                                   oninput="updatePanelPreview()"></textarea>
@@ -498,7 +504,13 @@
                 </div>
 
                 <div class="form-group">
-                    <label class="label"><%= t('autorole.embed_desc_label') %></label>
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.35rem;">
+                        <label class="label" style="margin:0;"><%= t('autorole.embed_desc_label') %></label>
+                        <div class="ph-picker-anchor mention-anchor">
+                            <button type="button" class="ph-toggle-btn" onclick="togglePicker('panelEmbedMentionPicker',event)">@ Mention</button>
+                            <div class="ph-dropdown mention-dd" id="panelEmbedMentionPicker" style="display:none;"></div>
+                        </div>
+                    </div>
                     <textarea id="panelEmbedDescription" class="textarea" rows="4"
                               placeholder="Describe the buttons here..." maxlength="4000"
                               oninput="updatePanelPreview()"></textarea>
@@ -785,7 +797,13 @@
 
                 <div id="reactPanelPlainPanel" style="display:none;">
                     <div class="form-group">
-                        <label class="label"><%= t('common.plain_text_message') %></label>
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.35rem;">
+                            <label class="label" style="margin:0;"><%= t('common.plain_text_message') %></label>
+                            <div class="ph-picker-anchor mention-anchor">
+                                <button type="button" class="ph-toggle-btn" onclick="togglePicker('reactPlainMentionPicker',event)">@ Mention</button>
+                                <div class="ph-dropdown mention-dd" id="reactPlainMentionPicker" style="display:none;"></div>
+                            </div>
+                        </div>
                         <textarea id="reactPanelPlainText" class="textarea" rows="5"
                                   placeholder="<%= t('autorole.plain_text_ph') %>"
                                   oninput="updateReactPanelPreview()"></textarea>
@@ -802,7 +820,13 @@
                            maxlength="256" oninput="updateReactPanelPreview()">
                 </div>
                 <div class="form-group">
-                    <label class="label"><%= t('autorole.embed_desc_label') %></label>
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.35rem;">
+                        <label class="label" style="margin:0;"><%= t('autorole.embed_desc_label') %></label>
+                        <div class="ph-picker-anchor mention-anchor">
+                            <button type="button" class="ph-toggle-btn" onclick="togglePicker('reactEmbedMentionPicker',event)">@ Mention</button>
+                            <div class="ph-dropdown mention-dd" id="reactEmbedMentionPicker" style="display:none;"></div>
+                        </div>
+                    </div>
                     <textarea id="reactPanelEmbedDescription" class="textarea" rows="4"
                               placeholder="Describe how to use reactions here..." maxlength="4000"
                               oninput="updateReactPanelPreview()"></textarea>
@@ -1488,7 +1512,9 @@ function resolveHtmlMentions(html){
     return html
         .replace(/&lt;@&amp;(\d+)&gt;/g,(_,id)=>{const s=ROLES_MAP[id];if(s)return _badge(s.color,'@'+s.name);const c=_rCache[id];if(c===undefined)_fetchRole(id);return c&&c!=='f'?_badge(c.color,'@'+c.name):_badge('#99aab5',c===null?'@unknown-role':'@...');})
         .replace(/&lt;@!?(\d+)&gt;/g,(_,id)=>{const c=_mCache[id];if(c===undefined)_fetchMember(id);return _badge('#7289da',c&&c!=='f'?'@'+c:c===null?'@unknown-user':'@...','rgba(88,101,242,.15)');})
-        .replace(/&lt;#(\d+)&gt;/g,(_,id)=>{if(CHANNELS[id])return _badge('#7289da','#'+CHANNELS[id],'rgba(88,101,242,.15)');const c=_cCache[id];if(c===undefined)_fetchChannel(id);return c&&c!=='f'?_badge('#7289da','#'+c.name,'rgba(88,101,242,.15)'):_badge('#7289da',c===null?'#unknown':'#...','rgba(88,101,242,.15)');});
+        .replace(/&lt;#(\d+)&gt;/g,(_,id)=>{if(CHANNELS[id])return _badge('#7289da','#'+CHANNELS[id],'rgba(88,101,242,.15)');const c=_cCache[id];if(c===undefined)_fetchChannel(id);return c&&c!=='f'?_badge('#7289da','#'+c.name,'rgba(88,101,242,.15)'):_badge('#7289da',c===null?'#unknown':'#...','rgba(88,101,242,.15)');})
+        .replace(/@everyone\b/g, () => _badge('#7289da','@everyone','rgba(88,101,242,.15)'))
+        .replace(/@here\b/g,     () => _badge('#7289da','@here',    'rgba(88,101,242,.15)'));
 }
 
 // ── Tab ──────────────────────────────────────────────────────────────────────
@@ -1720,9 +1746,9 @@ function updatePanelPreview() {
     const color  = document.getElementById('panelEmbedColor').value || '#5865F2';
 
     document.getElementById('panelPreviewPill').style.background = color;
-    document.getElementById('panelPreviewTitle').textContent     = title;
-    document.getElementById('panelPreviewDesc').textContent      = desc;
-    document.getElementById('panelPreviewFooter').textContent    = footer;
+    document.getElementById('panelPreviewTitle').innerHTML       = resolveHtmlMentions(mdToHtml(title));
+    document.getElementById('panelPreviewDesc').innerHTML        = resolveHtmlMentions(mdToHtml(desc));
+    document.getElementById('panelPreviewFooter').innerHTML      = footer ? resolveHtmlMentions(mdToHtml(footer)) : '';
 
     const imgEl   = document.getElementById('panelPreviewImage');
     const thumbEl = document.getElementById('panelPreviewThumb');
@@ -2377,9 +2403,9 @@ function updateReactPanelPreview() {
     const color  = document.getElementById('reactPanelEmbedColor').value || '#5865F2';
 
     document.getElementById('reactPanelPreviewPill').style.background = color;
-    document.getElementById('reactPanelPreviewTitle').textContent     = title;
-    document.getElementById('reactPanelPreviewDesc').textContent      = desc;
-    document.getElementById('reactPanelPreviewFooter').textContent    = footer;
+    document.getElementById('reactPanelPreviewTitle').innerHTML       = resolveHtmlMentions(mdToHtml(title));
+    document.getElementById('reactPanelPreviewDesc').innerHTML        = resolveHtmlMentions(mdToHtml(desc));
+    document.getElementById('reactPanelPreviewFooter').innerHTML      = footer ? resolveHtmlMentions(mdToHtml(footer)) : '';
 
     const validUrl = v => v && v !== '-' && /^https?:\/\/.+\..+/.test(v);
     const imgEl   = document.getElementById('reactPanelPreviewImage');
@@ -2888,6 +2914,64 @@ window._floatSave = async function () {
         if (document.getElementById('tab-' + id)?.style.display !== 'none') { await fn(); break; }
     }
 };
+
+function togglePicker(id, event) {
+    if (event) event.stopPropagation();
+    const el = document.getElementById(id);
+    const wasHidden = el.style.display === 'none';
+    document.querySelectorAll('.ph-dropdown').forEach(d => d.style.display = 'none');
+    document.querySelectorAll('.ph-toggle-btn').forEach(b => b.classList.remove('active'));
+    if (wasHidden) { el.style.display = 'grid'; if (event?.currentTarget) event.currentTarget.classList.add('active'); }
+}
+document.addEventListener('click', () => {
+    document.querySelectorAll('.ph-dropdown').forEach(d => d.style.display = 'none');
+    document.querySelectorAll('.ph-toggle-btn').forEach(b => b.classList.remove('active'));
+});
+function _buildMentionDd(dd, getTarget) {
+    function item(html, mention) {
+        const b = document.createElement('button');
+        b.type = 'button'; b.className = 'ph-item';
+        b.innerHTML = html;
+        b.addEventListener('click', () => {
+            const ta = typeof getTarget === 'function' ? getTarget() : getTarget;
+            if (!ta) return;
+            const s = ta.selectionStart ?? ta.value.length;
+            const ep = ta.selectionEnd ?? ta.value.length;
+            ta.value = ta.value.slice(0, s) + mention + ta.value.slice(ep);
+            ta.selectionStart = ta.selectionEnd = s + mention.length;
+            ta.focus(); ta.dispatchEvent(new Event('input', {bubbles: true}));
+            document.querySelectorAll('.ph-dropdown').forEach(d => d.style.display = 'none');
+            document.querySelectorAll('.ph-toggle-btn').forEach(b => b.classList.remove('active'));
+        });
+        return b;
+    }
+    function hdr(t) { const h = document.createElement('div'); h.className = 'ph-group-label'; h.textContent = t; return h; }
+    const inp = document.createElement('input');
+    inp.type = 'text'; inp.className = 'mention-search-input'; inp.placeholder = 'Search...';
+    inp.addEventListener('click', e => e.stopPropagation());
+    inp.addEventListener('input', () => {
+        const q = inp.value.toLowerCase();
+        dd.querySelectorAll('.ph-item').forEach(el => { el.style.display = el.textContent.toLowerCase().includes(q) ? '' : 'none'; });
+    });
+    dd.appendChild(inp);
+    dd.appendChild(hdr('Special'));
+    dd.appendChild(item('<code>@everyone</code>', '@everyone'));
+    dd.appendChild(item('<code>@here</code>', '@here'));
+    const rKeys = Object.keys(ROLES_MAP);
+    if (rKeys.length) {
+        dd.appendChild(hdr('Roles'));
+        rKeys.forEach(id => { const r = ROLES_MAP[id]; dd.appendChild(item(`<span style="color:${r.color}">@${r.name}</span>`, `<@&${id}>`)); });
+    }
+    const cKeys = Object.keys(CHANNELS);
+    if (cKeys.length) {
+        dd.appendChild(hdr('Channels'));
+        cKeys.forEach(id => { const name = CHANNELS[id]; dd.appendChild(item(`<span>#${name}</span>`, `<#${id}>`)); });
+    }
+}
+_buildMentionDd(document.getElementById('panelPlainMentionPicker'),  () => document.getElementById('panelPlainText'));
+_buildMentionDd(document.getElementById('panelEmbedMentionPicker'),  () => document.getElementById('panelEmbedDescription'));
+_buildMentionDd(document.getElementById('reactPlainMentionPicker'),  () => document.getElementById('reactPanelPlainText'));
+_buildMentionDd(document.getElementById('reactEmbedMentionPicker'),  () => document.getElementById('reactPanelEmbedDescription'));
 </script>
 
 <%- include('../partials/footer') %>

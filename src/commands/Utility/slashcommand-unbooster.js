@@ -140,7 +140,9 @@ required: true
      * @param {ChatInputCommandInteraction} interaction
      */
     run: async (client, interaction) => {
-        const s        = getStrings(getLang(client.database, interaction.guild?.id)).booster;
+        const strings  = getStrings(getLang(client.database, interaction.guild?.id));
+        const s        = strings.booster;
+        const c        = strings.common;
         const { guild, options } = interaction;
         const subGroup = options.getSubcommandGroup(false);
         const sub      = options.getSubcommand();
@@ -164,22 +166,22 @@ required: true
                     {
                         name: s.field_unboost_notif,
                         value: [
-                            `**Status:** ${cfg.unboostEnabled ? '✅ Enabled' : '❌ Disabled'}`,
-                            `**Channel:** ${unboostCh ? `<#${unboostCh.id}>` : '`Not set`'}`,
-                            `**Type:** ${cfg.unboostMessageType === 'plain' ? '📝 Plain Text' : '🖼️ Embed'}`,
+                            `${c.lbl_status} ${cfg.unboostEnabled ? c.enabled : c.disabled}`,
+                            `${c.lbl_channel} ${unboostCh ? `<#${unboostCh.id}>` : c.not_set}`,
+                            `${c.lbl_type} ${cfg.unboostMessageType === 'plain' ? c.type_plain : c.type_embed}`,
                             cfg.unboostMessageType === 'plain'
-                                ? `**Message:** \`${(cfg.unboostPlainText || '-').slice(0, 60)}${cfg.unboostPlainText?.length > 60 ? '…' : ''}\``
-                                : `**Title:** \`${cfg.unboostTitle}\``,
-                            `**Color:** \`${cfg.unboostColor}\``,
+                                ? `${c.lbl_message} \`${(cfg.unboostPlainText || '-').slice(0, 60)}${cfg.unboostPlainText?.length > 60 ? '…' : ''}\``
+                                : `${c.lbl_title} \`${cfg.unboostTitle}\``,
+                            `${c.lbl_color} \`${cfg.unboostColor}\``,
                         ].join('\n'),
                         inline: false
                     },
                     {
                         name: s.field_unboost_info,
                         value: [
-                            `👤 Member: ${cfg.unboostShowMember ? '✅' : '❌'}`,
-                            `✨ Total Boosts: ${cfg.unboostShowTotalBoost ? '✅' : '❌'}`,
-                            `🏅 Server Level: ${cfg.unboostShowLevelServer ? '✅' : '❌'}`,
+                            `${s.info_member}: ${cfg.unboostShowMember ? '✅' : '❌'}`,
+                            `${s.info_total_boost}: ${cfg.unboostShowTotalBoost ? '✅' : '❌'}`,
+                            `${s.info_server_lvl}: ${cfg.unboostShowLevelServer ? '✅' : '❌'}`,
                         ].join('\n'),
                         inline: true
                     }
@@ -306,9 +308,9 @@ required: true
                 if (parsedDesc) embed.setDescription(parsedDesc);
                 if (cfg.unboostShowThumbnail) embed.setThumbnail(interaction.member.user.displayAvatarURL({ dynamic: true, size: 256 }));
                 const unboostFields = [];
-                if (cfg.unboostShowMember)      unboostFields.push({ name: '👤 Member',       value: interaction.member.user.tag,                          inline: true });
-                if (cfg.unboostShowTotalBoost)  unboostFields.push({ name: '✨ Total Boosts', value: `**${guild.premiumSubscriptionCount ?? 0}** boost(s)`, inline: true });
-                if (cfg.unboostShowLevelServer) unboostFields.push({ name: '🏅 Server Level', value: `Level **${guild.premiumTier}**`,                      inline: true });
+                if (cfg.unboostShowMember)      unboostFields.push({ name: s.info_member,      value: interaction.member.user.tag,                          inline: true });
+                if (cfg.unboostShowTotalBoost)  unboostFields.push({ name: s.info_total_boost,value: `**${guild.premiumSubscriptionCount ?? 0}** boost(s)`, inline: true });
+                if (cfg.unboostShowLevelServer) unboostFields.push({ name: s.info_server_lvl, value: `Level **${guild.premiumTier}**`,                      inline: true });
                 if (unboostFields.length) embed.addFields(...unboostFields);
                 if (cfg.unboostFooter) embed.setFooter({ text: parsePrev(cfg.unboostFooter) });
                 if (unboostCard) embed.setImage('attachment://unboost-card.png');

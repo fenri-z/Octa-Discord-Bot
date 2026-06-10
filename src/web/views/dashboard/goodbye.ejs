@@ -574,7 +574,9 @@ function resolveHtmlMentions(html) {
             if (c === undefined) resolveChannelId(id);
             if (c && c !== 'fetching') return mentionBadge('#7289da', '#' + c.name, 'rgba(88,101,242,.15)');
             return mentionBadge('#7289da', c === null ? '#unknown-channel' : '#...', 'rgba(88,101,242,.15)');
-        });
+        })
+        .replace(/@everyone\b/g, () => mentionBadge('#7289da', '@everyone', 'rgba(88,101,242,.15)'))
+        .replace(/@here\b/g,     () => mentionBadge('#7289da', '@here',     'rgba(88,101,242,.15)'));
 }
 
 // ── Card sync ────────────────────────────────────────────────────────────────

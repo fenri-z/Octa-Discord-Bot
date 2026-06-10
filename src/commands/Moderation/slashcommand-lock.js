@@ -80,24 +80,23 @@ module.exports = new ApplicationCommand({
     },
 
     run: async (client, interaction) => {
-        const s          = getStrings(getLang(client.database, interaction.guild?.id)).lock;
+        const strings    = getStrings(getLang(client.database, interaction.guild?.id));
+        const s          = strings.lock;
+        const c          = strings.common;
         const sub        = interaction.options.getSubcommand();
         const target     = interaction.options.getChannel('channel') ?? interaction.channel;
-        const alasan     = interaction.options.getString('reason') || 'No reason provided';
+        const alasan     = interaction.options.getString('reason') || c.no_reason;
         const strict     = interaction.options.getBoolean('strict') ?? false;
         const roleBypass = interaction.options.getRole('role_bypass');
         const guild      = interaction.guild;
 
         if (target.type !== 0 && target.type !== 5) {
-            return interaction.reply({ content: '❌ Can only lock text channels.', flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: s.text_only, flags: MessageFlags.Ephemeral });
         }
 
         const botPerms = target.permissionsFor(guild.members.me);
         if (!botPerms.has(PermissionFlagsBits.ManageChannels)) {
-            return interaction.reply({
-                content: `❌ Bot does not have **Manage Channels** permission in ${target}.`,
-                flags: MessageFlags.Ephemeral,
-            });
+            return interaction.reply({ content: s.no_bot_perm(target), flags: MessageFlags.Ephemeral });
         }
 
         const everyoneRole = guild.roles.everyone;
@@ -111,9 +110,9 @@ module.exports = new ApplicationCommand({
             return interaction.reply({
                 embeds: [new EmbedBuilder()
                     .setColor(denied ? '#ED4245' : '#57F287')
-                    .setTitle(denied ? '🔒 Channel Locked' : '🔓 Channel Unlocked')
-                    .setDescription(`${target} is currently **${denied ? 'locked' : 'unlocked'}**.`)
-                    .addFields({ name: 'Mode', value: denied ? (isStrict ? '🔴 Strict' : '🟡 Normal') : '—', inline: true })
+                    .setTitle(denied ? s.status_locked_title : s.status_unlocked_title)
+                    .setDescription(denied ? s.status_locked_desc(target) : s.status_unlocked_desc(target))
+                    .addFields({ name: s.mode_field, value: denied ? (isStrict ? '🔴 Strict' : '🟡 Normal') : s.mode_none, inline: true })
                     .setTimestamp()],
                 flags: MessageFlags.Ephemeral,
             });
@@ -154,18 +153,16 @@ module.exports = new ApplicationCommand({
                 await target.permissionOverwrites.edit(everyoneRole, { SendMessages: false });
             }
 
-            const modeText = strict
-                ? `🔴 **Strict** — all roles blocked${roleBypass ? `, except @${roleBypass.name}` : ''}`
-                : '🟡 **Normal** — roles with explicit permissions can still send messages';
+            const modeText = strict ? s.mode_strict(roleBypass?.name) : s.mode_normal;
 
             const embed = new EmbedBuilder()
                 .setColor('#ED4245')
-                .setTitle('🔒 Channel Locked')
+                .setTitle(s.log_locked_title)
                 .addFields(
-                    { name: '📌 Channel',    value: `${target}`,           inline: true },
-                    { name: '🛡️ Moderator', value: `${interaction.user}`, inline: true },
-                    { name: '⚙️ Mode',       value: modeText },
-                    { name: '📝 Reason',     value: alasan },
+                    { name: c.field_channel,   value: `${target}`,           inline: true },
+                    { name: c.field_moderator, value: `${interaction.user}`, inline: true },
+                    { name: s.field_mode,      value: modeText },
+                    { name: s.reason,          value: alasan },
                 )
                 .setTimestamp();
 
@@ -200,11 +197,11 @@ module.exports = new ApplicationCommand({
 
             const embed = new EmbedBuilder()
                 .setColor('#57F287')
-                .setTitle('🔓 Channel Unlocked')
+                .setTitle(s.log_unlocked_title)
                 .addFields(
-                    { name: '📌 Channel',    value: `${target}`,           inline: true },
-                    { name: '🛡️ Moderator', value: `${interaction.user}`, inline: true },
-                    { name: '📝 Reason',     value: alasan },
+                    { name: c.field_channel,   value: `${target}`,           inline: true },
+                    { name: c.field_moderator, value: `${interaction.user}`, inline: true },
+                    { name: s.reason,          value: alasan },
                 )
                 .setTimestamp();
 

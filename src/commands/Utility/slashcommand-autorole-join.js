@@ -137,7 +137,9 @@ module.exports = new ApplicationCommand({
      * @param {ChatInputCommandInteraction} interaction
      */
     run: async (client, interaction) => {
-        const s        = getStrings(getLang(client.database, interaction.guild?.id)).autorole;
+        const strings  = getStrings(getLang(client.database, interaction.guild?.id));
+        const s        = strings.autorole;
+        const c        = strings.common;
         const { guild, options } = interaction;
         const sub      = options.getSubcommand();
         const cfg      = getConfig(client, guild.id);
@@ -157,16 +159,16 @@ module.exports = new ApplicationCommand({
                     {
                         name: s.field_member,
                         value: [
-                            `${s.field_status} ${cfg.memberEnabled ? '✅ Enabled' : '❌ Disabled'}`,
-                            `${s.field_role} ${memberRole ? `${memberRole}` : '`Not set`'}`
+                            `${s.field_status} ${cfg.memberEnabled ? c.enabled : c.disabled}`,
+                            `${s.field_role} ${memberRole ? `${memberRole}` : c.not_set}`
                         ].join('\n'),
                         inline: true
                     },
                     {
                         name: s.field_bot,
                         value: [
-                            `${s.field_status} ${cfg.botEnabled ? '✅ Enabled' : '❌ Disabled'}`,
-                            `${s.field_role} ${botRole ? `${botRole}` : '`Not set`'}`
+                            `${s.field_status} ${cfg.botEnabled ? c.enabled : c.disabled}`,
+                            `${s.field_role} ${botRole ? `${botRole}` : c.not_set}`
                         ].join('\n'),
                         inline: true
                     }

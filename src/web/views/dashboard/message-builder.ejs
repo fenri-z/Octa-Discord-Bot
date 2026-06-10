@@ -168,7 +168,13 @@
                 <!-- ── Panel Teks Biasa ── -->
                 <div id="mbPlainPanel" style="display:none;">
                     <div class="form-group">
-                        <label class="label"><%= t('message_builder.field_plain_text') %></label>
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.35rem;">
+                            <label class="label" style="margin:0;"><%= t('message_builder.field_plain_text') %></label>
+                            <div class="ph-picker-anchor mention-anchor">
+                                <button type="button" class="ph-toggle-btn" onclick="togglePicker('mbPlainMentionPicker',event)">@ Mention</button>
+                                <div class="ph-dropdown mention-dd" id="mbPlainMentionPicker" style="display:none;"></div>
+                            </div>
+                        </div>
                         <textarea id="editPlainText" class="textarea" rows="5"
                                   placeholder="Write your message here..."
                                   oninput="updatePreview()"></textarea>
@@ -184,7 +190,13 @@
                 </div>
 
                 <div class="form-group">
-                    <label class="label"><%= t('message_builder.field_description') %></label>
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.35rem;">
+                        <label class="label" style="margin:0;"><%= t('message_builder.field_description') %></label>
+                        <div class="ph-picker-anchor mention-anchor">
+                            <button type="button" class="ph-toggle-btn" onclick="togglePicker('mbEmbedMentionPicker',event)">@ Mention</button>
+                            <div class="ph-dropdown mention-dd" id="mbEmbedMentionPicker" style="display:none;"></div>
+                        </div>
+                    </div>
                     <textarea id="editDescription" class="textarea" rows="4" placeholder="Isi konten embed... Mendukung markdown Discord." oninput="updatePreview()"></textarea>
                 </div>
 
@@ -810,7 +822,9 @@ function resolveHtmlMentions(html){
             if(CHANNELS[id]) return mentionBadge('#7289da','#'+CHANNELS[id],'rgba(88,101,242,.15)');
             const c=channelCache[id]; if(c===undefined) resolveChannelId(id);
             return c&&c!=='fetching'?mentionBadge('#7289da','#'+c.name,'rgba(88,101,242,.15)'):mentionBadge('#7289da',c===null?'#unknown-channel':'#...','rgba(88,101,242,.15)');
-        });
+        })
+        .replace(/@everyone\b/g, () => mentionBadge('#7289da','@everyone','rgba(88,101,242,.15)'))
+        .replace(/@here\b/g,     () => mentionBadge('#7289da','@here',    'rgba(88,101,242,.15)'));
 }
 
 // ── Toggle tipe panel ─────────────────────────────────────────────────────
@@ -1104,6 +1118,62 @@ function showMsg(el, text, type) {
     el.className   = `form-message msg-${type}`;
     if (type === 'error') setTimeout(() => { el.textContent = ''; el.className = 'form-message'; }, 3500);
 }
+
+function togglePicker(id, event) {
+    if (event) event.stopPropagation();
+    const el = document.getElementById(id);
+    const wasHidden = el.style.display === 'none';
+    document.querySelectorAll('.ph-dropdown').forEach(d => d.style.display = 'none');
+    document.querySelectorAll('.ph-toggle-btn').forEach(b => b.classList.remove('active'));
+    if (wasHidden) { el.style.display = 'grid'; if (event?.currentTarget) event.currentTarget.classList.add('active'); }
+}
+document.addEventListener('click', () => {
+    document.querySelectorAll('.ph-dropdown').forEach(d => d.style.display = 'none');
+    document.querySelectorAll('.ph-toggle-btn').forEach(b => b.classList.remove('active'));
+});
+function _buildMentionDd(dd, getTarget) {
+    function item(html, mention) {
+        const b = document.createElement('button');
+        b.type = 'button'; b.className = 'ph-item';
+        b.innerHTML = html;
+        b.addEventListener('click', () => {
+            const ta = typeof getTarget === 'function' ? getTarget() : getTarget;
+            if (!ta) return;
+            const s = ta.selectionStart ?? ta.value.length;
+            const ep = ta.selectionEnd ?? ta.value.length;
+            ta.value = ta.value.slice(0, s) + mention + ta.value.slice(ep);
+            ta.selectionStart = ta.selectionEnd = s + mention.length;
+            ta.focus(); ta.dispatchEvent(new Event('input', {bubbles: true}));
+            document.querySelectorAll('.ph-dropdown').forEach(d => d.style.display = 'none');
+            document.querySelectorAll('.ph-toggle-btn').forEach(b => b.classList.remove('active'));
+        });
+        return b;
+    }
+    function hdr(t) { const h = document.createElement('div'); h.className = 'ph-group-label'; h.textContent = t; return h; }
+    const inp = document.createElement('input');
+    inp.type = 'text'; inp.className = 'mention-search-input'; inp.placeholder = 'Search...';
+    inp.addEventListener('click', e => e.stopPropagation());
+    inp.addEventListener('input', () => {
+        const q = inp.value.toLowerCase();
+        dd.querySelectorAll('.ph-item').forEach(el => { el.style.display = el.textContent.toLowerCase().includes(q) ? '' : 'none'; });
+    });
+    dd.appendChild(inp);
+    dd.appendChild(hdr('Special'));
+    dd.appendChild(item('<code>@everyone</code>', '@everyone'));
+    dd.appendChild(item('<code>@here</code>', '@here'));
+    const rKeys = Object.keys(ROLES);
+    if (rKeys.length) {
+        dd.appendChild(hdr('Roles'));
+        rKeys.forEach(id => { const r = ROLES[id]; dd.appendChild(item(`<span style="color:${r.color}">@${r.name}</span>`, `<@&${id}>`)); });
+    }
+    const cKeys = Object.keys(CHANNELS);
+    if (cKeys.length) {
+        dd.appendChild(hdr('Channels'));
+        cKeys.forEach(id => { const name = CHANNELS[id]; dd.appendChild(item(`<span>#${name}</span>`, `<#${id}>`)); });
+    }
+}
+_buildMentionDd(document.getElementById('mbPlainMentionPicker'), () => document.getElementById('editPlainText'));
+_buildMentionDd(document.getElementById('mbEmbedMentionPicker'), () => document.getElementById('editDescription'));
 </script>
 
 <%- include('../partials/footer') %>

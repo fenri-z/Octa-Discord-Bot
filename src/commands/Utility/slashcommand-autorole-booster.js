@@ -69,7 +69,9 @@ required: true
      * @param {ChatInputCommandInteraction} interaction
      */
     run: async (client, interaction) => {
-        const s       = getStrings(getLang(client.database, interaction.guild?.id)).booster;
+        const strings = getStrings(getLang(client.database, interaction.guild?.id));
+        const s       = strings.booster;
+        const c       = strings.common;
         const { guild, options } = interaction;
         const sub     = options.getSubcommand();
         const guildId = guild.id;
@@ -90,9 +92,9 @@ required: true
                 .addFields({
                     name: s.field_autorole,
                     value: [
-                        `**Status:** ${autoroleEnabled ? '✅ Enabled' : '❌ Disabled'}`,
-                        `**Role:** ${arRole ? `${arRole}` : '`Not set`'}`,
-                        `**Remove on unboost:** ${autoremoveEnabled ? '✅ Yes' : '❌ No'}`
+                        `${c.lbl_status} ${autoroleEnabled ? c.enabled : c.disabled}`,
+                        `${c.lbl_role} ${arRole ? `${arRole}` : c.not_set}`,
+                        `${c.lbl_remove} ${autoremoveEnabled ? '✅ ' + c.yes : '❌ ' + c.no}`
                     ].join('\n'),
                     inline: false
                 })

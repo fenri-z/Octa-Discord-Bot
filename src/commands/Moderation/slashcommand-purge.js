@@ -42,16 +42,15 @@ module.exports = new ApplicationCommand({
     },
 
     run: async (client, interaction) => {
-        const s       = getStrings(getLang(client.database, interaction.guild?.id)).purge;
+        const strings = getStrings(getLang(client.database, interaction.guild?.id));
+        const s       = strings.purge;
+        const c       = strings.common;
         const sub     = interaction.options.getSubcommand();
         const channel = interaction.channel;
 
         const botPerms = channel.permissionsFor(interaction.guild.members.me);
         if (!botPerms.has(PermissionFlagsBits.ManageMessages) || !botPerms.has(PermissionFlagsBits.ReadMessageHistory)) {
-            return interaction.reply({
-                content: '❌ Bot does not have **Manage Messages** or **Read Message History** permission in this channel.',
-                flags: MessageFlags.Ephemeral,
-            });
+            return interaction.reply({ content: s.no_perm, flags: MessageFlags.Ephemeral });
         }
 
         await interaction.deferReply({ flags: MessageFlags.Ephemeral });
@@ -87,16 +86,16 @@ module.exports = new ApplicationCommand({
 
             const embed = new EmbedBuilder()
                 .setColor('#57F287')
-                .setTitle('🗑️ Purge Successful')
+                .setTitle(s.log_title)
                 .addFields(
-                    { name: '📦 Deleted',     value: `**${deleted.size}** message(s)`, inline: true },
-                    { name: '📌 Channel',     value: `${channel}`, inline: true },
-                    { name: '🛡️ Moderator',  value: `${interaction.user}`, inline: true },
+                    { name: s.field_deleted,   value: s.deleted_val(deleted.size), inline: true },
+                    { name: c.field_channel,   value: `${channel}`,                inline: true },
+                    { name: c.field_moderator, value: `${interaction.user}`,        inline: true },
                 )
                 .setTimestamp();
 
             if (sub === 'user') {
-                embed.addFields({ name: '👤 Target', value: `${interaction.options.getUser('user')}`, inline: true });
+                embed.addFields({ name: s.field_target, value: `${interaction.options.getUser('user')}`, inline: true });
             }
 
             // Log to mod log channel if configured

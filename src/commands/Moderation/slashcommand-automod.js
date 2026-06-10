@@ -234,7 +234,9 @@ module.exports = new ApplicationCommand({
      * @param {ChatInputCommandInteraction} interaction
      */
     run: async (client, interaction) => {
-        const s        = getStrings(getLang(client.database, interaction.guild?.id)).automod;
+        const strings  = getStrings(getLang(client.database, interaction.guild?.id));
+        const s        = strings.automod;
+        const c        = strings.common;
         const { guild, options } = interaction;
         const subGroup = options.getSubcommandGroup(false);
         const sub      = options.getSubcommand();
@@ -243,54 +245,54 @@ module.exports = new ApplicationCommand({
         // ── /automod config ────────────────────────────────────────────────
         if (!subGroup && sub === 'config') {
             const cfg = getConfig(client, guildId);
-            const auditCh   = cfg.auditLog ? guild.channels.cache.get(cfg.auditLog) : null;
-            const actionMap = { delete: '🗑️ Delete', warn: '⚠️ Warn', mute: '🔇 Mute', kick: '👢 Kick', ban: '🔨 Ban' };
+            const auditCh      = cfg.auditLog ? guild.channels.cache.get(cfg.auditLog) : null;
+            const actionMap    = { delete: s.act_delete, warn: s.act_warn, mute: s.act_mute, kick: s.act_kick, ban: s.act_ban };
             const durationLabel = {
-                60000: '1 minute', 300000: '5 minutes', 600000: '10 minutes',
-                1800000: '30 minutes', 3600000: '1 hour', 86400000: '1 day'
+                60000: s.dur_1m, 300000: s.dur_5m, 600000: s.dur_10m,
+                1800000: s.dur_30m, 3600000: s.dur_1h, 86400000: s.dur_1d
             };
 
             const wordsPreview = cfg.words.length > 0
                 ? cfg.words.slice(0, 15).map(w => `\`${w}\``).join(', ') + (cfg.words.length > 15 ? ` *(+${cfg.words.length - 15} more)*` : '')
-                : '`None`';
+                : c.none;
 
-            const wlCh = cfg.wlChannels.map(id => `<#${id}>`).join(', ')   || '`None`';
-            const wlRl = cfg.wlRoles.map(id => `<@&${id}>`).join(', ')     || '`None`';
+            const wlCh = cfg.wlChannels.map(id => `<#${id}>`).join(', ')   || c.none;
+            const wlRl = cfg.wlRoles.map(id => `<@&${id}>`).join(', ')     || c.none;
 
             const embed = new EmbedBuilder()
                 .setTitle(s.config_title)
                 .setColor('#5865F2')
                 .addFields(
-                    { name: '⚔️ Violation Action', value: actionMap[cfg.action] ?? cfg.action,                                      inline: true },
-                    { name: '🔇 Timeout Duration',  value: durationLabel[cfg.muteDuration] ?? `${cfg.muteDuration / 60000} minutes`, inline: true },
-                    { name: '📋 Log Channel',       value: auditCh ? `${auditCh}` : '`Not set`',                                    inline: true },
-                    { name: '🔗 Anti-Link',         value: cfg.antilink    ? '✅ Enabled' : '❌ Disabled', inline: true },
-                    { name: '📨 Anti-Invite',       value: cfg.antiinvite  ? '✅ Enabled' : '❌ Disabled', inline: true },
-                    { name: '📎 Anti-Attachment',   value: cfg.attachments ? '✅ Enabled' : '❌ Disabled', inline: true },
+                    { name: s.cfg_action,      value: actionMap[cfg.action] ?? cfg.action,                                      inline: true },
+                    { name: s.cfg_duration,    value: durationLabel[cfg.muteDuration] ?? `${cfg.muteDuration / 60000} minutes`, inline: true },
+                    { name: s.cfg_log_channel, value: auditCh ? `${auditCh}` : c.not_set,                                       inline: true },
+                    { name: s.cfg_antilink,    value: cfg.antilink    ? c.enabled : c.disabled, inline: true },
+                    { name: s.cfg_antiinvite,  value: cfg.antiinvite  ? c.enabled : c.disabled, inline: true },
+                    { name: s.cfg_attachment,  value: cfg.attachments ? c.enabled : c.disabled, inline: true },
                     {
-                        name: '🔁 Anti-Spam',
+                        name: s.cfg_antispam,
                         value: cfg.spam.enabled
-                            ? `✅ Enabled — max **${cfg.spam.limit}** messages / **${cfg.spam.interval}** second(s)`
-                            : '❌ Disabled',
+                            ? s.cfg_antispam_on(cfg.spam.limit, cfg.spam.interval)
+                            : c.disabled,
                         inline: false
                     },
                     {
-                        name: '📢 Anti Mass-Mention',
+                        name: s.cfg_massmention,
                         value: cfg.massmention.enabled
-                            ? `✅ Enabled — max **${cfg.massmention.limit}** mentions per message`
-                            : '❌ Disabled',
+                            ? s.cfg_massmention_on(cfg.massmention.limit)
+                            : c.disabled,
                         inline: false
                     },
                     {
-                        name: '🚨 Anti-Raid',
+                        name: s.cfg_antiraid,
                         value: cfg.antiraid.enabled
-                            ? `✅ Enabled — max **${cfg.antiraid.joinLimit}** joins / **${cfg.antiraid.interval}** second(s)`
-                            : '❌ Disabled',
+                            ? s.cfg_antiraid_on(cfg.antiraid.joinLimit, cfg.antiraid.interval)
+                            : c.disabled,
                         inline: false
                     },
-                    { name: '🚫 Banned Words',        value: wordsPreview, inline: false },
-                    { name: '✅ Whitelist Channel',   value: wlCh,         inline: true  },
-                    { name: '✅ Whitelist Role',      value: wlRl,         inline: true  }
+                    { name: s.cfg_words,       value: wordsPreview, inline: false },
+                    { name: s.cfg_wl_channel,  value: wlCh,         inline: true  },
+                    { name: s.cfg_wl_role,     value: wlRl,         inline: true  }
                 )
                 .setFooter({ text: guild.name, iconURL: guild.iconURL({ dynamic: true }) ?? undefined })
                 .setTimestamp();
@@ -372,7 +374,7 @@ module.exports = new ApplicationCommand({
         if (!subGroup && sub === 'action') {
             const type = options.getString('type');
             client.database.set(`automod-action-${guildId}`, type);
-            const actionMap = { delete: '🗑️ Delete', warn: '⚠️ Warn', mute: '🔇 Mute', kick: '👢 Kick', ban: '🔨 Ban' };
+            const actionMap = { delete: s.act_delete, warn: s.act_warn, mute: s.act_mute, kick: s.act_kick, ban: s.act_ban };
             return interaction.reply({
                 embeds: [
                     new EmbedBuilder()
@@ -471,8 +473,8 @@ module.exports = new ApplicationCommand({
             const durasi     = options.getString('duration');
             const durationMs = parseInt(durasi);
             const durationLabel = {
-                60000: '1 minute', 300000: '5 minutes', 600000: '10 minutes',
-                1800000: '30 minutes', 3600000: '1 hour', 86400000: '1 day'
+                60000: s.dur_1m, 300000: s.dur_5m, 600000: s.dur_10m,
+                1800000: s.dur_30m, 3600000: s.dur_1h, 86400000: s.dur_1d
             };
             client.database.set(`automod-mute-duration-${guildId}`, String(durationMs));
             return interaction.reply({

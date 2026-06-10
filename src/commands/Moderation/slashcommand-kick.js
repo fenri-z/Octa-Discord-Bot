@@ -26,10 +26,12 @@ module.exports = new ApplicationCommand({
     },
 
     run: async (client, interaction) => {
-        const s      = getStrings(getLang(client.database, interaction.guild?.id)).kick;
-        const target = interaction.options.getUser('user');
-        const alasan = interaction.options.getString('reason') || 'No reason provided';
-        const guild  = interaction.guild;
+        const strings = getStrings(getLang(client.database, interaction.guild?.id));
+        const s       = strings.kick;
+        const c       = strings.common;
+        const target  = interaction.options.getUser('user');
+        const alasan  = interaction.options.getString('reason') || c.no_reason;
+        const guild   = interaction.guild;
 
         if (target.id === interaction.user.id)
             return interaction.reply({ content: s.cannot_self, flags: MessageFlags.Ephemeral });
@@ -70,8 +72,8 @@ module.exports = new ApplicationCommand({
             .setTitle(s.kicked_title)
             .setThumbnail(target.displayAvatarURL({ size: 64 }))
             .addFields(
-                { name: '👤 Member',     value: `${target} (${target.tag})`, inline: true },
-                { name: '🛡️ Moderator', value: `${interaction.user}`,       inline: true },
+                { name: c.field_member,    value: `${target} (${target.tag})`, inline: true },
+                { name: c.field_moderator, value: `${interaction.user}`,       inline: true },
                 { name: s.field_reason,  value: alasan },
             )
             .setTimestamp();

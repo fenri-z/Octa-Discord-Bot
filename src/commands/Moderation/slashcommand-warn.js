@@ -34,13 +34,13 @@ function pushWarnLog(client, guildId, entry) {
     client.database.set(`warn-log-${guildId}`, JSON.stringify(log));
 }
 
-function formatDuration(ms) {
-    if (ms >= 3_600_000) return `${ms / 3_600_000} hour(s)`;
-    if (ms >= 60_000)    return `${ms / 60_000} minute(s)`;
-    return `${ms / 1_000} second(s)`;
+function formatDuration(ms, s) {
+    if (ms >= 3_600_000) return s.dur_hour(ms / 3_600_000);
+    if (ms >= 60_000)    return s.dur_minute(ms / 60_000);
+    return s.dur_second(ms / 1_000);
 }
 
-async function applyThresholdAction(guild, member, warnCount, config) {
+async function applyThresholdAction(guild, member, warnCount, config, s) {
     const matched = config.thresholds.find(t => t.count === warnCount);
     if (!matched || matched.action === 'none') return null;
 
@@ -54,38 +54,35 @@ async function applyThresholdAction(guild, member, warnCount, config) {
             await member.user.send({
                 embeds: [new EmbedBuilder()
                     .setColor('#ED4245')
-                    .setTitle('🔇 You have been Timed Out')
-                    .setDescription(
-                        `You were timed out in **${guild.name}** for **${formatDuration(dur)}**\n` +
-                        `for reaching **${warnCount} warnings**.`
-                    )
+                    .setTitle(s.thresh_to_title)
+                    .setDescription(s.thresh_to_desc(guild.name, formatDuration(dur, s), warnCount))
                     .setTimestamp()]
             }).catch(() => null);
-            return `🔇 Timeout ${formatDuration(dur)}`;
+            return s.thresh_to_act(formatDuration(dur, s));
         }
         case 'kick': {
             if (!botMember?.permissions.has(PermissionFlagsBits.KickMembers)) return null;
             await member.user.send({
                 embeds: [new EmbedBuilder()
                     .setColor('#ED4245')
-                    .setTitle('👢 You have been Kicked')
-                    .setDescription(`You were kicked from **${guild.name}** for reaching **${warnCount} warnings**.`)
+                    .setTitle(s.thresh_kk_title)
+                    .setDescription(s.thresh_kk_desc(guild.name, warnCount))
                     .setTimestamp()]
             }).catch(() => null);
             await member.kick(`Warn threshold: ${warnCount} warnings`).catch(() => null);
-            return '👢 Kick';
+            return s.thresh_kk_act;
         }
         case 'ban': {
             if (!botMember?.permissions.has(PermissionFlagsBits.BanMembers)) return null;
             await member.user.send({
                 embeds: [new EmbedBuilder()
                     .setColor('#ED4245')
-                    .setTitle('🔨 You have been Banned')
-                    .setDescription(`You were banned from **${guild.name}** for reaching **${warnCount} warnings**.`)
+                    .setTitle(s.thresh_bn_title)
+                    .setDescription(s.thresh_bn_desc(guild.name, warnCount))
                     .setTimestamp()]
             }).catch(() => null);
             await member.ban({ reason: `Warn threshold: ${warnCount} warnings` }).catch(() => null);
-            return '🔨 Ban';
+            return s.thresh_bn_act;
         }
     }
     return null;
@@ -136,17 +133,19 @@ module.exports = new ApplicationCommand({
     },
 
     run: async (client, interaction) => {
-        const s       = getStrings(getLang(client.database, interaction.guild?.id)).warn;
+        const strings = getStrings(getLang(client.database, interaction.guild?.id));
+        const s       = strings.warn;
+        const c       = strings.common;
         const sub     = interaction.options.getSubcommand();
         const guildId = interaction.guild.id;
 
         // ── /warn add ──────────────────────────────────────────────────────────
         if (sub === 'add') {
             const target = interaction.options.getMember('member');
-            const alasan = interaction.options.getString('reason') || 'No reason provided';
+            const alasan = interaction.options.getString('reason') || c.no_reason;
 
             if (!target)
-                return interaction.reply({ content: '❌ Member not found.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: s.member_nf, flags: MessageFlags.Ephemeral });
             if (target.id === interaction.user.id)
                 return interaction.reply({ content: s.cannot_self, flags: MessageFlags.Ephemeral });
             if (target.permissions.has(PermissionFlagsBits.Administrator))
@@ -182,21 +181,21 @@ module.exports = new ApplicationCommand({
 
             // Check automatic threshold
             const config     = getWarnConfig(client, guildId);
-            const actionDone = await applyThresholdAction(interaction.guild, target, warns.length, config);
+            const actionDone = await applyThresholdAction(interaction.guild, target, warns.length, config, s);
 
             const embed = new EmbedBuilder()
                 .setColor('#FEE75C')
-                .setTitle('⚠️ Warning Issued')
+                .setTitle(s.issued_title)
                 .addFields(
-                    { name: '👤 Member',        value: `${target} (${target.user.tag})`, inline: true },
-                    { name: '🛡️ Moderator',    value: `${interaction.user}`,            inline: true },
-                    { name: '📊 Total',          value: `${warns.length} warning(s)`,     inline: true },
-                    { name: s.field_reason,      value: alasan },
-                    { name: s.field_warn_id,     value: `\`${warnId}\`` },
+                    { name: c.field_member,   value: `${target} (${target.user.tag})`, inline: true },
+                    { name: c.field_moderator,value: `${interaction.user}`,            inline: true },
+                    { name: s.field_total,    value: s.total_val(warns.length),        inline: true },
+                    { name: s.field_reason,   value: alasan },
+                    { name: s.field_warn_id,  value: `\`${warnId}\`` },
                 )
                 .setTimestamp();
 
-            if (actionDone) embed.addFields({ name: '⚡ Automatic Action', value: actionDone });
+            if (actionDone) embed.addFields({ name: s.auto_action, value: actionDone });
 
             // Kirim ke mod log channel jika dikonfigurasi
             const logChId = client.database.get(`modlog-channel-${guildId}`);
@@ -214,7 +213,7 @@ module.exports = new ApplicationCommand({
             const warnId = interaction.options.getString('id').toUpperCase();
 
             if (!target)
-                return interaction.reply({ content: '❌ Member not found.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: s.member_nf, flags: MessageFlags.Ephemeral });
 
             const warns = getWarns(client, guildId, target.id);
             const idx   = warns.findIndex(w => w.id === warnId);
@@ -227,7 +226,7 @@ module.exports = new ApplicationCommand({
             return interaction.reply({
                 embeds: [new EmbedBuilder()
                     .setColor('#57F287')
-                    .setTitle('✅ Warning Removed')
+                    .setTitle(s.removed_title)
                     .setDescription(s.warn_removed(warnId, target.user.tag))
                     .setTimestamp()]
             });
@@ -237,7 +236,7 @@ module.exports = new ApplicationCommand({
         if (sub === 'clear') {
             const target = interaction.options.getMember('member');
             if (!target)
-                return interaction.reply({ content: '❌ Member not found.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: s.member_nf, flags: MessageFlags.Ephemeral });
 
             const warns = getWarns(client, guildId, target.id);
             if (warns.length === 0)
@@ -248,7 +247,7 @@ module.exports = new ApplicationCommand({
             return interaction.reply({
                 embeds: [new EmbedBuilder()
                     .setColor('#57F287')
-                    .setTitle('✅ All Warnings Cleared')
+                    .setTitle(s.cleared_title)
                     .setDescription(s.warns_cleared(target.user.tag))
                     .setTimestamp()]
             });
@@ -258,7 +257,7 @@ module.exports = new ApplicationCommand({
         if (sub === 'list') {
             const target = interaction.options.getMember('member');
             if (!target)
-                return interaction.reply({ content: '❌ Member not found.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: s.member_nf, flags: MessageFlags.Ephemeral });
 
             const warns = getWarns(client, guildId, target.id);
 
@@ -266,7 +265,7 @@ module.exports = new ApplicationCommand({
                 return interaction.reply({
                     embeds: [new EmbedBuilder()
                         .setColor('#57F287')
-                        .setTitle('📋 Warning List')
+                        .setTitle(s.list_header)
                         .setDescription(s.no_warnings(target.user.tag))
                         .setTimestamp()],
                     flags: MessageFlags.Ephemeral,
@@ -285,7 +284,7 @@ module.exports = new ApplicationCommand({
                     .setColor('#FEE75C')
                     .setTitle(s.list_title(target.user.tag))
                     .setDescription(list)
-                    .setFooter({ text: `Total: ${warns.length} warning(s)${warns.length > 10 ? ' (10 most recent)' : ''}` })
+                    .setFooter({ text: s.footer_total(warns.length, warns.length > 10 ? s.footer_recent : '') })
                     .setTimestamp()],
                 flags: MessageFlags.Ephemeral,
             });

@@ -107,7 +107,13 @@
                        oninput="updateTicketPreview()">
             </div>
             <div class="form-group">
-                <label class="label"><%= t('ticket.description_label') %></label>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.35rem;">
+                    <label class="label" style="margin:0;"><%= t('ticket.description_label') %></label>
+                    <div class="ph-picker-anchor mention-anchor">
+                        <button type="button" class="ph-toggle-btn" onclick="togglePicker('ticketDescMentionPicker',event)">@ Mention</button>
+                        <div class="ph-dropdown mention-dd" id="ticketDescMentionPicker" style="display:none;"></div>
+                    </div>
+                </div>
                 <textarea id="panelDesc" class="textarea" rows="4" maxlength="4000"
                           placeholder="<%= t('ticket.embed_desc_default') %>"
                           oninput="updateTicketPreview()"><%= ticketData.embedDesc %></textarea>
@@ -298,6 +304,7 @@ const I18N_TK_DESC_DEF      = '<%= t("ticket.embed_desc_default") %>';
 const I18N_TK_BTN_DEF       = '<%= t("ticket.btn_label_default") %>';
 const I18N_TK_REMOVE_TITLE  = '<%= t("ticket.role_remove_title") %>';
 const ROLES_MAP = <%- JSON.stringify(Object.fromEntries(roles.map(r => [r.id, { name: r.name, color: r.color }]))) %>;
+const CHANNELS  = <%- JSON.stringify(Object.fromEntries(channels.map(c => [c.id, c.name]))) %>;
 let _staffRoles = <%- JSON.stringify(validStaffRoles) %>;
 
 // ── Color sync ────────────────────────────────────────────────────────────────
@@ -309,6 +316,30 @@ function syncPicker(hexId, pickId) {
     document.getElementById(hexId).value = document.getElementById(pickId).value;
 }
 
+// ── Mention preview helpers ───────────────────────────────────────────────────
+function _tkEsc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function _tkBadge(color, text, bg) { return `<span style="color:${color};background:${bg||'rgba(88,101,242,.15)'};border-radius:3px;padding:0 3px;font-weight:600;">${text}</span>`; }
+function _tkMdToHtml(text) {
+    if (!text) return '';
+    const lines = text.split('\n');
+    return lines.map(l => _tkEsc(l)
+        .replace(/\*\*\*(.+?)\*\*\*/g,'<strong><em>$1</em></strong>')
+        .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+        .replace(/\*(.+?)\*/g,'<em>$1</em>')
+        .replace(/__(.+?)__/g,'<u>$1</u>')
+        .replace(/~~(.+?)~~/g,'<s>$1</s>')
+    ).join('<br>');
+}
+function _tkResolveMentions(html) {
+    if (!html) return '';
+    return html
+        .replace(/&lt;@&amp;(\d+)&gt;/g, (_, id) => { const r=ROLES_MAP[id]; return r ? _tkBadge(r.color,'@'+r.name) : _tkBadge('#99aab5','@unknown-role'); })
+        .replace(/&lt;@!?(\d+)&gt;/g,    ()       => _tkBadge('#7289da','@User'))
+        .replace(/&lt;#(\d+)&gt;/g,      (_, id)  => { const n=CHANNELS[id]; return n ? _tkBadge('#7289da','#'+n) : _tkBadge('#7289da','#unknown'); })
+        .replace(/@everyone\b/g, () => _tkBadge('#7289da','@everyone'))
+        .replace(/@here\b/g,     () => _tkBadge('#7289da','@here'));
+}
+
 // ── Preview ───────────────────────────────────────────────────────────────────
 function updateTicketPreview() {
     const title = document.getElementById('panelTitle').value;
@@ -317,7 +348,7 @@ function updateTicketPreview() {
     const btn   = document.getElementById('panelBtnLabel').value || I18N_TK_BTN_DEF;
 
     document.getElementById('tkPreviewTitle').textContent = title || I18N_TK_TITLE_DEF;
-    document.getElementById('tkPreviewDesc').textContent  = desc  || I18N_TK_DESC_DEF;
+    document.getElementById('tkPreviewDesc').innerHTML    = desc ? _tkResolveMentions(_tkMdToHtml(desc)) : _tkEsc(I18N_TK_DESC_DEF);
     document.getElementById('tkPreviewPill').style.background = color;
     document.getElementById('tkPreviewBtn').textContent   = btn;
 }
@@ -435,6 +466,61 @@ window._floatSave = async function () {
     showMsg(msg, ok ? d1.message : (d1.success ? d2.message : d1.message), ok ? 'success' : 'error');
     if (!ok) throw new Error();
 };
+
+function togglePicker(id, event) {
+    if (event) event.stopPropagation();
+    const el = document.getElementById(id);
+    const wasHidden = el.style.display === 'none';
+    document.querySelectorAll('.ph-dropdown').forEach(d => d.style.display = 'none');
+    document.querySelectorAll('.ph-toggle-btn').forEach(b => b.classList.remove('active'));
+    if (wasHidden) { el.style.display = 'grid'; if (event?.currentTarget) event.currentTarget.classList.add('active'); }
+}
+document.addEventListener('click', () => {
+    document.querySelectorAll('.ph-dropdown').forEach(d => d.style.display = 'none');
+    document.querySelectorAll('.ph-toggle-btn').forEach(b => b.classList.remove('active'));
+});
+function _buildMentionDd(dd, getTarget) {
+    function item(html, mention) {
+        const b = document.createElement('button');
+        b.type = 'button'; b.className = 'ph-item';
+        b.innerHTML = html;
+        b.addEventListener('click', () => {
+            const ta = typeof getTarget === 'function' ? getTarget() : getTarget;
+            if (!ta) return;
+            const s = ta.selectionStart ?? ta.value.length;
+            const ep = ta.selectionEnd ?? ta.value.length;
+            ta.value = ta.value.slice(0, s) + mention + ta.value.slice(ep);
+            ta.selectionStart = ta.selectionEnd = s + mention.length;
+            ta.focus(); ta.dispatchEvent(new Event('input', {bubbles: true}));
+            document.querySelectorAll('.ph-dropdown').forEach(d => d.style.display = 'none');
+            document.querySelectorAll('.ph-toggle-btn').forEach(b => b.classList.remove('active'));
+        });
+        return b;
+    }
+    function hdr(t) { const h = document.createElement('div'); h.className = 'ph-group-label'; h.textContent = t; return h; }
+    const inp = document.createElement('input');
+    inp.type = 'text'; inp.className = 'mention-search-input'; inp.placeholder = 'Search...';
+    inp.addEventListener('click', e => e.stopPropagation());
+    inp.addEventListener('input', () => {
+        const q = inp.value.toLowerCase();
+        dd.querySelectorAll('.ph-item').forEach(el => { el.style.display = el.textContent.toLowerCase().includes(q) ? '' : 'none'; });
+    });
+    dd.appendChild(inp);
+    dd.appendChild(hdr('Special'));
+    dd.appendChild(item('<code>@everyone</code>', '@everyone'));
+    dd.appendChild(item('<code>@here</code>', '@here'));
+    const rKeys = Object.keys(ROLES_MAP);
+    if (rKeys.length) {
+        dd.appendChild(hdr('Roles'));
+        rKeys.forEach(id => { const r = ROLES_MAP[id]; dd.appendChild(item(`<span style="color:${r.color}">@${r.name}</span>`, `<@&${id}>`)); });
+    }
+    const cKeys = Object.keys(CHANNELS);
+    if (cKeys.length) {
+        dd.appendChild(hdr('Channels'));
+        cKeys.forEach(id => { const name = CHANNELS[id]; dd.appendChild(item(`<span>#${name}</span>`, `<#${id}>`)); });
+    }
+}
+_buildMentionDd(document.getElementById('ticketDescMentionPicker'), () => document.getElementById('panelDesc'));
 </script>
 
 <%- include('../partials/footer') %>

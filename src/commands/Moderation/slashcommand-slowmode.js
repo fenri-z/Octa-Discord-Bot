@@ -20,11 +20,11 @@ function parseDuration(str) {
     return n * map[unit];
 }
 
-function formatSlowmode(seconds) {
-    if (seconds === 0)    return 'Disabled';
-    if (seconds < 60)     return `${seconds} second(s)`;
-    if (seconds < 3600)   return `${seconds / 60} minute(s)`;
-    return `${seconds / 3600} hour(s)`;
+function formatSlowmode(seconds, s) {
+    if (seconds === 0)    return s.fmt_disabled;
+    if (seconds < 60)     return s.fmt_second(seconds);
+    if (seconds < 3600)   return s.fmt_minute(seconds / 60);
+    return s.fmt_hour(seconds / 3600);
 }
 
 async function sendModLog(client, guild, embed) {
@@ -70,17 +70,19 @@ module.exports = new ApplicationCommand({
     },
 
     run: async (client, interaction) => {
-        const s      = getStrings(getLang(client.database, interaction.guild?.id)).slowmode;
-        const sub    = interaction.options.getSubcommand();
-        const target = interaction.options.getChannel('channel') ?? interaction.channel;
-        const guild  = interaction.guild;
+        const strings = getStrings(getLang(client.database, interaction.guild?.id));
+        const s       = strings.slowmode;
+        const c       = strings.common;
+        const sub     = interaction.options.getSubcommand();
+        const target  = interaction.options.getChannel('channel') ?? interaction.channel;
+        const guild   = interaction.guild;
 
         if (target.type !== 0 && target.type !== 5)
-            return interaction.reply({ content: '❌ Slowmode can only be set in text channels.', flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: s.text_only, flags: MessageFlags.Ephemeral });
 
         const botPerms = target.permissionsFor(guild.members.me);
         if (!botPerms.has(PermissionFlagsBits.ManageChannels))
-            return interaction.reply({ content: `❌ Bot does not have **Manage Channels** permission in ${target}.`, flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: s.no_bot_perm(target), flags: MessageFlags.Ephemeral });
 
         // ── Status ───────────────────────────────────────────────────────────────
         if (sub === 'status') {
@@ -88,10 +90,10 @@ module.exports = new ApplicationCommand({
             return interaction.reply({
                 embeds: [new EmbedBuilder()
                     .setColor(current > 0 ? '#FEE75C' : '#57F287')
-                    .setTitle('⏱️ Slowmode Status')
+                    .setTitle(s.status_title)
                     .addFields(
-                        { name: '📌 Channel',  value: `${target}`,                    inline: true },
-                        { name: '⏱️ Cooldown', value: formatSlowmode(current),        inline: true },
+                        { name: c.field_channel,  value: `${target}`,                    inline: true },
+                        { name: s.field_cooldown, value: formatSlowmode(current, s),     inline: true },
                     )
                     .setTimestamp()],
                 flags: MessageFlags.Ephemeral,
@@ -101,16 +103,16 @@ module.exports = new ApplicationCommand({
         // ── Off ──────────────────────────────────────────────────────────────────
         if (sub === 'off') {
             if ((target.rateLimitPerUser ?? 0) === 0)
-                return interaction.reply({ content: `❌ ${target} does not currently have slowmode enabled.`, flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: s.no_active(target), flags: MessageFlags.Ephemeral });
 
             await target.setRateLimitPerUser(0, `Slowmode disabled by ${interaction.user.tag}`);
 
             const embed = new EmbedBuilder()
                 .setColor('#57F287')
-                .setTitle('⏱️ Slowmode Disabled')
+                .setTitle(s.disabled_title)
                 .addFields(
-                    { name: '📌 Channel',    value: `${target}`,           inline: true },
-                    { name: '🛡️ Moderator', value: `${interaction.user}`, inline: true },
+                    { name: c.field_channel,   value: `${target}`,           inline: true },
+                    { name: c.field_moderator, value: `${interaction.user}`, inline: true },
                 )
                 .setTimestamp();
 
@@ -128,10 +130,7 @@ module.exports = new ApplicationCommand({
             const seconds = parseDuration(durStr);
 
             if (seconds === null || seconds < 1)
-                return interaction.reply({
-                    content: '❌ Invalid duration format. Examples: `10s`, `1m`, `2h`.',
-                    flags: MessageFlags.Ephemeral,
-                });
+                return interaction.reply({ content: s.invalid_format, flags: MessageFlags.Ephemeral });
 
             if (seconds > MAX_SLOWMODE)
                 return interaction.reply({ content: s.invalid(MAX_SLOWMODE), flags: MessageFlags.Ephemeral });
@@ -140,18 +139,18 @@ module.exports = new ApplicationCommand({
 
             const embed = new EmbedBuilder()
                 .setColor('#FEE75C')
-                .setTitle('⏱️ Slowmode Enabled')
+                .setTitle(s.enabled_title)
                 .addFields(
-                    { name: '📌 Channel',    value: `${target}`,              inline: true },
-                    { name: '⏱️ Cooldown',  value: formatSlowmode(seconds),  inline: true },
-                    { name: '🛡️ Moderator', value: `${interaction.user}`,    inline: true },
+                    { name: c.field_channel,   value: `${target}`,                 inline: true },
+                    { name: s.field_cooldown,  value: formatSlowmode(seconds, s),  inline: true },
+                    { name: c.field_moderator, value: `${interaction.user}`,        inline: true },
                 )
                 .setTimestamp();
 
             await sendModLog(client, guild, embed);
 
             return interaction.reply({
-                embeds: [new EmbedBuilder().setColor('#FEE75C').setDescription(s.set(formatSlowmode(seconds), target))],
+                embeds: [new EmbedBuilder().setColor('#FEE75C').setDescription(s.set(formatSlowmode(seconds, s), target))],
                 flags: MessageFlags.Ephemeral,
             });
         }

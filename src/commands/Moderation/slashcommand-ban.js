@@ -43,9 +43,11 @@ module.exports = new ApplicationCommand({
     },
 
     run: async (client, interaction) => {
-        const s     = getStrings(getLang(client.database, interaction.guild?.id)).ban;
-        const sub   = interaction.options.getSubcommand();
-        const guild = interaction.guild;
+        const strings = getStrings(getLang(client.database, interaction.guild?.id));
+        const s       = strings.ban;
+        const c       = strings.common;
+        const sub     = interaction.options.getSubcommand();
+        const guild   = interaction.guild;
 
         if (!guild.members.me?.permissions.has(PermissionFlagsBits.BanMembers))
             return interaction.reply({ content: s.no_permission, flags: MessageFlags.Ephemeral });
@@ -53,7 +55,7 @@ module.exports = new ApplicationCommand({
         // ── Ban ─────────────────────────────────────────────────────────────────
         if (sub === 'member') {
             const target    = interaction.options.getUser('user');
-            const alasan    = interaction.options.getString('reason') || 'No reason provided';
+            const alasan    = interaction.options.getString('reason') || c.no_reason;
             const hapusPesan = interaction.options.getInteger('delete_messages') ?? 0;
 
             const member = guild.members.cache.get(target.id);
@@ -97,9 +99,9 @@ module.exports = new ApplicationCommand({
                 .setTitle(s.banned_title)
                 .setThumbnail(target.displayAvatarURL({ size: 64 }))
                 .addFields(
-                    { name: '👤 Member',           value: `${target} (${target.tag})`, inline: true },
-                    { name: '🛡️ Moderator',       value: `${interaction.user}`,       inline: true },
-                    { name: s.field_delete_msg,    value: hapusPesan ? `${hapusPesan} day(s)` : 'No', inline: true },
+                    { name: c.field_member,          value: `${target} (${target.tag})`,                inline: true },
+                    { name: c.field_moderator,     value: `${interaction.user}`,                      inline: true },
+                    { name: s.field_delete_msg,    value: hapusPesan ? s.del_days(hapusPesan) : s.del_none, inline: true },
                     { name: s.field_reason,        value: alasan },
                 )
                 .setTimestamp();
@@ -117,7 +119,7 @@ module.exports = new ApplicationCommand({
         // ── Unban ───────────────────────────────────────────────────────────────
         if (sub === 'unban') {
             const target = interaction.options.getUser('user');
-            const alasan = interaction.options.getString('reason') || 'No reason provided';
+            const alasan = interaction.options.getString('reason') || c.no_reason;
 
             try {
                 await guild.bans.fetch(target.id);
@@ -136,8 +138,8 @@ module.exports = new ApplicationCommand({
                 .setTitle(s.unbanned_title)
                 .setThumbnail(target.displayAvatarURL({ size: 64 }))
                 .addFields(
-                    { name: '👤 Member',     value: `${target.tag} (${target.id})`, inline: true },
-                    { name: '🛡️ Moderator', value: `${interaction.user}`,          inline: true },
+                    { name: c.field_member,    value: `${target.tag} (${target.id})`, inline: true },
+                    { name: c.field_moderator, value: `${interaction.user}`,          inline: true },
                     { name: s.field_reason,  value: alasan },
                 )
                 .setTimestamp();

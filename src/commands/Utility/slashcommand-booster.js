@@ -148,7 +148,9 @@ required: true
      * @param {ChatInputCommandInteraction} interaction
      */
     run: async (client, interaction) => {
-        const s        = getStrings(getLang(client.database, interaction.guild?.id)).booster;
+        const strings  = getStrings(getLang(client.database, interaction.guild?.id));
+        const s        = strings.booster;
+        const c        = strings.common;
         const { guild, options } = interaction;
         const subGroup = options.getSubcommandGroup(false);
         const sub      = options.getSubcommand();
@@ -172,23 +174,23 @@ required: true
                     {
                         name: s.field_boost_notif,
                         value: [
-                            `**Status:** ${cfg.boostEnabled ? '✅ Enabled' : '❌ Disabled'}`,
-                            `**Channel:** ${boostCh ? `<#${boostCh.id}>` : '`Not set`'}`,
-                            `**Type:** ${cfg.boostMessageType === 'plain' ? '📝 Plain Text' : '🖼️ Embed'}`,
+                            `${c.lbl_status} ${cfg.boostEnabled ? c.enabled : c.disabled}`,
+                            `${c.lbl_channel} ${boostCh ? `<#${boostCh.id}>` : c.not_set}`,
+                            `${c.lbl_type} ${cfg.boostMessageType === 'plain' ? c.type_plain : c.type_embed}`,
                             cfg.boostMessageType === 'plain'
-                                ? `**Message:** \`${(cfg.boostPlainText || '-').slice(0, 60)}${cfg.boostPlainText?.length > 60 ? '…' : ''}\``
-                                : `**Title:** \`${cfg.boostTitle}\``,
-                            `**Color:** \`${cfg.boostColor}\``,
+                                ? `${c.lbl_message} \`${(cfg.boostPlainText || '-').slice(0, 60)}${cfg.boostPlainText?.length > 60 ? '…' : ''}\``
+                                : `${c.lbl_title} \`${cfg.boostTitle}\``,
+                            `${c.lbl_color} \`${cfg.boostColor}\``,
                         ].join('\n'),
                         inline: false
                     },
                     {
                         name: s.field_boost_info,
                         value: [
-                            `👤 Member: ${cfg.boostShowMember ? '✅' : '❌'}`,
-                            `🚀 Boost Start: ${cfg.boostShowMulaiBoost ? '✅' : '❌'}`,
-                            `✨ Total Boosts: ${cfg.boostShowTotalBoost ? '✅' : '❌'}`,
-                            `🏅 Server Level: ${cfg.boostShowLevelServer ? '✅' : '❌'}`,
+                            `${s.info_member}: ${cfg.boostShowMember ? '✅' : '❌'}`,
+                            `${s.info_boost_start}: ${cfg.boostShowMulaiBoost ? '✅' : '❌'}`,
+                            `${s.info_total_boost}: ${cfg.boostShowTotalBoost ? '✅' : '❌'}`,
+                            `${s.info_server_lvl}: ${cfg.boostShowLevelServer ? '✅' : '❌'}`,
                         ].join('\n'),
                         inline: true
                     }
@@ -220,7 +222,7 @@ required: true
                 .setTitle(s.list_title(guild.name))
                 .setColor('#FF73FA')
                 .setDescription(lines.slice(0, 20).join('\n'))
-                .addFields({ name: '​', value: `Total: **${boosters.size}** booster(s) · Level ${guild.premiumTier}`, inline: false })
+                .addFields({ name: '​', value: s.total_boosters(boosters.size, guild.premiumTier), inline: false })
                 .setThumbnail(guild.iconURL({ dynamic: true }))
                 .setTimestamp();
 
@@ -343,10 +345,10 @@ required: true
                 if (parsedDesc) embed.setDescription(parsedDesc);
                 if (cfg.boostShowThumbnail) embed.setThumbnail(interaction.member.user.displayAvatarURL({ dynamic: true, size: 256 }));
                 const boostFields = [];
-                if (cfg.boostShowMember)      boostFields.push({ name: '👤 Member',       value: interaction.member.user.tag,                         inline: true });
-                if (cfg.boostShowMulaiBoost)  boostFields.push({ name: '🚀 Boost Start',  value: `<t:${Math.floor(Date.now() / 1000)}:R>`,            inline: true });
-                if (cfg.boostShowTotalBoost)  boostFields.push({ name: '✨ Total Boosts', value: `**${guild.premiumSubscriptionCount ?? 0}** boost(s)`,inline: true });
-                if (cfg.boostShowLevelServer) boostFields.push({ name: '🏅 Server Level', value: `Level **${guild.premiumTier}**`,                    inline: true });
+                if (cfg.boostShowMember)      boostFields.push({ name: s.info_member,      value: interaction.member.user.tag,                         inline: true });
+                if (cfg.boostShowMulaiBoost)  boostFields.push({ name: s.info_boost_start,value: `<t:${Math.floor(Date.now() / 1000)}:R>`,            inline: true });
+                if (cfg.boostShowTotalBoost)  boostFields.push({ name: s.info_total_boost,value: `**${guild.premiumSubscriptionCount ?? 0}** boost(s)`,inline: true });
+                if (cfg.boostShowLevelServer) boostFields.push({ name: s.info_server_lvl, value: `Level **${guild.premiumTier}**`,                    inline: true });
                 if (boostFields.length) embed.addFields(...boostFields);
                 if (cfg.boostFooter) embed.setFooter({ text: parsePrev(cfg.boostFooter) });
                 if (boostCard) embed.setImage('attachment://boost-card.png');
