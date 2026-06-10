@@ -160,7 +160,15 @@
     "ph_inviter": "Nama pengundang",
     "ph_invite_code": "Kode undangan",
     "ph_total_invites": "Total undangan",
-    "ph_account_created": "Tanggal buat akun"
+    "ph_account_created": "Tanggal buat akun",
+    "how_to_use": "Cara Penggunaan",
+    "step1_title": "Pilih Channel",
+    "step1_desc": "Pilih channel teks tempat pesan sambutan akan dikirim saat member baru bergabung.",
+    "step2_title": "Kustomisasi Pesan",
+    "step2_desc": "Atur embed, warna, template teks, dan aktifkan welcome card dengan background kustom jika diinginkan.",
+    "step3_title": "Aktifkan & Simpan",
+    "step3_desc": "Aktifkan toggle dan klik Simpan. Member baru yang bergabung akan langsung memicu notifikasi.",
+    "tip": "Gunakan placeholder <strong>{mention}</strong>, <strong>{username}</strong>, dan <strong>{count}</strong> dalam pesanmu untuk mempersonalisasi setiap sambutan."
   },
   "goodbye": {
     "page_title": "Notifikasi Perpisahan",
@@ -171,7 +179,15 @@
     "ph_tag": "Username#tag",
     "ph_server": "Nama server",
     "ph_count": "Total member",
-    "ph_account_created": "Tanggal buat akun"
+    "ph_account_created": "Tanggal buat akun",
+    "how_to_use": "Cara Penggunaan",
+    "step1_title": "Pilih Channel",
+    "step1_desc": "Pilih channel teks tempat pesan perpisahan akan dikirim saat member meninggalkan server.",
+    "step2_title": "Kustomisasi Pesan",
+    "step2_desc": "Atur embed, warna, dan template teks. Kamu juga bisa mengaktifkan goodbye card dengan background kustom.",
+    "step3_title": "Aktifkan & Simpan",
+    "step3_desc": "Aktifkan toggle dan klik Simpan. Member yang keluar dari server akan memicu notifikasi.",
+    "tip": "Gunakan placeholder <strong>{username}</strong>, <strong>{server}</strong>, dan <strong>{count}</strong> untuk mempersonalisasi setiap pesan perpisahan."
   },
   "booster": {
     "page_title": "Notifikasi Boost",
@@ -226,7 +242,23 @@
     "ph_boosts": "Total boost",
     "ph_level": "Level server",
     "err_no_channel": "Harap pilih channel tujuan terlebih dahulu.",
-    "err_invalid_color": "Format warna tidak valid. Contoh: {{example}}"
+    "err_invalid_color": "Format warna tidak valid. Contoh: {{example}}",
+    "how_to_use": "Cara Penggunaan",
+    "step1_title": "Pilih Channel",
+    "step1_desc": "Pilih channel tempat notifikasi boost dan unboost akan dikirim.",
+    "step2_title": "Kustomisasi Pesan",
+    "step2_desc": "Atur embed, template teks, dan aktifkan boost card dengan background kustom jika diinginkan.",
+    "step3_title": "Aktifkan & Simpan",
+    "step3_desc": "Aktifkan toggle dan klik Simpan. Cek tab Unboost untuk mengatur notifikasi saat member berhenti boost.",
+    "tip": "Gunakan placeholder <strong>{mention}</strong>, <strong>{boosts}</strong>, dan <strong>{level}</strong> untuk mempersonalisasi pesan boost.",
+    "unboost_how_to_use": "Cara Penggunaan",
+    "unboost_step1_title": "Pilih Channel",
+    "unboost_step1_desc": "Pilih channel tempat notifikasi unboost akan dikirim.",
+    "unboost_step2_title": "Kustomisasi Pesan",
+    "unboost_step2_desc": "Atur embed, template teks, dan aktifkan unboost card dengan background kustom jika diinginkan.",
+    "unboost_step3_title": "Aktifkan & Simpan",
+    "unboost_step3_desc": "Aktifkan <strong>Aktifkan Notifikasi Unboost</strong> dan klik Simpan.",
+    "unboost_tip": "Notifikasi unboost akan dikirim saat member menghapus boost dari server. Gunakan placeholder yang sama seperti tab boost."
   },
   "autorole": {
     "join_title": "Autorole Bergabung",
@@ -298,7 +330,39 @@
     "mode_label": "Mode",
     "mode_multi": "☑️ Multi — bisa pilih banyak role",
     "mode_single": "🔘 Single — hanya 1 role aktif (radio)",
-    "plain_text_ph": "Tulis pesan di sini..."
+    "plain_text_ph": "Tulis pesan di sini...",
+    "join_how_to_use": "Cara Penggunaan",
+    "join_step1_title": "Pilih Role",
+    "join_step1_desc": "Pilih role untuk <strong>Member</strong> dan/atau <strong>Bot</strong> di selector di bawah.",
+    "join_step2_title": "Aktifkan Target",
+    "join_step2_desc": "Aktifkan <strong>Aktifkan untuk Member</strong> dan/atau <strong>Aktifkan untuk Bot</strong> untuk mengaktifkan autorole.",
+    "join_step3_title": "Simpan",
+    "join_step3_desc": "Klik Simpan. Setiap member atau bot yang bergabung akan otomatis mendapatkan role yang dikonfigurasi.",
+    "join_tip": "Autorole member dan bot bersifat independen — kamu bisa mengaktifkan atau menonaktifkan masing-masing secara terpisah.",
+    "ar_boost_how_to_use": "Cara Penggunaan",
+    "ar_boost_step1_title": "Pilih Role Booster",
+    "ar_boost_step1_desc": "Pilih role yang otomatis diberikan saat member melakukan boost pada server.",
+    "ar_boost_step2_title": "Aktifkan Autoremove",
+    "ar_boost_step2_desc": "Aktifkan <strong>Autoremove saat Unboost</strong> untuk otomatis mencabut role booster saat member berhenti boost.",
+    "ar_boost_step3_title": "Aktifkan & Simpan",
+    "ar_boost_step3_desc": "Aktifkan <strong>Aktifkan Autorole Booster</strong> dan klik Simpan.",
+    "ar_boost_tip": "Jika autoremove aktif, role akan langsung dicabut saat member menghapus boost dari server.",
+    "button_how_to_use": "Cara Penggunaan",
+    "button_step1_title": "Buat Panel",
+    "button_step1_desc": "Klik <strong>＋ Panel Baru</strong>, isi embed, dan tambahkan tombol role.",
+    "button_step2_title": "Kirim Panel",
+    "button_step2_desc": "Pilih channel dan klik <strong>Kirim</strong> untuk mengirim panel tombol interaktif.",
+    "button_step3_title": "Member Berinteraksi",
+    "button_step3_desc": "Member klik tombol untuk mendapatkan atau mencabut role. Gunakan mode Multi untuk tumpuk role, atau Single untuk satu role aktif.",
+    "button_tip": "Setelah dikirim, gunakan <strong>Edit Panel</strong> untuk memperbarui embed atau tombol — panel tidak bisa dikirim ulang.",
+    "react_how_to_use": "Cara Penggunaan",
+    "react_step1_title": "Buat Panel",
+    "react_step1_desc": "Klik <strong>＋ Panel Baru</strong>, isi embed, dan tambahkan pasangan emoji-role.",
+    "react_step2_title": "Kirim Panel",
+    "react_step2_desc": "Pilih channel dan klik <strong>Kirim</strong> untuk mengirim panel reaksi.",
+    "react_step3_title": "Member Bereaksi",
+    "react_step3_desc": "Member klik emoji reaksi untuk mendapatkan atau mencabut role yang sesuai. Bereaksi lagi akan mencabut role.",
+    "react_tip": "Gunakan emoji Unicode (👍 ⭐ 🎮) atau emoji server kustom dengan format <code>&lt;:nama:id&gt;</code>. Maks <strong>20 reaksi</strong> per panel."
   },
   "automod": {
     "page_title": "Automod",
@@ -364,7 +428,15 @@
     "whitelist_select_channel": "— Pilih channel —",
     "whitelist_select_role": "— Pilih role —",
     "err_select_channel": "Harap pilih channel terlebih dahulu.",
-    "err_select_role": "Harap pilih role terlebih dahulu."
+    "err_select_role": "Harap pilih role terlebih dahulu.",
+    "how_to_use": "Cara Penggunaan",
+    "step1_title": "Atur Aksi",
+    "step1_desc": "Pilih tindakan bot saat pelanggaran terdeteksi — hapus, warn, mute, kick, atau ban.",
+    "step2_title": "Aktifkan Proteksi",
+    "step2_desc": "Aktifkan perlindungan anti-link, anti-invite, anti-spam, anti-mention massal, dan anti-raid sesuai kebutuhan.",
+    "step3_title": "Atur Whitelist",
+    "step3_desc": "Tambahkan channel atau role yang dikecualikan dari pemeriksaan automod. Berguna untuk channel staff.",
+    "tip": "Gunakan bagian <strong>Kata Terlarang</strong> untuk menambahkan kata-kata kustom. Pesan yang mengandung kata tersebut akan otomatis dihapus."
   },
   "modlog": {
     "page_title": "Mod Log",
@@ -385,7 +457,15 @@
     "evt_timeout": "Timeout Member — Log saat member di-timeout atau timeout dicabut",
     "evt_warn": "Warning — Log saat moderator menambahkan peringatan via /warn add",
     "info_title": "Cara kerja Mod Log:",
-    "info_body": "Bot mendengarkan Audit Log Discord. Setiap aksi moderasi yang dilakukan siapapun di server akan otomatis dicatat ke channel yang dipilih. Gunakan <code>/modlog test</code> untuk mengirim embed uji coba ke channel log."
+    "info_body": "Bot mendengarkan Audit Log Discord. Setiap aksi moderasi yang dilakukan siapapun di server akan otomatis dicatat ke channel yang dipilih. Gunakan <code>/modlog test</code> untuk mengirim embed uji coba ke channel log.",
+    "how_to_use": "Cara Penggunaan",
+    "step1_title": "Atur Channel Log",
+    "step1_desc": "Pilih channel teks tempat semua log aksi moderasi akan dikirimkan.",
+    "step2_title": "Pilih Event",
+    "step2_desc": "Aktifkan jenis aksi moderasi yang ingin dicatat — ban, unban, kick, timeout, dan warn.",
+    "step3_title": "Siap!",
+    "step3_desc": "Bot otomatis mencatat semua event yang dipilih. Gunakan <strong>/modlog test</strong> di Discord untuk memverifikasi channel.",
+    "tip": "Mod Log membaca Audit Log Discord — setiap aksi moderasi oleh siapapun di server akan otomatis tercatat."
   },
   "warnings": {
     "page_title": "Sistem Peringatan",
@@ -423,7 +503,15 @@
     "threshold_1": "Threshold 1",
     "threshold_2": "Threshold 2",
     "err_invalid_id": "Masukkan User ID yang valid (17–19 digit).",
-    "warnings_count": "{{n}} peringatan"
+    "warnings_count": "{{n}} peringatan",
+    "how_to_use": "Cara Penggunaan",
+    "step1_title": "Atur Threshold",
+    "step1_desc": "Atur tindakan otomatis (timeout, kick, ban) yang dipicu saat member mencapai jumlah peringatan tertentu.",
+    "step2_title": "Beri Peringatan",
+    "step2_desc": "Gunakan <strong>/warn add @user alasan</strong> di Discord untuk memberi peringatan secara manual kepada member.",
+    "step3_title": "Tindakan Otomatis",
+    "step3_desc": "Saat jumlah peringatan member mencapai threshold, bot otomatis menerapkan tindakan yang dikonfigurasi.",
+    "tip": "Cari peringatan member berdasarkan Discord User ID menggunakan alat pencarian di bawah. Kamu juga bisa menghapus semua peringatan member."
   },
   "ticket": {
     "page_title": "Tiket",
@@ -464,7 +552,15 @@
     "embed_title_default": "🎫 Support Ticket",
     "embed_desc_default": "Klik tombol di bawah untuk membuat tiket.",
     "btn_label_default": "📩 Buat Tiket",
-    "role_remove_title": "Hapus"
+    "role_remove_title": "Hapus",
+    "how_to_use": "Cara Penggunaan",
+    "step1_title": "Atur Konfigurasi",
+    "step1_desc": "Atur kategori tiket, channel log transkrip, dan role staff yang dapat melihat & mengelola tiket.",
+    "step2_title": "Kustomisasi Panel",
+    "step2_desc": "Atur judul embed, deskripsi, label tombol, dan pilih channel tujuan pengiriman panel tiket.",
+    "step3_title": "Kirim Panel",
+    "step3_desc": "Klik <strong>Kirim Panel</strong> untuk mengirim panel ke channel. Member klik tombol untuk membuka tiket dukungan pribadi.",
+    "tip": "Hanya role staff (dan pemilik server) yang bisa melihat dan mengelola tiket. Lihat semua tiket aktif di bagian Tiket Aktif di bawah."
   },
   "giveaway": {
     "page_title": "Giveaway",
@@ -553,7 +649,15 @@
     "confirm_delete": "Hapus template \"{{name}}\"? Tindakan ini tidak dapat dibatalkan.",
     "err_name_empty": "Nama template tidak boleh kosong.",
     "err_name_invalid": "Nama tidak valid. Gunakan huruf, angka, - dan _.",
-    "err_no_channel": "Harap pilih channel tujuan."
+    "err_no_channel": "Harap pilih channel tujuan.",
+    "how_to_use": "Cara Penggunaan",
+    "step1_title": "Buat Template",
+    "step1_desc": "Klik <strong>Template Baru</strong>, beri nama, dan pilih antara Regular (kirim berkali-kali) atau Unique (kirim sekali, bisa diedit).",
+    "step2_title": "Kustomisasi Konten",
+    "step2_desc": "Tambahkan judul, deskripsi, warna embed, footer, gambar, atau tulis teks biasa. Preview update secara real time.",
+    "step3_title": "Kirim ke Channel",
+    "step3_desc": "Klik <strong>Kirim</strong> pada template untuk mengirimnya ke channel. Template Unique bisa diedit setelah terkirim.",
+    "tip": "Gunakan template <strong>Unique</strong> untuk pengumuman permanen — embed bisa diperbarui nanti tanpa mengirim pesan baru."
   },
   "serverstats": {
     "page_title": "Statistik Server",
@@ -584,7 +688,15 @@
     "confirm_yes": "Ya, Hapus Semua",
     "confirm_cancel": "Batal",
     "setup_first": "Lakukan Setup terlebih dahulu",
-    "setup_will_create": "<strong style=\"color:#5865F2;\">Yang akan dibuat:</strong><br>📁 1 Category &nbsp;·&nbsp; 👥 Total Members Channel &nbsp;·&nbsp; 👤 Users Channel &nbsp;·&nbsp; 🤖 Bots Channel"
+    "setup_will_create": "<strong style=\"color:#5865F2;\">Yang akan dibuat:</strong><br>📁 1 Category &nbsp;·&nbsp; 👥 Total Members Channel &nbsp;·&nbsp; 👤 Users Channel &nbsp;·&nbsp; 🤖 Bots Channel",
+    "how_to_use": "Cara Penggunaan",
+    "step1_title": "Klik Setup",
+    "step1_desc": "Klik <strong>Buat Saluran Statistik</strong> untuk otomatis membuat kategori dengan tiga saluran statistik di servermu.",
+    "step2_title": "Kustomisasi Label",
+    "step2_desc": "Atur format nama saluran menggunakan <strong>{count}</strong> sebagai placeholder angka (contoh: \"Member: {count}\").",
+    "step3_title": "Update Otomatis",
+    "step3_desc": "Statistik diperbarui otomatis setiap kali member bergabung atau keluar dari server. Tidak ada tindakan lebih lanjut.",
+    "tip": "Pastikan bot memiliki izin <strong>Kelola Saluran</strong>. Gunakan <strong>Reset Server Stats</strong> untuk menghapus semua saluran statistik jika diperlukan."
   },
   "invites": {
     "page_title": "Tautan Undangan",

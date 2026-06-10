@@ -12,6 +12,32 @@
             <p><%= t('serverstats.page_desc') %></p>
         </div>
 
+        <!-- ── How to Use ──────────────────────────────────────────────────────────── -->
+        <div class="settings-card" style="margin-bottom:1.5rem;--guide-accent:#5865F2;">
+            <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.25rem;">
+                <i data-lucide="book-open" style="color:#5865F2;width:18px;height:18px;flex-shrink:0;"></i>
+                <h2 style="margin:0;font-size:1rem;font-weight:600;"><%= t('serverstats.how_to_use') %></h2>
+            </div>
+            <div class="guide-grid">
+                <div class="guide-step">
+                    <div class="guide-num">1</div>
+                    <div class="guide-title"><%= t('serverstats.step1_title') %></div>
+                    <div class="guide-desc"><%- t('serverstats.step1_desc') %></div>
+                </div>
+                <div class="guide-step">
+                    <div class="guide-num">2</div>
+                    <div class="guide-title"><%= t('serverstats.step2_title') %></div>
+                    <div class="guide-desc"><%- t('serverstats.step2_desc') %></div>
+                </div>
+                <div class="guide-step">
+                    <div class="guide-num">3</div>
+                    <div class="guide-title"><%= t('serverstats.step3_title') %></div>
+                    <div class="guide-desc"><%- t('serverstats.step3_desc') %></div>
+                </div>
+            </div>
+            <div class="guide-tip">💡 <%- t('serverstats.tip') %></div>
+        </div>
+
         <!-- ── Stats Overview ──────────────────────────────────────────── -->
         <div class="stats-grid">
             <div class="stat-card">

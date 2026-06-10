@@ -12,6 +12,32 @@
             <p><%= t('message_builder.page_desc') %></p>
         </div>
 
+        <!-- ── How to Use ──────────────────────────────────────────────────────────── -->
+        <div class="settings-card" style="margin-bottom:1.5rem;--guide-accent:#5865F2;">
+            <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.25rem;">
+                <i data-lucide="book-open" style="color:#5865F2;width:18px;height:18px;flex-shrink:0;"></i>
+                <h2 style="margin:0;font-size:1rem;font-weight:600;"><%= t('message_builder.how_to_use') %></h2>
+            </div>
+            <div class="guide-grid">
+                <div class="guide-step">
+                    <div class="guide-num">1</div>
+                    <div class="guide-title"><%= t('message_builder.step1_title') %></div>
+                    <div class="guide-desc"><%- t('message_builder.step1_desc') %></div>
+                </div>
+                <div class="guide-step">
+                    <div class="guide-num">2</div>
+                    <div class="guide-title"><%= t('message_builder.step2_title') %></div>
+                    <div class="guide-desc"><%- t('message_builder.step2_desc') %></div>
+                </div>
+                <div class="guide-step">
+                    <div class="guide-num">3</div>
+                    <div class="guide-title"><%= t('message_builder.step3_title') %></div>
+                    <div class="guide-desc"><%- t('message_builder.step3_desc') %></div>
+                </div>
+            </div>
+            <div class="guide-tip">💡 <%- t('message_builder.tip') %></div>
+        </div>
+
         <!-- ── Toolbar: buat baru + search ── -->
         <div class="mb-toolbar">
             <button class="btn btn-primary" onclick="openCreateModal()">＋ <%= t('message_builder.new_template_btn') %></button>

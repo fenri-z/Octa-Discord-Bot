@@ -160,7 +160,15 @@
     "ph_inviter": "Inviter name",
     "ph_invite_code": "Invite code",
     "ph_total_invites": "Total invites",
-    "ph_account_created": "Account creation date"
+    "ph_account_created": "Account creation date",
+    "how_to_use": "How to Use",
+    "step1_title": "Select Channel",
+    "step1_desc": "Choose the text channel where the welcome message will be sent when a new member joins.",
+    "step2_title": "Customize Message",
+    "step2_desc": "Set the embed, colors, text template, and optionally enable the welcome card with a custom background.",
+    "step3_title": "Enable & Save",
+    "step3_desc": "Toggle the feature on and click Save to activate. New members will trigger the notification immediately.",
+    "tip": "Use the <strong>{mention}</strong>, <strong>{username}</strong>, and <strong>{count}</strong> placeholders in your message to personalize each welcome."
   },
   "goodbye": {
     "page_title": "Goodbye Notification",
@@ -171,7 +179,15 @@
     "ph_tag": "Username#tag",
     "ph_server": "Server name",
     "ph_count": "Total members",
-    "ph_account_created": "Account creation date"
+    "ph_account_created": "Account creation date",
+    "how_to_use": "How to Use",
+    "step1_title": "Select Channel",
+    "step1_desc": "Choose the text channel where the goodbye message will be sent when a member leaves.",
+    "step2_title": "Customize Message",
+    "step2_desc": "Set the embed, colors, and text template. You can also enable a goodbye card with a custom background.",
+    "step3_title": "Enable & Save",
+    "step3_desc": "Toggle the feature on and click Save to activate. Members leaving the server will trigger the notification.",
+    "tip": "Use the <strong>{username}</strong>, <strong>{server}</strong>, and <strong>{count}</strong> placeholders to personalize each goodbye message."
   },
   "booster": {
     "page_title": "Boost Notification",
@@ -226,7 +242,23 @@
     "ph_boosts": "Total boosts",
     "ph_level": "Server level",
     "err_no_channel": "Please select a destination channel first.",
-    "err_invalid_color": "Invalid color format. Example: {{example}}"
+    "err_invalid_color": "Invalid color format. Example: {{example}}",
+    "how_to_use": "How to Use",
+    "step1_title": "Select Channel",
+    "step1_desc": "Choose the channel where boost and unboost notifications will be sent.",
+    "step2_title": "Customize Message",
+    "step2_desc": "Set the embed, text template, and optionally enable the boost card with a custom background.",
+    "step3_title": "Enable & Save",
+    "step3_desc": "Toggle the notification on and click Save to activate. Check the Unboost tab to also configure unboost notifications.",
+    "tip": "Use the <strong>{mention}</strong>, <strong>{boosts}</strong>, and <strong>{level}</strong> placeholders to personalize boost messages.",
+    "unboost_how_to_use": "How to Use",
+    "unboost_step1_title": "Select Channel",
+    "unboost_step1_desc": "Choose the channel where the unboost notification will be sent.",
+    "unboost_step2_title": "Customize Message",
+    "unboost_step2_desc": "Set the embed, text template, and optionally enable the unboost card with a custom background.",
+    "unboost_step3_title": "Enable & Save",
+    "unboost_step3_desc": "Toggle <strong>Enable Unboost Notification</strong> on and click Save to activate.",
+    "unboost_tip": "The unboost notification fires when a member removes their server boost. Use the same placeholders as the boost tab."
   },
   "autorole": {
     "join_title": "Autorole Join",
@@ -298,7 +330,39 @@
     "mode_label": "Mode",
     "mode_multi": "☑️ Multi — can select multiple roles",
     "mode_single": "🔘 Single — only 1 active role (radio)",
-    "plain_text_ph": "Write your message here..."
+    "plain_text_ph": "Write your message here...",
+    "join_how_to_use": "How to Use",
+    "join_step1_title": "Set Role",
+    "join_step1_desc": "Choose the role for <strong>Members</strong> and/or <strong>Bots</strong> in the selectors below.",
+    "join_step2_title": "Enable Target",
+    "join_step2_desc": "Toggle <strong>Enable for Members</strong> and/or <strong>Enable for Bots</strong> to activate autorole.",
+    "join_step3_title": "Save",
+    "join_step3_desc": "Click Save. Every new member or bot that joins will automatically receive the configured role.",
+    "join_tip": "Member and bot autoroles are independent — you can enable or disable each one separately.",
+    "ar_boost_how_to_use": "How to Use",
+    "ar_boost_step1_title": "Set Booster Role",
+    "ar_boost_step1_desc": "Select the role automatically given to a member when they boost the server.",
+    "ar_boost_step2_title": "Enable Autoremove",
+    "ar_boost_step2_desc": "Toggle <strong>Autoremove on Unboost</strong> to automatically remove the booster role when they stop boosting.",
+    "ar_boost_step3_title": "Enable & Save",
+    "ar_boost_step3_desc": "Toggle <strong>Enable Autorole Booster</strong> on and click Save to activate.",
+    "ar_boost_tip": "If autoremove is on, the role is removed immediately when a member removes their server boost.",
+    "button_how_to_use": "How to Use",
+    "button_step1_title": "Create Panel",
+    "button_step1_desc": "Click <strong>＋ New Panel</strong>, fill in the embed, and add role buttons.",
+    "button_step2_title": "Send Panel",
+    "button_step2_desc": "Select a channel and click <strong>Send</strong> to post the interactive button panel.",
+    "button_step3_title": "Members Interact",
+    "button_step3_desc": "Members click the buttons to get or remove roles. Use Multi mode to stack roles, or Single for one active role at a time.",
+    "button_tip": "After sending, use <strong>Edit Panel</strong> to update the embed or buttons — the panel cannot be sent again.",
+    "react_how_to_use": "How to Use",
+    "react_step1_title": "Create Panel",
+    "react_step1_desc": "Click <strong>＋ New Panel</strong>, fill in the embed, and add emoji-role pairs.",
+    "react_step2_title": "Send Panel",
+    "react_step2_desc": "Select a channel and click <strong>Send</strong> to post the reaction panel.",
+    "react_step3_title": "Members React",
+    "react_step3_desc": "Members click the emoji reactions to get or remove the corresponding role. Reacting again removes the role.",
+    "react_tip": "Use Unicode emoji (👍 ⭐ 🎮) or custom server emoji with format <code>&lt;:name:id&gt;</code>. Max <strong>20 reactions</strong> per panel."
   },
   "automod": {
     "page_title": "Automod",
@@ -364,7 +428,15 @@
     "whitelist_select_channel": "— Select channel —",
     "whitelist_select_role": "— Select role —",
     "err_select_channel": "Please select a channel first.",
-    "err_select_role": "Please select a role first."
+    "err_select_role": "Please select a role first.",
+    "how_to_use": "How to Use",
+    "step1_title": "Configure Action",
+    "step1_desc": "Choose what the bot does when a violation is detected — delete, warn, mute, kick, or ban.",
+    "step2_title": "Enable Protections",
+    "step2_desc": "Toggle anti-link, anti-invite, anti-spam, anti-mass-mention, and anti-raid protections on or off.",
+    "step3_title": "Set Whitelist",
+    "step3_desc": "Add channels or roles to exclude from automod checks. Useful for staff channels or admin roles.",
+    "tip": "Use the <strong>Banned Words</strong> section to add custom words. Messages containing those words will be automatically deleted."
   },
   "modlog": {
     "page_title": "Mod Log",
@@ -385,7 +457,15 @@
     "evt_timeout": "Timeout Member — Log when a member is timed out or timeout is removed",
     "evt_warn": "Warning — Log when a moderator adds a warning via /warn add",
     "info_title": "How Mod Log works:",
-    "info_body": "The bot listens to Discord's Audit Log. Every moderation action performed by anyone on the server will be automatically logged to the selected channel. Use <code>/modlog test</code> to send a test embed to the log channel."
+    "info_body": "The bot listens to Discord's Audit Log. Every moderation action performed by anyone on the server will be automatically logged to the selected channel. Use <code>/modlog test</code> to send a test embed to the log channel.",
+    "how_to_use": "How to Use",
+    "step1_title": "Set Log Channel",
+    "step1_desc": "Select the text channel where all moderation action logs will be sent.",
+    "step2_title": "Choose Events",
+    "step2_desc": "Toggle which moderation actions to log — ban, unban, kick, timeout, and warn.",
+    "step3_title": "All Set!",
+    "step3_desc": "The bot automatically logs all selected events. Use <strong>/modlog test</strong> in Discord to verify the channel is working.",
+    "tip": "Mod Log reads Discord's Audit Log — any moderation action by any moderator is automatically captured and logged."
   },
   "warnings": {
     "page_title": "Warning System",
@@ -423,7 +503,15 @@
     "threshold_1": "Threshold 1",
     "threshold_2": "Threshold 2",
     "err_invalid_id": "Please enter a valid User ID (17–19 digits).",
-    "warnings_count": "{{n}} warning(s)"
+    "warnings_count": "{{n}} warning(s)",
+    "how_to_use": "How to Use",
+    "step1_title": "Set Thresholds",
+    "step1_desc": "Configure automatic actions (timeout, kick, ban) that trigger when a member reaches a specific warning count.",
+    "step2_title": "Warn Members",
+    "step2_desc": "Use <strong>/warn add @user reason</strong> in Discord to issue warnings manually to rule-breaking members.",
+    "step3_title": "Automatic Actions",
+    "step3_desc": "When a member's warning count reaches a threshold, the bot automatically applies the configured action.",
+    "tip": "Search member warnings by Discord User ID using the search tool below. You can also delete all warnings for a member."
   },
   "ticket": {
     "page_title": "Ticket",
@@ -464,7 +552,15 @@
     "embed_title_default": "🎫 Support Ticket",
     "embed_desc_default": "Click the button below to create a ticket.",
     "btn_label_default": "📩 Create Ticket",
-    "role_remove_title": "Remove"
+    "role_remove_title": "Remove",
+    "how_to_use": "How to Use",
+    "step1_title": "Configure Settings",
+    "step1_desc": "Set the ticket category, transcript log channel, and staff roles who can view and manage tickets.",
+    "step2_title": "Customize Panel",
+    "step2_desc": "Set the embed title, description, button label, and choose the channel where the ticket panel will be sent.",
+    "step3_title": "Send Panel",
+    "step3_desc": "Click <strong>Send Panel</strong> to post the panel in a channel. Members click the button to open a private support ticket.",
+    "tip": "Only staff roles (and the server owner) can view and manage tickets. You can view all active tickets in the Active Tickets section below."
   },
   "giveaway": {
     "page_title": "Giveaway",
@@ -553,7 +649,15 @@
     "confirm_delete": "Delete template \"{{name}}\"? This action cannot be undone.",
     "err_name_empty": "Template name cannot be empty.",
     "err_name_invalid": "Invalid name. Use letters, numbers, - and _.",
-    "err_no_channel": "Please select a destination channel."
+    "err_no_channel": "Please select a destination channel.",
+    "how_to_use": "How to Use",
+    "step1_title": "Create Template",
+    "step1_desc": "Click <strong>New Template</strong>, give it a name, and choose between Regular (multi-send) or Unique (send once, edit in place).",
+    "step2_title": "Customize Content",
+    "step2_desc": "Add a title, description, embed color, footer, image, or write plain text. Preview updates in real time.",
+    "step3_title": "Send to Channel",
+    "step3_desc": "Click <strong>Send</strong> on any template to post it to a channel. Unique templates can be edited after sending.",
+    "tip": "Use <strong>Unique</strong> templates for permanent announcements — the embed can be updated later without sending a new message."
   },
   "serverstats": {
     "page_title": "Server Stats",
@@ -584,7 +688,15 @@
     "confirm_yes": "Yes, Delete All",
     "confirm_cancel": "Cancel",
     "setup_first": "Complete Setup first",
-    "setup_will_create": "<strong style=\"color:#5865F2;\">Will be created:</strong><br>📁 1 Category &nbsp;·&nbsp; 👥 Total Members Channel &nbsp;·&nbsp; 👤 Users Channel &nbsp;·&nbsp; 🤖 Bots Channel"
+    "setup_will_create": "<strong style=\"color:#5865F2;\">Will be created:</strong><br>📁 1 Category &nbsp;·&nbsp; 👥 Total Members Channel &nbsp;·&nbsp; 👤 Users Channel &nbsp;·&nbsp; 🤖 Bots Channel",
+    "how_to_use": "How to Use",
+    "step1_title": "Click Setup",
+    "step1_desc": "Click <strong>Create Stats Channels</strong> to automatically create a category with three stat channels in your server.",
+    "step2_title": "Customize Labels",
+    "step2_desc": "Set the channel name format using <strong>{count}</strong> as the number placeholder (e.g., \"Members: {count}\").",
+    "step3_title": "Auto-Update",
+    "step3_desc": "Stats update automatically whenever a member joins or leaves the server. No further action needed.",
+    "tip": "Make sure the bot has <strong>Manage Channels</strong> permission. Use <strong>Reset Server Stats</strong> to remove all stat channels if needed."
   },
   "invites": {
     "page_title": "Invite Links",

@@ -11,6 +11,58 @@
             <p><%= t('booster.page_desc') %></p>
         </div>
 
+        <!-- ── How to Use: Boost ─────────────────────────────────────────────────── -->
+        <div id="guide-boost" class="booster-guide settings-card" style="margin-bottom:1.5rem;--guide-accent:#FF73FA;">
+            <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.25rem;">
+                <i data-lucide="book-open" style="color:#FF73FA;width:18px;height:18px;flex-shrink:0;"></i>
+                <h2 style="margin:0;font-size:1rem;font-weight:600;"><%= t('booster.how_to_use') %></h2>
+            </div>
+            <div class="guide-grid">
+                <div class="guide-step">
+                    <div class="guide-num">1</div>
+                    <div class="guide-title"><%= t('booster.step1_title') %></div>
+                    <div class="guide-desc"><%- t('booster.step1_desc') %></div>
+                </div>
+                <div class="guide-step">
+                    <div class="guide-num">2</div>
+                    <div class="guide-title"><%= t('booster.step2_title') %></div>
+                    <div class="guide-desc"><%- t('booster.step2_desc') %></div>
+                </div>
+                <div class="guide-step">
+                    <div class="guide-num">3</div>
+                    <div class="guide-title"><%= t('booster.step3_title') %></div>
+                    <div class="guide-desc"><%- t('booster.step3_desc') %></div>
+                </div>
+            </div>
+            <div class="guide-tip">💡 <%- t('booster.tip') %></div>
+        </div>
+
+        <!-- ── How to Use: Unboost ───────────────────────────────────────────────── -->
+        <div id="guide-unboost" class="booster-guide settings-card" style="display:none;margin-bottom:1.5rem;--guide-accent:#ED4245;">
+            <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.25rem;">
+                <i data-lucide="book-open" style="color:#ED4245;width:18px;height:18px;flex-shrink:0;"></i>
+                <h2 style="margin:0;font-size:1rem;font-weight:600;"><%= t('booster.unboost_how_to_use') %></h2>
+            </div>
+            <div class="guide-grid">
+                <div class="guide-step">
+                    <div class="guide-num">1</div>
+                    <div class="guide-title"><%= t('booster.unboost_step1_title') %></div>
+                    <div class="guide-desc"><%- t('booster.unboost_step1_desc') %></div>
+                </div>
+                <div class="guide-step">
+                    <div class="guide-num">2</div>
+                    <div class="guide-title"><%= t('booster.unboost_step2_title') %></div>
+                    <div class="guide-desc"><%- t('booster.unboost_step2_desc') %></div>
+                </div>
+                <div class="guide-step">
+                    <div class="guide-num">3</div>
+                    <div class="guide-title"><%= t('booster.unboost_step3_title') %></div>
+                    <div class="guide-desc"><%- t('booster.unboost_step3_desc') %></div>
+                </div>
+            </div>
+            <div class="guide-tip">💡 <%- t('booster.unboost_tip') %></div>
+        </div>
+
         <!-- ══════════════════════════════════════
              TAB: BOOST NOTIFICATION
         ══════════════════════════════════════ -->
@@ -747,6 +799,8 @@ const TAB_META = {
 function switchTab(tab) {
     document.querySelectorAll('.booster-editor-layout').forEach(el => el.style.display = 'none');
     document.getElementById(`tab-${tab}`).style.display = '';
+    document.querySelectorAll('.booster-guide').forEach(el => el.style.display = 'none');
+    document.getElementById(`guide-${tab}`).style.display = '';
     sessionStorage.setItem('booster_tab', tab);
 
     const subBoost   = document.getElementById('sidebarSubBoost');

@@ -13,6 +13,32 @@
             <p><%= t('warnings.page_desc') %></p>
         </div>
 
+        <!-- ── How to Use ──────────────────────────────────────────────────────────── -->
+        <div class="settings-card" style="margin-bottom:1.5rem;--guide-accent:#FEE75C;">
+            <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.25rem;">
+                <i data-lucide="book-open" style="color:#FEE75C;width:18px;height:18px;flex-shrink:0;"></i>
+                <h2 style="margin:0;font-size:1rem;font-weight:600;"><%= t('warnings.how_to_use') %></h2>
+            </div>
+            <div class="guide-grid">
+                <div class="guide-step">
+                    <div class="guide-num">1</div>
+                    <div class="guide-title"><%= t('warnings.step1_title') %></div>
+                    <div class="guide-desc"><%- t('warnings.step1_desc') %></div>
+                </div>
+                <div class="guide-step">
+                    <div class="guide-num">2</div>
+                    <div class="guide-title"><%= t('warnings.step2_title') %></div>
+                    <div class="guide-desc"><%- t('warnings.step2_desc') %></div>
+                </div>
+                <div class="guide-step">
+                    <div class="guide-num">3</div>
+                    <div class="guide-title"><%= t('warnings.step3_title') %></div>
+                    <div class="guide-desc"><%- t('warnings.step3_desc') %></div>
+                </div>
+            </div>
+            <div class="guide-tip">💡 <%- t('warnings.tip') %></div>
+        </div>
+
         <!-- ── Stats ─────────────────────────────────────────────────────────── -->
         <div class="stats-grid">
             <div class="stat-card">
