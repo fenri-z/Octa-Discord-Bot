@@ -70,6 +70,9 @@ class YouTubeNotifier {
             this._pollTimer = setInterval(() => this._poll(), pollMs);
         }, 30_000);
 
+        // Seed segera di T+30s (dalam startup window) agar stream yang sudah live saat restart
+        // langsung ter-mark, tidak perlu tunggu interval pertama di T+3 yang bisa terlewat window
+        setTimeout(() => this._pollLive(), 30_000);
         this._liveTimer = setInterval(() => this._pollLive(), LIVE_POLL_INTERVAL_MS);
     }
 
