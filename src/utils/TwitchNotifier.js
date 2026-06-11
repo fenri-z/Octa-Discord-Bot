@@ -223,7 +223,7 @@ class TwitchNotifier {
                         viewerCount:  stream.viewer_count ?? 0,
                         thumbnailUrl: (stream.thumbnail_url || '')
                             .replace('{width}', '440')
-                            .replace('{height}', '248'),
+                            .replace('{height}', '248') + `?t=${Date.now()}`,
                         startedAt:    stream.started_at,
                     };
                     await this._sendNotification(guild, freshAccount, streamData);

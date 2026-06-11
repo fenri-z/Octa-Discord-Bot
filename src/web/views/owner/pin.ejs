@@ -1,0 +1,94 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+
+<div class="owner-pin-wrap">
+    <div class="owner-pin-card">
+        <div class="owner-pin-icon">
+            <i data-lucide="shield-check"></i>
+        </div>
+        <h1 class="owner-pin-title"><%= t('owner.pin_title') %></h1>
+        <p class="owner-pin-sub"><%= t('owner.pin_sub') %></p>
+
+        <% if (typeof error === 'string' && error) { %>
+            <div class="owner-pin-error"><i data-lucide="alert-circle"></i> <%= t('owner.' + error) %></div>
+        <% } %>
+
+        <form class="owner-pin-form" method="POST" action="/dev-console/verify">
+            <input
+                type="password"
+                name="pin"
+                class="input owner-pin-input"
+                placeholder="••••••••"
+                autocomplete="current-password"
+                autofocus
+                required
+            >
+            <button type="submit" class="btn btn-primary owner-pin-btn">
+                <i data-lucide="log-in"></i> <%= t('owner.pin_verify') %>
+            </button>
+        </form>
+
+        <a href="/" class="owner-pin-back"><i data-lucide="arrow-left"></i> <%= t('owner.pin_back') %></a>
+    </div>
+</div>
+
+<style>
+.owner-pin-wrap {
+    min-height: calc(100vh - var(--navbar-h));
+    display: flex; align-items: center; justify-content: center;
+    padding: 2rem 1.25rem;
+}
+.owner-pin-card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 18px; padding: 2.5rem 2rem;
+    width: 100%; max-width: 400px;
+    display: flex; flex-direction: column; align-items: center; gap: 1rem;
+    box-shadow: var(--shadow-md);
+}
+@media(max-width:480px) {
+    .owner-pin-card { padding: 1.75rem 1.25rem; border-radius: 14px; }
+    .owner-pin-title { font-size: 1.2rem; }
+}
+.owner-pin-icon {
+    width: 60px; height: 60px; border-radius: 16px;
+    background: rgba(88,101,242,.18); color: #7289da;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: .25rem;
+}
+.owner-pin-icon svg { width: 28px; height: 28px; }
+.owner-pin-title {
+    font-size: 1.35rem; font-weight: 800; color: var(--text);
+    letter-spacing: -.02em; margin: 0;
+}
+.owner-pin-sub {
+    font-size: .85rem; color: var(--text-muted);
+    text-align: center; margin: 0;
+}
+.owner-pin-error {
+    display: flex; align-items: center; gap: .5rem;
+    background: rgba(237,66,69,.12); border: 1px solid rgba(237,66,69,.3);
+    color: #f27f81; border-radius: 8px;
+    padding: .6rem .9rem; font-size: .83rem; width: 100%;
+}
+.owner-pin-error svg { width: 15px; height: 15px; flex-shrink: 0; }
+.owner-pin-form {
+    display: flex; flex-direction: column; gap: .75rem; width: 100%;
+}
+.owner-pin-input {
+    width: 100%; text-align: center;
+    letter-spacing: .25em; font-size: 1.1rem;
+}
+.owner-pin-btn {
+    width: 100%; justify-content: center;
+    display: flex; align-items: center; gap: .5rem;
+}
+.owner-pin-back {
+    display: flex; align-items: center; gap: .4rem;
+    font-size: .8rem; color: var(--text-muted);
+    margin-top: .25rem; transition: color .2s;
+}
+.owner-pin-back:hover { color: var(--text); }
+.owner-pin-back svg { width: 13px; height: 13px; }
+</style>
+
+<%- include('../partials/footer') %>

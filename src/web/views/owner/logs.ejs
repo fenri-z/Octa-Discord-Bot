@@ -1,0 +1,252 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+
+<div class="dash-layout">
+<%- include('../partials/owner-sidebar', { activePage: 'logs' }) %>
+<main class="dash-main">
+
+    <!-- ── Header ──────────────────────────────────────────────────────────── -->
+    <div class="lg-header">
+        <div class="lg-header-left">
+            <div class="lg-hicon"><i data-lucide="bug"></i></div>
+            <div>
+                <h1 class="lg-title"><%= t('owner.logs_title') %></h1>
+                <p class="lg-sub"><%= logs.length %> <%= logs.length === 1 ? 'entry' : 'entries' %></p>
+            </div>
+        </div>
+        <% if (logs.length > 0) { %>
+        <button class="lg-clear-btn" onclick="clearLogs()">
+            <i data-lucide="trash-2"></i> <span><%= t('owner.logs_clear') %></span>
+        </button>
+        <% } %>
+    </div>
+
+    <!-- ── Filter chips ─────────────────────────────────────────────────────── -->
+    <% if (logs.length > 0) { %>
+    <%
+        const typeCounts = {};
+        logs.forEach(l => { typeCounts[l.type] = (typeCounts[l.type] || 0) + 1; });
+        const typeOrder = ['command_error','component_error','uncaught_exception','unhandled_rejection'];
+    %>
+    <div class="lg-filters">
+        <button class="lg-chip lg-chip-all active" onclick="filterType('all',this)">
+            All <span class="lg-chip-n"><%= logs.length %></span>
+        </button>
+        <% typeOrder.forEach(function(tp) { if (typeCounts[tp]) { %>
+        <button class="lg-chip lg-chip-<%= tp.replace(/_/g,'-') %>" onclick="filterType('<%= tp %>',this)">
+            <%= t('owner.logs_type_' + tp) %> <span class="lg-chip-n"><%= typeCounts[tp] %></span>
+        </button>
+        <% }}); %>
+    </div>
+    <% } %>
+
+    <!-- ── Log list ──────────────────────────────────────────────────────────── -->
+    <% if (logs.length === 0) { %>
+        <div class="lg-empty">
+            <div class="lg-empty-icon"><i data-lucide="check-circle-2"></i></div>
+            <p class="lg-empty-title"><%= t('owner.logs_empty') %></p>
+            <p class="lg-empty-sub">Your bot is running clean.</p>
+        </div>
+    <% } else { %>
+        <div class="lg-list" id="lgList">
+            <% logs.forEach(function(log) {
+                const typeSlug = log.type.replace(/_/g, '-');
+                const icon = log.type === 'command_error'   ? 'terminal'
+                           : log.type === 'component_error' ? 'layers'
+                           : log.type === 'uncaught_exception' ? 'zap'
+                           : 'alert-triangle';
+            %>
+            <div class="lg-entry" data-type="<%= log.type %>">
+                <div class="lg-entry-left">
+                    <div class="lg-badge lg-badge-<%= typeSlug %>">
+                        <i data-lucide="<%= icon %>"></i>
+                        <span><%= t('owner.logs_type_' + log.type) %></span>
+                    </div>
+                    <% if (log.context) { %>
+                    <code class="lg-context"><%= log.context %></code>
+                    <% } %>
+                </div>
+                <time class="lg-ts" datetime="<%= log.ts %>"><%= new Date(log.ts).toLocaleString() %></time>
+                <div class="lg-message"><%= log.message %></div>
+                <% if (log.stack) { %>
+                <details class="lg-details">
+                    <summary>
+                        <i data-lucide="chevron-right" class="lg-chevron"></i>
+                        <%= t('owner.logs_stack') %>
+                    </summary>
+                    <pre class="lg-stack"><%= log.stack %></pre>
+                </details>
+                <% } %>
+            </div>
+            <% }); %>
+        </div>
+    <% } %>
+</main>
+</div>
+
+<style>
+/* ── Header ───────────────────────────────────────────────────────────────── */
+.lg-header {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem;
+}
+.lg-header-left { display: flex; align-items: center; gap: .9rem; flex: 1; }
+.lg-hicon {
+    width: 46px; height: 46px; border-radius: 13px; flex-shrink: 0;
+    background: rgba(237,66,69,.15); color: #ED4245;
+    display: flex; align-items: center; justify-content: center;
+}
+.lg-hicon svg { width: 22px; height: 22px; }
+.lg-title { font-size: 1.4rem; font-weight: 800; letter-spacing: -.02em; margin: 0; }
+.lg-sub   { font-size: .8rem; color: var(--text-muted); margin: .1rem 0 0; }
+
+.lg-clear-btn {
+    display: flex; align-items: center; gap: .4rem;
+    background: rgba(237,66,69,.1); color: #f27f81;
+    border: 1px solid rgba(237,66,69,.25); border-radius: 9px;
+    padding: .48rem 1rem; font-size: .82rem; font-weight: 600;
+    cursor: pointer; transition: background .2s, border-color .2s;
+}
+.lg-clear-btn:hover { background: rgba(237,66,69,.2); border-color: rgba(237,66,69,.5); }
+.lg-clear-btn svg { width: 14px; height: 14px; }
+
+/* ── Filters ──────────────────────────────────────────────────────────────── */
+.lg-filters {
+    display: flex; flex-wrap: wrap; gap: .45rem;
+    margin-bottom: 1.25rem;
+}
+.lg-chip {
+    display: inline-flex; align-items: center; gap: .4rem;
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 8px; padding: .38rem .85rem;
+    font-size: .8rem; font-weight: 600; color: var(--text-muted);
+    cursor: pointer; transition: all .2s; white-space: nowrap;
+}
+.lg-chip:hover { color: var(--text); border-color: rgba(88,101,242,.4); }
+.lg-chip.active {
+    background: rgba(88,101,242,.14);
+    border-color: rgba(88,101,242,.5);
+    color: #949cf7;
+}
+.lg-chip-n {
+    background: var(--bg3); color: var(--text-muted);
+    border-radius: 8px; padding: .05rem .45rem;
+    font-size: .7rem;
+}
+.lg-chip.active .lg-chip-n { background: rgba(88,101,242,.2); color: #949cf7; }
+
+/* ── Log list ─────────────────────────────────────────────────────────────── */
+.lg-list { display: flex; flex-direction: column; gap: .55rem; }
+
+.lg-entry {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1rem 1.25rem;
+    transition: border-color .18s;
+    border-left: 3px solid transparent;
+}
+.lg-entry[data-type="command_error"]     { border-left-color: #f27f81; }
+.lg-entry[data-type="component_error"]   { border-left-color: #F0A032; }
+.lg-entry[data-type="uncaught_exception"]{ border-left-color: #fe4e3c; }
+.lg-entry[data-type="unhandled_rejection"]{ border-left-color: #e94560; }
+.lg-entry:hover { border-color: rgba(88,101,242,.3); }
+
+.lg-entry-left {
+    display: flex; align-items: center; flex-wrap: wrap;
+    gap: .55rem; margin-bottom: .55rem;
+}
+.lg-badge {
+    display: inline-flex; align-items: center; gap: .35rem;
+    border-radius: 6px; padding: .22rem .7rem;
+    font-size: .72rem; font-weight: 700;
+}
+.lg-badge svg { width: 11px; height: 11px; }
+.lg-badge-command-error       { background: rgba(237,66,69,.14);  color: #f27f81; border: 1px solid rgba(237,66,69,.25); }
+.lg-badge-component-error     { background: rgba(240,160,50,.14); color: #F0A032; border: 1px solid rgba(240,160,50,.25); }
+.lg-badge-uncaught-exception  { background: rgba(254,78,60,.14);  color: #fe4e3c; border: 1px solid rgba(254,78,60,.25); }
+.lg-badge-unhandled-rejection { background: rgba(233,69,96,.14);  color: #e94560; border: 1px solid rgba(233,69,96,.25); }
+
+.lg-context {
+    font-size: .72rem; color: var(--text-muted);
+    background: var(--bg3); border-radius: 5px;
+    padding: .18rem .55rem;
+}
+.lg-ts {
+    font-size: .72rem; color: var(--text-muted);
+    margin-left: auto;
+}
+.lg-message {
+    font-size: .875rem; color: var(--text); font-weight: 500;
+    line-height: 1.5; word-break: break-word;
+    margin-bottom: .45rem;
+}
+
+.lg-details { margin-top: .2rem; }
+.lg-details summary {
+    display: inline-flex; align-items: center; gap: .35rem;
+    font-size: .75rem; color: var(--text-muted);
+    cursor: pointer; user-select: none; list-style: none;
+    transition: color .18s;
+}
+.lg-details summary:hover { color: var(--text); }
+.lg-details summary::-webkit-details-marker { display: none; }
+.lg-details[open] .lg-chevron { transform: rotate(90deg); }
+.lg-chevron { width: 12px; height: 12px; transition: transform .2s; flex-shrink: 0; }
+.lg-stack {
+    margin-top: .6rem; padding: .85rem 1rem;
+    background: var(--bg3); border-radius: 9px;
+    font-size: .72rem; color: var(--text-muted);
+    overflow-x: auto; white-space: pre-wrap; word-break: break-all;
+    line-height: 1.65;
+}
+
+/* ── Empty state ─────────────────────────────────────────────────────────── */
+.lg-empty {
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; gap: .5rem;
+    padding: 6rem 1rem; text-align: center;
+}
+.lg-empty-icon {
+    width: 72px; height: 72px; border-radius: 20px;
+    background: rgba(87,242,135,.1); color: #57F287;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: .5rem;
+}
+.lg-empty-icon svg { width: 32px; height: 32px; }
+.lg-empty-title { font-size: 1.05rem; font-weight: 700; color: var(--text); margin: 0; }
+.lg-empty-sub   { font-size: .83rem; color: var(--text-muted); margin: 0; }
+
+@media(max-width:520px) {
+    .lg-ts { margin-left: 0; width: 100%; }
+}
+</style>
+
+<script>
+const _lt = {
+    cleared: '<%= t("owner.logs_cleared") %>',
+    error:   '<%= t("owner.bl_error") %>',
+};
+
+function filterType(type, btn) {
+    document.querySelectorAll('.lg-chip').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('#lgList .lg-entry').forEach(el => {
+        el.style.display = (type === 'all' || el.dataset.type === type) ? '' : 'none';
+    });
+}
+
+async function clearLogs() {
+    if (!confirm('<%= t("owner.logs_clear") %>?')) return;
+    try {
+        const r = await fetch('/dev-console/logs/clear', { method: 'POST' });
+        const d = await r.json();
+        if (d.success) {
+            showMsg(null, _lt.cleared, 'success');
+            setTimeout(() => location.reload(), 800);
+        }
+    } catch {
+        showMsg(null, _lt.error, 'error');
+    }
+}
+</script>
+
+<%- include('../partials/footer') %>

@@ -3,6 +3,7 @@ const config = require("../../config");
 const { error } = require("../../utils/Console");
 const { MessageFlags } = require("discord.js");
 const { isDeveloper, createDMProxy } = require("../../utils/dmGuildProxy");
+const ErrorLogger = require("../../utils/ErrorLogger");
 
 class ComponentsListener {
     /**
@@ -39,6 +40,29 @@ class ComponentsListener {
                 return createDMProxy(interaction, selectedGuild);
             };
 
+            // Maintenance mode: blokir component interaction kecuali developer
+            if (client.database.get('maintenance-mode') === '1' && !isDeveloper(interaction.user.id)) {
+                if (!interaction.replied && !interaction.deferred) {
+                    await interaction.reply({
+                        content: config.messages.MAINTENANCE_MODE,
+                        flags: MessageFlags.Ephemeral
+                    }).catch(() => null);
+                }
+                return;
+            }
+
+            // Blacklist check
+            if (client.database.get(`blacklist-user-${interaction.user.id}`) === '1') {
+                if (!interaction.replied && !interaction.deferred)
+                    await interaction.reply({ content: config.messages.BLACKLISTED_USER, flags: MessageFlags.Ephemeral }).catch(() => null);
+                return;
+            }
+            if (interaction.guildId && client.database.get(`blacklist-guild-${interaction.guildId}`) === '1') {
+                if (!interaction.replied && !interaction.deferred)
+                    await interaction.reply({ content: config.messages.BLACKLISTED_GUILD, flags: MessageFlags.Ephemeral }).catch(() => null);
+                return;
+            }
+
             try {
                 if (interaction.isButton()) {
                     // Coba exact match dulu
@@ -56,7 +80,7 @@ class ComponentsListener {
                     const resolved = await resolveDMInteraction(interaction);
                     if (resolved === null) return;
 
-                    try { component.run(client, resolved); } catch (err) { error(err); }
+                    try { component.run(client, resolved); } catch (err) { error(err); ErrorLogger.log(client.database, 'component_error', err.message, err.stack, interaction.customId); }
                     return;
                 }
 
@@ -68,7 +92,7 @@ class ComponentsListener {
                     const resolved = await resolveDMInteraction(interaction);
                     if (resolved === null) return;
 
-                    try { component.run(client, resolved); } catch (err) { error(err); }
+                    try { component.run(client, resolved); } catch (err) { error(err); ErrorLogger.log(client.database, 'component_error', err.message, err.stack, interaction.customId); }
                     return;
                 }
 
@@ -87,7 +111,7 @@ class ComponentsListener {
                     const resolved = await resolveDMInteraction(interaction);
                     if (resolved === null) return;
 
-                    try { component.run(client, resolved); } catch (err) { error(err); }
+                    try { component.run(client, resolved); } catch (err) { error(err); ErrorLogger.log(client.database, 'component_error', err.message, err.stack, interaction.customId); }
                     return;
                 }
 

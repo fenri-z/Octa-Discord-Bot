@@ -33,6 +33,9 @@
                 </div>
                 <div class="nav-dropdown-divider"></div>
                 <a href="/dashboard" class="nav-dropdown-item"><i data-lucide="layout-grid"></i> <%= _t('nav.dashboard') %></a>
+                <% if (locals.isOwner) { %>
+                <a href="/dev-console" class="nav-dropdown-item nav-dropdown-owner"><i data-lucide="shield-check"></i> Dev Console</a>
+                <% } %>
                 <div class="nav-dropdown-divider"></div>
                 <div class="nav-dropdown-label"><i data-lucide="languages"></i> Language</div>
                 <a href="/lang/en" class="nav-dropdown-item<%= _lang === 'en' ? ' active' : '' %>">
@@ -73,6 +76,11 @@
 
 <!-- Overlay sidebar -->
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+<style>
+.nav-dropdown-owner { color: #7289da !important; font-weight: 600; }
+.nav-dropdown-owner svg { color: #7289da; }
+</style>
 
 <script>
 /* ── Sidebar safe area — hitung tinggi sidebar + padding bawah yang aman ──────

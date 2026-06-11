@@ -1,0 +1,62 @@
+<aside class="sidebar">
+    <!-- Dev Console branding -->
+    <div class="op-sb-header">
+        <div class="op-sb-icon"><i data-lucide="shield-check"></i></div>
+        <div class="op-sb-meta">
+            <div class="op-sb-name">Dev Console</div>
+            <div class="op-sb-sub">Bot Control Center</div>
+        </div>
+    </div>
+
+    <nav class="sidebar-nav">
+        <a href="/dev-console" class="sidebar-link<%= activePage === 'index' ? ' active' : '' %>">
+            <i data-lucide="layout-dashboard"></i> Overview
+        </a>
+
+        <span class="sidebar-group-label">Bot Management</span>
+        <a href="/dev-console/guilds" class="sidebar-sublink<%= activePage === 'guilds' ? ' active' : '' %>">
+            <i data-lucide="server"></i> Guild List
+        </a>
+        <a href="/dev-console/blacklist" class="sidebar-sublink<%= activePage === 'blacklist' ? ' active' : '' %>">
+            <i data-lucide="ban"></i> Blacklist
+        </a>
+
+        <span class="sidebar-group-label">Diagnostics</span>
+        <a href="/dev-console/logs" class="sidebar-sublink<%= activePage === 'logs' ? ' active' : '' %>">
+            <i data-lucide="bug"></i> Error Logs
+        </a>
+        <a href="/dev-console/database" class="sidebar-sublink<%= activePage === 'database' ? ' active' : '' %>">
+            <i data-lucide="database"></i> Database Viewer
+        </a>
+
+        <span class="sidebar-group-label">Tools</span>
+        <a href="/dev-console/commands" class="sidebar-sublink<%= activePage === 'commands' ? ' active' : '' %>">
+            <i data-lucide="terminal-square"></i> Command Manager
+        </a>
+        <a href="/dev-console/broadcast" class="sidebar-sublink<%= activePage === 'broadcast' ? ' active' : '' %>">
+            <i data-lucide="megaphone"></i> Broadcast
+        </a>
+        <a href="/dev-console/eval" class="sidebar-sublink<%= activePage === 'eval' ? ' active' : '' %>">
+            <i data-lucide="code-2"></i> Eval Console
+        </a>
+
+    </nav>
+</aside>
+
+<style>
+.op-sb-header {
+    display: flex; align-items: center; gap: .65rem;
+    padding: .35rem .5rem .85rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: .1rem;
+    flex-shrink: 0;
+}
+.op-sb-icon {
+    width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0;
+    background: rgba(88,101,242,.18); color: #7289da;
+    display: flex; align-items: center; justify-content: center;
+}
+.op-sb-icon svg { width: 18px; height: 18px; }
+.op-sb-name { font-size: .9rem; font-weight: 700; color: var(--text); line-height: 1.25; }
+.op-sb-sub  { font-size: .67rem; color: var(--text-muted); }
+</style>

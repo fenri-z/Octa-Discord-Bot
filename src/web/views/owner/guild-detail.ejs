@@ -1,0 +1,319 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+
+<div class="dash-layout">
+<%- include('../partials/owner-sidebar', { activePage: 'guilds' }) %>
+<main class="dash-main">
+
+    <a href="/dev-console/guilds" class="gd-back"><i data-lucide="arrow-left"></i> Guild List</a>
+
+    <!-- Header -->
+    <div class="gd-header">
+        <% if (guild.icon) { %>
+        <img src="<%= guild.icon %>" alt="<%= guild.name %>" class="gd-icon">
+        <% } else { %>
+        <div class="gd-icon-ph"><%= guild.name.charAt(0).toUpperCase() %></div>
+        <% } %>
+        <div class="gd-header-body">
+            <h1 class="gd-name"><%= guild.name %></h1>
+            <% if (guild.description) { %><p class="gd-desc"><%= guild.description %></p><% } %>
+            <div class="gd-meta">
+                <span><i data-lucide="hash"></i><code><%= guild.id %></code></span>
+                <span><i data-lucide="calendar"></i>Created <%= guild.createdAt %></span>
+                <span><i data-lucide="log-in"></i>Joined <%= guild.joinedAt %></span>
+                <% if (guild.ownerTag) { %>
+                <span>
+                    <% if (guild.ownerAvatar) { %><img src="<%= guild.ownerAvatar %>" class="gd-owner-av"><% } else { %><i data-lucide="crown"></i><% } %>
+                    <%= guild.ownerTag %>
+                </span>
+                <% } %>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats row -->
+    <div class="gd-stats">
+        <div class="gd-stat"><span class="gd-stat-v"><%= guild.memberCount.toLocaleString() %></span><span class="gd-stat-l"><i data-lucide="users"></i>Members</span></div>
+        <div class="gd-stat"><span class="gd-stat-v"><%= guild.channelCount %></span><span class="gd-stat-l"><i data-lucide="hash"></i>Channels</span></div>
+        <div class="gd-stat"><span class="gd-stat-v"><%= guild.roleCount %></span><span class="gd-stat-l"><i data-lucide="tag"></i>Roles</span></div>
+        <div class="gd-stat"><span class="gd-stat-v"><%= guild.boostCount %></span><span class="gd-stat-l"><i data-lucide="zap"></i>Boosts (Tier <%= guild.premiumTier %>)</span></div>
+        <div class="gd-stat"><span class="gd-stat-v"><%= guild.verificationLevel %></span><span class="gd-stat-l"><i data-lucide="shield"></i>Verification</span></div>
+    </div>
+
+    <!-- Tab nav -->
+    <div class="gd-tabs">
+        <button class="gd-tab active" onclick="gdTab('channels',this)"><i data-lucide="hash"></i> Channels</button>
+        <button class="gd-tab" onclick="gdTab('roles',this)"><i data-lucide="tag"></i> Roles</button>
+        <button class="gd-tab" onclick="gdTab('perms',this)"><i data-lucide="shield-check"></i> Bot Permissions</button>
+    </div>
+
+    <!-- ── Channels ─────────────────────────────────────────────────────── -->
+    <div id="gd-tab-channels" class="gd-pane">
+        <div class="gd-ch-list">
+            <!-- Uncategorized -->
+            <% uncategorized.forEach(function(ch) { %>
+            <div class="gd-ch">
+                <i data-lucide="<%= ch.icon %>" class="gd-ch-ic"></i>
+                <span class="gd-ch-nm"><%= ch.name %></span>
+                <% if (ch.nsfw) { %><span class="gd-badge gd-badge-nsfw">nsfw</span><% } %>
+            </div>
+            <% }); %>
+
+            <!-- Categories -->
+            <% categories.forEach(function(cat) { %>
+            <div class="gd-cat">
+                <div class="gd-cat-hd" onclick="this.closest('.gd-cat').classList.toggle('collapsed')">
+                    <i data-lucide="chevron-down" class="gd-cat-arrow"></i>
+                    <span class="gd-cat-nm"><%= cat.name.toUpperCase() %></span>
+                    <span class="gd-cat-cnt"><%= cat.channels.length %></span>
+                </div>
+                <div class="gd-cat-body">
+                    <% cat.channels.forEach(function(ch) { %>
+                    <div class="gd-ch gd-ch-indent">
+                        <i data-lucide="<%= ch.icon %>" class="gd-ch-ic"></i>
+                        <span class="gd-ch-nm"><%= ch.name %></span>
+                        <% if (ch.nsfw) { %><span class="gd-badge gd-badge-nsfw">nsfw</span><% } %>
+                    </div>
+                    <% }); %>
+                    <% if (cat.channels.length === 0) { %>
+                    <div class="gd-ch gd-ch-indent gd-ch-empty">No channels</div>
+                    <% } %>
+                </div>
+            </div>
+            <% }); %>
+
+            <% if (categories.length === 0 && uncategorized.length === 0) { %>
+            <div class="gd-empty"><i data-lucide="inbox"></i> No channels found</div>
+            <% } %>
+        </div>
+    </div>
+
+    <!-- ── Roles ────────────────────────────────────────────────────────── -->
+    <div id="gd-tab-roles" class="gd-pane" style="display:none;">
+        <% if (roles.length === 0) { %>
+        <div class="gd-empty"><i data-lucide="inbox"></i> No roles found</div>
+        <% } else { %>
+        <div class="gd-roles">
+            <% roles.forEach(function(role) { %>
+            <div class="gd-role">
+                <span class="gd-role-dot" style="background:<%= role.color || '#8e9297' %>"></span>
+                <span class="gd-role-nm" style="<%= role.color ? 'color:' + role.color : '' %>"><%= role.name %></span>
+                <% if (role.managed) { %><span class="gd-badge">bot</span><% } %>
+                <% if (role.hoist) { %><span class="gd-badge gd-badge-hoist">hoisted</span><% } %>
+                <span class="gd-role-cnt"><%= role.memberCount %></span>
+            </div>
+            <% }); %>
+        </div>
+        <% } %>
+    </div>
+
+    <!-- ── Bot Permissions ──────────────────────────────────────────────── -->
+    <div id="gd-tab-perms" class="gd-pane" style="display:none;">
+        <%
+        const hasAdmin = perms.find(p => p.key === 'Administrator')?.has;
+        %>
+        <% if (hasAdmin) { %>
+        <div class="gd-admin-notice">
+            <i data-lucide="shield-check"></i>
+            Bot has <strong>Administrator</strong> — all permissions are implicitly granted.
+        </div>
+        <% } %>
+        <div class="gd-perms">
+            <% perms.forEach(function(p) { %>
+            <div class="gd-perm <%= (p.has || hasAdmin) ? 'gd-perm-ok' : 'gd-perm-no' %> <%= p.danger && (p.has || hasAdmin) ? 'gd-perm-danger' : '' %>">
+                <i data-lucide="<%= (p.has || hasAdmin) ? 'check' : 'x' %>" class="gd-perm-ic"></i>
+                <span class="gd-perm-lbl"><%= p.label %></span>
+                <% if (p.danger) { %><i data-lucide="alert-triangle" class="gd-perm-warn" title="Sensitive permission"></i><% } %>
+            </div>
+            <% }); %>
+        </div>
+    </div>
+
+</main>
+</div>
+
+<style>
+.gd-back {
+    display: inline-flex; align-items: center; gap: .4rem;
+    font-size: .8rem; font-weight: 600; color: var(--text-muted);
+    text-decoration: none; margin-bottom: 1.25rem;
+    transition: color .15s;
+}
+.gd-back:hover { color: var(--text); }
+.gd-back svg { width: 14px; height: 14px; }
+
+/* Header */
+.gd-header {
+    display: flex; align-items: flex-start; gap: 1.1rem;
+    margin-bottom: 1.5rem;
+}
+.gd-icon {
+    width: 72px; height: 72px; border-radius: 18px;
+    object-fit: cover; border: 1px solid var(--border); flex-shrink: 0;
+}
+.gd-icon-ph {
+    width: 72px; height: 72px; border-radius: 18px; flex-shrink: 0;
+    background: var(--accent); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2rem; font-weight: 700;
+}
+.gd-name { font-size: 1.5rem; font-weight: 800; letter-spacing: -.02em; margin: 0 0 .3rem; }
+.gd-desc { font-size: .82rem; color: var(--text-muted); margin: 0 0 .5rem; }
+.gd-meta {
+    display: flex; flex-wrap: wrap; gap: .55rem .9rem;
+    font-size: .75rem; color: var(--text-muted);
+}
+.gd-meta span { display: flex; align-items: center; gap: .3rem; }
+.gd-meta svg { width: 12px; height: 12px; }
+.gd-meta code { font-size: .7rem; background: var(--bg3); padding: .1rem .35rem; border-radius: 4px; }
+.gd-owner-av { width: 16px; height: 16px; border-radius: 50%; }
+
+/* Stats */
+.gd-stats {
+    display: flex; flex-wrap: wrap; gap: .75rem;
+    margin-bottom: 1.5rem;
+}
+.gd-stat {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 12px; padding: .85rem 1.1rem;
+    display: flex; flex-direction: column; gap: .25rem;
+    flex: 1; min-width: 110px;
+}
+.gd-stat-v { font-size: 1.3rem; font-weight: 800; color: var(--text); line-height: 1; }
+.gd-stat-l {
+    display: flex; align-items: center; gap: .3rem;
+    font-size: .7rem; color: var(--text-muted); font-weight: 600;
+    text-transform: uppercase; letter-spacing: .06em;
+}
+.gd-stat-l svg { width: 11px; height: 11px; }
+
+/* Tabs */
+.gd-tabs {
+    display: flex; gap: .3rem; margin-bottom: 1.1rem;
+    border-bottom: 1px solid var(--border); padding-bottom: .6rem;
+}
+.gd-tab {
+    display: flex; align-items: center; gap: .35rem;
+    background: none; border: none; border-radius: 8px;
+    padding: .38rem .85rem; font-size: .82rem; font-weight: 600;
+    color: var(--text-muted); cursor: pointer;
+    transition: background .15s, color .15s;
+}
+.gd-tab svg { width: 14px; height: 14px; }
+.gd-tab:hover { background: var(--bg2); color: var(--text); }
+.gd-tab.active { background: rgba(88,101,242,.15); color: #949cf7; }
+
+/* Channels */
+.gd-ch-list { display: flex; flex-direction: column; }
+.gd-ch {
+    display: flex; align-items: center; gap: .5rem;
+    padding: .4rem .5rem; border-radius: 6px;
+    font-size: .85rem; color: var(--text-muted);
+    transition: background .12s;
+}
+.gd-ch:hover { background: rgba(88,101,242,.06); color: var(--text); }
+.gd-ch-ic { width: 16px; height: 16px; flex-shrink: 0; opacity: .7; }
+.gd-ch-nm { flex: 1; }
+.gd-ch-empty { font-style: italic; font-size: .78rem; opacity: .5; }
+.gd-ch-indent { padding-left: 1.5rem; }
+
+.gd-cat { margin-bottom: .15rem; }
+.gd-cat-hd {
+    display: flex; align-items: center; gap: .4rem;
+    padding: .5rem .5rem .35rem;
+    cursor: pointer; user-select: none;
+}
+.gd-cat-hd:hover .gd-cat-nm { color: var(--text); }
+.gd-cat-arrow { width: 14px; height: 14px; color: var(--text-muted); transition: transform .2s; flex-shrink: 0; }
+.gd-cat.collapsed .gd-cat-arrow { transform: rotate(-90deg); }
+.gd-cat.collapsed .gd-cat-body  { display: none; }
+.gd-cat-nm {
+    font-size: .68rem; font-weight: 700; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: .08em; flex: 1;
+    transition: color .15s;
+}
+.gd-cat-cnt {
+    font-size: .65rem; background: var(--bg3); color: var(--text-muted);
+    border-radius: 8px; padding: .05rem .4rem;
+}
+
+/* Badges */
+.gd-badge {
+    font-size: .62rem; font-weight: 700; border-radius: 4px;
+    padding: .1rem .4rem; background: var(--bg3);
+    color: var(--text-muted); text-transform: uppercase; letter-spacing: .04em;
+}
+.gd-badge-nsfw { background: rgba(237,66,69,.15); color: #f27f81; }
+.gd-badge-hoist { background: rgba(87,242,135,.12); color: #57F287; }
+
+/* Roles */
+.gd-roles {
+    display: flex; flex-direction: column; gap: .2rem;
+}
+.gd-role {
+    display: flex; align-items: center; gap: .55rem;
+    padding: .45rem .6rem; border-radius: 8px;
+    transition: background .12s; font-size: .875rem;
+}
+.gd-role:hover { background: var(--bg2); }
+.gd-role-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+.gd-role-nm { flex: 1; font-weight: 600; color: var(--text); }
+.gd-role-cnt { font-size: .72rem; color: var(--text-muted); margin-left: auto; }
+
+/* Admin notice */
+.gd-admin-notice {
+    display: flex; align-items: center; gap: .6rem;
+    background: rgba(87,242,135,.08); border: 1px solid rgba(87,242,135,.25);
+    border-radius: 10px; padding: .75rem 1rem;
+    font-size: .82rem; color: #57F287; margin-bottom: 1rem;
+}
+.gd-admin-notice svg { width: 16px; height: 16px; flex-shrink: 0; }
+.gd-admin-notice strong { font-weight: 700; }
+
+/* Permissions grid */
+.gd-perms {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: .5rem;
+}
+.gd-perm {
+    display: flex; align-items: center; gap: .55rem;
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 9px; padding: .6rem .85rem;
+    font-size: .82rem;
+}
+.gd-perm-ok  { border-color: rgba(87,242,135,.2);  }
+.gd-perm-no  { opacity: .55; }
+.gd-perm-danger { border-color: rgba(240,160,50,.3); background: rgba(240,160,50,.05); }
+.gd-perm-ic { width: 15px; height: 15px; flex-shrink: 0; }
+.gd-perm-ok  .gd-perm-ic { color: #57F287; }
+.gd-perm-no  .gd-perm-ic { color: #ED4245; }
+.gd-perm-lbl { flex: 1; color: var(--text); font-weight: 500; }
+.gd-perm-warn { width: 13px; height: 13px; color: #F0A032; flex-shrink: 0; }
+
+.gd-empty {
+    display: flex; align-items: center; gap: .6rem;
+    color: var(--text-muted); font-size: .88rem;
+    padding: 2.5rem 1rem; justify-content: center;
+}
+.gd-empty svg { width: 22px; height: 22px; opacity: .35; }
+
+@media(max-width:600px) {
+    .gd-header { flex-direction: column; }
+    .gd-icon, .gd-icon-ph { width: 56px; height: 56px; border-radius: 14px; }
+    .gd-name { font-size: 1.25rem; }
+    .gd-stat { min-width: calc(50% - .375rem); }
+}
+</style>
+
+<script>
+function gdTab(name, btn) {
+    document.querySelectorAll('.gd-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.gd-pane').forEach(p => p.style.display = 'none');
+    document.getElementById('gd-tab-' + name).style.display = '';
+    if (window.lucide) lucide.createIcons();
+}
+</script>
+
+<%- include('../partials/footer') %>

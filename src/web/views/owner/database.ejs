@@ -1,0 +1,673 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+
+<div class="dash-layout">
+<%- include('../partials/owner-sidebar', { activePage: 'database' }) %>
+<main class="dash-main">
+
+    <!-- ── Header ──────────────────────────────────────────────────────────── -->
+    <div class="dv-header">
+        <div class="dv-header-left">
+            <div class="dv-hicon"><i data-lucide="database"></i></div>
+            <div>
+                <h1 class="dv-title"><%= t('owner.db_title') %></h1>
+                <p class="dv-sub" id="dvSubtitle"><%= entries.length.toLocaleString() %> <%= t('owner.db_entries') %></p>
+            </div>
+        </div>
+        <input type="text" id="dvSearch" class="input dv-search" placeholder="<%= t('owner.db_search_ph') %>" data-flt-ignore>
+    </div>
+
+    <!-- ── Add Entry ────────────────────────────────────────────────────────── -->
+    <div class="dv-add-card" data-flt-ignore>
+        <div class="dv-add-inner">
+            <div class="dv-add-icon"><i data-lucide="plus-circle"></i></div>
+            <input type="text" id="dvNewKey"   class="input dv-input-key"   placeholder="<%= t('owner.db_add_key_ph') %>" autocomplete="off" spellcheck="false">
+            <input type="text" id="dvNewValue" class="input dv-input-val"   placeholder="<%= t('owner.db_add_val_ph') %>" autocomplete="off" spellcheck="false">
+            <button class="btn btn-primary dv-add-btn" id="dvAddBtn" onclick="addEntry()">
+                <i data-lucide="plus"></i> <span><%= t('owner.db_add_btn') %></span>
+            </button>
+        </div>
+    </div>
+
+    <!-- ── Table ────────────────────────────────────────────────────────────── -->
+    <% if (entries.length === 0) { %>
+        <div class="dv-empty">
+            <i data-lucide="inbox"></i>
+            <p><%= t('owner.db_empty') %></p>
+        </div>
+    <% } else { %>
+        <div class="dv-table-card">
+            <div class="dv-table-head">
+                <div class="dv-th dv-th-key">Key</div>
+                <div class="dv-th dv-th-val">Value</div>
+                <div class="dv-th dv-th-act"></div>
+            </div>
+            <div class="dv-table-body" id="dvTableBody">
+                <% entries.forEach(function(entry) {
+                    const keyPrefix = (function(k) {
+                        if (k.startsWith('blacklist-user-'))  return 'bl-user';
+                        if (k.startsWith('blacklist-guild-')) return 'bl-guild';
+                        if (k.startsWith('bot-'))             return 'bot';
+                        if (k.startsWith('maintenance'))      return 'sys';
+                        if (k.startsWith('youtube-'))         return 'yt';
+                        if (k.startsWith('tiktok-'))          return 'tt';
+                        if (k.startsWith('dm-guild-'))        return 'dm';
+                        if (k.startsWith('prefix-'))          return 'prefix';
+                        if (k.startsWith('error-'))           return 'err';
+                        return 'other';
+                    })(entry.key);
+                    const valShort = entry.value.length > 90 ? entry.value.slice(0, 90) : null;
+                %>
+                <div class="dv-row" data-key="<%= entry.key %>" data-prefix="<%= keyPrefix %>">
+                    <div class="dv-td dv-td-key">
+                        <span class="dv-prefix-badge dv-pfx-<%= keyPrefix %>"><%= keyPrefix.toUpperCase() %></span>
+                        <code class="dv-key-text" title="<%= entry.key %>"><%= entry.key %></code>
+                    </div>
+                    <div class="dv-td dv-td-val">
+                        <span class="dv-val-text" data-full="<%= entry.value %>" data-truncated="<%= valShort !== null %>"><%= valShort ? valShort + '…' : entry.value %><% if (valShort) { %><button class="dv-expand-btn" onclick="toggleVal(this)"><i data-lucide="chevrons-right"></i></button><% } %></span>
+                        <textarea class="input dv-val-input" style="display:none;" data-flt-ignore spellcheck="false"><%= entry.value %></textarea>
+                    </div>
+                    <div class="dv-td dv-td-act">
+                        <button class="dv-btn dv-btn-edit"   onclick="startEdit(this)"  title="<%= t('owner.db_save') %>"><i data-lucide="pencil"></i></button>
+                        <button class="dv-btn dv-btn-save"   onclick="saveEntry(this)"  style="display:none;" title="<%= t('owner.db_save') %>"><i data-lucide="check"></i></button>
+                        <button class="dv-btn dv-btn-cancel" onclick="cancelEdit(this)" style="display:none;"><i data-lucide="x"></i></button>
+                        <button class="dv-btn dv-btn-delete" onclick="deleteEntry(this)" title="<%= t('owner.db_delete') %>"><i data-lucide="trash-2"></i></button>
+                    </div>
+                </div>
+                <% }); %>
+            </div>
+            <!-- ── Pagination ─────────────────────────────────────────── -->
+            <div class="dv-pagination" id="dvPagination" style="display:none;">
+                <div class="dv-pg-info" id="dvPgInfo"></div>
+                <div class="dv-pg-controls">
+                    <button class="dv-pg-btn" id="dvPgPrev" onclick="_dvGoPage(_dvPage-1)"><i data-lucide="chevron-left"></i></button>
+                    <div class="dv-pg-pages" id="dvPgPages"></div>
+                    <button class="dv-pg-btn" id="dvPgNext" onclick="_dvGoPage(_dvPage+1)"><i data-lucide="chevron-right"></i></button>
+                </div>
+                <select class="dv-pg-size" id="dvPgSize" data-flt-ignore onchange="_dvPageSize=+this.value;_dvPage=1;_renderPage()">
+                    <option value="25">25 / page</option>
+                    <option value="50">50 / page</option>
+                    <option value="100">100 / page</option>
+                </select>
+            </div>
+        </div>
+        <div class="dv-empty dv-search-empty" id="dvNoMatch" style="display:none;">
+            <i data-lucide="search-x"></i>
+            <p><%= t('owner.db_search_ph') %></p>
+        </div>
+    <% } %>
+</main>
+</div>
+
+<style>
+/* ── Header ──────────────────────────────────────────────────────────────── */
+.dv-header {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem;
+}
+.dv-header-left { display: flex; align-items: center; gap: .9rem; flex: 1; min-width: 0; }
+.dv-hicon {
+    width: 46px; height: 46px; border-radius: 13px; flex-shrink: 0;
+    background: rgba(88,101,242,.18); color: #7289da;
+    display: flex; align-items: center; justify-content: center;
+}
+.dv-hicon svg { width: 22px; height: 22px; }
+.dv-title { font-size: 1.4rem; font-weight: 800; letter-spacing: -.02em; margin: 0; }
+.dv-sub   { font-size: .8rem; color: var(--text-muted); margin: .1rem 0 0; }
+.dv-search { width: 260px; font-size: .85rem; }
+@media(max-width:640px) {
+    .dv-header { flex-direction: column; align-items: flex-start; }
+    .dv-search { width: 100%; }
+}
+
+/* ── Add form ────────────────────────────────────────────────────────────── */
+.dv-add-card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 14px; padding: 1rem 1.25rem;
+    margin-bottom: 1.25rem;
+}
+.dv-add-inner {
+    display: flex; align-items: center; gap: .65rem; flex-wrap: wrap;
+}
+.dv-add-icon { color: var(--text-muted); flex-shrink: 0; }
+.dv-add-icon svg { width: 18px; height: 18px; }
+.dv-input-key { flex: 0 0 280px; min-width: 140px; font-family: monospace; font-size: .83rem; }
+.dv-input-val { flex: 1; min-width: 140px; font-family: monospace; font-size: .83rem; }
+.dv-add-btn   { flex-shrink: 0; display: flex; align-items: center; gap: .4rem; }
+@media(max-width:600px) {
+    .dv-input-key, .dv-input-val { flex: 1 1 100%; }
+    .dv-add-btn { width: 100%; justify-content: center; }
+}
+
+/* ── Table card ──────────────────────────────────────────────────────────── */
+.dv-table-card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 14px; overflow: hidden;
+}
+.dv-table-head {
+    display: grid;
+    grid-template-columns: minmax(200px, 360px) 1fr 104px;
+    gap: 0;
+    background: var(--bg3);
+    border-bottom: 1px solid var(--border);
+    padding: 0;
+}
+.dv-th {
+    padding: .6rem 1rem;
+    font-size: .7rem; font-weight: 700;
+    color: var(--text-muted); text-transform: uppercase; letter-spacing: .06em;
+}
+.dv-th-act { text-align: right; }
+
+.dv-table-body { display: flex; flex-direction: column; }
+
+.dv-row {
+    display: grid;
+    grid-template-columns: minmax(200px, 360px) 1fr 104px;
+    border-bottom: 1px solid var(--border);
+    transition: background .15s, border-color .15s, box-shadow .15s;
+    min-height: 44px;
+}
+.dv-row:last-child { border-bottom: none; }
+.dv-row:hover:not(.is-editing) { background: rgba(88,101,242,.04); }
+
+/* Edit mode — expands to 2-row layout */
+.dv-row.is-editing {
+    grid-template-columns: 1fr auto;
+    grid-template-rows: auto auto;
+    background: rgba(88,101,242,.06);
+    border-color: rgba(88,101,242,.4);
+    box-shadow: inset 3px 0 0 rgba(88,101,242,.7);
+}
+.dv-row.is-editing .dv-td-key {
+    grid-column: 1; grid-row: 1;
+    border-right: none;
+    border-bottom: 1px solid rgba(88,101,242,.2);
+}
+.dv-row.is-editing .dv-td-val {
+    grid-column: 1 / -1; grid-row: 2;
+    border-right: none; border-top: none;
+    padding: .6rem 1rem .75rem;
+}
+.dv-row.is-editing .dv-td-act {
+    grid-column: 2; grid-row: 1;
+    border-right: none;
+    border-bottom: 1px solid rgba(88,101,242,.2);
+    align-self: center;
+}
+
+.dv-td {
+    padding: .65rem 1rem;
+    display: flex; align-items: center;
+    min-width: 0;
+    border-right: 1px solid var(--border);
+}
+.dv-td:last-child { border-right: none; }
+
+/* Key cell */
+.dv-td-key { gap: .55rem; overflow: hidden; }
+.dv-key-text {
+    font-size: .78rem; color: var(--text-muted);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    cursor: default; flex: 1; min-width: 0;
+}
+
+/* Prefix badges */
+.dv-prefix-badge {
+    flex-shrink: 0; font-size: .6rem; font-weight: 800;
+    padding: .1rem .42rem; border-radius: 4px; letter-spacing: .04em;
+}
+.dv-pfx-bl-user  { background: rgba(237,66,69,.18);  color: #f27f81; }
+.dv-pfx-bl-guild { background: rgba(237,66,69,.12);  color: #ed9090; }
+.dv-pfx-bot      { background: rgba(88,101,242,.2);  color: #949cf7; }
+.dv-pfx-sys      { background: rgba(254,204,60,.15); color: #fecc3c; }
+.dv-pfx-yt       { background: rgba(255,60,60,.18);  color: #ff6060; }
+.dv-pfx-tt       { background: rgba(233,69,140,.18); color: #e9458c; }
+.dv-pfx-dm       { background: rgba(87,242,135,.15); color: #57F287; }
+.dv-pfx-prefix   { background: rgba(148,92,246,.18); color: #9a6df0; }
+.dv-pfx-err      { background: rgba(237,66,69,.18);  color: #f27f81; }
+.dv-pfx-other    { background: var(--bg3); color: var(--text-muted); }
+
+/* Value cell */
+.dv-td-val { gap: .5rem; overflow: hidden; }
+.dv-val-text {
+    font-family: monospace; font-size: .8rem; color: var(--text);
+    word-break: break-all; line-height: 1.5;
+    display: flex; align-items: center; gap: .35rem; flex-wrap: wrap;
+    flex: 1; min-width: 0;
+}
+.dv-expand-btn {
+    flex-shrink: 0; background: none; border: none; cursor: pointer;
+    color: var(--accent); padding: 0; display: inline-flex;
+    transition: color .15s;
+}
+.dv-expand-btn:hover { color: #7289da; }
+.dv-expand-btn svg { width: 13px; height: 13px; }
+.dv-expand-btn.expanded { transform: rotate(180deg); }
+.dv-val-input {
+    font-size: .82rem; font-family: monospace; width: 100%;
+    border-color: rgba(88,101,242,.5) !important;
+    box-shadow: 0 0 0 2px rgba(88,101,242,.12);
+    background: var(--bg3) !important;
+    resize: none; overflow: hidden; min-height: 38px;
+    line-height: 1.6; display: block;
+}
+
+/* Action cell */
+.dv-td-act { justify-content: flex-end; gap: .3rem; padding: .5rem .75rem; }
+.dv-btn {
+    width: 30px; height: 30px; border-radius: 7px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    border: 1px solid transparent; background: transparent;
+    cursor: pointer; transition: all .18s;
+}
+.dv-btn svg { width: 13px; height: 13px; }
+.dv-btn-edit   { color: var(--text-muted); }
+.dv-btn-edit:hover   { color: var(--text);   background: var(--bg3); border-color: var(--border); }
+.dv-btn-save   { color: #57F287; }
+.dv-btn-save:hover   { background: rgba(87,242,135,.12); border-color: rgba(87,242,135,.3); }
+.dv-btn-cancel { color: var(--text-muted); }
+.dv-btn-cancel:hover { background: var(--bg3); border-color: var(--border); }
+.dv-btn-delete { color: var(--text-muted); }
+.dv-btn-delete:hover { color: #f27f81; background: rgba(237,66,69,.1); border-color: rgba(237,66,69,.3); }
+.dv-btn:disabled { opacity: .45; cursor: default; }
+
+/* Empty */
+.dv-empty {
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; gap: .75rem;
+    padding: 5rem 1rem; color: var(--text-muted); font-size: .9rem;
+    text-align: center;
+}
+.dv-empty svg { width: 44px; height: 44px; opacity: .3; }
+
+/* Responsive: collapse table columns */
+@media(max-width:900px) {
+    .dv-table-head { display: none; }
+    .dv-row { grid-template-columns: 1fr auto; grid-template-rows: auto auto; }
+    .dv-td-key { grid-column: 1; grid-row: 1; border-right: none; border-bottom: 1px solid var(--border); padding-bottom: .5rem; }
+    .dv-td-val { grid-column: 1; grid-row: 2; border-right: none; }
+    .dv-td-act { grid-column: 2; grid-row: 1 / 3; align-self: center; border-right: none; }
+}
+@media(max-width:560px) {
+    .dv-row { grid-template-columns: 1fr; grid-template-rows: auto auto auto; }
+    .dv-td-act { grid-column: 1; grid-row: 3; justify-content: flex-start; border-top: 1px solid var(--border); }
+}
+
+/* Spin animation */
+@keyframes _dvspin { to { transform: rotate(360deg); } }
+.dv-spin { animation: _dvspin .8s linear infinite; display: inline-block; }
+
+/* ── Pagination ───────────────────────────────────────────────────────────── */
+.dv-pagination {
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: .65rem;
+    padding: .7rem 1rem;
+    border-top: 1px solid var(--border);
+    background: var(--bg3);
+}
+.dv-pg-info { font-size: .74rem; color: var(--text-muted); white-space: nowrap; }
+.dv-pg-controls { display: flex; align-items: center; gap: .2rem; }
+.dv-pg-pages    { display: flex; align-items: center; gap: .2rem; flex-wrap: wrap; }
+.dv-pg-btn {
+    min-width: 30px; height: 30px; padding: 0 .45rem;
+    border-radius: 7px; background: transparent;
+    border: 1px solid transparent; color: var(--text-muted);
+    font-size: .8rem; font-weight: 600; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all .15s;
+}
+.dv-pg-btn svg { width: 13px; height: 13px; }
+.dv-pg-btn:hover:not(:disabled) { background: var(--bg2); border-color: var(--border); color: var(--text); }
+.dv-pg-btn:disabled { opacity: .35; cursor: default; }
+.dv-pg-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.dv-pg-ellipsis {
+    min-width: 30px; height: 30px; display: flex; align-items: center;
+    justify-content: center; font-size: .8rem; color: var(--text-muted);
+}
+.dv-pg-size {
+    height: 30px; background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 7px; padding: 0 .5rem; font-size: .74rem;
+    color: var(--text-muted); cursor: pointer; outline: none;
+}
+.dv-pg-size:focus { border-color: rgba(88,101,242,.5); }
+@media(max-width:560px) {
+    .dv-pagination { justify-content: center; }
+    .dv-pg-info { width: 100%; text-align: center; }
+}
+</style>
+
+<script>
+const _dbt = {
+    saved:   '<%= t("owner.db_saved") %>',
+    deleted: '<%= t("owner.db_deleted") %>',
+    error:   '<%= t("owner.bl_error") %>',
+    addBtn:  '<%= t("owner.db_add_btn") %>',
+    entries: '<%= t("owner.db_entries") %>',
+};
+
+// HTML escape helpers — required when writing into innerHTML
+const _esc     = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const _escAttr = s => _esc(s).replace(/"/g,'&quot;');
+
+// Auto-resize textarea to fit its content
+function _autoResize(ta) {
+    ta.style.height = 'auto';
+    ta.style.height = ta.scrollHeight + 'px';
+}
+document.addEventListener('input', e => {
+    if (e.target.classList.contains('dv-val-input')) _autoResize(e.target);
+});
+
+// ── Expand/collapse long values ───────────────────────────────────────────
+function toggleVal(btn) {
+    const span = btn.closest('.dv-val-text');
+    const full  = span.dataset.full || '';
+    const isTruncated = span.dataset.truncated === 'true';
+
+    if (isTruncated) {
+        // Expand: show full value
+        span.dataset.truncated = 'false';
+        // replace the text node before the button
+        const textNodes = [...span.childNodes].filter(n => n.nodeType === Node.TEXT_NODE);
+        textNodes.forEach(n => n.remove());
+        span.insertBefore(document.createTextNode(full), btn);
+        btn.classList.add('expanded');
+        btn.innerHTML = '<i data-lucide="chevrons-left"></i>';
+    } else {
+        // Collapse
+        span.dataset.truncated = 'true';
+        const textNodes = [...span.childNodes].filter(n => n.nodeType === Node.TEXT_NODE);
+        textNodes.forEach(n => n.remove());
+        span.insertBefore(document.createTextNode(full.slice(0, 90) + '…'), btn);
+        btn.classList.remove('expanded');
+        btn.innerHTML = '<i data-lucide="chevrons-right"></i>';
+    }
+    if (window.lucide) lucide.createIcons();
+}
+
+// ── Inline edit ───────────────────────────────────────────────────────────
+function startEdit(btn) {
+    const row   = btn.closest('.dv-row');
+    const span  = row.querySelector('.dv-val-text');
+    const input = row.querySelector('.dv-val-input');
+
+    // Sync input from the authoritative data-full attribute (full, unescaped value)
+    input.value = span.dataset.full ?? input.value;
+
+    row.classList.add('is-editing');
+    span.style.display  = 'none';
+    input.style.display = '';
+    _autoResize(input);
+    input.focus();
+    input.setSelectionRange(0, input.value.length);
+
+    row.querySelector('.dv-btn-edit').style.display   = 'none';
+    row.querySelector('.dv-btn-save').style.display   = '';
+    row.querySelector('.dv-btn-cancel').style.display = '';
+}
+
+function cancelEdit(btn) {
+    const row   = btn.closest('.dv-row');
+    const span  = row.querySelector('.dv-val-text');
+    const input = row.querySelector('.dv-val-input');
+
+    // Reset input to the saved value so next edit starts fresh
+    input.value = span.dataset.full ?? input.value;
+
+    row.classList.remove('is-editing');
+    span.style.display  = '';
+    input.style.display = 'none';
+    row.querySelector('.dv-btn-edit').style.display   = '';
+    row.querySelector('.dv-btn-save').style.display   = 'none';
+    row.querySelector('.dv-btn-cancel').style.display = 'none';
+}
+
+async function saveEntry(btn) {
+    const row   = btn.closest('.dv-row');
+    const key   = row.dataset.key;
+    const value = row.querySelector('.dv-val-input').value;
+
+    btn.disabled = true;
+    try {
+        const r = await fetch('/dev-console/database/set', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ key, value }),
+        });
+        const d = await r.json();
+        if (!d.success) { showMsg(null, d.message, 'error'); return; }
+
+        // Update display
+        const span = row.querySelector('.dv-val-text');
+        const short = value.length > 90;
+        span.dataset.full      = value;
+        span.dataset.truncated = String(short);
+        span.innerHTML = (short ? _esc(value.slice(0, 90)) + '…' : _esc(value))
+            + (short ? '<button class="dv-expand-btn" onclick="toggleVal(this)"><i data-lucide="chevrons-right"></i></button>' : '');
+        if (window.lucide) lucide.createIcons();
+
+        row.querySelector('.dv-val-input').value = value;
+        showMsg(null, _dbt.saved, 'success');
+        cancelEdit(btn);
+    } catch {
+        showMsg(null, _dbt.error, 'error');
+    } finally {
+        btn.disabled = false;
+    }
+}
+
+async function deleteEntry(btn) {
+    const row = btn.closest('.dv-row');
+    const key = row.dataset.key;
+    if (!confirm(`Delete "${key}"?`)) return;
+
+    btn.disabled = true;
+    try {
+        const r = await fetch(`/dev-console/database/delete/${encodeURIComponent(key)}`, { method: 'POST' });
+        const d = await r.json();
+        if (!d.success) { showMsg(null, d.message, 'error'); btn.disabled = false; return; }
+        row.remove();
+        _updateCount();
+        showMsg(null, _dbt.deleted, 'success');
+    } catch {
+        showMsg(null, _dbt.error, 'error');
+        btn.disabled = false;
+    }
+}
+
+// ── Add entry ─────────────────────────────────────────────────────────────
+function _prefixClass(k) {
+    if (k.startsWith('blacklist-user-'))  return 'bl-user';
+    if (k.startsWith('blacklist-guild-')) return 'bl-guild';
+    if (k.startsWith('bot-'))             return 'bot';
+    if (k.startsWith('maintenance'))      return 'sys';
+    if (k.startsWith('youtube-'))         return 'yt';
+    if (k.startsWith('tiktok-'))          return 'tt';
+    if (k.startsWith('dm-guild-'))        return 'dm';
+    if (k.startsWith('prefix-'))          return 'prefix';
+    if (k.startsWith('error-'))           return 'err';
+    return 'other';
+}
+
+async function addEntry() {
+    const keyEl  = document.getElementById('dvNewKey');
+    const valEl  = document.getElementById('dvNewValue');
+    const addBtn = document.getElementById('dvAddBtn');
+    const key    = keyEl.value.trim();
+    const value  = valEl.value;
+
+    if (!key) { showMsg(null, 'Key is required.', 'error'); keyEl.focus(); return; }
+
+    addBtn.disabled = true;
+    addBtn.innerHTML = '<i data-lucide="loader-2" class="dv-spin"></i>';
+    if (window.lucide) lucide.createIcons();
+
+    try {
+        const r = await fetch('/dev-console/database/set', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ key, value }),
+        });
+        const d = await r.json();
+        if (!d.success) { showMsg(null, d.message, 'error'); return; }
+
+        const body = document.getElementById('dvTableBody');
+        const existing = body?.querySelector(`[data-key="${CSS.escape(key)}"]`);
+
+        if (existing) {
+            const span = existing.querySelector('.dv-val-text');
+            const short = value.length > 90;
+            span.dataset.full = value;
+            span.dataset.truncated = String(short);
+            span.innerHTML = (short ? _esc(value.slice(0, 90)) + '…' : _esc(value))
+                + (short ? '<button class="dv-expand-btn" onclick="toggleVal(this)"><i data-lucide="chevrons-right"></i></button>' : '');
+            existing.querySelector('.dv-val-input').value = value;
+            if (window.lucide) lucide.createIcons();
+        } else if (body) {
+            const pfx   = _prefixClass(key);
+            const short = value.length > 90;
+            const row   = document.createElement('div');
+            row.className = 'dv-row';
+            row.dataset.key = key;
+            row.dataset.prefix = pfx;
+            row.innerHTML = `
+                <div class="dv-td dv-td-key">
+                    <span class="dv-prefix-badge dv-pfx-${pfx}">${pfx.toUpperCase()}</span>
+                    <code class="dv-key-text" title="${_escAttr(key)}">${_esc(key)}</code>
+                </div>
+                <div class="dv-td dv-td-val">
+                    <span class="dv-val-text" data-full="${_escAttr(value)}" data-truncated="${short}">${short ? _esc(value.slice(0,90))+'…' : _esc(value)}${short ? '<button class="dv-expand-btn" onclick="toggleVal(this)"><i data-lucide="chevrons-right"></i></button>' : ''}</span>
+                    <textarea class="input dv-val-input" style="display:none;" data-flt-ignore>${_esc(value)}</textarea>
+                </div>
+                <div class="dv-td dv-td-act">
+                    <button class="dv-btn dv-btn-edit"   onclick="startEdit(this)"><i data-lucide="pencil"></i></button>
+                    <button class="dv-btn dv-btn-save"   onclick="saveEntry(this)"  style="display:none;"><i data-lucide="check"></i></button>
+                    <button class="dv-btn dv-btn-cancel" onclick="cancelEdit(this)" style="display:none;"><i data-lucide="x"></i></button>
+                    <button class="dv-btn dv-btn-delete" onclick="deleteEntry(this)"><i data-lucide="trash-2"></i></button>
+                </div>`;
+            body.appendChild(row);
+            if (window.lucide) lucide.createIcons();
+        } else {
+            location.reload(); return;
+        }
+
+        keyEl.value = '';
+        valEl.value = '';
+        _updateCount();
+        showMsg(null, _dbt.saved, 'success');
+    } catch {
+        showMsg(null, _dbt.error, 'error');
+    } finally {
+        addBtn.disabled = false;
+        addBtn.innerHTML = `<i data-lucide="plus"></i> <span>${_dbt.addBtn}</span>`;
+        if (window.lucide) lucide.createIcons();
+    }
+}
+
+// ── Pagination state ──────────────────────────────────────────────────────
+let _dvPage = 1, _dvPageSize = 25, _searchQuery = '';
+
+function _dvGoPage(p) {
+    const rows     = [...document.querySelectorAll('#dvTableBody .dv-row')];
+    const filtered = _searchQuery ? rows.filter(r => r.dataset.key.toLowerCase().includes(_searchQuery)) : rows;
+    const total    = Math.max(1, Math.ceil(filtered.length / _dvPageSize));
+    _dvPage = Math.max(1, Math.min(p, total));
+    _renderPage();
+}
+
+function _renderPage() {
+    const rows     = [...document.querySelectorAll('#dvTableBody .dv-row')];
+    const filtered = _searchQuery ? rows.filter(r => r.dataset.key.toLowerCase().includes(_searchQuery)) : rows;
+    const totalF   = filtered.length;
+    const totalPg  = Math.max(1, Math.ceil(totalF / _dvPageSize));
+    if (_dvPage > totalPg) _dvPage = totalPg;
+
+    const start = (_dvPage - 1) * _dvPageSize;
+    const end   = start + _dvPageSize;
+    rows.forEach(r => r.style.display = 'none');
+    filtered.slice(start, end).forEach(r => r.style.display = '');
+
+    // No-match empty state
+    const noMatch = document.getElementById('dvNoMatch');
+    if (noMatch) noMatch.style.display = totalF === 0 ? 'flex' : 'none';
+
+    // Subtitle
+    const sub = document.getElementById('dvSubtitle');
+    if (sub) {
+        const s = start + 1, e = Math.min(end, totalF);
+        sub.textContent = totalF === rows.length
+            ? `${rows.length.toLocaleString()} ${_dbt.entries}`
+            : `${s.toLocaleString()}–${e.toLocaleString()} / ${totalF.toLocaleString()} ${_dbt.entries}`;
+    }
+
+    // Pagination bar
+    const pg = document.getElementById('dvPagination');
+    if (!pg) return;
+    pg.style.display = totalF <= _dvPageSize ? 'none' : '';
+
+    const infoEl = document.getElementById('dvPgInfo');
+    if (infoEl) infoEl.textContent = totalF > 0
+        ? `${(start+1).toLocaleString()}–${Math.min(end,totalF).toLocaleString()} of ${totalF.toLocaleString()}`
+        : '';
+
+    const prevBtn = document.getElementById('dvPgPrev');
+    const nextBtn = document.getElementById('dvPgNext');
+    if (prevBtn) prevBtn.disabled = _dvPage <= 1;
+    if (nextBtn) nextBtn.disabled = _dvPage >= totalPg;
+
+    const pagesEl = document.getElementById('dvPgPages');
+    if (pagesEl) {
+        pagesEl.innerHTML = '';
+        _pgRange(_dvPage, totalPg).forEach(p => {
+            if (p === '…') {
+                const s = document.createElement('span');
+                s.className = 'dv-pg-ellipsis'; s.textContent = '…';
+                pagesEl.appendChild(s);
+            } else {
+                const b = document.createElement('button');
+                b.className = 'dv-pg-btn dv-pg-num' + (p === _dvPage ? ' active' : '');
+                b.textContent = p;
+                b.onclick = () => _dvGoPage(p);
+                pagesEl.appendChild(b);
+            }
+        });
+    }
+    if (window.lucide) lucide.createIcons();
+}
+
+function _pgRange(cur, total) {
+    if (total <= 7) return Array.from({length: total}, (_, i) => i + 1);
+    if (cur <= 4)          return [1, 2, 3, 4, 5, '…', total];
+    if (cur >= total - 3)  return [1, '…', total-4, total-3, total-2, total-1, total];
+    return [1, '…', cur-1, cur, cur+1, '…', total];
+}
+
+function _updateCount() { _renderPage(); }
+
+// ── Search ────────────────────────────────────────────────────────────────
+document.getElementById('dvSearch')?.addEventListener('input', function () {
+    _searchQuery = this.value.toLowerCase().trim();
+    _dvPage = 1;
+    _renderPage();
+});
+
+// ── Keyboard shortcuts ────────────────────────────────────────────────────
+document.getElementById('dvNewValue')?.addEventListener('keydown', e => { if (e.key === 'Enter') addEntry(); });
+document.getElementById('dvNewKey')?.addEventListener('keydown',   e => { if (e.key === 'Enter') document.getElementById('dvNewValue')?.focus(); });
+document.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+        const s = document.querySelector('.dv-row.is-editing .dv-btn-save');
+        if (s) s.click();
+    }
+    if (e.key === 'Escape') {
+        const c = document.querySelector('.dv-row.is-editing .dv-btn-cancel');
+        if (c) c.click();
+    }
+});
+
+// Initialize pagination on load
+_renderPage();
+</script>
+
+<%- include('../partials/footer') %>

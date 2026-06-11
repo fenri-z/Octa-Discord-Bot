@@ -317,7 +317,7 @@ code {
 .feature-card p  { font-size: .85rem; color: var(--text-muted); line-height: 1.5; }
 
 /* ── Page container (generic) ────────────────────────────────────────────── */
-.page-container { max-width: 1000px; margin: 0 auto; padding: 1.5rem 1.25rem; width: 100%; align-self: stretch; }
+.page-container { max-width: 1440px; margin: 0 auto; padding: 2rem 2.5rem 5rem; width: 100%; align-self: stretch; }
 .page-header    { margin-bottom: 1.75rem; }
 .page-header h1 { font-size: clamp(1.4rem, 5vw, 1.8rem); font-weight: 700; }
 .page-header p  { color: var(--text-muted); margin-top: .3rem; font-size: .9rem; }
@@ -863,6 +863,28 @@ code {
 
 /* Mention picker overrides */
 .mention-dd { grid-template-columns: 1fr; min-width: 200px; max-height: 280px; overflow-y: auto; padding: .35rem; }
+
+/* ── Responsive: dropdown tidak overflow layar sempit ── */
+@media (max-width: 600px) {
+    /* Semua dropdown: 1 kolom, lebar dibatasi viewport */
+    .ph-dropdown:not(.mention-dd) {
+        grid-template-columns: 1fr;
+        min-width: 190px;
+        max-width: calc(100vw - 2rem);
+    }
+    .ph-dropdown {
+        max-width: calc(100vw - 2rem);
+    }
+    /*
+     * Tombol pertama (Placeholder) ada di sebelah kiri tombol Mention.
+     * right:0 akan membuka dropdown ke KIRI dan bisa keluar layar.
+     * Ganti ke left:0 agar dropdown terbuka ke KANAN (selalu aman).
+     */
+    .ph-btn-group .ph-picker-anchor:first-child .ph-dropdown:not(.mention-dd) {
+        right: auto;
+        left: 0;
+    }
+}
 .mention-dd .ph-item span { font-size: .82rem; color: inherit; margin-top: 0; }
 .ph-group-label { font-size: .67rem; font-weight: 700; color: #80848e; text-transform: uppercase; letter-spacing: .04em; padding: .45rem .5rem .1rem; pointer-events: none; }
 .mention-search-input { width: 100%; box-sizing: border-box; padding: .28rem .45rem; font-size: .8rem; background: rgba(255,255,255,.06); border: 1px solid #3f4147; border-radius: 4px; color: #dbdee1; outline: none; margin-bottom: .15rem; }
@@ -1184,6 +1206,10 @@ code {
     }
 }
 
+/* ── Tablet container padding ────────────────────────────────────────────── */
+@media (max-width: 1100px) { .page-container { padding: 2rem 1.75rem 4rem; } }
+@media (max-width: 768px)  { .page-container { padding: 1.5rem 1.25rem 3rem; } }
+
 /* ── Mobile (≤ 680px) ────────────────────────────────────────────────────── */
 @media (max-width: 680px) {
 
@@ -1211,7 +1237,7 @@ code {
     .hero-features { grid-template-columns: 1fr; }
 
     /* Page container */
-    .page-container { padding: 1rem; }
+    .page-container { padding: 1rem 1rem 3rem; }
     .page-header { margin-bottom: 1.25rem; }
 
     /* Server card: tombol lebar penuh di bawah info */

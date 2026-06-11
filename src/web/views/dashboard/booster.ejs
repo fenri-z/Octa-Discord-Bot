@@ -128,21 +128,21 @@
 
                 <!-- Panel Embed -->
                 <div id="boostEmbedPanel">
-                    <div style="display:flex;justify-content:flex-end;margin-bottom:.35rem;">
-                        <div class="ph-btn-group">
-                            <div class="ph-picker-anchor">
-                                <button type="button" class="ph-toggle-btn" onclick="togglePicker('boostEmbedPicker',event)"><%= t('booster.placeholder_btn') %></button>
-                                <div class="ph-dropdown" id="boostEmbedPicker" style="display:none;"></div>
-                            </div>
-                            <div class="ph-picker-anchor mention-anchor">
-                                <button type="button" class="ph-toggle-btn" onclick="togglePicker('boostEmbedMentionPicker',event)">@ Mention</button>
-                                <div class="ph-dropdown mention-dd" id="boostEmbedMentionPicker" style="display:none;"></div>
-                            </div>
-                        </div>
-                    </div>
 
                     <div class="form-group">
-                        <label class="label"><%= t('common.embed_title') %></label>
+                        <div class="label-with-picker">
+                            <label class="label" style="margin-bottom:0;"><%= t('common.embed_title') %></label>
+                            <div class="ph-btn-group">
+                                <div class="ph-picker-anchor">
+                                    <button type="button" class="ph-toggle-btn" onclick="togglePicker('boostEmbedPicker',event)"><%= t('booster.placeholder_btn') %></button>
+                                    <div class="ph-dropdown" id="boostEmbedPicker" style="display:none;"></div>
+                                </div>
+                                <div class="ph-picker-anchor mention-anchor">
+                                    <button type="button" class="ph-toggle-btn" onclick="togglePicker('boostEmbedMentionPicker',event)">@ Mention</button>
+                                    <div class="ph-dropdown mention-dd" id="boostEmbedMentionPicker" style="display:none;"></div>
+                                </div>
+                            </div>
+                        </div>
                         <input type="text" id="boostTitle" class="input"
                                placeholder="🚀 New Server Boost!"
                                value="<%= boostData.title %>"
@@ -445,21 +445,21 @@
 
                 <!-- Panel Embed -->
                 <div id="unboostEmbedPanel">
-                    <div style="display:flex;justify-content:flex-end;margin-bottom:.35rem;">
-                        <div class="ph-btn-group">
-                            <div class="ph-picker-anchor">
-                                <button type="button" class="ph-toggle-btn" onclick="togglePicker('unboostEmbedPicker',event)"><%= t('booster.placeholder_btn') %></button>
-                                <div class="ph-dropdown" id="unboostEmbedPicker" style="display:none;"></div>
-                            </div>
-                            <div class="ph-picker-anchor mention-anchor">
-                                <button type="button" class="ph-toggle-btn" onclick="togglePicker('unboostEmbedMentionPicker',event)">@ Mention</button>
-                                <div class="ph-dropdown mention-dd" id="unboostEmbedMentionPicker" style="display:none;"></div>
-                            </div>
-                        </div>
-                    </div>
 
                     <div class="form-group">
-                        <label class="label"><%= t('common.embed_title') %></label>
+                        <div class="label-with-picker">
+                            <label class="label" style="margin-bottom:0;"><%= t('common.embed_title') %></label>
+                            <div class="ph-btn-group">
+                                <div class="ph-picker-anchor">
+                                    <button type="button" class="ph-toggle-btn" onclick="togglePicker('unboostEmbedPicker',event)"><%= t('booster.placeholder_btn') %></button>
+                                    <div class="ph-dropdown" id="unboostEmbedPicker" style="display:none;"></div>
+                                </div>
+                                <div class="ph-picker-anchor mention-anchor">
+                                    <button type="button" class="ph-toggle-btn" onclick="togglePicker('unboostEmbedMentionPicker',event)">@ Mention</button>
+                                    <div class="ph-dropdown mention-dd" id="unboostEmbedMentionPicker" style="display:none;"></div>
+                                </div>
+                            </div>
+                        </div>
                         <input type="text" id="unboostTitle" class="input"
                                placeholder="💔 Boost Ended"
                                value="<%= unboostData.title %>"

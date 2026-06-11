@@ -1,0 +1,330 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+
+<div class="dash-layout">
+<%- include('../partials/owner-sidebar', { activePage: 'guilds' }) %>
+<main class="dash-main">
+    <!-- ── Header ──────────────────────────────────────────────────────── -->
+    <div class="op-header">
+        <div class="op-header-left">
+            <div class="op-header-icon"><i data-lucide="server"></i></div>
+            <div>
+                <h1 class="op-title"><%= t('owner.guilds_title') %></h1>
+                <p class="op-subtitle"><%= guilds.length.toLocaleString() %> server</p>
+            </div>
+        </div>
+        <div class="op-header-right">
+            <input type="text" id="guildSearch" class="input op-search" placeholder="<%= t('owner.guilds_search_ph') %>">
+        </div>
+    </div>
+
+    <!-- ── Guild Table ─────────────────────────────────────────────────── -->
+    <% if (guilds.length === 0) { %>
+        <div class="op-empty">
+            <i data-lucide="server-off"></i>
+            <span><%= t('owner.guilds_empty') %></span>
+        </div>
+    <% } else { %>
+        <div class="op-guild-card">
+        <div class="op-guild-head">
+            <div class="op-gh op-gh-rank">#</div>
+            <div class="op-gh op-gh-icon"></div>
+            <div class="op-gh op-gh-info"><%= t('owner.guilds_members') %> / Server</div>
+            <div class="op-gh op-gh-act"></div>
+        </div>
+        <div class="op-guild-list" id="guildList">
+            <% guilds.forEach(function(g, i) { %>
+            <div class="op-guild-row" data-name="<%= g.name.toLowerCase() %>">
+                <div class="op-guild-rank">#<%= i + 1 %></div>
+                <div class="op-guild-icon-wrap">
+                    <% if (g.icon) { %>
+                        <img src="<%= g.icon %>" alt="<%= g.name %>" class="op-guild-icon">
+                    <% } else { %>
+                        <div class="op-guild-icon-placeholder"><%= g.name.charAt(0).toUpperCase() %></div>
+                    <% } %>
+                </div>
+                <div class="op-guild-info">
+                    <div class="op-guild-name"><%= g.name %></div>
+                    <div class="op-guild-meta">
+                        <span class="op-meta-id"><i data-lucide="hash" style="width:11px;height:11px;"></i> <code><%= g.id %></code></span>
+                        <span><i data-lucide="users" style="width:11px;height:11px;"></i> <%= g.memberCount.toLocaleString() %> <%= t('owner.guilds_members') %></span>
+                        <span class="op-meta-joined"><i data-lucide="calendar" style="width:11px;height:11px;"></i> <%= t('owner.guilds_joined') %> <%= g.joinedAt %></span>
+                    </div>
+                </div>
+                <div class="op-guild-actions">
+                    <a href="/dev-console/guilds/<%= g.id %>" class="op-inspect-btn" title="Inspect">
+                        <i data-lucide="search"></i>
+                    </a>
+                    <button
+                        class="op-leave-btn"
+                        data-id="<%= g.id %>"
+                        data-name="<%= g.name.replace(/"/g, '&quot;') %>"
+                        onclick="leaveGuild(this)"
+                    >
+                        <i data-lucide="log-out"></i> <span class="op-leave-text"><%= t('owner.guilds_leave') %></span>
+                    </button>
+                </div>
+            </div>
+            <% }); %>
+        </div>
+        </div><!-- /op-guild-card -->
+        <div class="op-empty" id="guildEmpty" style="display:none;">
+            <i data-lucide="search-x"></i>
+            <span><%= t('owner.guilds_no_match') %></span>
+        </div>
+    <% } %>
+</main>
+</div>
+
+<!-- ── Confirm Modal ──────────────────────────────────────────────────── -->
+<div class="op-modal-overlay" id="leaveModal" style="display:none;">
+    <div class="op-modal">
+        <div class="op-modal-icon"><i data-lucide="alert-triangle"></i></div>
+        <h2 class="op-modal-title"><%= t('owner.guilds_confirm_title') %></h2>
+        <p class="op-modal-body"><%= t('owner.guilds_confirm_body_pre') %> <strong id="leaveGuildName"></strong>. <%= t('owner.guilds_confirm_body_post') %></p>
+        <div class="op-modal-btns">
+            <button class="btn btn-secondary" onclick="closeModal()"><%= t('owner.guilds_confirm_cancel') %></button>
+            <button class="btn op-modal-confirm" id="leaveConfirmBtn" onclick="confirmLeave()">
+                <i data-lucide="log-out"></i> <%= t('owner.guilds_confirm_yes') %>
+            </button>
+        </div>
+        <div id="leaveMsg" class="form-message" style="margin-top:.5rem;text-align:center;"></div>
+    </div>
+</div>
+
+<style>
+.op-header {
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;
+}
+.op-header-left { display: flex; align-items: center; gap: .85rem; flex: 1; min-width: 0; }
+.op-header-icon {
+    width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0;
+    background: rgba(88,101,242,.18); color: #7289da;
+    display: flex; align-items: center; justify-content: center;
+}
+.op-header-icon svg { width: 22px; height: 22px; }
+.op-title  { font-size: 1.35rem; font-weight: 800; letter-spacing: -.02em; margin: 0;
+             white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.op-subtitle { font-size: .8rem; color: var(--text-muted); margin: .1rem 0 0; }
+.op-search { width: 220px; }
+@media(max-width:600px) {
+    .op-header { flex-direction: column; align-items: flex-start; }
+    .op-header-right { width: 100%; }
+    .op-search { width: 100%; }
+}
+
+/* Guild table card */
+.op-guild-card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 14px; overflow: hidden;
+}
+.op-guild-head {
+    display: flex; align-items: center;
+    background: var(--bg3); border-bottom: 1px solid var(--border);
+}
+.op-gh {
+    padding: .55rem 0;
+    font-size: .7rem; font-weight: 700;
+    color: var(--text-muted); text-transform: uppercase; letter-spacing: .06em;
+}
+.op-gh-rank { width: 44px; text-align: center; }
+.op-gh-icon { width: 60px; }
+.op-gh-info { flex: 1; padding-left: .25rem; }
+.op-gh-act  { width: 110px; }
+
+/* Guild list */
+.op-guild-list { display: flex; flex-direction: column; }
+
+.op-guild-row {
+    display: flex; align-items: center; gap: 1rem;
+    padding: .75rem 1rem;
+    border-bottom: 1px solid var(--border);
+    transition: background .15s;
+}
+.op-guild-row:last-child { border-bottom: none; }
+.op-guild-row:hover { background: rgba(88,101,242,.04); }
+.op-guild-rank {
+    font-size: .72rem; font-weight: 700; color: var(--text-muted);
+    width: 28px; text-align: center; flex-shrink: 0;
+}
+.op-guild-icon-wrap { flex-shrink: 0; }
+.op-guild-icon {
+    width: 44px; height: 44px; border-radius: 12px;
+    object-fit: cover; border: 1px solid var(--border);
+}
+.op-guild-icon-placeholder {
+    width: 44px; height: 44px; border-radius: 12px;
+    background: var(--accent); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.2rem; font-weight: 700;
+}
+.op-guild-info { flex: 1; min-width: 0; }
+.op-guild-name {
+    font-size: .9rem; font-weight: 600; color: var(--text);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    margin-bottom: .3rem;
+}
+.op-guild-meta {
+    display: flex; align-items: center; flex-wrap: wrap; gap: .5rem;
+    font-size: .72rem; color: var(--text-muted);
+}
+.op-guild-meta span { display: flex; align-items: center; gap: .25rem; }
+.op-guild-actions { flex-shrink: 0; display: flex; align-items: center; gap: .4rem; }
+.op-inspect-btn {
+    display: flex; align-items: center; justify-content: center;
+    width: 32px; height: 32px; border-radius: 8px;
+    background: rgba(88,101,242,.1); color: #7289da;
+    border: 1px solid rgba(88,101,242,.22);
+    transition: background .2s, border-color .2s; flex-shrink: 0;
+}
+.op-inspect-btn:hover { background: rgba(88,101,242,.22); border-color: rgba(88,101,242,.45); }
+.op-inspect-btn svg { width: 14px; height: 14px; }
+.op-leave-btn {
+    display: flex; align-items: center; gap: .35rem;
+    background: rgba(237,66,69,.1); color: #f27f81;
+    border: 1px solid rgba(237,66,69,.22); border-radius: 8px;
+    padding: .4rem .8rem; font-size: .78rem; font-weight: 600;
+    cursor: pointer; transition: background .2s, border-color .2s;
+    white-space: nowrap;
+}
+.op-leave-btn:hover { background: rgba(237,66,69,.22); border-color: rgba(237,66,69,.45); }
+.op-leave-btn svg { width: 13px; height: 13px; }
+
+/* Tablet (≤768px): sembunyikan rank, meta lebih ringkas */
+@media(max-width:768px) {
+    .op-guild-rank { display: none; }
+    .op-guild-icon, .op-guild-icon-placeholder { width: 40px; height: 40px; }
+    .op-guild-meta .op-meta-joined { display: none; }
+}
+
+/* Mobile (≤520px): tombol leave jadi ikon saja */
+@media(max-width:520px) {
+    .op-guild-row { gap: .65rem; padding: .75rem .85rem; }
+    .op-leave-btn { padding: .4rem .6rem; }
+    .op-leave-btn .op-leave-text { display: none; }
+    .op-guild-meta .op-meta-id { display: none; }
+}
+
+/* Empty state */
+.op-empty {
+    display: flex; flex-direction: column; align-items: center; gap: .75rem;
+    padding: 3rem 1rem; color: var(--text-muted); font-size: .9rem;
+}
+.op-empty svg { width: 40px; height: 40px; opacity: .4; }
+
+/* Modal */
+.op-modal-overlay {
+    position: fixed; inset: 0; z-index: 500;
+    background: rgba(0,0,0,.6); backdrop-filter: blur(4px);
+    display: flex; align-items: center; justify-content: center;
+    padding: 1rem;
+}
+.op-modal {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 16px; padding: 2rem 1.75rem;
+    max-width: 380px; width: 100%;
+    display: flex; flex-direction: column; align-items: center; gap: .9rem;
+    box-shadow: var(--shadow-md);
+}
+.op-modal-icon {
+    width: 52px; height: 52px; border-radius: 14px;
+    background: rgba(237,66,69,.12); color: #f27f81;
+    display: flex; align-items: center; justify-content: center;
+}
+.op-modal-icon svg { width: 26px; height: 26px; }
+.op-modal-title { font-size: 1.15rem; font-weight: 800; margin: 0; }
+.op-modal-body  { font-size: .85rem; color: var(--text-muted); text-align: center; margin: 0; }
+.op-modal-body strong { color: var(--text); }
+.op-modal-btns  { display: flex; gap: .75rem; width: 100%; }
+.op-modal-btns .btn { flex: 1; justify-content: center; }
+.op-modal-confirm {
+    background: rgba(237,66,69,.18); color: #f27f81;
+    border: 1px solid rgba(237,66,69,.3); border-radius: var(--radius);
+    display: flex; align-items: center; gap: .4rem;
+    padding: .5rem .9rem; font-weight: 600; cursor: pointer;
+    transition: background .2s;
+}
+.op-modal-confirm:hover { background: rgba(237,66,69,.3); }
+.op-modal-confirm svg { width: 14px; height: 14px; }
+</style>
+
+<script>
+const _gt = {
+    leaving:     '<%= t("owner.guilds_leaving") %>',
+    confirmLeave:'<%= t("owner.guilds_confirm_yes") %>',
+    error:       '<%= t("owner.bl_error") %>',
+};
+
+let _pendingLeaveId = null;
+
+function leaveGuild(btn) {
+    _pendingLeaveId = btn.dataset.id;
+    document.getElementById('leaveGuildName').textContent = btn.dataset.name;
+    document.getElementById('leaveMsg').textContent = '';
+    document.getElementById('leaveMsg').className = 'form-message';
+    document.getElementById('leaveModal').style.display = 'flex';
+}
+
+function closeModal() {
+    document.getElementById('leaveModal').style.display = 'none';
+    _pendingLeaveId = null;
+}
+
+async function confirmLeave() {
+    if (!_pendingLeaveId) return;
+    const btn = document.getElementById('leaveConfirmBtn');
+    const msg = document.getElementById('leaveMsg');
+    btn.disabled = true;
+    btn.innerHTML = `<i data-lucide="loader-2" class="spin"></i> ${_gt.leaving}`;
+    if (window.lucide) lucide.createIcons();
+
+    try {
+        const r = await fetch(`/dev-console/guilds/${_pendingLeaveId}/leave`, { method: 'POST' });
+        const d = await r.json();
+        if (d.success) {
+            // Hapus baris dari DOM
+            const row = document.querySelector(`.op-leave-btn[data-id="${_pendingLeaveId}"]`)?.closest('.op-guild-row');
+            if (row) row.remove();
+            closeModal();
+        } else {
+            msg.textContent = d.message;
+            msg.className   = 'form-message msg-error';
+            btn.disabled    = false;
+            btn.innerHTML   = `<i data-lucide="log-out"></i> ${_gt.confirmLeave}`;
+            if (window.lucide) lucide.createIcons();
+        }
+    } catch {
+        msg.textContent = _gt.error;
+        msg.className   = 'form-message msg-error';
+        btn.disabled    = false;
+        btn.innerHTML   = `<i data-lucide="log-out"></i> ${_gt.confirmLeave}`;
+        if (window.lucide) lucide.createIcons();
+    }
+}
+
+// Close modal saat klik overlay
+document.getElementById('leaveModal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+});
+
+// Search filter
+document.getElementById('guildSearch')?.addEventListener('input', function () {
+    const q    = this.value.toLowerCase().trim();
+    const rows = document.querySelectorAll('#guildList .op-guild-row');
+    let visible = 0;
+    rows.forEach(r => {
+        const match = !q || r.dataset.name.includes(q);
+        r.style.display = match ? '' : 'none';
+        if (match) visible++;
+    });
+    document.getElementById('guildEmpty').style.display = visible === 0 && rows.length > 0 ? 'flex' : 'none';
+});
+
+// Spin animation
+const style = document.createElement('style');
+style.textContent = '@keyframes spin{to{transform:rotate(360deg)}}.spin{animation:spin .8s linear infinite;}';
+document.head.appendChild(style);
+</script>
+
+<%- include('../partials/footer') %>

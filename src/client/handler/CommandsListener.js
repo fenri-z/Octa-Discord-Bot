@@ -6,6 +6,7 @@ const { handleMessageCommandOptions, handleApplicationCommandOptions } = require
 const ApplicationCommand = require("../../structure/ApplicationCommand");
 const { error } = require("../../utils/Console");
 const { isDeveloper, createDMProxy } = require("../../utils/dmGuildProxy");
+const ErrorLogger = require("../../utils/ErrorLogger");
 
 // ── Command yang boleh dipakai SEMUA orang (tidak perlu ManageGuild / developer) ──
 const PUBLIC_COMMANDS = new Set(['help', 'ping']);
@@ -24,6 +25,13 @@ class CommandsListener {
             if (!config.commands.message_commands) return;
 
             const isDM = message.channel.type === ChannelType.DM;
+
+            // Maintenance mode: blokir semua command kecuali developer
+            if (client.database.get('maintenance-mode') === '1' && !isDeveloper(message.author.id)) return;
+
+            // Blacklist check
+            if (client.database.get(`blacklist-user-${message.author.id}`) === '1') return;
+            if (!isDM && client.database.get(`blacklist-guild-${message.guild.id}`) === '1') return;
 
             // Di DM: hanya owner/developer atau public commands yang bisa berjalan
             if (isDM) {
@@ -83,6 +91,7 @@ class CommandsListener {
                 command.run(client, message, args);
             } catch (err) {
                 error(err);
+                ErrorLogger.log(client.database, 'command_error', err.message, err.stack, `msg:${commandInput}`);
             }
         });
 
@@ -102,6 +111,25 @@ class CommandsListener {
             if (!command) return;
 
             const cmdName  = command.command.name;
+
+            // Maintenance mode: blokir semua slash command kecuali developer
+            if (client.database.get('maintenance-mode') === '1' && !isDeveloper(interaction.user.id)) {
+                await interaction.reply({
+                    content: config.messages.MAINTENANCE_MODE,
+                    flags: MessageFlags.Ephemeral
+                }).catch(() => null);
+                return;
+            }
+
+            // Blacklist check
+            if (client.database.get(`blacklist-user-${interaction.user.id}`) === '1') {
+                await interaction.reply({ content: config.messages.BLACKLISTED_USER, flags: MessageFlags.Ephemeral }).catch(() => null);
+                return;
+            }
+            if (interaction.guildId && client.database.get(`blacklist-guild-${interaction.guildId}`) === '1') {
+                await interaction.reply({ content: config.messages.BLACKLISTED_GUILD, flags: MessageFlags.Ephemeral }).catch(() => null);
+                return;
+            }
 
             // interaction.context: 0 = GUILD, 1 = BOT_DM, 2 = PRIVATE_CHANNEL
             // Untuk command integration_types:[1] (user-install), interaction.guild
@@ -131,6 +159,7 @@ class CommandsListener {
                         await command.run(client, interaction);
                     } catch (err) {
                         error(err);
+                        ErrorLogger.log(client.database, 'command_error', err.message, err.stack, `dm:${cmdName}`);
                     }
                     return;
                 }
@@ -179,6 +208,7 @@ class CommandsListener {
                     await command.run(client, proxiedInteraction);
                 } catch (err) {
                     error(err);
+                    ErrorLogger.log(client.database, 'command_error', err.message, err.stack, `dm-proxy:${cmdName}`);
                 }
                 return;
             }
@@ -228,6 +258,7 @@ class CommandsListener {
                         await command.run(client, proxied);
                     } catch (err) {
                         error(err);
+                        ErrorLogger.log(client.database, 'command_error', err.message, err.stack, `guild-proxy:${cmdName}`);
                     }
                     return;
                 }
@@ -242,7 +273,7 @@ class CommandsListener {
                 await command.run(client, interaction);
             } catch (err) {
                 error(err);
-                // Coba kirim pesan error jika interaksi belum dibalas
+                ErrorLogger.log(client.database, 'command_error', err.message, err.stack, cmdName);
                 if (!interaction.replied && !interaction.deferred) {
                     await interaction.reply({
                         content: '❌ An error occurred while running the command.',

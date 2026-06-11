@@ -123,7 +123,14 @@ module.exports = new Event({
         success(`Initialization complete: ${ok} server(s) succeeded${fail > 0 ? `, ${fail} failed` : ''}.`);
         success('Bot siap digunakan!');
 
-        client.user.setPresence({ status: 'online', activities: [{ name: '/help', type: 4 }] });
+        // Pulihkan status dari DB jika pernah diset via owner panel, pakai default jika belum
+        const savedStatus  = client.database.get('bot-status') || 'online';
+        const savedActType = parseInt(client.database.get('bot-activity-type') ?? '4', 10);
+        const savedActName = client.database.get('bot-activity-name') || '/help';
+        client.user.setPresence({
+            status:     savedStatus,
+            activities: savedActName ? [{ name: savedActName, type: savedActType }] : [],
+        });
 
         // ── Guild Retention Manager ───────────────────────────────────────
         try {

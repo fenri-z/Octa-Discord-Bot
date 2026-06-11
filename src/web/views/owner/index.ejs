@@ -1,0 +1,603 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+
+<div class="dash-layout">
+<%- include('../partials/owner-sidebar', { activePage: 'index' }) %>
+<main class="dash-main">
+    <!-- ── Header ──────────────────────────────────────────────────────── -->
+    <div class="op-header">
+        <div class="op-header-left">
+            <div class="op-header-icon"><i data-lucide="shield-check"></i></div>
+            <div>
+                <h1 class="op-title"><%= t('owner.title') %></h1>
+                <p class="op-subtitle"><%= t('owner.subtitle') %></p>
+            </div>
+        </div>
+        <div class="op-header-right">
+            <a href="/dev-console/logout" class="btn op-logout-btn">
+                <i data-lucide="lock"></i> <%= t('owner.lock_panel_btn') %>
+            </a>
+        </div>
+    </div>
+
+    <!-- ── Memory & System ────────────────────────────────────────────── -->
+    <div class="op-section-title">
+        <i data-lucide="cpu"></i> <%= t('owner.system_info') %>
+        <span class="live-badge"><span class="live-dot"></span> Live</span>
+    </div>
+    <div class="op-info-grid">
+        <div class="op-info-card">
+            <div class="op-info-label"><%= t('owner.rss_memory') %></div>
+            <div class="op-info-value" id="sv-rss"><%= stats.memRss %> MB</div>
+            <div class="op-info-sub"><%= t('owner.rss_sub') %></div>
+        </div>
+        <div class="op-info-card">
+            <div class="op-info-label"><%= t('owner.heap_used') %></div>
+            <div class="op-info-value" id="sv-heap"><%= stats.memHeap %> MB</div>
+            <div class="op-info-sub"><%= t('owner.heap_of') %> <span id="sv-heap-total"><%= stats.memHeapTotal %></span> <%= t('owner.heap_total_unit') %></div>
+        </div>
+        <div class="op-info-card">
+            <div class="op-info-label">Node.js</div>
+            <div class="op-info-value"><%= stats.nodeVersion %></div>
+            <div class="op-info-sub"><%= t('owner.nodejs_sub') %></div>
+        </div>
+        <div class="op-info-card">
+            <div class="op-info-label">Platform</div>
+            <div class="op-info-value" style="text-transform:capitalize;"><%= stats.platform %></div>
+            <div class="op-info-sub"><%= t('owner.platform_sub') %></div>
+        </div>
+    </div>
+
+    <!-- ── Stats Grid ──────────────────────────────────────────────────── -->
+    <div class="op-section-title">
+        <i data-lucide="bar-chart-2"></i> <%= t('owner.bot_stats') %>
+        <span class="live-badge"><span class="live-dot"></span> Live</span>
+    </div>
+    <div class="op-stats-grid">
+        <div class="op-stat" style="--c:#57F287;">
+            <div class="op-stat-icon" style="background:rgba(87,242,135,.12);color:#57F287;">
+                <i data-lucide="clock"></i>
+            </div>
+            <div class="op-stat-body">
+                <div class="op-stat-value" id="sv-uptime"><%= stats.uptime %></div>
+                <div class="op-stat-label"><%= t('owner.uptime') %></div>
+            </div>
+            <div class="op-stat-bar"></div>
+        </div>
+
+        <div class="op-stat" style="--c:#5865F2;">
+            <div class="op-stat-icon" style="background:rgba(88,101,242,.15);color:#7289da;">
+                <i data-lucide="server"></i>
+            </div>
+            <div class="op-stat-body">
+                <div class="op-stat-value" id="sv-guilds"><%= stats.totalGuilds.toLocaleString() %></div>
+                <div class="op-stat-label"><%= t('owner.total_guilds') %></div>
+            </div>
+            <div class="op-stat-bar"></div>
+        </div>
+
+        <div class="op-stat" style="--c:#FF73FA;">
+            <div class="op-stat-icon" style="background:rgba(255,115,250,.12);color:#FF73FA;">
+                <i data-lucide="users"></i>
+            </div>
+            <div class="op-stat-body">
+                <div class="op-stat-value" id="sv-users"><%= stats.totalUsers.toLocaleString() %></div>
+                <div class="op-stat-label"><%= t('owner.total_users') %></div>
+            </div>
+            <div class="op-stat-bar"></div>
+        </div>
+
+        <div class="op-stat" id="sv-ping-card" style="--c:<%= stats.ping < 0 ? '#8e9297' : stats.ping < 100 ? '#57F287' : stats.ping < 250 ? '#FEE75C' : '#ED4245' %>;">
+            <div class="op-stat-icon" id="sv-ping-icon" style="background:rgba(87,242,135,.12);color:<%= stats.ping < 0 ? '#8e9297' : stats.ping < 100 ? '#57F287' : stats.ping < 250 ? '#FEE75C' : '#ED4245' %>;">
+                <i data-lucide="activity"></i>
+            </div>
+            <div class="op-stat-body">
+                <div class="op-stat-value" id="sv-ping"><%= stats.ping >= 0 ? stats.ping + ' ms' : '—' %></div>
+                <div class="op-stat-label"><%= t('owner.ws_ping') %></div>
+            </div>
+            <div class="op-stat-bar"></div>
+        </div>
+    </div>
+
+    <!-- ── Maintenance Mode Card ─────────────────────────────────────────── -->
+    <div class="op-section-title">
+        <i data-lucide="settings-2"></i> <%= t('owner.bot_controls') %>
+    </div>
+    <div class="op-maintenance-card <%= maintenance ? 'is-on' : '' %>" id="maintenanceCard">
+        <div class="op-maintenance-left">
+            <div class="op-maintenance-icon" id="maintenanceIcon">
+                <i data-lucide="<%= maintenance ? 'wrench' : 'check-circle-2' %>"></i>
+            </div>
+            <div>
+                <div class="op-maintenance-title" id="maintenanceTitle">
+                    <%= maintenance ? t('owner.maintenance_on') : t('owner.maintenance_off') %>
+                </div>
+                <div class="op-maintenance-sub" id="maintenanceSub">
+                    <%= maintenance ? t('owner.maintenance_on_sub') : t('owner.maintenance_off_sub') %>
+                </div>
+            </div>
+        </div>
+        <button class="op-maintenance-toggle" id="maintenanceBtn" onclick="toggleMaintenance()">
+            <span class="op-toggle-track" id="maintenanceTrack">
+                <span class="op-toggle-thumb"></span>
+            </span>
+            <span class="op-toggle-label" id="maintenanceLabel"><%= maintenance ? 'ON' : 'OFF' %></span>
+        </button>
+    </div>
+
+    <!-- ── Bot Status Control ────────────────────────────────────────────── -->
+    <div class="op-status-card" data-flt-ignore>
+        <div class="op-status-header">
+            <div class="op-status-icon"><i data-lucide="radio"></i></div>
+            <div>
+                <div class="op-status-title"><%= t('owner.bot_status_title') %></div>
+                <div class="op-status-sub"><%= t('owner.bot_status_sub') %></div>
+            </div>
+        </div>
+
+        <div class="op-status-body">
+            <!-- Status selector -->
+            <div class="op-status-group">
+                <label class="op-status-group-label"><%= t('owner.status_label') %></label>
+                <div class="op-status-btns" id="statusBtns">
+                    <% [
+                        { val:'online',    label:'Online',    color:'#57F287' },
+                        { val:'idle',      label:'Idle',      color:'#FEE75C' },
+                        { val:'dnd',       label:'Do Not Disturb', color:'#ED4245' },
+                        { val:'invisible', label:'Invisible', color:'#8e9297' },
+                    ].forEach(function(s) { %>
+                    <button
+                        type="button"
+                        class="op-status-btn<%= botStatus === s.val ? ' active' : '' %>"
+                        data-val="<%= s.val %>"
+                        style="--sc:<%= s.color %>;"
+                        onclick="selectStatus(this)"
+                    >
+                        <span class="op-status-dot" style="background:<%= s.color %>;"></span>
+                        <%= s.label %>
+                    </button>
+                    <% }); %>
+                </div>
+            </div>
+
+            <!-- Activity -->
+            <div class="op-status-group">
+                <label class="op-status-group-label"><%= t('owner.activity_label') %></label>
+                <div class="op-activity-row">
+                    <select class="input op-activity-type" id="actTypeSelect">
+                        <% [
+                            { val:0, label:'🎮 Playing'   },
+                            { val:2, label:'🎵 Listening' },
+                            { val:3, label:'📺 Watching'  },
+                            { val:4, label:'✨ Custom'    },
+                            { val:5, label:'🏆 Competing' },
+                        ].forEach(function(a) { %>
+                        <option value="<%= a.val %>"<%= botActType === a.val ? ' selected' : '' %>><%= a.label %></option>
+                        <% }); %>
+                    </select>
+                    <input
+                        type="text"
+                        id="actNameInput"
+                        class="input op-activity-name"
+                        placeholder="<%= t('owner.activity_ph') %>"
+                        maxlength="128"
+                        value="<%= botActName %>"
+                    >
+                    <button class="btn btn-primary op-status-save" onclick="saveStatus()" style="flex-shrink:0;">
+                        <i data-lucide="save"></i> <%= t('owner.save') %>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Danger Zone ──────────────────────────────────────────────────── -->
+    <div class="op-section-title" style="margin-top:.5rem;">
+        <i data-lucide="alert-triangle"></i> Danger Zone
+    </div>
+    <div class="op-danger-card">
+        <div class="op-danger-left">
+            <div class="op-danger-icon"><i data-lucide="refresh-cw"></i></div>
+            <div>
+                <div class="op-danger-title">Restart Bot</div>
+                <div class="op-danger-sub">Terminates the process and lets PM2 / nodemon restart it. The bot will be offline for a few seconds.</div>
+            </div>
+        </div>
+        <button class="op-danger-btn" onclick="restartBot()">
+            <i data-lucide="refresh-cw"></i> Restart
+        </button>
+    </div>
+
+</main>
+</div>
+
+<style>
+/* Maintenance card */
+.op-maintenance-card {
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 1rem;
+    background: var(--bg2); border: 1.5px solid var(--border);
+    border-radius: 14px; padding: 1.1rem 1.25rem;
+    margin-bottom: 1.5rem;
+    transition: border-color .3s, background .3s, box-shadow .3s;
+}
+.op-maintenance-card.is-on {
+    border-color: rgba(240,160,50,.45);
+    background: rgba(240,160,50,.06);
+    box-shadow: 0 0 0 1px rgba(240,160,50,.15), 0 4px 20px rgba(240,160,50,.08);
+}
+.op-maintenance-left { display: flex; align-items: center; gap: .9rem; flex: 1; min-width: 0; }
+.op-maintenance-icon {
+    width: 46px; height: 46px; border-radius: 12px; flex-shrink: 0;
+    background: rgba(87,242,135,.12); color: #57F287;
+    display: flex; align-items: center; justify-content: center;
+    transition: background .3s, color .3s;
+}
+.op-maintenance-card.is-on .op-maintenance-icon {
+    background: rgba(240,160,50,.15); color: #F0A032;
+}
+.op-maintenance-icon svg { width: 22px; height: 22px; }
+.op-maintenance-title {
+    font-size: .95rem; font-weight: 700; margin-bottom: .2rem;
+    transition: color .3s;
+}
+.op-maintenance-card.is-on .op-maintenance-title { color: #F0A032; }
+.op-maintenance-sub { font-size: .78rem; color: var(--text-muted); }
+
+/* Toggle switch */
+.op-maintenance-toggle {
+    display: flex; align-items: center; gap: .65rem;
+    background: none; border: none; cursor: pointer;
+    color: var(--text-muted); font-size: .85rem; font-weight: 600;
+    padding: .4rem .2rem; flex-shrink: 0;
+    transition: color .2s;
+}
+.op-maintenance-toggle:hover { color: var(--text); }
+.op-toggle-track {
+    width: 48px; height: 26px; border-radius: 13px;
+    background: var(--bg3); border: 1.5px solid var(--border);
+    position: relative; display: block; flex-shrink: 0;
+    transition: background .3s, border-color .3s;
+}
+.op-maintenance-card.is-on .op-toggle-track {
+    background: #F0A032; border-color: #F0A032;
+}
+.op-toggle-thumb {
+    position: absolute; top: 3px; left: 3px;
+    width: 18px; height: 18px; border-radius: 50%;
+    background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,.3);
+    transition: transform .3s cubic-bezier(.4,0,.2,1);
+}
+.op-maintenance-card.is-on .op-toggle-thumb { transform: translateX(22px); }
+.op-toggle-label { min-width: 28px; text-align: left; }
+
+/* Bot Status Control */
+.op-status-card {
+    background: var(--bg2); border: 1.5px solid var(--border);
+    border-radius: 14px; padding: 1.25rem;
+    margin-bottom: 1.5rem;
+}
+.op-status-header {
+    display: flex; align-items: center; gap: .9rem; margin-bottom: 1.1rem;
+}
+.op-status-icon {
+    width: 42px; height: 42px; border-radius: 11px; flex-shrink: 0;
+    background: rgba(88,101,242,.15); color: #7289da;
+    display: flex; align-items: center; justify-content: center;
+}
+.op-status-icon svg { width: 20px; height: 20px; }
+.op-status-title { font-size: .95rem; font-weight: 700; margin-bottom: .15rem; }
+.op-status-sub   { font-size: .77rem; color: var(--text-muted); }
+.op-status-body  { display: flex; flex-direction: column; gap: .9rem; margin-bottom: 1rem; }
+.op-status-group { display: flex; flex-direction: column; gap: .5rem; }
+.op-status-group-label {
+    font-size: .72rem; font-weight: 600; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: .07em;
+}
+.op-status-btns  { display: flex; flex-wrap: wrap; gap: .5rem; }
+.op-status-btn {
+    display: flex; align-items: center; gap: .5rem;
+    background: var(--bg3); border: 1.5px solid var(--border);
+    border-radius: 8px; padding: .45rem .85rem;
+    font-size: .82rem; font-weight: 600; color: var(--text-muted);
+    cursor: pointer; transition: border-color .2s, color .2s, background .2s;
+}
+.op-status-btn:hover  { border-color: var(--sc, var(--accent)); color: var(--text); }
+.op-status-btn.active {
+    border-color: var(--sc, var(--accent));
+    background: color-mix(in srgb, var(--sc, var(--accent)) 12%, transparent);
+    color: var(--text);
+}
+.op-status-dot {
+    width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0;
+}
+.op-activity-row {
+    display: flex; gap: .6rem; flex-wrap: wrap;
+}
+.op-activity-type { width: 155px; flex-shrink: 0; }
+.op-activity-name { flex: 1; min-width: 140px; }
+@media(max-width:480px) {
+    .op-activity-type { width: 100%; }
+    .op-activity-name { width: 100%; }
+}
+.op-status-save { display: flex; align-items: center; gap: .4rem; }
+
+/* Header */
+.op-header {
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem;
+}
+.op-header-left { display: flex; align-items: center; gap: 1rem; }
+.op-header-icon {
+    width: 56px; height: 56px; border-radius: 16px; flex-shrink: 0;
+    background: rgba(88,101,242,.18); color: #7289da;
+    display: flex; align-items: center; justify-content: center;
+}
+.op-header-icon svg { width: 28px; height: 28px; }
+.op-title { font-size: 1.65rem; font-weight: 800; letter-spacing: -.02em; margin: 0; }
+.op-subtitle { font-size: .85rem; color: var(--text-muted); margin: .2rem 0 0; }
+.op-header-right { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; }
+.op-nav-btn {
+    display: flex; align-items: center; gap: .4rem; font-size: .875rem;
+}
+.op-logout-btn {
+    display: flex; align-items: center; gap: .4rem; font-size: .875rem;
+    background: rgba(237,66,69,.12); color: #f27f81;
+    border: 1px solid rgba(237,66,69,.25); border-radius: var(--radius);
+    padding: .5rem 1rem; transition: background .2s;
+}
+.op-logout-btn:hover { background: rgba(237,66,69,.22); }
+
+/* Stats grid */
+.op-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4,1fr);
+    gap: 1rem; margin-bottom: 2rem;
+}
+@media(max-width:860px) { .op-stats-grid { grid-template-columns: repeat(2,1fr); gap: .75rem; } }
+@media(max-width:400px) { .op-stats-grid { grid-template-columns: 1fr; gap: .6rem; } }
+
+.op-stat {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 14px; padding: 1.4rem 1.25rem 1.25rem;
+    display: flex; align-items: center; gap: 1rem;
+    position: relative; overflow: hidden;
+    transition: border-color .2s, box-shadow .2s;
+}
+.op-stat:hover {
+    border-color: var(--c, var(--accent));
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--c, var(--accent)) 25%, transparent),
+                0 4px 20px rgba(0,0,0,.22);
+}
+.op-stat-bar {
+    position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: var(--c, var(--accent)); border-radius: 14px 14px 0 0; opacity: .7;
+}
+.op-stat-icon {
+    width: 50px; height: 50px; border-radius: 12px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+}
+.op-stat-icon svg { width: 24px; height: 24px; }
+.op-stat-value {
+    font-size: 1.75rem; font-weight: 800; line-height: 1;
+    color: var(--text); letter-spacing: -.02em;
+}
+.op-stat-label {
+    font-size: .75rem; font-weight: 600; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: .07em; margin-top: .35rem;
+}
+@media(max-width:400px) {
+    .op-stat { padding: 1rem .9rem; gap: .75rem; }
+    .op-stat-icon { width: 40px; height: 40px; }
+    .op-stat-value { font-size: 1.4rem; }
+}
+
+/* Danger Zone */
+.op-danger-card {
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 1rem;
+    background: var(--bg2); border: 1.5px solid rgba(237,66,69,.25);
+    border-radius: 14px; padding: 1.1rem 1.25rem;
+    margin-bottom: 1.5rem;
+}
+.op-danger-left { display: flex; align-items: center; gap: .9rem; flex: 1; min-width: 0; }
+.op-danger-icon {
+    width: 46px; height: 46px; border-radius: 12px; flex-shrink: 0;
+    background: rgba(237,66,69,.12); color: #f27f81;
+    display: flex; align-items: center; justify-content: center;
+}
+.op-danger-icon svg { width: 22px; height: 22px; }
+.op-danger-title { font-size: .95rem; font-weight: 700; margin-bottom: .2rem; }
+.op-danger-sub   { font-size: .78rem; color: var(--text-muted); }
+.op-danger-btn {
+    display: flex; align-items: center; gap: .4rem;
+    background: rgba(237,66,69,.12); color: #f27f81;
+    border: 1px solid rgba(237,66,69,.3); border-radius: 9px;
+    padding: .5rem 1.1rem; font-size: .85rem; font-weight: 600;
+    cursor: pointer; transition: background .2s, border-color .2s; flex-shrink: 0;
+}
+.op-danger-btn:hover { background: rgba(237,66,69,.22); border-color: rgba(237,66,69,.55); }
+.op-danger-btn:disabled { opacity: .55; cursor: default; }
+.op-danger-btn svg { width: 15px; height: 15px; }
+
+/* Section title */
+.op-section-title {
+    display: flex; align-items: center; gap: .5rem;
+    font-size: .75rem; font-weight: 700; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: .1em;
+    margin-bottom: 1rem;
+}
+.op-section-title svg { width: 15px; height: 15px; }
+
+/* Live badge */
+.live-badge {
+    display: inline-flex; align-items: center; gap: .3rem;
+    background: rgba(87,242,135,.1); color: #57F287;
+    border: 1px solid rgba(87,242,135,.25); border-radius: 20px;
+    padding: .12rem .5rem; font-size: .62rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .07em;
+    margin-left: .15rem;
+}
+.live-dot {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: #57F287; flex-shrink: 0;
+    animation: livePulse 2s ease-in-out infinite;
+}
+@keyframes livePulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%       { opacity: .35; transform: scale(.65); }
+}
+
+/* Info grid */
+.op-info-grid {
+    display: grid; grid-template-columns: repeat(4,1fr);
+    gap: 1rem; margin-bottom: 2rem;
+}
+@media(max-width:860px) { .op-info-grid { grid-template-columns: repeat(2,1fr); gap: .75rem; } }
+@media(max-width:400px) { .op-info-grid { grid-template-columns: 1fr; gap: .6rem; } }
+
+.op-info-card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 14px; padding: 1.25rem 1.25rem 1.1rem;
+}
+.op-info-label {
+    font-size: .72rem; font-weight: 600; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: .08em; margin-bottom: .4rem;
+}
+.op-info-value {
+    font-size: 1.2rem; font-weight: 700; color: var(--text); margin-bottom: .25rem;
+}
+.op-info-sub { font-size: .75rem; color: var(--text-muted); }
+
+</style>
+
+<script>
+// ── Real-time stats refresh ───────────────────────────────────────────────────
+function _pingColor(p) {
+    if (p < 0)   return '#8e9297';
+    if (p < 100) return '#57F287';
+    if (p < 250) return '#FEE75C';
+    return '#ED4245';
+}
+
+async function _refreshStats() {
+    try {
+        const r = await fetch('/dev-console/stats');
+        if (!r.ok) return;
+        const d = await r.json();
+
+        document.getElementById('sv-uptime').textContent = d.uptime;
+        document.getElementById('sv-guilds').textContent = d.totalGuilds.toLocaleString();
+        document.getElementById('sv-users').textContent  = d.totalUsers.toLocaleString();
+        document.getElementById('sv-rss').textContent    = d.memRss + ' MB';
+        document.getElementById('sv-heap').textContent   = d.memHeap + ' MB';
+        document.getElementById('sv-heap-total').textContent = d.memHeapTotal;
+
+        const col   = _pingColor(d.ping);
+        const pEl   = document.getElementById('sv-ping');
+        const pCard = document.getElementById('sv-ping-card');
+        const pIcon = document.getElementById('sv-ping-icon');
+        if (pEl)   pEl.textContent = d.ping >= 0 ? d.ping + ' ms' : '—';
+        if (pCard) pCard.style.setProperty('--c', col);
+        if (pIcon) { pIcon.style.color = col; }
+    } catch { /* silently ignore network errors */ }
+}
+
+setInterval(_refreshStats, 5000);
+
+// ── Bot Status ────────────────────────────────────────────────────────────────
+let _selectedStatus = '<%= botStatus %>';
+
+function selectStatus(btn) {
+    document.querySelectorAll('.op-status-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    _selectedStatus = btn.dataset.val;
+}
+
+async function saveStatus() {
+    const btn     = document.querySelector('.op-status-save');
+    const actType = document.getElementById('actTypeSelect').value;
+    const actName = document.getElementById('actNameInput').value.trim();
+
+    btn.disabled = true;
+    btn.innerHTML = '<i data-lucide="loader-2" class="spin"></i> <%= t("owner.saving") %>';
+    if (window.lucide) lucide.createIcons();
+
+    try {
+        const r = await fetch('/dev-console/status', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: _selectedStatus, actType, actName }),
+        });
+        const d = await r.json();
+        showMsg(null, d.success ? '<%= t("owner.status_saved") %>' : d.message, d.success ? 'success' : 'error');
+    } catch {
+        showMsg(null, '<%= t("owner.bl_error") %>', 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="save"></i> <%= t("owner.save") %>';
+        if (window.lucide) lucide.createIcons();
+    }
+}
+
+// ── Restart ───────────────────────────────────────────────────────────────────
+async function restartBot() {
+    if (!confirm('Restart the bot? It will be offline for a few seconds.')) return;
+    const btn = document.querySelector('.op-danger-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<i data-lucide="loader-2" class="spin"></i> Restarting...';
+    if (window.lucide) lucide.createIcons();
+    try {
+        await fetch('/dev-console/restart', { method: 'POST' });
+    } catch {}
+    showMsg(null, '**Bot is restarting...**\nPage will reload in 5 seconds.', 'success');
+    setTimeout(() => location.reload(), 5000);
+}
+
+// ── Maintenance ───────────────────────────────────────────────────────────────
+let _maintenanceBusy = false;
+
+async function toggleMaintenance() {
+    if (_maintenanceBusy) return;
+    _maintenanceBusy = true;
+
+    const card  = document.getElementById('maintenanceCard');
+    const btn   = document.getElementById('maintenanceBtn');
+    const icon  = document.getElementById('maintenanceIcon');
+    const title = document.getElementById('maintenanceTitle');
+    const sub   = document.getElementById('maintenanceSub');
+    const label = document.getElementById('maintenanceLabel');
+
+    btn.disabled = true;
+
+    try {
+        const r = await fetch('/dev-console/maintenance/toggle', { method: 'POST' });
+        const d = await r.json();
+        if (!d.success) {
+            showMsg(null, d.message || '<%= t("owner.maintenance_fail") %>', 'error');
+            return;
+        }
+
+        const isOn = d.maintenance;
+        card.classList.toggle('is-on', isOn);
+        icon.innerHTML  = isOn
+            ? '<i data-lucide="wrench"></i>'
+            : '<i data-lucide="check-circle-2"></i>';
+        title.textContent = isOn ? '<%= t("owner.maintenance_on") %>' : '<%= t("owner.maintenance_off") %>';
+        sub.textContent   = isOn
+            ? '<%= t("owner.maintenance_on_sub") %>'
+            : '<%= t("owner.maintenance_off_sub") %>';
+        label.textContent = isOn ? 'ON' : 'OFF';
+
+        showMsg(null, isOn ? '<%= t("owner.maintenance_on_toast") %>' : '<%= t("owner.maintenance_off_toast") %>', isOn ? 'error' : 'success');
+        if (window.lucide) lucide.createIcons();
+    } catch {
+        showMsg(null, '<%= t("owner.maintenance_fail") %>', 'error');
+    } finally {
+        btn.disabled = false;
+        _maintenanceBusy = false;
+    }
+}
+</script>
+
+<%- include('../partials/footer') %>

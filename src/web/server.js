@@ -114,6 +114,7 @@ app.use((req, res, next) => {
 
     res.locals.t           = req.t;
     res.locals.currentLang = req.language || 'en';
+    res.locals.isOwner     = req.user?.id === config.users.ownerId;
 
     next();
 });
@@ -123,10 +124,12 @@ const authRoutes    = require('./routes/auth');
 const dashRoutes    = require('./routes/dashboard');
 const apiRoutes     = require('./routes/api');
 const webhookRoutes = require('./routes/webhook');
+const ownerRoutes   = require('./routes/owner');
 
 app.use('/auth',      authRoutes);
 app.use('/dashboard', dashRoutes);
 app.use('/api',       apiRoutes);
+app.use('/dev-console', ownerRoutes);
 // WebSub callback — harus public (tanpa auth), tapi tetap dapat req.discordClient
 app.use('/webhook',   webhookRoutes);
 

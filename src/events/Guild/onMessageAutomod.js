@@ -26,36 +26,22 @@ function formatDuration(ms) {
 }
 
 async function applyAction(client, message, member, action, reason, muteDuration, logChannel) {
-    // Cek permission Manage Messages sebelum mencoba hapus
     const botMember = message.guild.members.me;
     const canDelete = botMember
         ? message.channel.permissionsFor(botMember)?.has(PermissionFlagsBits.ManageMessages)
         : false;
 
-    if (!canDelete) {
-        console.warn(`[Automod] Bot lacks ManageMessages in #${message.channel.name} (${message.guild.name}). Message cannot be deleted.`);
-        if (logChannel?.isTextBased()) {
-            await logChannel.send({
-                embeds: [
-                    new EmbedBuilder()
-                        .setColor('#FEE75C')
-                        .setTitle('⚠️ Automod — Failed to Delete Message')
-                        .setDescription(
-                            `Bot lacks the **Manage Messages** permission in ${message.channel}.\n` +
-                            `Violation detected but message could not be deleted.\n` +
-                            `**Reason:** ${reason}\n**Member:** ${member}`
-                        )
-                        .setTimestamp()
-                ]
-            }).catch(() => null);
-        }
-        return;
+    // Hapus pesan jika bisa — tapi jangan blokir aksi lain jika tidak bisa
+    if (canDelete) {
+        await message.delete().catch(() => null);
+    } else {
+        console.warn(`[Automod] Bot lacks ManageMessages in #${message.channel.name} (${message.guild.name}). Message not deleted but action still applied.`);
     }
 
     const logEmbed = new EmbedBuilder()
         .setColor('#ED4245')
         .setAuthor({ name: member.user.tag, iconURL: member.user.displayAvatarURL({ dynamic: true }) })
-        .setDescription(`**Reason:** ${reason}`)
+        .setDescription(`**Reason:** ${reason}${!canDelete ? '\n⚠️ *Message could not be deleted (missing Manage Messages)*' : ''}`)
         .addFields(
             { name: '👤 Member',    value: `${member} (${member.user.tag})`, inline: true },
             { name: '📌 Channel',   value: `${message.channel}`,             inline: true },
@@ -65,9 +51,6 @@ async function applyAction(client, message, member, action, reason, muteDuration
                 : '*[No text]*' }
         )
         .setTimestamp();
-
-    // Delete the message first
-    await message.delete().catch(() => null);
 
     switch (action) {
         case 'warn':

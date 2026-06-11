@@ -28,7 +28,10 @@ const config = {
         CHANNEL_NOT_NSFW: 'You cannot run this command in a non-NSFW channel!',
         MISSING_PERMISSIONS: 'You do not have the permission to run this command, missing permissions.',
         COMPONENT_NOT_PUBLIC: 'You are not the author of this button!',
-        GUILD_COOLDOWN: 'You are currently in cooldown, you have the ability to re-use this command again in \`%cooldown%s\`.'
+        GUILD_COOLDOWN: 'You are currently in cooldown, you have the ability to re-use this command again in \`%cooldown%s\`.',
+        MAINTENANCE_MODE: '🔧 **Bot is currently under maintenance.**\nAll commands are temporarily disabled. Please try again later.',
+        BLACKLISTED_USER:  '🚫 You have been blacklisted from using this bot.',
+        BLACKLISTED_GUILD: '🚫 This server has been blacklisted from using this bot.'
     }
 }
 

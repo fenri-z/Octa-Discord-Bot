@@ -1,0 +1,417 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+
+<div class="dash-layout">
+<%- include('../partials/owner-sidebar', { activePage: 'blacklist' }) %>
+<main class="dash-main">
+    <!-- ── Header ────────────────────────────────────────────────────────── -->
+    <div class="op-header">
+        <div class="op-header-left">
+            <div class="op-header-icon"><i data-lucide="ban"></i></div>
+            <div>
+                <h1 class="op-title"><%= t('owner.bl_title') %></h1>
+                <p class="op-subtitle"><%= users.length %> users · <%= guilds.length %> guilds</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Tabs ──────────────────────────────────────────────────────────── -->
+    <div class="bl-tabs">
+        <button class="bl-tab active" data-tab="users" onclick="switchTab('users', this)">
+            <i data-lucide="user-x"></i> <%= t('owner.bl_users_tab') %> <span class="bl-tab-count"><%= users.length %></span>
+        </button>
+        <button class="bl-tab" data-tab="guilds" onclick="switchTab('guilds', this)">
+            <i data-lucide="server-off"></i> <%= t('owner.bl_guilds_tab') %> <span class="bl-tab-count"><%= guilds.length %></span>
+        </button>
+    </div>
+
+    <!-- ── Users Tab ─────────────────────────────────────────────────────── -->
+    <div class="bl-panel" id="tab-users">
+        <!-- Add form -->
+        <div class="bl-add-form" data-flt-ignore>
+            <input type="text" id="addUserId" class="input bl-add-input" placeholder="<%= t('owner.bl_user_ph') %>" maxlength="20">
+            <button class="btn btn-primary bl-add-btn" onclick="addEntry('user')">
+                <i data-lucide="plus"></i> <%= t('owner.bl_add_btn') %>
+            </button>
+        </div>
+
+        <!-- List -->
+        <% if (users.length === 0) { %>
+            <div class="bl-empty">
+                <i data-lucide="user-check"></i>
+                <span><%= t('owner.bl_empty_users') %></span>
+            </div>
+        <% } else { %>
+            <div class="bl-table-card">
+                <div class="bl-table-head">
+                    <div class="bl-th"></div>
+                    <div class="bl-th">User ID</div>
+                    <div class="bl-th bl-th-meta">Type</div>
+                    <div class="bl-th bl-th-act"></div>
+                </div>
+                <div class="bl-table-body" id="userList">
+                    <% users.forEach(function(u) { %>
+                    <div class="bl-row" id="bl-user-<%= u.id %>">
+                        <div class="bl-row-icon bl-user-icon"><i data-lucide="user-x"></i></div>
+                        <div class="bl-row-info">
+                            <code class="bl-row-id-code"><%= u.id %></code>
+                        </div>
+                        <div class="bl-row-meta-cell"><%= t('owner.bl_user_id') %></div>
+                        <button class="bl-remove-btn" onclick="removeEntry('user', '<%= u.id %>', this)">
+                            <i data-lucide="x"></i> <span><%= t('owner.bl_remove') %></span>
+                        </button>
+                    </div>
+                    <% }); %>
+                </div>
+            </div>
+        <% } %>
+    </div>
+
+    <!-- ── Guilds Tab ────────────────────────────────────────────────────── -->
+    <div class="bl-panel" id="tab-guilds" style="display:none;">
+        <!-- Add form -->
+        <div class="bl-add-form" data-flt-ignore>
+            <input type="text" id="addGuildId" class="input bl-add-input" placeholder="<%= t('owner.bl_guild_ph') %>" maxlength="20">
+            <button class="btn btn-primary bl-add-btn" onclick="addEntry('guild')">
+                <i data-lucide="plus"></i> <%= t('owner.bl_add_btn') %>
+            </button>
+        </div>
+
+        <!-- List -->
+        <% if (guilds.length === 0) { %>
+            <div class="bl-empty">
+                <i data-lucide="server"></i>
+                <span><%= t('owner.bl_empty_guilds') %></span>
+            </div>
+        <% } else { %>
+            <div class="bl-table-card">
+                <div class="bl-table-head">
+                    <div class="bl-th"></div>
+                    <div class="bl-th">Guild ID</div>
+                    <div class="bl-th bl-th-meta">Status</div>
+                    <div class="bl-th bl-th-act"></div>
+                </div>
+                <div class="bl-table-body" id="guildList">
+                    <% guilds.forEach(function(g) { %>
+                    <div class="bl-row" id="bl-guild-<%= g.id %>">
+                        <div class="bl-row-icon bl-guild-icon">
+                            <% if (g.icon) { %>
+                                <img src="<%= g.icon %>" alt="" class="bl-guild-img">
+                            <% } else { %>
+                                <i data-lucide="server-off"></i>
+                            <% } %>
+                        </div>
+                        <div class="bl-row-info">
+                            <% if (g.name) { %><span class="bl-row-name"><%= g.name %></span><% } %>
+                            <code class="bl-row-id-code"><%= g.id %></code>
+                        </div>
+                        <div class="bl-row-meta-cell"><%= g.name ? t('owner.bl_in_bot') : t('owner.bl_not_in_bot') %></div>
+                        <button class="bl-remove-btn" onclick="removeEntry('guild', '<%= g.id %>', this)">
+                            <i data-lucide="x"></i> <span><%= t('owner.bl_remove') %></span>
+                        </button>
+                    </div>
+                    <% }); %>
+                </div>
+            </div>
+        <% } %>
+    </div>
+</main>
+</div>
+
+<style>
+.op-header {
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 1rem; margin-bottom: 1.75rem;
+}
+.op-header-left { display: flex; align-items: center; gap: .85rem; }
+.op-header-icon {
+    width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0;
+    background: rgba(237,66,69,.15); color: #ED4245;
+    display: flex; align-items: center; justify-content: center;
+}
+.op-header-icon svg { width: 22px; height: 22px; }
+.op-title    { font-size: 1.45rem; font-weight: 800; letter-spacing: -.02em; margin: 0; }
+.op-subtitle { font-size: .82rem; color: var(--text-muted); margin: .15rem 0 0; }
+
+/* Tabs */
+.bl-tabs {
+    display: flex; gap: .5rem; margin-bottom: 1.35rem;
+    border-bottom: 1px solid var(--border); padding-bottom: .85rem;
+}
+.bl-tab {
+    display: flex; align-items: center; gap: .45rem;
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 8px; padding: .5rem 1rem;
+    font-size: .85rem; font-weight: 600; color: var(--text-muted);
+    cursor: pointer; transition: all .2s;
+}
+.bl-tab:hover { color: var(--text); border-color: rgba(88,101,242,.4); }
+.bl-tab.active {
+    background: rgba(88,101,242,.15);
+    border-color: rgba(88,101,242,.5);
+    color: #949cf7;
+}
+.bl-tab svg { width: 14px; height: 14px; }
+.bl-tab-count {
+    background: var(--bg3); color: var(--text-muted);
+    border-radius: 10px; padding: .05rem .5rem;
+    font-size: .73rem; font-weight: 700;
+}
+.bl-tab.active .bl-tab-count {
+    background: rgba(88,101,242,.2); color: #949cf7;
+}
+
+/* Add form */
+.bl-add-form {
+    display: flex; gap: .65rem; margin-bottom: 1.1rem; flex-wrap: wrap;
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1rem 1.1rem;
+}
+.bl-add-input { flex: 1; min-width: 200px; font-family: monospace; }
+.bl-add-btn {
+    display: flex; align-items: center; gap: .4rem; white-space: nowrap;
+}
+@media(max-width:480px) {
+    .bl-add-form { flex-direction: column; gap: .5rem; }
+    .bl-add-input { width: 100%; min-width: unset; }
+    .bl-add-btn   { width: 100%; justify-content: center; }
+}
+
+/* ── Table card ──────────────────────────────────────────────────────────── */
+.bl-table-card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 14px; overflow: hidden; margin-bottom: .75rem;
+}
+.bl-table-head {
+    display: grid;
+    grid-template-columns: 44px 1fr 140px 110px;
+    background: var(--bg3); border-bottom: 1px solid var(--border);
+    padding: 0;
+}
+.bl-th {
+    padding: .55rem 1rem;
+    font-size: .7rem; font-weight: 700;
+    color: var(--text-muted); text-transform: uppercase; letter-spacing: .06em;
+}
+.bl-th-meta { }
+.bl-th-act  { text-align: right; }
+.bl-table-body { display: flex; flex-direction: column; }
+
+/* ── Rows ─────────────────────────────────────────────────────────────────── */
+.bl-row {
+    display: grid;
+    grid-template-columns: 44px 1fr 140px 110px;
+    align-items: center;
+    padding: 0;
+    border-bottom: 1px solid var(--border);
+    transition: background .15s;
+    min-height: 52px;
+}
+.bl-row:last-child { border-bottom: none; }
+.bl-row:hover { background: rgba(237,66,69,.04); }
+
+.bl-row-icon {
+    width: 36px; height: 36px; border-radius: 9px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 0 0 1rem;
+}
+.bl-user-icon  { background: rgba(237,66,69,.12); color: #ED4245; }
+.bl-user-icon svg { width: 16px; height: 16px; }
+.bl-guild-icon { background: rgba(240,160,50,.12); color: #F0A032; overflow: hidden; }
+.bl-guild-icon svg { width: 16px; height: 16px; }
+.bl-guild-img  { width: 36px; height: 36px; object-fit: cover; }
+
+.bl-row-info {
+    display: flex; flex-direction: column; gap: .15rem;
+    padding: .65rem .75rem; min-width: 0; overflow: hidden;
+}
+.bl-row-name  { font-size: .84rem; font-weight: 600; color: var(--text);
+                white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bl-row-id-code {
+    font-size: .78rem; color: var(--text-muted);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.bl-row-meta-cell {
+    padding: .65rem .75rem;
+    font-size: .72rem; color: var(--text-muted);
+    white-space: nowrap;
+}
+
+.bl-remove-btn {
+    display: flex; align-items: center; justify-content: flex-end; gap: .35rem;
+    background: rgba(237,66,69,.1); color: #f27f81;
+    border: 1px solid rgba(237,66,69,.22); border-radius: 8px;
+    padding: .35rem .75rem; font-size: .76rem; font-weight: 600;
+    cursor: pointer; transition: background .2s; flex-shrink: 0;
+    white-space: nowrap; margin: 0 1rem 0 0;
+    width: fit-content; justify-self: end; align-self: center;
+}
+.bl-remove-btn:hover { background: rgba(237,66,69,.22); }
+.bl-remove-btn svg { width: 12px; height: 12px; }
+.bl-remove-btn:disabled { opacity: .5; cursor: default; }
+
+/* ── Empty ────────────────────────────────────────────────────────────────── */
+.bl-empty {
+    display: flex; flex-direction: column; align-items: center; gap: .85rem;
+    padding: 4rem 1rem; color: var(--text-muted); font-size: .9rem;
+    border: 1px dashed var(--border); border-radius: 14px;
+}
+.bl-empty svg { width: 42px; height: 42px; opacity: .3; }
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+@media(max-width:768px) {
+    .bl-table-head { grid-template-columns: 44px 1fr 100px; }
+    .bl-th-meta, .bl-row-meta-cell { display: none; }
+    .bl-row { grid-template-columns: 44px 1fr 100px; }
+}
+@media(max-width:520px) {
+    .bl-table-head { display: none; }
+    .bl-row { grid-template-columns: 44px 1fr auto; }
+    .bl-remove-btn span { display: none; }
+    .bl-remove-btn { padding: .35rem .55rem; }
+}
+@media(max-width:360px) {
+    .bl-tabs { gap: .35rem; }
+    .bl-tab  { padding: .4rem .7rem; font-size: .78rem; }
+    .op-title { font-size: 1.2rem; }
+}
+</style>
+
+<script>
+const _bt = {
+    invalidId: '<%= t("owner.bl_invalid_id") %>',
+    blAdded:   '<%= t("owner.bl_added") %>',
+    blRemoved: '<%= t("owner.bl_removed") %>',
+    blError:   '<%= t("owner.bl_error") %>',
+    blAddBtn:  '<%= t("owner.bl_add_btn") %>',
+    blUserId:  '<%= t("owner.bl_user_id") %>',
+    blNotInBot:'<%= t("owner.bl_not_in_bot") %>',
+    blRemove:  '<%= t("owner.bl_remove") %>',
+};
+
+function switchTab(name, btn) {
+    document.querySelectorAll('.bl-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-users').style.display  = name === 'users'  ? '' : 'none';
+    document.getElementById('tab-guilds').style.display = name === 'guilds' ? '' : 'none';
+}
+
+async function addEntry(type) {
+    const input = document.getElementById(type === 'user' ? 'addUserId' : 'addGuildId');
+    const id    = input.value.trim();
+
+    if (!/^\d{17,20}$/.test(id)) {
+        showMsg(null, _bt.invalidId, 'error');
+        return;
+    }
+
+    const btn = input.nextElementSibling;
+    btn.disabled = true;
+    btn.innerHTML = '<i data-lucide="loader-2" class="spin"></i>';
+    if (window.lucide) lucide.createIcons();
+
+    try {
+        const r = await fetch(`/dev-console/blacklist/${type}/add`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id }),
+        });
+        const d = await r.json();
+        if (!d.success) {
+            showMsg(null, d.message, 'error');
+            return;
+        }
+
+        // Tambahkan baris baru ke list tanpa reload
+        const listId = type === 'user' ? 'userList' : 'guildList';
+        let list = document.getElementById(listId);
+
+        // Hapus empty state jika ada, buat table card baru
+        const empty = document.querySelector(`#tab-${type}s .bl-empty`);
+        if (empty) {
+            const panel = document.getElementById(`tab-${type}s`);
+            const card = document.createElement('div');
+            card.className = 'bl-table-card';
+            card.innerHTML = `<div class="bl-table-head">
+                <div class="bl-th"></div><div class="bl-th">${type === 'user' ? 'User ID' : 'Guild ID'}</div>
+                <div class="bl-th bl-th-meta">Type</div><div class="bl-th bl-th-act"></div>
+            </div><div class="bl-table-body" id="${listId}"></div>`;
+            panel.appendChild(card);
+            empty.remove();
+            list = card.querySelector('.bl-table-body');
+        }
+
+        const row = document.createElement('div');
+        row.className = 'bl-row';
+        row.id = `bl-${type}-${id}`;
+        row.innerHTML = type === 'user'
+            ? `<div class="bl-row-icon bl-user-icon"><i data-lucide="user-x"></i></div>
+               <div class="bl-row-info"><code class="bl-row-id-code">${id}</code></div>
+               <div class="bl-row-meta-cell">${_bt.blUserId}</div>
+               <button class="bl-remove-btn" onclick="removeEntry('user','${id}',this)"><i data-lucide="x"></i> <span>${_bt.blRemove}</span></button>`
+            : `<div class="bl-row-icon bl-guild-icon"><i data-lucide="server-off"></i></div>
+               <div class="bl-row-info"><code class="bl-row-id-code">${id}</code></div>
+               <div class="bl-row-meta-cell">${_bt.blNotInBot}</div>
+               <button class="bl-remove-btn" onclick="removeEntry('guild','${id}',this)"><i data-lucide="x"></i> <span>${_bt.blRemove}</span></button>`;
+        list.appendChild(row);
+        if (window.lucide) lucide.createIcons();
+
+        // Update counter di subtitle & tab
+        _updateCount();
+        input.value = '';
+        showMsg(null, _bt.blAdded.replace('{{type}}', type === 'user' ? 'User' : 'Guild').replace('{{id}}', id), 'success');
+    } catch {
+        showMsg(null, _bt.blError, 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i data-lucide="plus"></i> ${_bt.blAddBtn}`;
+        if (window.lucide) lucide.createIcons();
+    }
+}
+
+async function removeEntry(type, id, btn) {
+    btn.disabled = true;
+    const origHTML = btn.innerHTML;
+    btn.innerHTML = '<i data-lucide="loader-2" class="spin"></i>';
+    if (window.lucide) lucide.createIcons();
+
+    try {
+        const r = await fetch(`/dev-console/blacklist/${type}/remove/${id}`, { method: 'POST' });
+        const d = await r.json();
+        if (!d.success) {
+            showMsg(null, d.message, 'error');
+            btn.disabled = false;
+            btn.innerHTML = origHTML;
+            if (window.lucide) lucide.createIcons();
+            return;
+        }
+
+        document.getElementById(`bl-${type}-${id}`)?.remove();
+        _updateCount();
+        showMsg(null, _bt.blRemoved.replace('{{type}}', type === 'user' ? 'User' : 'Guild').replace('{{id}}', id), 'success');
+    } catch {
+        showMsg(null, _bt.blError, 'error');
+        btn.disabled = false;
+        btn.innerHTML = origHTML;
+        if (window.lucide) lucide.createIcons();
+    }
+}
+
+function _updateCount() {
+    const uCount = document.querySelectorAll('#userList .bl-row, #tab-users .bl-row').length;
+    const gCount = document.querySelectorAll('#guildList .bl-row, #tab-guilds .bl-row').length;
+    const tabs   = document.querySelectorAll('.bl-tab-count');
+    if (tabs[0]) tabs[0].textContent = uCount;
+    if (tabs[1]) tabs[1].textContent = gCount;
+    const sub = document.querySelector('.op-subtitle');
+    if (sub) sub.textContent = `${uCount} users · ${gCount} guilds`;
+}
+
+// Spin animation
+const _s = document.createElement('style');
+_s.textContent = '@keyframes spin{to{transform:rotate(360deg)}}.spin{animation:spin .8s linear infinite;display:inline-block;}';
+document.head.appendChild(_s);
+</script>
+
+<%- include('../partials/footer') %>

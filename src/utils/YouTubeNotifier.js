@@ -519,13 +519,15 @@ class YouTubeNotifier {
         const lbc            = item.snippet?.liveBroadcastContent; // "live" | "upcoming" | "none"
         const channelId      = item.snippet?.channelId || null;
         const hasActualStart = !!item.liveStreamingDetails?.actualStartTime;
+        const hasActualEnd   = !!item.liveStreamingDetails?.actualEndTime;
 
         // "live" = sedang siaran sekarang
         if (lbc === 'live') {
             return { live: true, isUpcoming: false, isLiveContent: true, channelId };
         }
         // actualStartTime ada tapi lbc belum update = stream sudah dimulai
-        if (hasActualStart && lbc !== 'upcoming') {
+        // actualEndTime ada = stream sudah berakhir, jangan kirim notif
+        if (hasActualStart && !hasActualEnd && lbc !== 'upcoming') {
             return { live: true, isUpcoming: false, isLiveContent: true, channelId };
         }
         // "upcoming" = waiting room / scheduled

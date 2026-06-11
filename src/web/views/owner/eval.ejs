@@ -1,0 +1,209 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+
+<div class="dash-layout">
+<%- include('../partials/owner-sidebar', { activePage: 'eval' }) %>
+<main class="dash-main">
+
+    <div class="ev-header">
+        <div class="ev-hicon"><i data-lucide="code-2"></i></div>
+        <div>
+            <h1 class="ev-title">Eval Console</h1>
+            <p class="ev-sub">Execute JavaScript directly on the bot process &mdash; <kbd>Ctrl+Enter</kbd> to run</p>
+        </div>
+    </div>
+
+    <div class="ev-editor-card">
+        <div class="ev-editor-header">
+            <span class="ev-editor-label">JavaScript</span>
+            <div class="ev-editor-actions">
+                <button class="ev-clear-btn" onclick="clearEditor()"><i data-lucide="eraser"></i> Clear</button>
+                <button class="btn btn-primary ev-run-btn" onclick="runEval()">
+                    <i data-lucide="play"></i> Run
+                </button>
+            </div>
+        </div>
+        <textarea id="evCode" class="ev-textarea" spellcheck="false" placeholder="// `client` is available in scope&#10;client.guilds.cache.size" data-flt-ignore></textarea>
+    </div>
+
+    <div class="ev-output-card" id="evOutput">
+        <div class="ev-output-header">
+            <span class="ev-output-label" id="evOutputLabel">Output</span>
+            <span class="ev-duration" id="evDuration" style="display:none;"></span>
+        </div>
+        <pre class="ev-output-pre" id="evOutputPre">// Output will appear here</pre>
+    </div>
+
+    <div class="ev-warn">
+        <i data-lucide="shield-alert"></i>
+        <span>Eval executes arbitrary code as the bot process. Only use this if you know what you're doing. This page is protected by your owner PIN.</span>
+    </div>
+
+</main>
+</div>
+
+<style>
+.ev-header {
+    display: flex; align-items: center; gap: .9rem;
+    margin-bottom: 1.75rem;
+}
+.ev-hicon {
+    width: 46px; height: 46px; border-radius: 13px; flex-shrink: 0;
+    background: rgba(87,242,135,.12); color: #57F287;
+    display: flex; align-items: center; justify-content: center;
+}
+.ev-hicon svg { width: 22px; height: 22px; }
+.ev-title { font-size: 1.4rem; font-weight: 800; letter-spacing: -.02em; margin: 0; }
+.ev-sub   { font-size: .8rem; color: var(--text-muted); margin: .1rem 0 0; }
+.ev-sub kbd {
+    display: inline-block; background: var(--bg3);
+    border: 1px solid var(--border); border-radius: 4px;
+    padding: .05rem .35rem; font-size: .72rem; font-family: monospace;
+}
+
+.ev-editor-card {
+    background: var(--bg2); border: 1.5px solid var(--border);
+    border-radius: 14px; overflow: hidden;
+    margin-bottom: 1.1rem;
+}
+.ev-editor-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: .6rem 1rem;
+    background: var(--bg3); border-bottom: 1px solid var(--border);
+}
+.ev-editor-label {
+    font-size: .72rem; font-weight: 700; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: .08em;
+}
+.ev-editor-actions { display: flex; align-items: center; gap: .5rem; }
+.ev-clear-btn {
+    display: flex; align-items: center; gap: .3rem;
+    background: none; border: 1px solid var(--border);
+    border-radius: 7px; padding: .3rem .75rem;
+    font-size: .78rem; color: var(--text-muted);
+    cursor: pointer; transition: border-color .2s, color .2s;
+}
+.ev-clear-btn:hover { color: var(--text); border-color: var(--accent); }
+.ev-clear-btn svg { width: 13px; height: 13px; }
+.ev-run-btn { display: flex; align-items: center; gap: .35rem; font-size: .82rem; }
+.ev-run-btn svg { width: 13px; height: 13px; }
+
+.ev-textarea {
+    display: block; width: 100%; min-height: 200px; height: 220px; resize: vertical;
+    background: var(--bg); color: var(--text);
+    font-family: 'Courier New', Courier, monospace; font-size: .875rem;
+    line-height: 1.65; padding: 1rem 1.25rem;
+    border: none; outline: none;
+    tab-size: 4; box-sizing: border-box;
+}
+
+.ev-output-card {
+    background: var(--bg2); border: 1.5px solid var(--border);
+    border-radius: 14px; overflow: hidden;
+    margin-bottom: 1.1rem;
+    transition: border-color .3s;
+}
+.ev-output-card.ev-ok  { border-color: rgba(87,242,135,.35); }
+.ev-output-card.ev-err { border-color: rgba(237,66,69,.35); }
+.ev-output-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: .6rem 1rem;
+    background: var(--bg3); border-bottom: 1px solid var(--border);
+}
+.ev-output-label {
+    font-size: .72rem; font-weight: 700; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: .08em;
+}
+.ev-duration {
+    font-size: .7rem; color: var(--text-muted);
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 5px; padding: .12rem .45rem;
+}
+.ev-output-pre {
+    margin: 0; padding: 1rem 1.25rem;
+    font-family: 'Courier New', Courier, monospace; font-size: .82rem;
+    color: var(--text-muted); line-height: 1.65;
+    overflow-x: auto; white-space: pre-wrap; word-break: break-all;
+    min-height: 80px;
+}
+.ev-output-card.ev-ok  .ev-output-pre { color: #57F287; }
+.ev-output-card.ev-err .ev-output-pre { color: #f27f81; }
+
+.ev-warn {
+    display: flex; align-items: flex-start; gap: .65rem;
+    background: rgba(237,66,69,.07); border: 1px solid rgba(237,66,69,.2);
+    border-radius: 10px; padding: .85rem 1rem;
+    font-size: .8rem; color: var(--text-muted); line-height: 1.55;
+}
+.ev-warn svg { width: 15px; height: 15px; color: #f27f81; flex-shrink: 0; margin-top: .1rem; }
+</style>
+
+<script>
+const evCode   = document.getElementById('evCode');
+const evOutput = document.getElementById('evOutput');
+const evOutPre = document.getElementById('evOutputPre');
+const evLabel  = document.getElementById('evOutputLabel');
+const evDur    = document.getElementById('evDuration');
+
+evCode.addEventListener('keydown', function(e) {
+    if (e.key === 'Tab') {
+        e.preventDefault();
+        const s = this.selectionStart, end = this.selectionEnd;
+        this.value = this.value.substring(0, s) + '    ' + this.value.substring(end);
+        this.selectionStart = this.selectionEnd = s + 4;
+    }
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        runEval();
+    }
+});
+
+function clearEditor() {
+    evCode.value = '';
+    evCode.focus();
+    evOutput.className = 'ev-output-card';
+    evOutPre.textContent = '// Output will appear here';
+    evLabel.textContent  = 'Output';
+    evDur.style.display  = 'none';
+}
+
+async function runEval() {
+    const code = evCode.value.trim();
+    if (!code) return;
+
+    const btn = document.querySelector('.ev-run-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<i data-lucide="loader-2" class="spin"></i> Running...';
+    if (window.lucide) lucide.createIcons();
+
+    try {
+        const r = await fetch('/dev-console/eval', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ code }),
+        });
+        const d = await r.json();
+
+        evOutput.className   = 'ev-output-card ' + (d.success ? 'ev-ok' : 'ev-err');
+        evLabel.textContent  = d.success ? 'Result' : 'Error';
+        evOutPre.textContent = d.output;
+        evDur.textContent    = d.duration + ' ms';
+        evDur.style.display  = '';
+    } catch {
+        evOutput.className   = 'ev-output-card ev-err';
+        evLabel.textContent  = 'Error';
+        evOutPre.textContent = 'Network error.';
+        evDur.style.display  = 'none';
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="play"></i> Run';
+        if (window.lucide) lucide.createIcons();
+    }
+}
+
+const _s = document.createElement('style');
+_s.textContent = '@keyframes spin{to{transform:rotate(360deg)}}.spin{animation:spin .8s linear infinite;}';
+document.head.appendChild(_s);
+</script>
+
+<%- include('../partials/footer') %>
