@@ -127,6 +127,9 @@ module.exports = new Event({
         // ══════════════════════════════════════════════════════════════════
         if (justBoosted) {
 
+            // Fetch fresh guild data so premiumSubscriptionCount reflects the new boost
+            await guild.fetch().catch(() => null);
+
             // ── Autorole: berikan role booster ─────────────────────────────
             if (cfg.autoroleEnabled && cfg.autoroleRoleId) {
                 const role     = guild.roles.cache.get(cfg.autoroleRoleId);
@@ -195,7 +198,7 @@ module.exports = new Event({
                 if (cfg.boostShowThumbnail) embed.setThumbnail(newMember.user.displayAvatarURL({ dynamic: true, size: 256 }));
                 const boostFields = [];
                 if (cfg.boostShowMember)      boostFields.push({ name: '👤 Member',       value: newMember.user.tag,                                             inline: true });
-                if (cfg.boostShowMulaiBoost)  boostFields.push({ name: '🚀 Mulai Boost',  value: `<t:${Math.floor(newMember.premiumSinceTimestamp / 1000)}:R>`,  inline: true });
+                if (cfg.boostShowMulaiBoost)  boostFields.push({ name: '🚀 Boosting Since', value: `<t:${Math.floor(newMember.premiumSinceTimestamp / 1000)}:R>`, inline: true });
                 if (cfg.boostShowTotalBoost)  boostFields.push({ name: '✨ Total Boost',  value: `**${guild.premiumSubscriptionCount ?? 0}** boost`,             inline: true });
                 if (cfg.boostShowLevelServer) boostFields.push({ name: '🏅 Level Server', value: `Level **${guild.premiumTier}**`,                              inline: true });
                 if (boostFields.length) embed.addFields(...boostFields);
@@ -212,6 +215,9 @@ module.exports = new Event({
         // ══════════════════════════════════════════════════════════════════
         if (justUnboosted) {
 
+            // Fetch fresh guild data so premiumSubscriptionCount reflects the removed boost
+            await guild.fetch().catch(() => null);
+
             // ── Autorole: cabut role booster ───────────────────────────────
             if (cfg.autoremoveEnabled && cfg.autoroleRoleId) {
                 const role     = guild.roles.cache.get(cfg.autoroleRoleId);
@@ -224,7 +230,7 @@ module.exports = new Event({
                     botMember.roles.highest.comparePositionTo(role) > 0 &&
                     newMember.roles.cache.has(role.id)
                 ) {
-                    await newMember.roles.remove(role, 'Unboost — Pencabutan Autorole Booster').catch(() => null);
+                    await newMember.roles.remove(role, 'Unboost — Remove Booster Autorole').catch(() => null);
                 }
             }
 
