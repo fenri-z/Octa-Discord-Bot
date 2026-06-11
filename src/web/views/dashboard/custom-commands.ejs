@@ -64,11 +64,11 @@
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
                 <div class="form-group">
                     <label class="label"><%= t('custom_commands.trigger_label') %></label>
-                    <input type="text" id="ccTrigger" class="input" placeholder="<%= t('custom_commands.trigger_placeholder') %>" maxlength="50">
+                    <input type="text" id="ccTrigger" class="input" data-flt-ignore placeholder="<%= t('custom_commands.trigger_placeholder') %>" maxlength="50" oninput="onFormInput()">
                 </div>
                 <div class="form-group">
                     <label class="label"><%= t('custom_commands.mode_label') %></label>
-                    <select id="ccMode" class="select">
+                    <select id="ccMode" class="select" data-flt-ignore>
                         <option value="prefix"><%= t('custom_commands.mode_prefix') %></option>
                         <option value="exact"><%= t('custom_commands.mode_exact') %></option>
                     </select>
@@ -77,7 +77,7 @@
 
             <div class="form-group">
                 <label class="label"><%= t('custom_commands.type_label') %></label>
-                <select id="ccType" class="select" onchange="updateResponseType()">
+                <select id="ccType" class="select" data-flt-ignore onchange="updateResponseType()">
                     <option value="plain"><%= t('custom_commands.type_plain') %></option>
                     <option value="embed"><%= t('custom_commands.type_embed') %></option>
                 </select>
@@ -85,29 +85,26 @@
 
             <div id="ccPlainSection" class="form-group">
                 <label class="label"><%= t('custom_commands.plain_label') %></label>
-                <textarea id="ccPlainText" class="input" rows="3" placeholder="<%= t('custom_commands.plain_placeholder') %>" maxlength="2000" style="resize:vertical;"></textarea>
+                <textarea id="ccPlainText" class="input" data-flt-ignore rows="3" placeholder="<%= t('custom_commands.plain_placeholder') %>" maxlength="2000" style="resize:vertical;"></textarea>
             </div>
 
             <div id="ccEmbedSection" style="display:none;">
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
                     <div class="form-group">
                         <label class="label"><%= t('custom_commands.embed_title_label') %></label>
-                        <input type="text" id="ccEmbedTitle" class="input" placeholder="<%= t('custom_commands.embed_title_placeholder') %>" maxlength="256">
+                        <input type="text" id="ccEmbedTitle" class="input" data-flt-ignore placeholder="<%= t('custom_commands.embed_title_placeholder') %>" maxlength="256">
                     </div>
                     <div class="form-group">
                         <label class="label"><%= t('custom_commands.embed_color_label') %></label>
-                        <input type="color" id="ccEmbedColor" class="input" value="#5865F2" style="height:42px;padding:.25rem;">
+                        <input type="color" id="ccEmbedColor" class="input" data-flt-ignore value="#5865F2" style="height:42px;padding:.25rem;">
                     </div>
                 </div>
                 <div class="form-group">
                     <label class="label"><%= t('custom_commands.embed_desc_label') %></label>
-                    <textarea id="ccEmbedDesc" class="input" rows="3" placeholder="<%= t('custom_commands.embed_desc_placeholder') %>" maxlength="4096" style="resize:vertical;"></textarea>
+                    <textarea id="ccEmbedDesc" class="input" data-flt-ignore rows="3" placeholder="<%= t('custom_commands.embed_desc_placeholder') %>" maxlength="4096" style="resize:vertical;"></textarea>
                 </div>
             </div>
 
-            <button class="btn btn-primary" onclick="addCommand()">
-                <i data-lucide="plus" style="width:14px;height:14px;"></i> <%= t('custom_commands.add_btn') %>
-            </button>
             <div id="ccAddMsg" class="form-message" style="margin-top:.5rem;"></div>
         </div>
 
@@ -169,7 +166,8 @@
 
 <script>
 const GUILD_ID = '<%= guild.id %>';
-let commands = <%- JSON.stringify(commands) %>;
+let commands     = <%- JSON.stringify(commands) %>;
+let savedCommands = JSON.parse(JSON.stringify(commands));
 
 const i18n = {
     empty:        '<%= t('custom_commands.empty') %>',
@@ -204,25 +202,46 @@ function updateResponseType() {
     document.getElementById('ccEmbedSection').style.display = type === 'embed' ? '' : 'none';
 }
 
-async function saveCommands(msgElId) {
-    const msg  = document.getElementById(msgElId);
+async function saveCommands() {
+    const msg  = document.getElementById('ccListMsg');
     const data = await apiFetch('/custom-commands', 'POST', { commands });
     showMsg(msg, data.message, data.success ? 'success' : 'error');
-    document.getElementById('cmdCount').textContent = commands.length;
+    if (data.success) {
+        savedCommands = JSON.parse(JSON.stringify(commands));
+        document.getElementById('cmdCount').textContent = commands.length;
+    }
     return data.success;
 }
 
-async function addCommand() {
+function onFormInput() {
+    syncFloatBar();
+}
+
+function clearForm() {
+    document.getElementById('ccTrigger').value    = '';
+    document.getElementById('ccPlainText').value  = '';
+    document.getElementById('ccEmbedTitle').value = '';
+    document.getElementById('ccEmbedDesc').value  = '';
+    document.getElementById('ccMode').value       = 'prefix';
+    document.getElementById('ccType').value       = 'plain';
+    updateResponseType();
+    const addMsg = document.getElementById('ccAddMsg');
+    addMsg.textContent = '';
+    addMsg.className   = 'form-message';
+}
+
+function addCommandFromForm() {
     const trigger = document.getElementById('ccTrigger').value.trim();
+    if (!trigger) return true; // form is empty, nothing to add
+
     const mode    = document.getElementById('ccMode').value;
     const resType = document.getElementById('ccType').value;
-
-    if (!trigger) return showMsg(document.getElementById('ccAddMsg'), i18n.err_no_trigger, 'error');
+    const addMsg  = document.getElementById('ccAddMsg');
 
     let response = {};
     if (resType === 'plain') {
         const text = document.getElementById('ccPlainText').value.trim();
-        if (!text) return showMsg(document.getElementById('ccAddMsg'), i18n.err_no_text, 'error');
+        if (!text) { showMsg(addMsg, i18n.err_no_text, 'error'); return false; }
         response = { text };
     } else {
         response = {
@@ -230,31 +249,30 @@ async function addCommand() {
             description: document.getElementById('ccEmbedDesc').value.trim(),
             color:       document.getElementById('ccEmbedColor').value,
         };
-        if (!response.title && !response.description)
-            return showMsg(document.getElementById('ccAddMsg'), i18n.err_no_embed, 'error');
+        if (!response.title && !response.description) {
+            showMsg(addMsg, i18n.err_no_embed, 'error');
+            return false;
+        }
     }
 
     commands.push({ trigger, mode, responseType: resType, response, enabled: true });
-
-    document.getElementById('ccTrigger').value    = '';
-    document.getElementById('ccPlainText').value  = '';
-    document.getElementById('ccEmbedTitle').value = '';
-    document.getElementById('ccEmbedDesc').value  = '';
-
-    const ok = await saveCommands('ccAddMsg');
-    if (ok) renderList();
+    clearForm();
+    renderList();
+    return true;
 }
 
 function deleteCommand(btn) {
     const idx = parseInt(btn.closest('.cc-row').dataset.idx);
     commands.splice(idx, 1);
-    saveCommands('ccListMsg').then(ok => { if (ok) renderList(); });
+    renderList();
+    window._floatDirty?.();
 }
 
 function renderList() {
     const container = document.getElementById('ccList');
     if (!commands.length) {
         container.innerHTML = `<p style="color:var(--text-muted);font-size:.875rem;text-align:center;padding:1.5rem 0;">${i18n.empty}</p>`;
+        document.getElementById('cmdCount').textContent = 0;
         return;
     }
     container.innerHTML = commands.map((cmd, i) => `
@@ -281,14 +299,31 @@ function renderList() {
 function toggleCmd(el) {
     const idx = parseInt(el.closest('.cc-row').dataset.idx);
     commands[idx].enabled = el.checked;
-    saveCommands('ccListMsg');
+    syncFloatBar();
+}
+
+function syncFloatBar() {
+    const formEmpty = !document.getElementById('ccTrigger').value.trim();
+    const listClean = JSON.stringify(commands) === JSON.stringify(savedCommands);
+    if (formEmpty && listClean) window._floatClean?.();
+    else window._floatDirty?.();
 }
 
 function escHtml(s) {
     return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
-window._floatSave = () => saveCommands('ccListMsg');
+window._floatSave = async function () {
+    const ok = addCommandFromForm();
+    if (!ok) return; // validation failed, abort save
+    await saveCommands();
+};
+
+window._floatReset = function () {
+    clearForm();
+    commands = JSON.parse(JSON.stringify(savedCommands));
+    renderList();
+};
 </script>
 
 <%- include('../partials/footer') %>

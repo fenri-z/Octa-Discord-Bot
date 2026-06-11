@@ -226,7 +226,7 @@ required: true
                 .setThumbnail(guild.iconURL({ dynamic: true }))
                 .setTimestamp();
 
-            return interaction.reply({ embeds: [embed], ephemeral: false });
+            return interaction.reply({ embeds: [embed] });
         }
 
         // ── /booster reset ─────────────────────────────────────────────────

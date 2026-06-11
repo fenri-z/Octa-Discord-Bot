@@ -1,4 +1,4 @@
-const { ChatInputCommandInteraction, AttachmentBuilder, PermissionFlagsBits } = require("discord.js");
+const { ChatInputCommandInteraction, AttachmentBuilder, PermissionFlagsBits, MessageFlags } = require("discord.js");
 const DiscordBot = require("../../client/DiscordBot");
 const ApplicationCommand = require("../../structure/ApplicationCommand");
 const config = require("../../config");
@@ -20,7 +20,7 @@ module.exports = new ApplicationCommand({
      * @param {ChatInputCommandInteraction} interaction
      */
     run: async (client, interaction) => {
-        await interaction.deferReply({ ephemeral: true });
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
         try {
             client.commands_handler.reload();

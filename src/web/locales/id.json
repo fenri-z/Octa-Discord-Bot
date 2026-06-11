@@ -83,7 +83,11 @@
     "feat_twitch_title": "Notifikasi Twitch",
     "feat_kick_title": "Notifikasi Kick",
     "ping": "Ping",
-    "active_tickets": "Tiket Aktif"
+    "active_tickets": "Tiket Aktif",
+    "settings_title": "Pengaturan Bot",
+    "prefix_label": "Prefix Perintah",
+    "prefix_sub": "Karakter prefix untuk perintah (contoh: !help)",
+    "prefix_placeholder": "contoh: !"
   },
   "common": {
     "save": "Simpan",

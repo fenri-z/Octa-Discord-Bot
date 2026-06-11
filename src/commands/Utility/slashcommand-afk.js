@@ -27,7 +27,6 @@ module.exports = new ApplicationCommand({
 
         return interaction.reply({
             content: s.set(reason),
-            ephemeral: false,
         });
     }
 }).toJSON();

@@ -57,11 +57,11 @@
             </div>
             <div class="ov-stat-card" style="--accent-c:#FF73FA;">
                 <div class="ov-stat-icon" style="background:rgba(255,115,250,.12);color:#FF73FA;">
-                    <i data-lucide="pencil"></i>
+                    <i data-lucide="terminal"></i>
                 </div>
                 <div class="ov-stat-body">
-                    <div class="ov-stat-value ov-stat-nickname"><%= botNickname %></div>
-                    <div class="ov-stat-label"><%= t('home.bot_nickname') %></div>
+                    <div class="ov-stat-value ov-stat-nickname"><%= botPrefix %></div>
+                    <div class="ov-stat-label"><%= t('home.prefix_label') %></div>
                 </div>
                 <div class="ov-stat-bar"></div>
             </div>
@@ -95,21 +95,27 @@
         </div>
         <% } %>
 
-        <!-- ── Nickname Bot ───────────────────────────────────────── -->
-        <div class="ov-nickname-card">
-            <div class="ov-nickname-left">
-                <div class="ov-nickname-icon"><i data-lucide="pencil-line"></i></div>
-                <div>
-                    <div class="ov-nickname-title"><%= t('home.bot_nickname') %></div>
-                    <div class="ov-nickname-sub"><%= t('home.nickname_sub') %></div>
+        <!-- ── Bot Settings ──────────────────────────────────────── -->
+        <div class="ov-botsettings-card">
+            <div class="ov-botsettings-header">
+                <div class="ov-botsettings-icon"><i data-lucide="settings-2"></i></div>
+                <div class="ov-botsettings-title"><%= t('home.settings_title') %></div>
+            </div>
+            <div class="ov-botsettings-grid">
+                <div class="form-group" style="margin:0;">
+                    <label class="label"><%= t('home.bot_nickname') %></label>
+                    <p style="font-size:.75rem;color:var(--text-muted);margin:.1rem 0 .5rem;"><%= t('home.nickname_sub') %></p>
+                    <input type="text" id="nicknameInput" class="input" value="<%= botNickname %>"
+                           maxlength="32" placeholder="<%= t('home.nickname_placeholder') %>">
+                </div>
+                <div class="form-group" style="margin:0;">
+                    <label class="label"><%= t('home.prefix_label') %></label>
+                    <p style="font-size:.75rem;color:var(--text-muted);margin:.1rem 0 .5rem;"><%= t('home.prefix_sub') %></p>
+                    <input type="text" id="prefixInput" class="input" value="<%= botPrefix %>"
+                           maxlength="5" placeholder="<%= t('home.prefix_placeholder') %>">
                 </div>
             </div>
-            <div class="ov-nickname-right">
-                <input type="text" id="nicknameInput" class="input" value="<%= botNickname %>"
-                       maxlength="32" placeholder="<%= t('home.nickname_placeholder') %>">
-                <button class="btn btn-primary" onclick="saveNickname('<%= guild.id %>')"><%= t('home.save') %></button>
-            </div>
-            <div id="nicknameMsg" class="form-message" style="width:100%;margin-top:.5rem;"></div>
+            <div id="settingsMsg" class="form-message" style="margin-top:.75rem;"></div>
         </div>
 
         <!-- ══════════════════════════════════════════════════
@@ -491,28 +497,30 @@
 .ov-perm-header { display: flex; align-items: center; gap: .55rem; color: #f27f81; margin-bottom: .6rem; }
 .ov-perm-header svg { width: 17px; height: 17px; flex-shrink: 0; }
 
-/* ── Nickname card ── */
-.ov-nickname-card {
+/* ── Bot Settings card ── */
+.ov-botsettings-card {
     background: var(--bg2); border: 1px solid var(--border);
-    border-radius: 12px; padding: 1rem 1.25rem;
-    display: flex; align-items: center; gap: 1rem;
-    flex-wrap: wrap; margin-bottom: 1.75rem;
+    border-radius: 12px; padding: 1.1rem 1.25rem;
+    margin-bottom: 1.75rem;
     transition: border-color .2s;
 }
-.ov-nickname-card:focus-within { border-color: var(--accent); }
-.ov-nickname-left {
-    display: flex; align-items: center; gap: .75rem; flex: 1; min-width: 180px;
+.ov-botsettings-card:focus-within { border-color: var(--accent); }
+.ov-botsettings-header {
+    display: flex; align-items: center; gap: .65rem; margin-bottom: 1rem;
 }
-.ov-nickname-icon {
-    width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0;
-    background: rgba(255,115,250,.12); color: #FF73FA;
+.ov-botsettings-icon {
+    width: 34px; height: 34px; border-radius: 9px; flex-shrink: 0;
+    background: rgba(88,101,242,.15); color: #949cf7;
     display: flex; align-items: center; justify-content: center;
 }
-.ov-nickname-icon svg { width: 18px; height: 18px; }
-.ov-nickname-title { font-size: .9rem; font-weight: 600; margin-bottom: .1rem; }
-.ov-nickname-sub { font-size: .75rem; color: var(--text-muted); }
-.ov-nickname-right { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; }
-.ov-nickname-right .input { min-width: 180px; max-width: 240px; }
+.ov-botsettings-icon svg { width: 16px; height: 16px; }
+.ov-botsettings-title { font-size: .9rem; font-weight: 600; }
+.ov-botsettings-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+@media(max-width:600px) { .ov-botsettings-grid { grid-template-columns: 1fr; } }
 
 /* ── Feature section ── */
 .ov-feat-section { margin-bottom: 1.5rem; }
@@ -583,8 +591,7 @@
     .ov-server-icon, .ov-server-icon-placeholder { width: 48px; height: 48px; border-radius: 12px; }
     .ov-server-name { font-size: 1.2rem; }
     .ov-feat-grid { grid-template-columns: 1fr; }
-    .ov-nickname-right { width: 100%; }
-    .ov-nickname-right .input { min-width: 0; flex: 1; max-width: none; }
+    .ov-botsettings-grid { grid-template-columns: 1fr; }
 }
 </style>
 
@@ -618,23 +625,43 @@
     window.addEventListener('beforeunload', () => es.close());
 })();
 
-async function saveNickname(guildId) {
-    const nickname = document.getElementById('nicknameInput').value.trim();
-    const msg      = document.getElementById('nicknameMsg');
-    const res  = await fetch(`/api/guild/${guildId}/nickname`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nickname })
-    });
-    const data = await res.json();
-    showMsg(msg, data.message, data.success ? 'success' : 'error');
-}
+const GUILD_ID = '<%= guild.id %>';
 
-function showMsg(el, text, type) {
-    el.textContent = text;
-    el.className   = `form-message msg-${type}`;
-    setTimeout(() => { el.textContent = ''; el.className = 'form-message'; }, 3000);
-}
+const _initNickname = document.getElementById('nicknameInput').value;
+const _initPrefix   = document.getElementById('prefixInput').value;
+
+window._floatSave = async function () {
+    const nickname = document.getElementById('nicknameInput').value.trim();
+    const prefix   = document.getElementById('prefixInput').value.trim() || '!';
+    const msg      = document.getElementById('settingsMsg');
+
+    const nickChanged = nickname !== _initNickname.trim();
+    const prefChanged = (prefix   !== (_initPrefix.trim() || '!'));
+
+    const tasks = [];
+    if (nickChanged) tasks.push(
+        fetch(`/api/guild/${GUILD_ID}/nickname`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nickname }),
+        }).then(r => r.json()).then(d => ({ key: 'nick', ...d }))
+    );
+    if (prefChanged) tasks.push(
+        fetch(`/api/guild/${GUILD_ID}/prefix`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ prefix }),
+        }).then(r => r.json()).then(d => ({ key: 'pref', ...d }))
+    );
+
+    if (!tasks.length) return;
+
+    const results = await Promise.all(tasks);
+    const failed  = results.find(r => !r.success);
+    if (failed) {
+        showMsg(msg, failed.message, 'error');
+    } else {
+        showMsg(msg, results[results.length - 1].message, 'success');
+    }
+};
 </script>
 
 <%- include('../partials/footer') %>

@@ -83,7 +83,11 @@
     "feat_twitch_title": "Twitch Notification",
     "feat_kick_title": "Kick Notification",
     "ping": "Ping",
-    "active_tickets": "Active Tickets"
+    "active_tickets": "Active Tickets",
+    "settings_title": "Bot Settings",
+    "prefix_label": "Command Prefix",
+    "prefix_sub": "Prefix character for commands (e.g. !help)",
+    "prefix_placeholder": "e.g. !"
   },
   "common": {
     "save": "Save",

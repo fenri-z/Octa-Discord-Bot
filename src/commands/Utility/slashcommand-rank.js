@@ -1,5 +1,5 @@
 const ApplicationCommand = require('../../structure/ApplicationCommand');
-const { EmbedBuilder }   = require('discord.js');
+const { EmbedBuilder, MessageFlags } = require('discord.js');
 const { getLang, getStrings } = require('../../utils/BotLang');
 
 function xpForLevel(lvl) { return 5 * lvl * lvl + 50 * lvl + 100; }
@@ -37,7 +37,7 @@ module.exports = new ApplicationCommand({
         const s       = getStrings(getLang(db, guildId)).rank;
 
         if (db.get(`level-enabled-${guildId}`) !== 'true')
-            return interaction.reply({ content: s.not_enabled, ephemeral: true });
+            return interaction.reply({ content: s.not_enabled, flags: MessageFlags.Ephemeral });
 
         const target   = interaction.options.getMember('member') ?? interaction.member;
         const raw      = db.get(`level-user-${guildId}-${target.id}`);

@@ -17,39 +17,49 @@ module.exports = new Event({
         try { commands = JSON.parse(raw); } catch { return; }
         if (!Array.isArray(commands) || commands.length === 0) return;
 
-        const content = message.content.trim().toLowerCase();
+        const botPrefix    = (db.get(`prefix_${guildId}`) || '').toLowerCase().trim();
+        const content      = message.content.trim().toLowerCase();
+        // Content with server prefix stripped (so trigger "rules" also matches "?rules")
+        const contentNaked = (botPrefix && content.startsWith(botPrefix))
+            ? content.slice(botPrefix.length).trimStart()
+            : null;
 
         for (const cmd of commands) {
             if (!cmd.enabled) continue;
             const trigger = (cmd.trigger || '').toLowerCase().trim();
             if (!trigger) continue;
 
-            // Cocokkan: mulai dengan trigger (prefix-style) atau persis sama
-            const matches = cmd.exactMatch
-                ? content === trigger
-                : content.startsWith(trigger);
+            let matches;
+            if (cmd.mode === 'exact') {
+                matches = content === trigger ||
+                          (contentNaked !== null && contentNaked === trigger);
+            } else {
+                matches = content.startsWith(trigger) ||
+                          (contentNaked !== null && contentNaked.startsWith(trigger));
+            }
             if (!matches) continue;
 
-            if (cmd.embedEnabled) {
+            if (cmd.responseType === 'embed') {
+                const res   = cmd.response || {};
                 const embed = new EmbedBuilder()
-                    .setColor(cmd.embedColor || '#5865F2')
-                    .setDescription(replacePlaceholders(cmd.response, message));
-                if (cmd.embedTitle)
-                    embed.setTitle(replacePlaceholders(cmd.embedTitle, message));
+                    .setColor(res.color || '#5865F2');
+                if (res.title)       embed.setTitle(replacePlaceholders(res.title, message));
+                if (res.description) embed.setDescription(replacePlaceholders(res.description, message));
                 await message.channel.send({ embeds: [embed] }).catch(() => null);
             } else {
+                const text = (cmd.response && cmd.response.text) || '';
                 await message.channel.send({
-                    content: replacePlaceholders(cmd.response, message),
+                    content: replacePlaceholders(text, message),
                     allowedMentions: { parse: ['users', 'roles'] },
                 }).catch(() => null);
             }
-            break; // hanya jalankan command pertama yang cocok
+            break;
         }
     }
 }).toJSON();
 
 function replacePlaceholders(text, message) {
-    if (!text) return '';
+    if (!text || typeof text !== 'string') return '';
     return text
         .replace(/\{member\}/g,   `<@${message.author.id}>`)
         .replace(/\{username\}/g, message.author.username)

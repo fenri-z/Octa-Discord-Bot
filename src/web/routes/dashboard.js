@@ -223,7 +223,9 @@ router.get('/', requireLogin, (req, res) => {
 router.get('/:guildId', requireLogin, requireManageGuild, (req, res) => {
     const guild       = req.botGuild;
     const me          = guild.members.me;
+    const db          = req.discordClient?.database;
     const botNickname = me?.nickname || req.discordClient?.user?.username || 'Bot';
+    const botPrefix   = db?.get(`prefix_${guild.id}`) || '!';
 
     const missingPerms = me
         ? REQUIRED_PERMS.filter(p => !me.permissions.has(p.flag))
@@ -234,6 +236,7 @@ router.get('/:guildId', requireLogin, requireManageGuild, (req, res) => {
         guild,
         guildData: req.userGuildData,
         botNickname,
+        botPrefix,
         missingPerms,
         activePage: 'home',
         hasSidebar: true
