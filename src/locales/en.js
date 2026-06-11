@@ -115,6 +115,7 @@ module.exports = {
             notification: { label: 'Notification', opt: 'Requires: Administrator or Server Owner.',       tip: '> 👑 Requires: Administrator or Server Owner.' },
             autorole    : { label: 'Autorole',     opt: 'Requires: Administrator or Server Owner.',       tip: '> 👑 Requires: Administrator or Server Owner.' },
             utility     : { label: 'Utility',      opt: 'Requires: Administrator or Server Owner.',       tip: '> 👑 Requires: Administrator or Server Owner.' },
+            community   : { label: 'Community',    opt: 'Available to all server members.',               tip: '> 🌟 Available to all server members.' },
             developer   : { label: 'Developer',    opt: 'Restricted to bot owner and developers.',        tip: '> 🔒 Restricted to bot owner and developers.' },
         },
 
@@ -308,6 +309,23 @@ module.exports = {
             language: { short: 'Set the bot language for this server.', lines: [
                 ['/language language:English', 'Set language to English.'],
                 ['/language language:Indonesian', 'Set language to Indonesian.'],
+            ]},
+            poll: { short: 'Create a poll with up to 5 options. Members vote by clicking emoji reactions.', lines: [
+                ['/poll question:question option1:A option2:B', 'Create a 2-option poll.'],
+                ['  option3, option4, option5:', 'Optional 3rd–5th choices.'],
+                ['  duration:', 'Auto-announce results after time expires (e.g. 30m, 1h, 1d).'],
+            ]},
+            afk: { short: 'Set your AFK status. Bot notifies others who mention you.', lines: [
+                ['/afk', 'Set AFK without a reason.'],
+                ['/afk reason:sleeping', 'Set AFK with a reason.'],
+                ['  When you send a message', 'your AFK status is automatically removed.'],
+            ]},
+            rank: { short: 'Show level, XP, ranking, and progress bar of a member.', lines: [
+                ['/rank', 'Show your own rank.'],
+                ['/rank member:@user', 'Show the rank of another member.'],
+            ]},
+            leaderboard: { short: 'Show the top 10 members ranked by total XP in this server.', lines: [
+                ['/leaderboard', 'Show top 10 XP leaderboard.'],
             ]},
             server  : { short: 'Manage the bot from DMs by selecting an active server.', lines: [
                 ['/server list', 'List all servers the bot is in.'],
@@ -1165,6 +1183,69 @@ module.exports = {
         modal_not_sent_yet : (name) => `📭 Panel not sent yet. Use \`/autorole-reaction send ${name}\` after finishing setup.`,
         modal_created      : (name) => `✅ Panel \`${name}\` Created`,
         modal_updated      : (name) => `✏️ Panel \`${name}\` Updated`,
+    },
+
+    // ── /poll ─────────────────────────────────────────────────────────────────
+    poll: {
+        footer_by   : (name) => `Poll by ${name}`,
+        footer_ends : (name, time) => `Poll by ${name} · Ends ${time}`,
+        result_title: (q) => `📊 Results: ${q}`,
+        no_votes    : 'No votes.',
+        footer_total: (n) => `Total: ${n} vote(s)`,
+    },
+
+    // ── /afk ──────────────────────────────────────────────────────────────────
+    afk: {
+        set       : (reason) => `😴 You are now AFK: **${reason}**\nThe bot will notify people who mention you.`,
+        back      : (elapsed) => `👋 Welcome back! Your AFK status has been removed. _(You were AFK for ${elapsed})_`,
+        notify    : (name, reason, elapsed) => `😴 **${name}** is AFK: _${reason}_ (${elapsed})`,
+        elapsed_s : (n) => `${n}s`,
+        elapsed_m : (n) => `${n}m`,
+        elapsed_h : (n, m) => `${n}h ${m}m`,
+        elapsed_d : (n, h) => `${n}d ${h}h`,
+    },
+
+    // ── /rank ─────────────────────────────────────────────────────────────────
+    rank: {
+        not_enabled : '❌ The level system is not enabled in this server.',
+        field_xp_cur: '✨ Current XP',
+        field_xp_tot: '📊 Total XP',
+        field_rank  : '🏆 Ranking',
+        field_prog  : '📈 Progress',
+    },
+
+    // ── /leaderboard ──────────────────────────────────────────────────────────
+    leaderboard: {
+        not_enabled: '❌ The level system is not enabled.',
+        no_data    : 'No XP data yet. Encourage members to chat!',
+        footer     : 'Top 10 by total XP',
+        title      : (guild) => `🏆 Leaderboard — ${guild}`,
+    },
+
+    // ── extlog event strings ──────────────────────────────────────────────────
+    extlog_event: {
+        msg_edit_title : '✏️ Message Edited',
+        field_channel  : 'Channel',
+        field_link     : 'Link',
+        field_link_val : (url) => `[View Message](${url})`,
+        field_before   : 'Before',
+        field_after    : 'After',
+        field_empty    : '_(empty)_',
+        msg_del_title  : '🗑️ Message Deleted',
+        field_sender   : 'Sender',
+        field_content  : 'Content',
+        field_no_text  : '_(no text)_',
+        voice_join     : '🎙️ Join Voice Channel',
+        voice_leave    : '🔇 Leave Voice Channel',
+        voice_move     : '🔀 Moved Voice Channel',
+        field_member   : 'Member',
+        field_from     : 'From',
+        field_to       : 'To',
+        nick_title     : '📝 Nickname Changed',
+        nick_none      : '_(none)_',
+        role_title     : '🎭 Member Role Change',
+        role_added     : '✅ Roles Added',
+        role_removed   : '❌ Roles Removed',
     },
 
 };

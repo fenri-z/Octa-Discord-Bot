@@ -1,0 +1,253 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+
+<div class="dash-layout">
+    <%- include('../partials/sidebar', { activePage: 'level' }) %>
+
+    <main class="dash-main">
+    <div class="dash-content-wide">
+        <%- include('../partials/perm-notice') %>
+
+        <div class="page-header">
+            <h1>⭐ <%= t('level.page_title') %></h1>
+            <p><%= t('level.page_desc') %></p>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon" style="color:#FEE75C;"><i data-lucide="star"></i></div>
+                <div class="stat-info">
+                    <div class="stat-value"><%= levelData.enabled ? t('level.status_active') : t('level.status_inactive') %></div>
+                    <div class="stat-label"><%= t('level.status_label') %></div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="color:#57F287;"><i data-lucide="users"></i></div>
+                <div class="stat-info">
+                    <div class="stat-value"><%= leaderboard.length %></div>
+                    <div class="stat-label"><%= t('level.members_registered') %></div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="color:#5865F2;"><i data-lucide="award"></i></div>
+                <div class="stat-info">
+                    <div class="stat-value"><%= levelData.roleRewards.length %></div>
+                    <div class="stat-label"><%= t('level.role_rewards') %></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- How to Use -->
+        <div class="settings-card" style="margin-bottom:1.5rem;">
+            <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.25rem;">
+                <i data-lucide="book-open" style="color:#FEE75C;width:18px;height:18px;flex-shrink:0;"></i>
+                <h2 style="margin:0;font-size:1rem;font-weight:600;"><%= t('level.how_to_use') %></h2>
+            </div>
+            <div class="guide-grid">
+                <div class="guide-step">
+                    <div class="guide-num">1</div>
+                    <div class="guide-title"><%= t('level.step1_title') %></div>
+                    <div class="guide-desc"><%= t('level.step1_desc') %></div>
+                </div>
+                <div class="guide-step">
+                    <div class="guide-num">2</div>
+                    <div class="guide-title"><%= t('level.step2_title') %></div>
+                    <div class="guide-desc"><%= t('level.step2_desc') %></div>
+                </div>
+                <div class="guide-step">
+                    <div class="guide-num">3</div>
+                    <div class="guide-title"><%= t('level.step3_title') %></div>
+                    <div class="guide-desc"><%= t('level.step3_desc') %></div>
+                </div>
+            </div>
+            <div class="guide-tip">💡 <%= t('level.tip') %></div>
+        </div>
+
+        <!-- Configuration -->
+        <div class="settings-card">
+            <h2><%= t('level.config_title') %></h2>
+
+            <div class="form-group">
+                <label class="toggle-label">
+                    <input type="checkbox" id="levelEnabled" class="toggle-input" <%= levelData.enabled ? 'checked' : '' %>>
+                    <span class="toggle-slider"></span>
+                    <span><%= t('level.enable_label') %></span>
+                </label>
+            </div>
+
+            <div class="form-group">
+                <label class="label"><%= t('level.channel_label') %></label>
+                <select id="levelChannel" class="select">
+                    <option value=""><%= t('level.channel_none') %></option>
+                    <% channels.forEach(function(ch) { %>
+                        <option value="<%= ch.id %>" <%= levelData.channelId === ch.id ? 'selected' : '' %>>#<%= ch.name %></option>
+                    <% }); %>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="label"><%= t('level.message_label') %></label>
+                <input type="text" id="levelMessage" class="input" value="<%= levelData.message %>" placeholder="<%= t('level.message_placeholder') %>">
+                <p class="section-desc" style="margin-top:.35rem;"><%- t('level.message_hint') %></p>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;">
+                <div class="form-group">
+                    <label class="label"><%= t('level.xp_min') %></label>
+                    <input type="number" id="levelXpMin" class="input" value="<%= levelData.xpMin %>" min="1" max="100">
+                </div>
+                <div class="form-group">
+                    <label class="label"><%= t('level.xp_max') %></label>
+                    <input type="number" id="levelXpMax" class="input" value="<%= levelData.xpMax %>" min="1" max="100">
+                </div>
+                <div class="form-group">
+                    <label class="label"><%= t('level.cooldown') %></label>
+                    <input type="number" id="levelCooldown" class="input" value="<%= levelData.cooldown %>" min="0" max="3600">
+                </div>
+            </div>
+
+            <div id="levelCfgMsg" class="form-message"></div>
+        </div>
+
+        <!-- Role Rewards -->
+        <div class="settings-card">
+            <h2><%= t('level.role_rewards_title') %></h2>
+            <p class="section-desc" style="margin-bottom:1rem;"><%= t('level.role_rewards_desc') %></p>
+
+            <div id="roleRewardsList">
+                <% levelData.roleRewards.forEach(function(rr, i) { %>
+                <div class="rr-row" data-idx="<%= i %>">
+                    <span style="color:var(--text-muted);font-size:.875rem;"><%= t('level.level_col') %></span>
+                    <input type="number" class="input rr-level" value="<%= rr.level %>" min="1" max="999" style="width:80px;">
+                    <span style="color:var(--text-muted);font-size:.875rem;"><%= t('level.arrow') %></span>
+                    <select class="select rr-role" style="flex:1;min-width:0;">
+                        <option value=""><%= t('level.select_role') %></option>
+                        <% roles.forEach(function(r) { %>
+                            <option value="<%= r.id %>" <%= rr.roleId === r.id ? 'selected' : '' %> style="color:<%= r.color %>">@<%= r.name %></option>
+                        <% }); %>
+                    </select>
+                    <button class="btn btn-danger btn-sm rr-del" onclick="removeReward(this)"><i data-lucide="trash-2" style="width:14px;height:14px;"></i></button>
+                </div>
+                <% }); %>
+            </div>
+
+            <button class="btn btn-secondary" style="margin-top:.75rem;" onclick="addReward()">
+                <i data-lucide="plus" style="width:14px;height:14px;"></i> <%= t('level.add_reward') %>
+            </button>
+
+            <div id="roleRewardMsg" class="form-message" style="margin-top:.75rem;"></div>
+        </div>
+
+        <!-- Leaderboard Preview -->
+        <% if (leaderboard.length) { %>
+        <div class="settings-card">
+            <h2><%= t('level.leaderboard_title') %></h2>
+            <div style="overflow-x:auto;">
+                <table style="width:100%;border-collapse:collapse;font-size:.875rem;">
+                    <thead>
+                        <tr style="border-bottom:1px solid var(--border);">
+                            <th style="padding:.5rem .75rem;text-align:left;color:var(--text-muted);"><%= t('level.lb_rank') %></th>
+                            <th style="padding:.5rem .75rem;text-align:left;color:var(--text-muted);"><%= t('level.lb_user') %></th>
+                            <th style="padding:.5rem .75rem;text-align:center;color:var(--text-muted);"><%= t('level.lb_level') %></th>
+                            <th style="padding:.5rem .75rem;text-align:center;color:var(--text-muted);"><%= t('level.lb_xp') %></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% leaderboard.forEach(function(entry, i) { %>
+                        <tr style="border-bottom:1px solid rgba(255,255,255,.04);">
+                            <td style="padding:.5rem .75rem;color:<%= i===0?'#FEE75C':i===1?'#C0C0C0':i===2?'#CD7F32':'var(--text-muted)' %>;font-weight:600;">
+                                <%= i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1) %>
+                            </td>
+                            <td style="padding:.5rem .75rem;font-family:monospace;color:var(--text-secondary);"><%= entry.userId %></td>
+                            <td style="padding:.5rem .75rem;text-align:center;font-weight:600;color:#FEE75C;">Lv.<%= entry.level %></td>
+                            <td style="padding:.5rem .75rem;text-align:center;color:var(--text-muted);"><%= entry.xp.toLocaleString() %> XP</td>
+                        </tr>
+                        <% }); %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <% } %>
+
+    </div><!-- /.dash-content-wide -->
+    </main>
+</div><!-- /.dash-layout -->
+
+<style>
+.rr-row {
+    display: flex; align-items: center; gap: .5rem; margin-bottom: .5rem;
+    flex-wrap: wrap;
+}
+@media (max-width: 600px) {
+    [style*="grid-template-columns:1fr 1fr 1fr"] { grid-template-columns: 1fr !important; }
+}
+</style>
+
+<script>
+const GUILD_ID = '<%= guild.id %>';
+
+function showMsg(el, text, type) {
+    if (!el) return;
+    el.textContent = text;
+    el.className   = `form-message msg-${type}`;
+    if (type === 'success') setTimeout(() => { el.textContent = ''; el.className = 'form-message'; }, 3500);
+}
+
+async function apiFetch(path, method, body) {
+    const res = await fetch(`/api/guild/${GUILD_ID}${path}`, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body:    body ? JSON.stringify(body) : undefined,
+    });
+    return res.json();
+}
+
+const ROLES = <%- JSON.stringify(roles) %>;
+
+function addReward() {
+    const list = document.getElementById('roleRewardsList');
+    const div  = document.createElement('div');
+    div.className = 'rr-row';
+    div.innerHTML = `
+        <span style="color:var(--text-muted);font-size:.875rem;">Level</span>
+        <input type="number" class="input rr-level" value="1" min="1" max="999" style="width:80px;">
+        <span style="color:var(--text-muted);font-size:.875rem;">→ Role</span>
+        <select class="select rr-role" style="flex:1;min-width:0;">
+            <option value="">— Select Role —</option>
+            ${ROLES.map(r => `<option value="${r.id}" style="color:${r.color}">@${r.name}</option>`).join('')}
+        </select>
+        <button class="btn btn-danger btn-sm rr-del" onclick="removeReward(this)"><i data-lucide="trash-2" style="width:14px;height:14px;"></i></button>`;
+    list.appendChild(div);
+    if (window.lucide) lucide.createIcons();
+}
+
+function removeReward(btn) {
+    btn.closest('.rr-row').remove();
+}
+
+function getRewards() {
+    return [...document.querySelectorAll('#roleRewardsList .rr-row')].map(row => ({
+        level:  parseInt(row.querySelector('.rr-level').value) || 1,
+        roleId: row.querySelector('.rr-role').value,
+    })).filter(r => r.roleId);
+}
+
+async function saveConfig() {
+    const msg  = document.getElementById('levelCfgMsg');
+    const data = await apiFetch('/level', 'POST', {
+        enabled:   document.getElementById('levelEnabled').checked,
+        channelId: document.getElementById('levelChannel').value || null,
+        message:   document.getElementById('levelMessage').value.trim(),
+        xpMin:     parseInt(document.getElementById('levelXpMin').value)    || 15,
+        xpMax:     parseInt(document.getElementById('levelXpMax').value)    || 25,
+        cooldown:  parseInt(document.getElementById('levelCooldown').value) || 60,
+        roleRewards: getRewards(),
+    });
+    showMsg(msg, data.message, data.success ? 'success' : 'error');
+}
+
+window._floatSave = () => saveConfig();
+</script>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,294 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+
+<div class="dash-layout">
+    <%- include('../partials/sidebar', { activePage: 'custom-commands' }) %>
+
+    <main class="dash-main">
+    <div class="dash-content-wide">
+        <%- include('../partials/perm-notice') %>
+
+        <div class="page-header">
+            <h1>⚙️ <%= t('custom_commands.page_title') %></h1>
+            <p><%= t('custom_commands.page_desc') %></p>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon" style="color:#5865F2;"><i data-lucide="terminal"></i></div>
+                <div class="stat-info">
+                    <div class="stat-value"><%= commands.length %></div>
+                    <div class="stat-label"><%= t('custom_commands.total_commands') %></div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="color:#57F287;"><i data-lucide="check-circle"></i></div>
+                <div class="stat-info">
+                    <div class="stat-value"><%= commands.filter(c => c.enabled).length %></div>
+                    <div class="stat-label"><%= t('custom_commands.active_commands') %></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- How to Use -->
+        <div class="settings-card" style="margin-bottom:1.5rem;">
+            <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.25rem;">
+                <i data-lucide="book-open" style="color:#5865F2;width:18px;height:18px;flex-shrink:0;"></i>
+                <h2 style="margin:0;font-size:1rem;font-weight:600;"><%= t('custom_commands.how_to_use') %></h2>
+            </div>
+            <div class="guide-grid">
+                <div class="guide-step">
+                    <div class="guide-num">1</div>
+                    <div class="guide-title"><%= t('custom_commands.step1_title') %></div>
+                    <div class="guide-desc"><%= t('custom_commands.step1_desc') %></div>
+                </div>
+                <div class="guide-step">
+                    <div class="guide-num">2</div>
+                    <div class="guide-title"><%= t('custom_commands.step2_title') %></div>
+                    <div class="guide-desc"><%= t('custom_commands.step2_desc') %></div>
+                </div>
+                <div class="guide-step">
+                    <div class="guide-num">3</div>
+                    <div class="guide-title"><%= t('custom_commands.step3_title') %></div>
+                    <div class="guide-desc"><%= t('custom_commands.step3_desc') %></div>
+                </div>
+            </div>
+            <div class="guide-tip">💡 <%= t('custom_commands.tip') %></div>
+        </div>
+
+        <!-- Add Command Form -->
+        <div class="settings-card">
+            <h2><%= t('custom_commands.add_title') %></h2>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+                <div class="form-group">
+                    <label class="label"><%= t('custom_commands.trigger_label') %></label>
+                    <input type="text" id="ccTrigger" class="input" placeholder="<%= t('custom_commands.trigger_placeholder') %>" maxlength="50">
+                </div>
+                <div class="form-group">
+                    <label class="label"><%= t('custom_commands.mode_label') %></label>
+                    <select id="ccMode" class="select">
+                        <option value="prefix"><%= t('custom_commands.mode_prefix') %></option>
+                        <option value="exact"><%= t('custom_commands.mode_exact') %></option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="label"><%= t('custom_commands.type_label') %></label>
+                <select id="ccType" class="select" onchange="updateResponseType()">
+                    <option value="plain"><%= t('custom_commands.type_plain') %></option>
+                    <option value="embed"><%= t('custom_commands.type_embed') %></option>
+                </select>
+            </div>
+
+            <div id="ccPlainSection" class="form-group">
+                <label class="label"><%= t('custom_commands.plain_label') %></label>
+                <textarea id="ccPlainText" class="input" rows="3" placeholder="<%= t('custom_commands.plain_placeholder') %>" maxlength="2000" style="resize:vertical;"></textarea>
+            </div>
+
+            <div id="ccEmbedSection" style="display:none;">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+                    <div class="form-group">
+                        <label class="label"><%= t('custom_commands.embed_title_label') %></label>
+                        <input type="text" id="ccEmbedTitle" class="input" placeholder="<%= t('custom_commands.embed_title_placeholder') %>" maxlength="256">
+                    </div>
+                    <div class="form-group">
+                        <label class="label"><%= t('custom_commands.embed_color_label') %></label>
+                        <input type="color" id="ccEmbedColor" class="input" value="#5865F2" style="height:42px;padding:.25rem;">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="label"><%= t('custom_commands.embed_desc_label') %></label>
+                    <textarea id="ccEmbedDesc" class="input" rows="3" placeholder="<%= t('custom_commands.embed_desc_placeholder') %>" maxlength="4096" style="resize:vertical;"></textarea>
+                </div>
+            </div>
+
+            <button class="btn btn-primary" onclick="addCommand()">
+                <i data-lucide="plus" style="width:14px;height:14px;"></i> <%= t('custom_commands.add_btn') %>
+            </button>
+            <div id="ccAddMsg" class="form-message" style="margin-top:.5rem;"></div>
+        </div>
+
+        <!-- Command List -->
+        <div class="settings-card">
+            <h2><%= t('custom_commands.list_title') %> (<span id="cmdCount"><%= commands.length %></span>)</h2>
+
+            <div id="ccList">
+                <% if (!commands.length) { %>
+                <p style="color:var(--text-muted);font-size:.875rem;text-align:center;padding:1.5rem 0;"><%= t('custom_commands.empty') %></p>
+                <% } %>
+                <% commands.forEach(function(cmd, i) { %>
+                <div class="cc-row" data-idx="<%= i %>">
+                    <div class="cc-row-left">
+                        <span class="cc-trigger"><code><%= cmd.trigger %></code></span>
+                        <span class="cc-badge cc-badge-<%= cmd.mode %>"><%= cmd.mode === 'exact' ? t('custom_commands.badge_exact') : t('custom_commands.badge_prefix') %></span>
+                        <span class="cc-badge" style="background:rgba(88,101,242,.15);color:#5865F2;"><%= cmd.responseType === 'embed' ? t('custom_commands.badge_embed') : t('custom_commands.badge_plain') %></span>
+                    </div>
+                    <div class="cc-row-right">
+                        <label class="toggle-label" style="gap:.35rem;">
+                            <input type="checkbox" class="toggle-input cc-enabled" data-flt-ignore <%= cmd.enabled ? 'checked' : '' %> onchange="toggleCmd(this)">
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <button class="btn btn-danger btn-sm" onclick="deleteCommand(this)">
+                            <i data-lucide="trash-2" style="width:14px;height:14px;"></i>
+                        </button>
+                    </div>
+                </div>
+                <% }); %>
+            </div>
+            <div id="ccListMsg" class="form-message" style="margin-top:.75rem;"></div>
+        </div>
+
+    </div><!-- /.dash-content-wide -->
+    </main>
+</div><!-- /.dash-layout -->
+
+<style>
+.cc-row {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: .75rem; padding: .6rem .75rem;
+    background: rgba(255,255,255,.03); border-radius: 8px; margin-bottom: .4rem;
+    flex-wrap: wrap;
+}
+.cc-row-left  { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; min-width: 0; }
+.cc-row-right { display: flex; align-items: center; gap: .5rem; flex-shrink: 0; }
+.cc-trigger code { font-size: .875rem; }
+.cc-badge {
+    font-size: .75rem; padding: 2px 8px; border-radius: 12px;
+    background: rgba(255,255,255,.07); color: var(--text-muted);
+}
+.cc-badge-exact   { background: rgba(87,242,135,.12); color: #57F287; }
+.cc-badge-prefix  { background: rgba(254,231,92,.12);  color: #FEE75C; }
+
+@media (max-width: 600px) {
+    [style*="grid-template-columns:1fr 1fr"] { grid-template-columns: 1fr !important; }
+}
+</style>
+
+<script>
+const GUILD_ID = '<%= guild.id %>';
+let commands = <%- JSON.stringify(commands) %>;
+
+const i18n = {
+    empty:        '<%= t('custom_commands.empty') %>',
+    badge_exact:  '<%= t('custom_commands.badge_exact') %>',
+    badge_prefix: '<%= t('custom_commands.badge_prefix') %>',
+    badge_embed:  '<%= t('custom_commands.badge_embed') %>',
+    badge_plain:  '<%= t('custom_commands.badge_plain') %>',
+    err_no_trigger: '<%= t('custom_commands.err_no_trigger') %>',
+    err_no_text:    '<%= t('custom_commands.err_no_text') %>',
+    err_no_embed:   '<%= t('custom_commands.err_no_embed') %>',
+};
+
+function showMsg(el, text, type) {
+    if (!el) return;
+    el.textContent = text;
+    el.className   = `form-message msg-${type}`;
+    if (type === 'success') setTimeout(() => { el.textContent = ''; el.className = 'form-message'; }, 3500);
+}
+
+async function apiFetch(path, method, body) {
+    const res = await fetch(`/api/guild/${GUILD_ID}${path}`, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body:    body ? JSON.stringify(body) : undefined,
+    });
+    return res.json();
+}
+
+function updateResponseType() {
+    const type = document.getElementById('ccType').value;
+    document.getElementById('ccPlainSection').style.display = type === 'plain' ? '' : 'none';
+    document.getElementById('ccEmbedSection').style.display = type === 'embed' ? '' : 'none';
+}
+
+async function saveCommands(msgElId) {
+    const msg  = document.getElementById(msgElId);
+    const data = await apiFetch('/custom-commands', 'POST', { commands });
+    showMsg(msg, data.message, data.success ? 'success' : 'error');
+    document.getElementById('cmdCount').textContent = commands.length;
+    return data.success;
+}
+
+async function addCommand() {
+    const trigger = document.getElementById('ccTrigger').value.trim();
+    const mode    = document.getElementById('ccMode').value;
+    const resType = document.getElementById('ccType').value;
+
+    if (!trigger) return showMsg(document.getElementById('ccAddMsg'), i18n.err_no_trigger, 'error');
+
+    let response = {};
+    if (resType === 'plain') {
+        const text = document.getElementById('ccPlainText').value.trim();
+        if (!text) return showMsg(document.getElementById('ccAddMsg'), i18n.err_no_text, 'error');
+        response = { text };
+    } else {
+        response = {
+            title:       document.getElementById('ccEmbedTitle').value.trim(),
+            description: document.getElementById('ccEmbedDesc').value.trim(),
+            color:       document.getElementById('ccEmbedColor').value,
+        };
+        if (!response.title && !response.description)
+            return showMsg(document.getElementById('ccAddMsg'), i18n.err_no_embed, 'error');
+    }
+
+    commands.push({ trigger, mode, responseType: resType, response, enabled: true });
+
+    document.getElementById('ccTrigger').value    = '';
+    document.getElementById('ccPlainText').value  = '';
+    document.getElementById('ccEmbedTitle').value = '';
+    document.getElementById('ccEmbedDesc').value  = '';
+
+    const ok = await saveCommands('ccAddMsg');
+    if (ok) renderList();
+}
+
+function deleteCommand(btn) {
+    const idx = parseInt(btn.closest('.cc-row').dataset.idx);
+    commands.splice(idx, 1);
+    saveCommands('ccListMsg').then(ok => { if (ok) renderList(); });
+}
+
+function renderList() {
+    const container = document.getElementById('ccList');
+    if (!commands.length) {
+        container.innerHTML = `<p style="color:var(--text-muted);font-size:.875rem;text-align:center;padding:1.5rem 0;">${i18n.empty}</p>`;
+        return;
+    }
+    container.innerHTML = commands.map((cmd, i) => `
+        <div class="cc-row" data-idx="${i}">
+            <div class="cc-row-left">
+                <span class="cc-trigger"><code>${escHtml(cmd.trigger)}</code></span>
+                <span class="cc-badge cc-badge-${cmd.mode}">${cmd.mode === 'exact' ? i18n.badge_exact : i18n.badge_prefix}</span>
+                <span class="cc-badge" style="background:rgba(88,101,242,.15);color:#5865F2;">${cmd.responseType === 'embed' ? i18n.badge_embed : i18n.badge_plain}</span>
+            </div>
+            <div class="cc-row-right">
+                <label class="toggle-label" style="gap:.35rem;">
+                    <input type="checkbox" class="toggle-input cc-enabled" data-flt-ignore ${cmd.enabled ? 'checked' : ''} onchange="toggleCmd(this)">
+                    <span class="toggle-slider"></span>
+                </label>
+                <button class="btn btn-danger btn-sm" onclick="deleteCommand(this)">
+                    <i data-lucide="trash-2" style="width:14px;height:14px;"></i>
+                </button>
+            </div>
+        </div>`).join('');
+    if (window.lucide) lucide.createIcons();
+    document.getElementById('cmdCount').textContent = commands.length;
+}
+
+function toggleCmd(el) {
+    const idx = parseInt(el.closest('.cc-row').dataset.idx);
+    commands[idx].enabled = el.checked;
+    saveCommands('ccListMsg');
+}
+
+function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+window._floatSave = () => saveCommands('ccListMsg');
+</script>
+
+<%- include('../partials/footer') %>

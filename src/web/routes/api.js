@@ -3081,4 +3081,107 @@ router.get('/guild/:guildId/stats/stream', requireLogin, requireManageGuild, (re
     req.on('close', () => clearInterval(timer));
 });
 
+// ── POST /api/guild/:guildId/level ────────────────────────────────────────────
+router.post('/guild/:guildId/level', requireLogin, requireManageGuild, (req, res) => {
+    const db      = req.discordClient?.database;
+    const guildId = req.params.guildId;
+    if (!db) return res.status(500).json({ success: false, message: 'Database not available.' });
+
+    const { enabled, channelId, message, xpMin, xpMax, cooldown, roleRewards } = req.body;
+
+    if (channelId && !req.botGuild.channels.cache.get(channelId))
+        return res.status(400).json({ success: false, message: 'Channel tidak ditemukan.' });
+
+    setDbBool(db, `level-enabled-${guildId}`, !!enabled);
+    if (channelId) db.set(`level-channel-${guildId}`, channelId); else db.delete(`level-channel-${guildId}`);
+    db.set(`level-message-${guildId}`,  (message  || 'Selamat {member}, kamu naik ke Level **{level}**! 🎉').slice(0, 500));
+    db.set(`level-xpMin-${guildId}`,    String(Math.max(1, Math.min(100,  parseInt(xpMin)    || 15))));
+    db.set(`level-xpMax-${guildId}`,    String(Math.max(1, Math.min(100,  parseInt(xpMax)    || 25))));
+    db.set(`level-cooldown-${guildId}`, String(Math.max(0, Math.min(3600, parseInt(cooldown)  || 60))));
+
+    if (Array.isArray(roleRewards)) {
+        const clean = roleRewards
+            .filter(r => r.roleId && /^\d{17,20}$/.test(r.roleId))
+            .map(r => ({ level: Math.max(1, parseInt(r.level) || 1), roleId: r.roleId }));
+        db.set(`level-roles-${guildId}`, JSON.stringify(clean));
+    }
+
+    res.json({ success: true, message: 'Pengaturan level berhasil disimpan.' });
+});
+
+// ── POST /api/guild/:guildId/starboard ────────────────────────────────────────
+router.post('/guild/:guildId/starboard', requireLogin, requireManageGuild, (req, res) => {
+    const db      = req.discordClient?.database;
+    const guildId = req.params.guildId;
+    if (!db) return res.status(500).json({ success: false, message: 'Database not available.' });
+
+    const { enabled, channelId, emoji, threshold } = req.body;
+
+    if (!channelId) return res.status(400).json({ success: false, message: 'Channel wajib dipilih.' });
+    if (!req.botGuild.channels.cache.get(channelId))
+        return res.status(400).json({ success: false, message: 'Channel tidak ditemukan.' });
+
+    setDbBool(db, `starboard-enabled-${guildId}`, !!enabled);
+    db.set(`starboard-channel-${guildId}`,   channelId);
+    db.set(`starboard-emoji-${guildId}`,     (emoji || '⭐').slice(0, 10));
+    db.set(`starboard-threshold-${guildId}`, String(Math.max(1, Math.min(50, parseInt(threshold) || 3))));
+
+    res.json({ success: true, message: 'Pengaturan starboard berhasil disimpan.' });
+});
+
+// ── POST /api/guild/:guildId/custom-commands ──────────────────────────────────
+router.post('/guild/:guildId/custom-commands', requireLogin, requireManageGuild, (req, res) => {
+    const db      = req.discordClient?.database;
+    const guildId = req.params.guildId;
+    if (!db) return res.status(500).json({ success: false, message: 'Database not available.' });
+
+    const { commands } = req.body;
+    if (!Array.isArray(commands))
+        return res.status(400).json({ success: false, message: 'Format commands tidak valid.' });
+
+    const clean = commands.filter(c => c.trigger && typeof c.trigger === 'string').map(c => ({
+        trigger:      String(c.trigger).trim().slice(0, 50),
+        mode:         ['prefix', 'exact'].includes(c.mode) ? c.mode : 'prefix',
+        responseType: ['plain', 'embed'].includes(c.responseType) ? c.responseType : 'plain',
+        response:     c.response || {},
+        enabled:      c.enabled !== false,
+    }));
+
+    if (clean.length > 100)
+        return res.status(400).json({ success: false, message: 'Maksimal 100 custom command per server.' });
+
+    db.set(`customcmd-list-${guildId}`, JSON.stringify(clean));
+    res.json({ success: true, message: 'Custom commands berhasil disimpan.' });
+});
+
+// ── POST /api/guild/:guildId/extlog ───────────────────────────────────────────
+router.post('/guild/:guildId/extlog', requireLogin, requireManageGuild, (req, res) => {
+    const db      = req.discordClient?.database;
+    const guildId = req.params.guildId;
+    if (!db) return res.status(500).json({ success: false, message: 'Database not available.' });
+
+    const { enabled, channelId, events } = req.body;
+
+    if (enabled && !channelId)
+        return res.status(400).json({ success: false, message: 'Channel log wajib dipilih saat logging diaktifkan.' });
+    if (channelId && !req.botGuild.channels.cache.get(channelId))
+        return res.status(400).json({ success: false, message: 'Channel tidak ditemukan.' });
+
+    setDbBool(db, `extlog-enabled-${guildId}`, !!enabled);
+    if (channelId) db.set(`extlog-channel-${guildId}`, channelId); else db.delete(`extlog-channel-${guildId}`);
+
+    if (events && typeof events === 'object') {
+        const safe = {
+            messageEdit:    !!events.messageEdit,
+            messageDelete:  !!events.messageDelete,
+            voiceActivity:  !!events.voiceActivity,
+            nicknameChange: !!events.nicknameChange,
+            roleChange:     !!events.roleChange,
+        };
+        db.set(`extlog-events-${guildId}`, JSON.stringify(safe));
+    }
+
+    res.json({ success: true, message: 'Pengaturan extended logging berhasil disimpan.' });
+});
+
 module.exports = router;

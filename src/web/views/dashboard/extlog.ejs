@@ -1,0 +1,222 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+
+<div class="dash-layout">
+    <%- include('../partials/sidebar', { activePage: 'extlog' }) %>
+
+    <main class="dash-main">
+    <div class="dash-content-wide">
+        <%- include('../partials/perm-notice') %>
+
+        <div class="page-header">
+            <h1>📋 <%= t('extlog.page_title') %></h1>
+            <p><%= t('extlog.page_desc') %></p>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon" style="color:#5865F2;"><i data-lucide="book-open"></i></div>
+                <div class="stat-info">
+                    <div class="stat-value"><%= extlogData.enabled ? t('extlog.status_active') : t('extlog.status_inactive') %></div>
+                    <div class="stat-label"><%= t('extlog.status_label') %></div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="color:#57F287;"><i data-lucide="check-circle"></i></div>
+                <div class="stat-info">
+                    <div class="stat-value"><%= enabledCount %> / 5</div>
+                    <div class="stat-label"><%= t('extlog.active_events') %></div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="color:#FEE75C;"><i data-lucide="hash"></i></div>
+                <div class="stat-info">
+                    <div class="stat-value">
+                        <% if (extlogData.channelId) { %>
+                            <% var logCh = guild.channels.cache.get(extlogData.channelId); %>
+                            <%= logCh ? '#' + logCh.name : t('extlog.channel_deleted') %>
+                        <% } else { %>
+                            —
+                        <% } %>
+                    </div>
+                    <div class="stat-label"><%= t('extlog.channel_label') %></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- How to Use -->
+        <div class="settings-card" style="margin-bottom:1.5rem;">
+            <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.25rem;">
+                <i data-lucide="book-open" style="color:#5865F2;width:18px;height:18px;flex-shrink:0;"></i>
+                <h2 style="margin:0;font-size:1rem;font-weight:600;"><%= t('extlog.how_to_use') %></h2>
+            </div>
+            <div class="guide-grid">
+                <div class="guide-step">
+                    <div class="guide-num">1</div>
+                    <div class="guide-title"><%= t('extlog.step1_title') %></div>
+                    <div class="guide-desc"><%= t('extlog.step1_desc') %></div>
+                </div>
+                <div class="guide-step">
+                    <div class="guide-num">2</div>
+                    <div class="guide-title"><%= t('extlog.step2_title') %></div>
+                    <div class="guide-desc"><%= t('extlog.step2_desc') %></div>
+                </div>
+                <div class="guide-step">
+                    <div class="guide-num">3</div>
+                    <div class="guide-title"><%= t('extlog.step3_title') %></div>
+                    <div class="guide-desc"><%= t('extlog.step3_desc') %></div>
+                </div>
+            </div>
+            <div class="guide-tip">💡 <%- t('extlog.tip') %></div>
+        </div>
+
+        <!-- Configuration -->
+        <div class="settings-card">
+            <h2><%= t('extlog.config_title') %></h2>
+
+            <div class="form-group">
+                <label class="toggle-label">
+                    <input type="checkbox" id="extlogEnabled" class="toggle-input" <%= extlogData.enabled ? 'checked' : '' %>>
+                    <span class="toggle-slider"></span>
+                    <span><%= t('extlog.enable_label') %></span>
+                </label>
+            </div>
+
+            <div class="form-group">
+                <label class="label"><%= t('extlog.channel_label') %></label>
+                <select id="extlogChannel" class="select">
+                    <option value=""><%= t('extlog.select_channel') %></option>
+                    <% textChannels.forEach(function(ch) { %>
+                        <option value="<%= ch.id %>" <%= extlogData.channelId === ch.id ? 'selected' : '' %>>#<%= ch.name %></option>
+                    <% }); %>
+                </select>
+            </div>
+            <div id="cfgMsg" class="form-message"></div>
+        </div>
+
+        <!-- Event Toggles -->
+        <div class="settings-card">
+            <h2><%= t('extlog.events_title') %></h2>
+            <p class="section-desc" style="margin-bottom:1.25rem;"><%= t('extlog.events_desc') %></p>
+
+            <div class="form-group">
+                <label class="toggle-label">
+                    <input type="checkbox" id="evtMessageEdit" class="toggle-input" data-flt-ignore <%= extlogData.events.messageEdit ? 'checked' : '' %>>
+                    <span class="toggle-slider"></span>
+                    <span><%= t('extlog.evt_msg_edit') %></span>
+                </label>
+                <p class="section-desc" style="margin:.25rem 0 0 3rem;"><%= t('extlog.evt_msg_edit_desc') %></p>
+            </div>
+            <div class="form-group">
+                <label class="toggle-label">
+                    <input type="checkbox" id="evtMessageDelete" class="toggle-input" data-flt-ignore <%= extlogData.events.messageDelete ? 'checked' : '' %>>
+                    <span class="toggle-slider"></span>
+                    <span><%= t('extlog.evt_msg_delete') %></span>
+                </label>
+                <p class="section-desc" style="margin:.25rem 0 0 3rem;"><%= t('extlog.evt_msg_delete_desc') %></p>
+            </div>
+            <div class="form-group">
+                <label class="toggle-label">
+                    <input type="checkbox" id="evtVoiceActivity" class="toggle-input" data-flt-ignore <%= extlogData.events.voiceActivity ? 'checked' : '' %>>
+                    <span class="toggle-slider"></span>
+                    <span><%= t('extlog.evt_voice') %></span>
+                </label>
+                <p class="section-desc" style="margin:.25rem 0 0 3rem;"><%= t('extlog.evt_voice_desc') %></p>
+            </div>
+            <div class="form-group">
+                <label class="toggle-label">
+                    <input type="checkbox" id="evtNicknameChange" class="toggle-input" data-flt-ignore <%= extlogData.events.nicknameChange ? 'checked' : '' %>>
+                    <span class="toggle-slider"></span>
+                    <span><%= t('extlog.evt_nickname') %></span>
+                </label>
+                <p class="section-desc" style="margin:.25rem 0 0 3rem;"><%= t('extlog.evt_nickname_desc') %></p>
+            </div>
+            <div class="form-group">
+                <label class="toggle-label">
+                    <input type="checkbox" id="evtRoleChange" class="toggle-input" data-flt-ignore <%= extlogData.events.roleChange ? 'checked' : '' %>>
+                    <span class="toggle-slider"></span>
+                    <span><%= t('extlog.evt_role') %></span>
+                </label>
+                <p class="section-desc" style="margin:.25rem 0 0 3rem;"><%= t('extlog.evt_role_desc') %></p>
+            </div>
+
+            <div id="evtMsg" class="form-message"></div>
+        </div>
+
+        <!-- Info Box -->
+        <div class="ml-info-box">
+            <i data-lucide="info" style="flex-shrink:0;color:#5865F2;margin-top:2px;width:18px;height:18px;"></i>
+            <div>
+                <strong><%= t('extlog.info_title') %></strong> <%- t('extlog.info_body') %>
+            </div>
+        </div>
+
+    </div><!-- /.dash-content-wide -->
+    </main>
+</div><!-- /.dash-layout -->
+
+<style>
+.ml-info-box {
+    display: flex; gap: .75rem; align-items: flex-start;
+    background: rgba(88,101,242,.08); border: 1px solid rgba(88,101,242,.2);
+    border-radius: 10px; padding: 1rem; margin-top: .5rem;
+    font-size: .875rem; color: var(--text-muted); line-height: 1.55;
+}
+.ml-info-box code {
+    background: rgba(255,255,255,.08); border-radius: 4px; padding: 1px 5px; font-size: .85em;
+}
+</style>
+
+<script>
+const GUILD_ID = '<%= guild.id %>';
+
+function showMsg(el, text, type) {
+    if (!el) return;
+    el.textContent = text;
+    el.className   = `form-message msg-${type}`;
+    if (type === 'success') setTimeout(() => { el.textContent = ''; el.className = 'form-message'; }, 3500);
+}
+
+async function apiFetch(path, method, body) {
+    const res = await fetch(`/api/guild/${GUILD_ID}${path}`, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body:    body ? JSON.stringify(body) : undefined,
+    });
+    return res.json();
+}
+
+function getPayload() {
+    return {
+        enabled:   document.getElementById('extlogEnabled').checked,
+        channelId: document.getElementById('extlogChannel').value || null,
+        events: {
+            messageEdit:    document.getElementById('evtMessageEdit').checked,
+            messageDelete:  document.getElementById('evtMessageDelete').checked,
+            voiceActivity:  document.getElementById('evtVoiceActivity').checked,
+            nicknameChange: document.getElementById('evtNicknameChange').checked,
+            roleChange:     document.getElementById('evtRoleChange').checked,
+        },
+    };
+}
+
+async function saveConfig() {
+    const msg  = document.getElementById('cfgMsg');
+    const data = await apiFetch('/extlog', 'POST', getPayload());
+    showMsg(msg, data.message, data.success ? 'success' : 'error');
+}
+
+['evtMessageEdit','evtMessageDelete','evtVoiceActivity','evtNicknameChange','evtRoleChange'].forEach(id => {
+    document.getElementById(id)?.addEventListener('change', async function () {
+        const msg  = document.getElementById('evtMsg');
+        const data = await apiFetch('/extlog', 'POST', getPayload());
+        showMsg(msg, data.message, data.success ? 'success' : 'error');
+        if (!data.success) this.checked = !this.checked;
+    });
+});
+
+window._floatSave = () => saveConfig();
+</script>
+
+<%- include('../partials/footer') %>

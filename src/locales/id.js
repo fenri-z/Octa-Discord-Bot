@@ -115,6 +115,7 @@ module.exports = {
             notification: { label: 'Notifikasi',  opt: 'Butuh: Administrator atau Server Owner.',                         tip: '> 👑 Butuh: Administrator atau Server Owner.' },
             autorole    : { label: 'Autorole',    opt: 'Butuh: Administrator atau Server Owner.',                         tip: '> 👑 Butuh: Administrator atau Server Owner.' },
             utility     : { label: 'Utilitas',    opt: 'Butuh: Administrator atau Server Owner.',                         tip: '> 👑 Butuh: Administrator atau Server Owner.' },
+            community   : { label: 'Komunitas',   opt: 'Tersedia untuk semua member server.',                            tip: '> 🌟 Tersedia untuk semua member server.' },
             developer   : { label: 'Developer',   opt: 'Khusus untuk pemilik bot dan developer.',                        tip: '> 🔒 Khusus untuk pemilik bot dan developer.' },
         },
 
@@ -308,6 +309,23 @@ module.exports = {
             language: { short: 'Atur bahasa bot untuk server ini.', lines: [
                 ['/language language:English', 'Atur bahasa ke Inggris.'],
                 ['/language language:Indonesian', 'Atur bahasa ke Indonesia.'],
+            ]},
+            poll: { short: 'Buat poll dengan hingga 5 pilihan. Member vote dengan klik reaksi emoji.', lines: [
+                ['/poll question:pertanyaan option1:A option2:B', 'Buat poll dengan 2 pilihan.'],
+                ['  option3, option4, option5:', 'Pilihan ke-3 s/d ke-5 (opsional).'],
+                ['  duration:', 'Umumkan hasil otomatis setelah waktu habis (mis. 30m, 1h, 1d).'],
+            ]},
+            afk: { short: 'Atur status AFK kamu. Bot akan memberi tahu orang yang menyebut namamu.', lines: [
+                ['/afk', 'Set AFK tanpa alasan.'],
+                ['/afk reason:tidur', 'Set AFK dengan alasan.'],
+                ['  Saat kamu kirim pesan', 'status AFK kamu otomatis dihapus.'],
+            ]},
+            rank: { short: 'Lihat level, XP, ranking, dan progress bar milik member.', lines: [
+                ['/rank', 'Lihat rank kamu sendiri.'],
+                ['/rank member:@user', 'Lihat rank member lain.'],
+            ]},
+            leaderboard: { short: 'Tampilkan 10 member teratas berdasarkan total XP di server ini.', lines: [
+                ['/leaderboard', 'Tampilkan leaderboard XP top 10.'],
             ]},
             server  : { short: 'Kelola bot dari DM dengan memilih server aktif.', lines: [
                 ['/server list', 'Daftar semua server yang diikuti bot.'],
@@ -1165,6 +1183,69 @@ module.exports = {
         modal_not_sent_yet : (name) => `📭 Panel belum dikirim. Gunakan \`/autorole-reaction send ${name}\` setelah setup selesai.`,
         modal_created      : (name) => `✅ Panel \`${name}\` Dibuat`,
         modal_updated      : (name) => `✏️ Panel \`${name}\` Diperbarui`,
+    },
+
+    // ── /poll ─────────────────────────────────────────────────────────────────
+    poll: {
+        footer_by   : (name) => `Poll oleh ${name}`,
+        footer_ends : (name, time) => `Poll oleh ${name} · Berakhir ${time}`,
+        result_title: (q) => `📊 Hasil: ${q}`,
+        no_votes    : 'Tidak ada vote.',
+        footer_total: (n) => `Total: ${n} vote`,
+    },
+
+    // ── /afk ──────────────────────────────────────────────────────────────────
+    afk: {
+        set       : (reason) => `😴 Kamu sekarang AFK: **${reason}**\nBot akan memberi tahu orang yang mention kamu.`,
+        back      : (elapsed) => `👋 Selamat datang kembali! Status AFK kamu telah dihapus. _(Kamu AFK selama ${elapsed})_`,
+        notify    : (name, reason, elapsed) => `😴 **${name}** sedang AFK: _${reason}_ (${elapsed})`,
+        elapsed_s : (n) => `${n}d`,
+        elapsed_m : (n) => `${n}m`,
+        elapsed_h : (n, m) => `${n}j ${m}m`,
+        elapsed_d : (n, h) => `${n}h ${h}j`,
+    },
+
+    // ── /rank ─────────────────────────────────────────────────────────────────
+    rank: {
+        not_enabled : '❌ Sistem level belum diaktifkan di server ini.',
+        field_xp_cur: '✨ XP Saat Ini',
+        field_xp_tot: '📊 Total XP',
+        field_rank  : '🏆 Ranking',
+        field_prog  : '📈 Progress',
+    },
+
+    // ── /leaderboard ──────────────────────────────────────────────────────────
+    leaderboard: {
+        not_enabled: '❌ Sistem level belum diaktifkan.',
+        no_data    : 'Belum ada data XP. Ajak member untuk ngobrol!',
+        footer     : 'Top 10 berdasarkan total XP',
+        title      : (guild) => `🏆 Leaderboard — ${guild}`,
+    },
+
+    // ── extlog event strings ──────────────────────────────────────────────────
+    extlog_event: {
+        msg_edit_title : '✏️ Pesan Diedit',
+        field_channel  : 'Channel',
+        field_link     : 'Link',
+        field_link_val : (url) => `[Lihat Pesan](${url})`,
+        field_before   : 'Sebelum',
+        field_after    : 'Sesudah',
+        field_empty    : '_(kosong)_',
+        msg_del_title  : '🗑️ Pesan Dihapus',
+        field_sender   : 'Pengirim',
+        field_content  : 'Isi Pesan',
+        field_no_text  : '_(tidak ada teks)_',
+        voice_join     : '🎙️ Masuk Voice Channel',
+        voice_leave    : '🔇 Keluar Voice Channel',
+        voice_move     : '🔀 Pindah Voice Channel',
+        field_member   : 'Member',
+        field_from     : 'Dari',
+        field_to       : 'Ke',
+        nick_title     : '📝 Nickname Berubah',
+        nick_none      : '_(tidak ada)_',
+        role_title     : '🎭 Perubahan Role Member',
+        role_added     : '✅ Role Ditambahkan',
+        role_removed   : '❌ Role Dihapus',
     },
 
 };

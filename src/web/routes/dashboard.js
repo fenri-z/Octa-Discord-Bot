@@ -1401,4 +1401,154 @@ router.get('/:guildId/modlog', requireLogin, requireManageGuild, async (req, res
     }
 });
 
+// ── GET /dashboard/:guildId/level ─────────────────────────────────────────────
+router.get('/:guildId/level', requireLogin, requireManageGuild, async (req, res) => {
+    try {
+        const db      = req.discordClient?.database;
+        const guildId = req.params.guildId;
+        const guild   = req.botGuild;
+
+        await _ensureChannels(guild);
+        await _ensureRoles(guild);
+
+        const levelData = {
+            enabled:  getDbBool(db, `level-enabled-${guildId}`, false),
+            channelId: db?.get(`level-channel-${guildId}`) ?? '',
+            message:   db?.get(`level-message-${guildId}`) ?? 'Selamat {member}, kamu naik ke Level **{level}**! 🎉',
+            xpMin:    parseInt(db?.get(`level-xpMin-${guildId}`)    || '15'),
+            xpMax:    parseInt(db?.get(`level-xpMax-${guildId}`)    || '25'),
+            cooldown: parseInt(db?.get(`level-cooldown-${guildId}`) || '60'),
+            roleRewards: (() => { try { return JSON.parse(db?.get(`level-roles-${guildId}`) || '[]'); } catch { return []; } })(),
+        };
+
+        const channels = [...guild.channels.cache.values()]
+            .filter(c => c.type === 0 || c.type === 5 || c.type === 10 || c.type === 11 || c.type === 12)
+            .map(c => ({ id: c.id, name: c.name }))
+            .sort((a, b) => a.name.localeCompare(b.name));
+
+        const botRolePosition = guild.members.me?.roles.highest.position || 0;
+        const roles = [...guild.roles.cache.values()]
+            .filter(r => r.id !== guild.id && r.position < botRolePosition)
+            .map(r => ({ id: r.id, name: r.name, color: r.hexColor === '#000000' ? '#99aab5' : r.hexColor }))
+            .sort((a, b) => a.name.localeCompare(b.name));
+
+        // Build leaderboard from DB
+        const keys = db?.keysLike ? db.keysLike(`level-user-${guildId}-`) : [];
+        const leaderboard = keys.map(k => {
+            try {
+                const d = JSON.parse(db.get(k) || '{}');
+                const userId = k.replace(`level-user-${guildId}-`, '');
+                return { userId, xp: d.xp || 0, level: d.level || 0 };
+            } catch { return null; }
+        }).filter(Boolean).sort((a, b) => b.xp - a.xp).slice(0, 10);
+
+        res.render('dashboard/level', {
+            title: 'Level / XP System',
+            guild, channels, roles, levelData, leaderboard,
+            missingPerms: getMissingPerms(guild),
+            activePage: 'level',
+            hasSidebar: true,
+        });
+    } catch (err) {
+        console.error('[dashboard/level] Error:', err);
+        res.status(500).render('error', { hasSidebar: false, title: 'Server Error', message: 'Gagal memuat halaman Level.' });
+    }
+});
+
+// ── GET /dashboard/:guildId/starboard ─────────────────────────────────────────
+router.get('/:guildId/starboard', requireLogin, requireManageGuild, async (req, res) => {
+    try {
+        const db      = req.discordClient?.database;
+        const guildId = req.params.guildId;
+        const guild   = req.botGuild;
+
+        await _ensureChannels(guild);
+
+        const starboardData = {
+            enabled:   getDbBool(db, `starboard-enabled-${guildId}`, false),
+            channelId: db?.get(`starboard-channel-${guildId}`)   ?? '',
+            emoji:     db?.get(`starboard-emoji-${guildId}`)     ?? '⭐',
+            threshold: parseInt(db?.get(`starboard-threshold-${guildId}`) || '3'),
+        };
+
+        const channels = [...guild.channels.cache.values()]
+            .filter(c => c.type === 0 || c.type === 5 || c.type === 10 || c.type === 11 || c.type === 12)
+            .map(c => ({ id: c.id, name: c.name }))
+            .sort((a, b) => a.name.localeCompare(b.name));
+
+        res.render('dashboard/starboard', {
+            title: 'Starboard',
+            guild, channels, starboardData,
+            missingPerms: getMissingPerms(guild),
+            activePage: 'starboard',
+            hasSidebar: true,
+        });
+    } catch (err) {
+        console.error('[dashboard/starboard] Error:', err);
+        res.status(500).render('error', { hasSidebar: false, title: 'Server Error', message: 'Gagal memuat halaman Starboard.' });
+    }
+});
+
+// ── GET /dashboard/:guildId/custom-commands ───────────────────────────────────
+router.get('/:guildId/custom-commands', requireLogin, requireManageGuild, async (req, res) => {
+    try {
+        const db      = req.discordClient?.database;
+        const guildId = req.params.guildId;
+        const guild   = req.botGuild;
+
+        let commands = [];
+        try { commands = JSON.parse(db?.get(`customcmd-list-${guildId}`) || '[]'); } catch {}
+
+        res.render('dashboard/custom-commands', {
+            title: 'Custom Commands',
+            guild, commands,
+            missingPerms: getMissingPerms(guild),
+            activePage: 'custom-commands',
+            hasSidebar: true,
+        });
+    } catch (err) {
+        console.error('[dashboard/custom-commands] Error:', err);
+        res.status(500).render('error', { hasSidebar: false, title: 'Server Error', message: 'Gagal memuat halaman Custom Commands.' });
+    }
+});
+
+// ── GET /dashboard/:guildId/extlog ─────────────────────────────────────────────
+router.get('/:guildId/extlog', requireLogin, requireManageGuild, async (req, res) => {
+    try {
+        const db      = req.discordClient?.database;
+        const guildId = req.params.guildId;
+        const guild   = req.botGuild;
+
+        await _ensureChannels(guild);
+
+        const DEFAULT_EVENTS = { messageEdit: true, messageDelete: true, voiceActivity: true, nicknameChange: true, roleChange: true };
+        let eventsRaw = {};
+        try { eventsRaw = JSON.parse(db?.get(`extlog-events-${guildId}`) || '{}'); } catch {}
+
+        const extlogData = {
+            enabled:   getDbBool(db, `extlog-enabled-${guildId}`, false),
+            channelId: db?.get(`extlog-channel-${guildId}`) ?? '',
+            events:    { ...DEFAULT_EVENTS, ...eventsRaw },
+        };
+
+        const enabledCount = Object.values(extlogData.events).filter(Boolean).length;
+
+        const textChannels = [...guild.channels.cache.values()]
+            .filter(c => c.type === 0)
+            .sort((a, b) => a.name.localeCompare(b.name))
+            .map(c => ({ id: c.id, name: c.name }));
+
+        res.render('dashboard/extlog', {
+            title: 'Extended Logging',
+            guild, textChannels, extlogData, enabledCount,
+            missingPerms: getMissingPerms(guild),
+            activePage: 'extlog',
+            hasSidebar: true,
+        });
+    } catch (err) {
+        console.error('[dashboard/extlog] Error:', err);
+        res.status(500).render('error', { hasSidebar: false, title: 'Server Error', message: 'Gagal memuat halaman Extended Logging.' });
+    }
+});
+
 module.exports = router;

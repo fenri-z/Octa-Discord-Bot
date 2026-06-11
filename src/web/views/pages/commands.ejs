@@ -118,6 +118,7 @@
         <button class="cmd-tab" onclick="setTab('autorole', this)">Auto Role</button>
         <button class="cmd-tab" onclick="setTab('moderation', this)">Moderation</button>
         <button class="cmd-tab" onclick="setTab('utility', this)">Utility</button>
+        <button class="cmd-tab" onclick="setTab('community', this)"><%= t('commands.tab_community') %></button>
         <button class="cmd-tab" onclick="setTab('social', this)">Social Media</button>
     </div>
 
@@ -281,6 +282,33 @@
                 <div class="cmd-card" data-name="/userinfo user">
                     <div class="cmd-card-name"><code>/userinfo</code></div>
                     <div class="cmd-card-desc"><%= t('commands.cmd_userinfo') %></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Community -->
+        <div class="cmd-category" data-cat="community">
+            <div class="cmd-cat-label">
+                <div class="cat-dot" style="background:#57F287;"></div>
+                <%= t('commands.cat_community') %>
+                <span class="cmd-count">4</span>
+            </div>
+            <div class="cmd-grid">
+                <div class="cmd-card" data-name="/poll question option">
+                    <div class="cmd-card-name"><code>/poll</code></div>
+                    <div class="cmd-card-desc"><%= t('commands.cmd_poll') %></div>
+                </div>
+                <div class="cmd-card" data-name="/afk status reason">
+                    <div class="cmd-card-name"><code>/afk</code></div>
+                    <div class="cmd-card-desc"><%= t('commands.cmd_afk') %></div>
+                </div>
+                <div class="cmd-card" data-name="/rank level xp member">
+                    <div class="cmd-card-name"><code>/rank</code></div>
+                    <div class="cmd-card-desc"><%= t('commands.cmd_rank') %></div>
+                </div>
+                <div class="cmd-card" data-name="/leaderboard top xp level">
+                    <div class="cmd-card-name"><code>/leaderboard</code></div>
+                    <div class="cmd-card-desc"><%= t('commands.cmd_leaderboard') %></div>
                 </div>
             </div>
         </div>

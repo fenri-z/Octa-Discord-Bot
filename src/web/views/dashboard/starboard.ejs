@@ -1,0 +1,153 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+
+<div class="dash-layout">
+    <%- include('../partials/sidebar', { activePage: 'starboard' }) %>
+
+    <main class="dash-main">
+    <div class="dash-content-wide">
+        <%- include('../partials/perm-notice') %>
+
+        <div class="page-header">
+            <h1>⭐ <%= t('starboard.page_title') %></h1>
+            <p><%= t('starboard.page_desc') %></p>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon" style="color:#FEE75C;"><i data-lucide="star"></i></div>
+                <div class="stat-info">
+                    <div class="stat-value"><%= starboardData.enabled ? t('starboard.status_active') : t('starboard.status_inactive') %></div>
+                    <div class="stat-label"><%= t('starboard.status_label') %></div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="color:#F0A032;"><i data-lucide="hash"></i></div>
+                <div class="stat-info">
+                    <div class="stat-value">
+                        <% if (starboardData.channelId) { %>
+                            <% var sbCh = guild.channels.cache.get(starboardData.channelId); %>
+                            <%= sbCh ? '#' + sbCh.name : t('common.channel_deleted') %>
+                        <% } else { %>—<% } %>
+                    </div>
+                    <div class="stat-label"><%= t('starboard.channel_label') %></div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="color:#FEE75C;"><i data-lucide="award"></i></div>
+                <div class="stat-info">
+                    <div class="stat-value"><%= starboardData.threshold %> ⭐</div>
+                    <div class="stat-label"><%= t('starboard.min_stars') %></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- How to Use -->
+        <div class="settings-card" style="margin-bottom:1.5rem;">
+            <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.25rem;">
+                <i data-lucide="book-open" style="color:#FEE75C;width:18px;height:18px;flex-shrink:0;"></i>
+                <h2 style="margin:0;font-size:1rem;font-weight:600;"><%= t('starboard.how_to_use') %></h2>
+            </div>
+            <div class="guide-grid">
+                <div class="guide-step">
+                    <div class="guide-num">1</div>
+                    <div class="guide-title"><%= t('starboard.step1_title') %></div>
+                    <div class="guide-desc"><%= t('starboard.step1_desc') %></div>
+                </div>
+                <div class="guide-step">
+                    <div class="guide-num">2</div>
+                    <div class="guide-title"><%= t('starboard.step2_title') %></div>
+                    <div class="guide-desc"><%= t('starboard.step2_desc') %></div>
+                </div>
+                <div class="guide-step">
+                    <div class="guide-num">3</div>
+                    <div class="guide-title"><%= t('starboard.step3_title') %></div>
+                    <div class="guide-desc"><%= t('starboard.step3_desc') %></div>
+                </div>
+            </div>
+            <div class="guide-tip">💡 <%= t('starboard.tip') %></div>
+        </div>
+
+        <!-- Configuration -->
+        <div class="settings-card">
+            <h2><%= t('starboard.config_title') %></h2>
+
+            <div class="form-group">
+                <label class="toggle-label">
+                    <input type="checkbox" id="sbEnabled" class="toggle-input" <%= starboardData.enabled ? 'checked' : '' %>>
+                    <span class="toggle-slider"></span>
+                    <span><%= t('starboard.enable_label') %></span>
+                </label>
+            </div>
+
+            <div class="form-group">
+                <label class="label"><%= t('starboard.channel_label') %></label>
+                <select id="sbChannel" class="select">
+                    <option value=""><%= t('starboard.select_channel') %></option>
+                    <% channels.forEach(function(ch) { %>
+                        <option value="<%= ch.id %>" <%= starboardData.channelId === ch.id ? 'selected' : '' %>>#<%= ch.name %></option>
+                    <% }); %>
+                </select>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+                <div class="form-group">
+                    <label class="label"><%= t('starboard.emoji_label') %></label>
+                    <input type="text" id="sbEmoji" class="input" value="<%= starboardData.emoji %>" placeholder="⭐" maxlength="10">
+                    <p class="section-desc" style="margin-top:.35rem;"><%= t('starboard.emoji_hint') %></p>
+                </div>
+                <div class="form-group">
+                    <label class="label"><%= t('starboard.threshold_label') %></label>
+                    <input type="number" id="sbThreshold" class="input" value="<%= starboardData.threshold %>" min="1" max="50">
+                    <p class="section-desc" style="margin-top:.35rem;"><%= t('starboard.threshold_hint') %></p>
+                </div>
+            </div>
+
+            <div id="sbMsg" class="form-message"></div>
+        </div>
+
+    </div><!-- /.dash-content-wide -->
+    </main>
+</div><!-- /.dash-layout -->
+
+<style>
+@media (max-width: 600px) {
+    [style*="grid-template-columns:1fr 1fr"] { grid-template-columns: 1fr !important; }
+}
+</style>
+
+<script>
+const GUILD_ID = '<%= guild.id %>';
+
+function showMsg(el, text, type) {
+    if (!el) return;
+    el.textContent = text;
+    el.className   = `form-message msg-${type}`;
+    if (type === 'success') setTimeout(() => { el.textContent = ''; el.className = 'form-message'; }, 3500);
+}
+
+async function apiFetch(path, method, body) {
+    const res = await fetch(`/api/guild/${GUILD_ID}${path}`, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body:    body ? JSON.stringify(body) : undefined,
+    });
+    return res.json();
+}
+
+async function saveConfig() {
+    const msg  = document.getElementById('sbMsg');
+    const data = await apiFetch('/starboard', 'POST', {
+        enabled:   document.getElementById('sbEnabled').checked,
+        channelId: document.getElementById('sbChannel').value || null,
+        emoji:     document.getElementById('sbEmoji').value.trim() || '⭐',
+        threshold: parseInt(document.getElementById('sbThreshold').value) || 3,
+    });
+    showMsg(msg, data.message, data.success ? 'success' : 'error');
+}
+
+window._floatSave = () => saveConfig();
+</script>
+
+<%- include('../partials/footer') %>

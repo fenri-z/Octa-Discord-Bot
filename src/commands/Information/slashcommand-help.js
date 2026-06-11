@@ -77,6 +77,12 @@ const CATEGORIES = [
         { name: 'set-nickname', emoji: '✏️' },
         { name: 'language',     emoji: '🌐' },
     ]},
+    { id: 'community',    emoji: '🌟', minLevel: 'member',    color: '#57F287', commands: [
+        { name: 'poll',        emoji: '📊' },
+        { name: 'afk',         emoji: '😴' },
+        { name: 'rank',        emoji: '⭐' },
+        { name: 'leaderboard', emoji: '🏆' },
+    ]},
     { id: 'developer',    emoji: '🛠️', minLevel: 'dev',       color: '#FF73FA', commands: [
         { name: 'server',  emoji: '🌐' },
         { name: 'eval',    emoji: '💻' },
