@@ -58,7 +58,7 @@
                 <% if (guild.botPresent) { %>
                     <a href="/dashboard/<%= guild.id %>" class="srv-card-action srv-btn-manage"><%= t('servers.manage') %></a>
                 <% } else { %>
-                    <a href="https://discord.com/oauth2/authorize?client_id=<%= process.env.CLIENT_ID %>&permissions=8&scope=bot+applications.commands&guild_id=<%= guild.id %>"
+                    <a href="https://discord.com/oauth2/authorize?client_id=<%= process.env.CLIENT_ID %>&permissions=1411902861014&scope=bot+applications.commands&guild_id=<%= guild.id %>"
                        target="_blank" class="srv-card-action srv-btn-invite"><%= t('servers.invite') %></a>
                 <% } %>
             </div>

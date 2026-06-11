@@ -1,0 +1,326 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+
+<div class="dash-layout">
+<%- include('../partials/owner-sidebar', { activePage: 'config' }) %>
+<main class="dash-main">
+
+    <div class="cv-header">
+        <div class="cv-hicon"><i data-lucide="settings-2"></i></div>
+        <div>
+            <h1 class="cv-title">Config Viewer</h1>
+            <p class="cv-sub">Bot configuration and environment variables</p>
+        </div>
+    </div>
+
+    <!-- Runtime Info -->
+    <div class="cv-section">
+        <div class="cv-section-title"><i data-lucide="cpu"></i> Runtime</div>
+        <div class="cv-runtime-grid">
+            <div class="cv-stat">
+                <div class="cv-stat-label">Node.js</div>
+                <div class="cv-stat-val"><%= runtime.nodeVersion %></div>
+            </div>
+            <div class="cv-stat">
+                <div class="cv-stat-label">Platform</div>
+                <div class="cv-stat-val"><%= runtime.platform %>/<%= runtime.arch %></div>
+            </div>
+            <div class="cv-stat">
+                <div class="cv-stat-label">Environment</div>
+                <div class="cv-stat-val">
+                    <span class="cv-badge cv-badge-<%= runtime.nodeEnv === 'production' ? 'prod' : 'dev' %>">
+                        <%= runtime.nodeEnv %>
+                    </span>
+                </div>
+            </div>
+            <div class="cv-stat">
+                <div class="cv-stat-label">Process Uptime</div>
+                <div class="cv-stat-val" id="cvUptime" data-sec="<%= runtime.uptimeSec %>"><%= runtime.uptimeSec %>s</div>
+            </div>
+            <div class="cv-stat">
+                <div class="cv-stat-label">Heap Used / Total</div>
+                <div class="cv-stat-val"><%= runtime.memHeapUsed %> / <%= runtime.memHeapTotal %> MB</div>
+            </div>
+            <div class="cv-stat">
+                <div class="cv-stat-label">RSS Memory</div>
+                <div class="cv-stat-val"><%= runtime.memRss %> MB</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Environment Variables -->
+    <div class="cv-section">
+        <div class="cv-section-title"><i data-lucide="file-key"></i> Environment Variables</div>
+        <div class="cv-env-groups">
+            <% envData.forEach(function(group) { %>
+            <div class="cv-env-group">
+                <div class="cv-env-group-label"><%= group.label %></div>
+                <% group.entries.forEach(function(entry) { %>
+                <div class="cv-env-row">
+                    <div class="cv-env-key"><%= entry.key %></div>
+                    <div class="cv-env-val-wrap">
+                        <% if (!entry.raw) { %>
+                            <span class="cv-empty">(empty)</span>
+                        <% } else if (entry.sensitive) { %>
+                            <span class="cv-env-val cv-masked" data-plain="<%= entry.raw %>"><%= entry.display %></span>
+                            <button class="cv-reveal-btn" onclick="toggleReveal(this)" title="Toggle visibility">
+                                <i data-lucide="eye"></i>
+                            </button>
+                        <% } else { %>
+                            <span class="cv-env-val"><%= entry.display %></span>
+                        <% } %>
+                    </div>
+                </div>
+                <% }); %>
+            </div>
+            <% }); %>
+        </div>
+    </div>
+
+    <!-- config.js -->
+    <div class="cv-section">
+        <div class="cv-section-title"><i data-lucide="sliders-horizontal"></i> config.js</div>
+        <div class="cv-cfg-grid">
+
+            <!-- Development -->
+            <div class="cv-cfg-card">
+                <div class="cv-cfg-card-title">Development</div>
+                <div class="cv-cfg-row">
+                    <span class="cv-cfg-key">Enabled</span>
+                    <span class="cv-cfg-val">
+                        <span class="cv-badge cv-badge-<%= botConfig.development.enabled ? 'warn' : 'dev' %>">
+                            <%= botConfig.development.enabled ? 'true' : 'false' %>
+                        </span>
+                    </span>
+                </div>
+                <div class="cv-cfg-row">
+                    <span class="cv-cfg-key">Guild ID</span>
+                    <span class="cv-cfg-val cv-mono"><%= botConfig.development.guildId || '(not set)' %></span>
+                </div>
+                <div class="cv-cfg-row">
+                    <span class="cv-cfg-key">Dev Guild ID</span>
+                    <span class="cv-cfg-val cv-mono"><%= botConfig.development.devGuildId || '(not set)' %></span>
+                </div>
+            </div>
+
+            <!-- Commands -->
+            <div class="cv-cfg-card">
+                <div class="cv-cfg-card-title">Commands</div>
+                <div class="cv-cfg-row">
+                    <span class="cv-cfg-key">Prefix</span>
+                    <span class="cv-cfg-val cv-mono"><%= botConfig.commands.prefix %></span>
+                </div>
+                <div class="cv-cfg-row">
+                    <span class="cv-cfg-key">Message Commands</span>
+                    <span class="cv-cfg-val">
+                        <span class="cv-badge cv-badge-<%= botConfig.commands.message_commands ? 'ok' : 'off' %>">
+                            <%= botConfig.commands.message_commands ? 'enabled' : 'disabled' %>
+                        </span>
+                    </span>
+                </div>
+                <div class="cv-cfg-row">
+                    <span class="cv-cfg-key">Slash (Chat Input)</span>
+                    <span class="cv-cfg-val">
+                        <span class="cv-badge cv-badge-<%= botConfig.commands.application_commands.chat_input ? 'ok' : 'off' %>">
+                            <%= botConfig.commands.application_commands.chat_input ? 'enabled' : 'disabled' %>
+                        </span>
+                    </span>
+                </div>
+                <div class="cv-cfg-row">
+                    <span class="cv-cfg-key">User Context Menu</span>
+                    <span class="cv-cfg-val">
+                        <span class="cv-badge cv-badge-<%= botConfig.commands.application_commands.user_context ? 'ok' : 'off' %>">
+                            <%= botConfig.commands.application_commands.user_context ? 'enabled' : 'disabled' %>
+                        </span>
+                    </span>
+                </div>
+                <div class="cv-cfg-row">
+                    <span class="cv-cfg-key">Message Context Menu</span>
+                    <span class="cv-cfg-val">
+                        <span class="cv-badge cv-badge-<%= botConfig.commands.application_commands.message_context ? 'ok' : 'off' %>">
+                            <%= botConfig.commands.application_commands.message_context ? 'enabled' : 'disabled' %>
+                        </span>
+                    </span>
+                </div>
+            </div>
+
+            <!-- Users -->
+            <div class="cv-cfg-card">
+                <div class="cv-cfg-card-title">Users</div>
+                <div class="cv-cfg-row">
+                    <span class="cv-cfg-key">Owner ID</span>
+                    <span class="cv-cfg-val cv-mono"><%= botConfig.users.ownerId %></span>
+                </div>
+                <div class="cv-cfg-row cv-cfg-row-col">
+                    <span class="cv-cfg-key">Developers</span>
+                    <div class="cv-devlist">
+                        <% botConfig.users.developers.forEach(function(id) { %>
+                        <span class="cv-mono cv-devid"><%= id %></span>
+                        <% }); %>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Messages -->
+            <div class="cv-cfg-card cv-cfg-card-full">
+                <div class="cv-cfg-card-title">Response Messages</div>
+                <% Object.entries(botConfig.messages).forEach(function([key, val]) { %>
+                <div class="cv-cfg-row">
+                    <span class="cv-cfg-key cv-msg-key"><%= key %></span>
+                    <span class="cv-cfg-val cv-msg-val"><%= val %></span>
+                </div>
+                <% }); %>
+            </div>
+
+        </div>
+    </div>
+
+</main>
+</div>
+
+<style>
+.cv-header { display: flex; align-items: center; gap: .9rem; margin-bottom: 1.75rem; }
+.cv-hicon {
+    width: 46px; height: 46px; border-radius: 13px; flex-shrink: 0;
+    background: rgba(88,101,242,.18); color: #7289da;
+    display: flex; align-items: center; justify-content: center;
+}
+.cv-hicon svg { width: 22px; height: 22px; }
+.cv-title { font-size: 1.4rem; font-weight: 800; letter-spacing: -.02em; margin: 0; }
+.cv-sub   { font-size: .8rem; color: var(--text-muted); margin: .1rem 0 0; }
+
+/* Sections */
+.cv-section {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 14px; padding: 1.1rem 1.25rem; margin-bottom: 1.1rem;
+}
+.cv-section-title {
+    display: flex; align-items: center; gap: .5rem;
+    font-size: .78rem; font-weight: 700; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: .08em;
+    margin-bottom: 1rem;
+}
+.cv-section-title svg { width: 14px; height: 14px; }
+
+/* Runtime grid */
+.cv-runtime-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: .6rem;
+}
+.cv-stat {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 9px; padding: .65rem .85rem;
+}
+.cv-stat-label { font-size: .68rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: .06em; margin-bottom: .25rem; }
+.cv-stat-val   { font-size: .9rem; font-weight: 700; color: var(--text); font-family: monospace; }
+
+/* Badges */
+.cv-badge {
+    display: inline-block; border-radius: 6px;
+    padding: .1rem .55rem; font-size: .72rem; font-weight: 700; font-family: monospace;
+}
+.cv-badge-prod { background: rgba(87,242,135,.15); color: #57F287; }
+.cv-badge-dev  { background: rgba(88,101,242,.15); color: #949cf7; }
+.cv-badge-warn { background: rgba(240,160,50,.15);  color: #F0A032; }
+.cv-badge-ok   { background: rgba(87,242,135,.15); color: #57F287; }
+.cv-badge-off  { background: rgba(237,66,69,.12);  color: #f27f81; }
+
+/* Env groups */
+.cv-env-groups { display: flex; flex-direction: column; gap: .5rem; }
+.cv-env-group { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.cv-env-group-label {
+    font-size: .68rem; font-weight: 700; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: .07em;
+    background: var(--bg3); padding: .4rem .85rem;
+    border-bottom: 1px solid var(--border);
+}
+.cv-env-row {
+    display: flex; align-items: center; gap: .75rem;
+    padding: .5rem .85rem; border-bottom: 1px solid var(--border);
+    min-height: 36px;
+}
+.cv-env-row:last-child { border-bottom: none; }
+.cv-env-key {
+    font-size: .78rem; font-weight: 700; color: var(--text-muted);
+    font-family: monospace; min-width: 220px; flex-shrink: 0;
+}
+.cv-env-val-wrap { display: flex; align-items: center; gap: .5rem; flex: 1; min-width: 0; }
+.cv-env-val {
+    font-size: .8rem; font-family: monospace; color: var(--text);
+    word-break: break-all; flex: 1;
+}
+.cv-masked { color: var(--text-muted); letter-spacing: .05em; }
+.cv-empty  { font-size: .78rem; color: var(--text-muted); font-style: italic; }
+.cv-reveal-btn {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 6px; padding: .2rem .4rem;
+    color: var(--text-muted); cursor: pointer; flex-shrink: 0;
+    display: flex; align-items: center;
+    transition: color .15s, border-color .15s;
+}
+.cv-reveal-btn:hover { color: var(--text); border-color: var(--accent); }
+.cv-reveal-btn svg { width: 12px; height: 12px; }
+
+/* config.js grid */
+.cv-cfg-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: .75rem; align-items: start;
+}
+.cv-cfg-card {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 10px; padding: .8rem 1rem;
+}
+.cv-cfg-card-full { grid-column: 1 / -1; }
+.cv-cfg-card-title {
+    font-size: .7rem; font-weight: 700; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: .08em;
+    margin-bottom: .65rem; padding-bottom: .5rem;
+    border-bottom: 1px solid var(--border);
+}
+.cv-cfg-row {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: .5rem; padding: .3rem 0;
+    border-bottom: 1px solid rgba(255,255,255,.04);
+    font-size: .82rem;
+}
+.cv-cfg-row:last-child { border-bottom: none; }
+.cv-cfg-row-col { flex-direction: column; align-items: flex-start; }
+.cv-cfg-key  { color: var(--text-muted); font-weight: 600; flex-shrink: 0; }
+.cv-cfg-val  { color: var(--text); text-align: right; word-break: break-all; }
+.cv-mono     { font-family: monospace; font-size: .78rem; }
+.cv-devlist  { display: flex; flex-direction: column; gap: .2rem; margin-top: .3rem; }
+.cv-devid    { color: var(--text); font-size: .78rem; }
+.cv-msg-key  { font-size: .72rem; min-width: 160px; }
+.cv-msg-val  { font-size: .76rem; color: var(--text-muted); text-align: left; flex: 1; }
+</style>
+
+<script>
+// Format uptime
+(function() {
+    const el = document.getElementById('cvUptime');
+    const sec = parseInt(el.dataset.sec, 10);
+    const d = Math.floor(sec / 86400);
+    const h = Math.floor((sec % 86400) / 3600);
+    const m = Math.floor((sec % 3600) / 60);
+    const s = sec % 60;
+    el.textContent = d > 0 ? `${d}d ${h}h ${m}m` : h > 0 ? `${h}h ${m}m ${s}s` : `${m}m ${s}s`;
+})();
+
+function toggleReveal(btn) {
+    const span = btn.previousElementSibling;
+    const icon = btn.querySelector('i');
+    if (span.dataset.revealed === '1') {
+        span.textContent = span.dataset.masked || '••••••••••••';
+        span.dataset.revealed = '0';
+        icon.setAttribute('data-lucide', 'eye');
+    } else {
+        if (!span.dataset.masked) span.dataset.masked = span.textContent;
+        span.textContent = span.dataset.plain;
+        span.dataset.revealed = '1';
+        icon.setAttribute('data-lucide', 'eye-off');
+    }
+    lucide.createIcons({ nodes: [icon] });
+}
+</script>
+
+<%- include('../partials/footer') %>

@@ -8,7 +8,8 @@ const express        = require('express');
 const router         = express.Router();
 const { ActivityType, ChannelType, EmbedBuilder } = require('discord.js');
 const { requireOwner, requireOwnerPin } = require('../middleware/ownerAuth');
-const ErrorLogger    = require('../../utils/ErrorLogger');
+const ErrorLogger       = require('../../utils/ErrorLogger');
+const ActivityLogger    = require('../../utils/ActivityLogger');
 
 const VALID_STATUSES = new Set(['online', 'idle', 'dnd', 'invisible']);
 const VALID_ACT_TYPES = new Set([0, 2, 3, 4, 5]); // Playing, Listening, Watching, Custom, Competing
@@ -59,6 +60,7 @@ router.post('/maintenance/toggle', (req, res) => {
     const isOn    = client.database.get('maintenance-mode') === '1';
     const newVal  = isOn ? '0' : '1';
     client.database.set('maintenance-mode', newVal);
+    ActivityLogger.log(client.database, `Maintenance ${newVal === '1' ? 'ON' : 'OFF'}`, '', req.ip);
 
     res.json({ success: true, maintenance: newVal === '1' });
 });
@@ -83,6 +85,7 @@ router.post('/status', (req, res) => {
     client.database.set('bot-status',        status);
     client.database.set('bot-activity-type', String(actType));
     client.database.set('bot-activity-name', actName);
+    ActivityLogger.log(client.database, 'Bot Status Changed', `${status}${actName ? ' — ' + actName : ''}`, req.ip);
 
     res.json({ success: true });
 });
@@ -162,6 +165,7 @@ router.post('/blacklist/user/add', (req, res) => {
         return res.json({ success: false, message: 'Tidak bisa mem-blacklist bot sendiri.' });
 
     client.database.set(`blacklist-user-${userId}`, '1');
+    ActivityLogger.log(client.database, 'Blacklist User Added', userId, req.ip);
     res.json({ success: true });
 });
 
@@ -170,6 +174,7 @@ router.post('/blacklist/user/remove/:id', (req, res) => {
     if (!client) return res.json({ success: false, message: 'Bot tidak tersedia.' });
 
     client.database.delete(`blacklist-user-${req.params.id}`);
+    ActivityLogger.log(client.database, 'Blacklist User Removed', req.params.id, req.ip);
     res.json({ success: true });
 });
 
@@ -182,6 +187,7 @@ router.post('/blacklist/guild/add', (req, res) => {
         return res.json({ success: false, message: 'Guild ID tidak valid (harus 17-20 digit).' });
 
     client.database.set(`blacklist-guild-${guildId}`, '1');
+    ActivityLogger.log(client.database, 'Blacklist Guild Added', guildId, req.ip);
     res.json({ success: true });
 });
 
@@ -190,6 +196,7 @@ router.post('/blacklist/guild/remove/:id', (req, res) => {
     if (!client) return res.json({ success: false, message: 'Bot tidak tersedia.' });
 
     client.database.delete(`blacklist-guild-${req.params.id}`);
+    ActivityLogger.log(client.database, 'Blacklist Guild Removed', req.params.id, req.ip);
     res.json({ success: true });
 });
 
@@ -221,8 +228,10 @@ router.post('/guilds/:id/leave', async (req, res) => {
     if (!guild)  return res.json({ success: false, message: 'Guild tidak ditemukan.' });
 
     try {
+        const name = guild.name, id = guild.id;
         await guild.leave();
-        res.json({ success: true, message: `Berhasil leave dari ${guild.name}.` });
+        ActivityLogger.log(client.database, 'Left Guild', `${name} (${id})`, req.ip);
+        res.json({ success: true, message: `Berhasil leave dari ${name}.` });
     } catch (err) {
         res.json({ success: false, message: err.message });
     }
@@ -238,6 +247,7 @@ router.get('/logs', (req, res) => {
 router.post('/logs/clear', (req, res) => {
     const client = req.discordClient;
     ErrorLogger.clear(client?.database);
+    ActivityLogger.log(client?.database, 'Error Logs Cleared', '', req.ip);
     res.json({ success: true });
 });
 
@@ -262,6 +272,7 @@ router.post('/database/set', (req, res) => {
     if (key === 'error-logs') return res.json({ success: false, message: 'Reserved key.' });
 
     client.database.set(key, String(value));
+    ActivityLogger.log(client.database, 'Database Set', `key: ${key}`, req.ip);
     res.json({ success: true });
 });
 
@@ -273,6 +284,7 @@ router.post('/database/delete/:key', (req, res) => {
     if (key === 'error-logs') return res.json({ success: false, message: 'Reserved key.' });
 
     client.database.delete(key);
+    ActivityLogger.log(client.database, 'Database Delete', `key: ${key}`, req.ip);
     res.json({ success: true });
 });
 
@@ -391,6 +403,8 @@ router.get('/guilds/:id', (req, res) => {
 
 // ── Bot Restart ───────────────────────────────────────────────────────────────
 router.post('/restart', (req, res) => {
+    const client = req.discordClient;
+    ActivityLogger.log(client?.database, 'Bot Restart Initiated', '', req.ip);
     res.json({ success: true });
     setTimeout(() => process.exit(0), 400);
 });
@@ -482,6 +496,7 @@ router.post('/broadcast', async (req, res) => {
         } catch { failed++; }
     }));
 
+    ActivityLogger.log(client.database, `Broadcast Sent (${mode})`, `${sent}/${guilds.length} delivered`, req.ip);
     res.json({ success: true, sent, failed, total: guilds.length });
 });
 
@@ -514,10 +529,87 @@ router.post('/eval', async (req, res) => {
             catch { output = String(result); }
         } else { output = String(result); }
 
+        ActivityLogger.log(client?.database, 'Eval Executed', code.slice(0, 120) + (code.length > 120 ? '…' : ''), req.ip);
         res.json({ success: true, output, duration });
     } catch (err) {
+        ActivityLogger.log(client?.database, 'Eval Error', code.slice(0, 120) + (code.length > 120 ? '…' : ''), req.ip);
         res.json({ success: false, output: err.stack || err.message, duration: Date.now() - start });
     }
+});
+
+// ── Activity Log ──────────────────────────────────────────────────────────────
+router.get('/activity', (req, res) => {
+    const client = req.discordClient;
+    const logs   = ActivityLogger.getAll(client?.database);
+    res.render('owner/activity', { title: 'Activity Log', hasSidebar: true, activePage: 'activity', logs });
+});
+
+router.post('/activity/clear', (req, res) => {
+    const client = req.discordClient;
+    ActivityLogger.clear(client?.database);
+    ActivityLogger.log(client?.database, 'Activity Log Cleared', '', req.ip);
+    res.json({ success: true });
+});
+
+// ── Config Viewer ─────────────────────────────────────────────────────────────
+router.get('/config', (req, res) => {
+    const botConfig = require('../../config');
+    const SENSITIVE = /TOKEN|SECRET|PIN|API_KEY|WEBHOOK/i;
+    const mask = (val) => {
+        if (!val) return '';
+        const s = String(val);
+        return s.length <= 8 ? '••••••••' : s.slice(0, 4) + '•'.repeat(Math.min(s.length - 4, 24));
+    };
+
+    const ENV_GROUPS = [
+        { label: 'Discord Bot',  vars: ['CLIENT_TOKEN', 'CLIENT_ID', 'DEV_GUILD_ID'] },
+        { label: 'OAuth2 / Web', vars: ['CLIENT_SECRET', 'CALLBACK_URL', 'WEB_PORT', 'SESSION_SECRET', 'OWNER_PIN', 'NODE_ENV'] },
+        { label: 'YouTube',      vars: ['BASE_URL', 'YOUTUBE_API_KEY', 'YOUTUBE_WEBSUB_SECRET'] },
+        { label: 'Twitch',       vars: ['TWITCH_CLIENT_ID', 'TWITCH_CLIENT_SECRET'] },
+        { label: 'Kick.com',     vars: ['KICK_CLIENT_ID', 'KICK_CLIENT_SECRET'] },
+        { label: 'Other',        vars: ['RSSHUB_BASE_URL', 'REPORT_WEBHOOK_URL'] },
+    ];
+
+    const envData = ENV_GROUPS.map(g => ({
+        label: g.label,
+        entries: g.vars.map(key => {
+            const raw = process.env[key] || '';
+            const sensitive = SENSITIVE.test(key);
+            return { key, raw, display: sensitive ? mask(raw) : (raw || '(empty)'), sensitive };
+        }),
+    }));
+
+    const mem = process.memoryUsage();
+    const runtime = {
+        nodeVersion:  process.version,
+        platform:     process.platform,
+        arch:         process.arch,
+        nodeEnv:      process.env.NODE_ENV || 'development',
+        uptimeSec:    Math.floor(process.uptime()),
+        memHeapUsed:  _mb(mem.heapUsed),
+        memHeapTotal: _mb(mem.heapTotal),
+        memRss:       _mb(mem.rss),
+    };
+
+    res.render('owner/config', {
+        title: 'Config Viewer',
+        hasSidebar: true,
+        activePage: 'config',
+        botConfig,
+        envData,
+        runtime,
+    });
+});
+
+// ── Bot Invite Generator ──────────────────────────────────────────────────────
+router.get('/invite', (req, res) => {
+    const client = req.discordClient;
+    res.render('owner/invite', {
+        title: 'Invite Generator',
+        hasSidebar: true,
+        activePage: 'invite',
+        clientId: client?.user?.id ?? '',
+    });
 });
 
 // ── Helpers ───────────────────────────────────────────────────────────────────

@@ -1,0 +1,367 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+
+<div class="dash-layout">
+<%- include('../partials/owner-sidebar', { activePage: 'invite' }) %>
+<main class="dash-main">
+
+    <div class="iv-header">
+        <div class="iv-hicon"><i data-lucide="link"></i></div>
+        <div>
+            <h1 class="iv-title">Bot Invite Generator</h1>
+            <p class="iv-sub">Generate an invite link with custom permissions</p>
+        </div>
+    </div>
+
+    <div class="iv-layout">
+
+        <!-- Left: controls -->
+        <div class="iv-controls">
+
+            <!-- Presets -->
+            <div class="iv-section">
+                <div class="iv-section-label">Presets</div>
+                <div class="iv-presets">
+                    <button class="iv-preset" onclick="applyPreset('recommended')"><i data-lucide="star"></i> Recommended</button>
+                    <button class="iv-preset" onclick="applyPreset('admin')"><i data-lucide="shield"></i> Administrator</button>
+                    <button class="iv-preset" onclick="applyPreset('none')"><i data-lucide="x"></i> None</button>
+                </div>
+            </div>
+
+            <!-- Scope -->
+            <div class="iv-section">
+                <div class="iv-section-label">Scope</div>
+                <div class="iv-scopes">
+                    <label class="iv-scope-check">
+                        <input type="checkbox" id="scopeBot" checked onchange="build()" data-flt-ignore> bot
+                    </label>
+                    <label class="iv-scope-check">
+                        <input type="checkbox" id="scopeCmds" checked onchange="build()" data-flt-ignore> applications.commands
+                    </label>
+                </div>
+            </div>
+
+            <!-- Permissions groups -->
+            <% [
+                { id: 'general', label: 'General', color: '#7289da' },
+                { id: 'text',    label: 'Text',    color: '#57F287' },
+                { id: 'voice',   label: 'Voice',   color: '#F0A032' },
+            ].forEach(function(g) { %>
+            <div class="iv-section">
+                <div class="iv-section-label iv-section-label-row">
+                    <span style="color:<%= g.color %>"><%= g.label %></span>
+                    <div class="iv-grp-btns">
+                        <button class="iv-grp-btn" onclick="toggleGroup('<%= g.id %>', true)">All</button>
+                        <button class="iv-grp-btn" onclick="toggleGroup('<%= g.id %>', false)">None</button>
+                    </div>
+                </div>
+                <div class="iv-perms" id="grp-<%= g.id %>">
+                    <!-- filled by JS -->
+                </div>
+            </div>
+            <% }); %>
+
+        </div>
+
+        <!-- Right: result -->
+        <div class="iv-result-col">
+            <div class="iv-result-sticky">
+
+                <!-- Permission integer display -->
+                <div class="iv-result-section">
+                    <div class="iv-result-label">Permissions Integer</div>
+                    <div class="iv-perm-int" id="ivPermInt">0</div>
+                </div>
+
+                <!-- Selected permissions summary -->
+                <div class="iv-result-section">
+                    <div class="iv-result-label">Selected <span id="ivPermCount" class="iv-count">0</span></div>
+                    <div class="iv-selected-list" id="ivSelectedList">
+                        <span class="iv-selected-empty">No permissions selected</span>
+                    </div>
+                </div>
+
+                <!-- Generated URL -->
+                <div class="iv-result-section">
+                    <div class="iv-result-label">Invite URL</div>
+                    <div class="iv-url-box">
+                        <textarea id="ivUrl" class="iv-url-text" readonly data-flt-ignore></textarea>
+                    </div>
+                    <div class="iv-url-actions">
+                        <button class="btn iv-copy-btn" onclick="copyUrl()">
+                            <i data-lucide="copy"></i> Copy
+                        </button>
+                        <a id="ivOpenBtn" href="#" target="_blank" rel="noopener" class="btn btn-primary iv-open-btn">
+                            <i data-lucide="external-link"></i> Add to Server
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</main>
+</div>
+
+<style>
+.iv-header { display: flex; align-items: center; gap: .9rem; margin-bottom: 1.75rem; }
+.iv-hicon {
+    width: 46px; height: 46px; border-radius: 13px; flex-shrink: 0;
+    background: rgba(88,101,242,.18); color: #7289da;
+    display: flex; align-items: center; justify-content: center;
+}
+.iv-hicon svg { width: 22px; height: 22px; }
+.iv-title { font-size: 1.4rem; font-weight: 800; letter-spacing: -.02em; margin: 0; }
+.iv-sub   { font-size: .8rem; color: var(--text-muted); margin: .1rem 0 0; }
+
+/* Layout */
+.iv-layout {
+    display: grid; grid-template-columns: 1fr 300px;
+    gap: 1.25rem; align-items: start;
+}
+@media(max-width:900px) { .iv-layout { grid-template-columns: 1fr; } }
+
+/* Controls */
+.iv-controls { display: flex; flex-direction: column; gap: 1rem; }
+.iv-section {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 12px; padding: .9rem 1rem;
+}
+.iv-section-label {
+    font-size: .7rem; font-weight: 700; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: .08em; margin-bottom: .65rem;
+}
+.iv-section-label-row {
+    display: flex; align-items: center; justify-content: space-between; margin-bottom: .65rem;
+}
+.iv-grp-btns { display: flex; gap: .3rem; }
+.iv-grp-btn {
+    background: var(--bg3); border: 1px solid var(--border); border-radius: 5px;
+    padding: .18rem .55rem; font-size: .68rem; font-weight: 600;
+    color: var(--text-muted); cursor: pointer; transition: color .15s, border-color .15s;
+}
+.iv-grp-btn:hover { color: var(--text); border-color: var(--accent); }
+
+/* Presets */
+.iv-presets { display: flex; gap: .5rem; flex-wrap: wrap; }
+.iv-preset {
+    display: flex; align-items: center; gap: .35rem;
+    background: var(--bg3); border: 1px solid var(--border); border-radius: 8px;
+    padding: .38rem .85rem; font-size: .8rem; font-weight: 600; color: var(--text-muted);
+    cursor: pointer; transition: all .15s;
+}
+.iv-preset svg { width: 13px; height: 13px; }
+.iv-preset:hover { color: var(--text); border-color: var(--accent); background: rgba(88,101,242,.1); }
+
+/* Scope */
+.iv-scopes { display: flex; gap: 1rem; }
+.iv-scope-check {
+    display: flex; align-items: center; gap: .4rem;
+    font-size: .85rem; color: var(--text); cursor: pointer; font-family: monospace;
+}
+.iv-scope-check input { width: 15px; height: 15px; accent-color: var(--accent); }
+
+/* Permission checkboxes */
+.iv-perms {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: .3rem;
+}
+.iv-perm-item {
+    display: flex; align-items: center; gap: .45rem;
+    padding: .32rem .45rem; border-radius: 6px; cursor: pointer;
+    font-size: .82rem; color: var(--text-muted);
+    transition: background .12s, color .12s;
+    user-select: none;
+}
+.iv-perm-item:hover { background: rgba(88,101,242,.07); color: var(--text); }
+.iv-perm-item input { width: 14px; height: 14px; accent-color: var(--accent); flex-shrink: 0; cursor: pointer; }
+.iv-perm-item.checked { color: var(--text); }
+
+/* Result column */
+.iv-result-sticky { position: sticky; top: 1rem; display: flex; flex-direction: column; gap: .85rem; }
+.iv-result-section {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 12px; padding: .9rem 1rem;
+}
+.iv-result-label {
+    font-size: .7rem; font-weight: 700; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: .08em; margin-bottom: .5rem;
+    display: flex; align-items: center; gap: .5rem;
+}
+.iv-count {
+    background: rgba(88,101,242,.15); color: #949cf7;
+    border-radius: 6px; padding: .03rem .4rem;
+    font-size: .68rem; font-weight: 700;
+}
+.iv-perm-int {
+    font-size: 1.5rem; font-weight: 800; color: var(--text);
+    font-family: monospace; word-break: break-all;
+}
+.iv-selected-list {
+    display: flex; flex-wrap: wrap; gap: .3rem; min-height: 28px;
+}
+.iv-selected-empty { font-size: .78rem; color: var(--text-muted); font-style: italic; }
+.iv-selected-tag {
+    font-size: .68rem; font-weight: 600; background: rgba(88,101,242,.15);
+    color: #949cf7; border-radius: 5px; padding: .12rem .45rem;
+}
+.iv-url-box { margin-bottom: .6rem; }
+.iv-url-text {
+    width: 100%; box-sizing: border-box; height: 80px; resize: none;
+    background: var(--bg3); border: 1px solid var(--border); border-radius: 8px;
+    padding: .6rem .75rem; font-size: .72rem; color: var(--text-muted);
+    font-family: monospace; line-height: 1.5; outline: none; word-break: break-all;
+}
+.iv-url-actions { display: flex; gap: .5rem; }
+.iv-copy-btn { display: flex; align-items: center; gap: .35rem; }
+.iv-copy-btn svg, .iv-open-btn svg { width: 14px; height: 14px; }
+.iv-open-btn { display: flex; align-items: center; gap: .35rem; flex: 1; justify-content: center; }
+</style>
+
+<script>
+const CLIENT_ID = '<%= clientId %>';
+
+// ── Permission definitions ────────────────────────────────────────────────────
+const PERMS = [
+    // General
+    { group:'general', name:'View Channels',      value: 1024n            },
+    { group:'general', name:'Manage Channels',    value: 16n              },
+    { group:'general', name:'Manage Roles',       value: 268435456n       },
+    { group:'general', name:'Manage Server',      value: 32n              },
+    { group:'general', name:'View Audit Log',     value: 128n             },
+    { group:'general', name:'Manage Webhooks',    value: 536870912n       },
+    { group:'general', name:'Manage Emojis',      value: 1073741824n      },
+    { group:'general', name:'Kick Members',       value: 2n               },
+    { group:'general', name:'Ban Members',        value: 4n               },
+    { group:'general', name:'Timeout Members',    value: 1099511627776n   },
+    { group:'general', name:'Manage Nicknames',   value: 134217728n       },
+    { group:'general', name:'Administrator',      value: 8n               },
+    // Text
+    { group:'text', name:'Send Messages',         value: 2048n            },
+    { group:'text', name:'Send in Threads',       value: 274877906944n    },
+    { group:'text', name:'Embed Links',           value: 16384n           },
+    { group:'text', name:'Attach Files',          value: 32768n           },
+    { group:'text', name:'Add Reactions',         value: 64n              },
+    { group:'text', name:'Use External Emojis',   value: 262144n          },
+    { group:'text', name:'Mention @everyone',     value: 131072n          },
+    { group:'text', name:'Manage Messages',       value: 8192n            },
+    { group:'text', name:'Read History',          value: 65536n           },
+    { group:'text', name:'Use App Commands',      value: 2147483648n      },
+    { group:'text', name:'Create Threads',        value: 34359738368n     },
+    // Voice
+    { group:'voice', name:'Connect',              value: 1048576n         },
+    { group:'voice', name:'Speak',                value: 2097152n         },
+    { group:'voice', name:'Stream',               value: 512n             },
+    { group:'voice', name:'Use Voice Activity',   value: 33554432n        },
+    { group:'voice', name:'Mute Members',         value: 4194304n         },
+    { group:'voice', name:'Deafen Members',       value: 8388608n         },
+    { group:'voice', name:'Move Members',         value: 16777216n        },
+    { group:'voice', name:'Priority Speaker',     value: 256n             },
+];
+
+const PRESET_RECOMMENDED = [
+    // General
+    'View Channels','View Audit Log',
+    'Manage Channels','Manage Roles','Manage Webhooks',
+    'Kick Members','Ban Members','Timeout Members','Manage Nicknames',
+    // Text
+    'Send Messages','Send in Threads','Embed Links','Attach Files',
+    'Add Reactions','Use External Emojis','Mention @everyone','Manage Messages','Read History',
+    'Use App Commands','Create Threads',
+    // Voice
+    'Connect','Speak','Stream','Use Voice Activity',
+    'Mute Members','Deafen Members','Move Members',
+];
+const PRESET_ADMIN = ['Administrator'];
+
+// ── Render checkboxes ─────────────────────────────────────────────────────────
+['general','text','voice'].forEach(grp => {
+    const el = document.getElementById('grp-' + grp);
+    PERMS.filter(p => p.group === grp).forEach(p => {
+        const id = 'perm-' + p.name.replace(/\s/g,'_').replace(/[^a-zA-Z_]/g,'');
+        el.insertAdjacentHTML('beforeend', `
+            <label class="iv-perm-item" id="lbl-${id}">
+                <input type="checkbox" id="${id}" data-name="${p.name}" data-value="${p.value.toString()}" onchange="build()" data-flt-ignore>
+                ${p.name}
+            </label>
+        `);
+    });
+});
+
+// ── Build URL ─────────────────────────────────────────────────────────────────
+function build() {
+    let bits = 0n;
+    const selected = [];
+
+    document.querySelectorAll('.iv-perm-item input[type=checkbox]').forEach(cb => {
+        const lbl = cb.closest('.iv-perm-item');
+        if (cb.checked) {
+            bits |= BigInt(cb.dataset.value);
+            selected.push(cb.dataset.name);
+            lbl.classList.add('checked');
+        } else {
+            lbl.classList.remove('checked');
+        }
+    });
+
+    document.getElementById('ivPermInt').textContent = bits.toString();
+    document.getElementById('ivPermCount').textContent = selected.length;
+
+    const listEl = document.getElementById('ivSelectedList');
+    if (selected.length === 0) {
+        listEl.innerHTML = '<span class="iv-selected-empty">No permissions selected</span>';
+    } else {
+        listEl.innerHTML = selected.map(n => `<span class="iv-selected-tag">${n}</span>`).join('');
+    }
+
+    const scopes = [];
+    if (document.getElementById('scopeBot').checked)  scopes.push('bot');
+    if (document.getElementById('scopeCmds').checked) scopes.push('applications.commands');
+
+    const url = CLIENT_ID
+        ? `https://discord.com/api/oauth2/authorize?client_id=${CLIENT_ID}&permissions=${bits}&scope=${encodeURIComponent(scopes.join(' '))}`
+        : '(Bot not connected — client ID unavailable)';
+
+    document.getElementById('ivUrl').value = url;
+    const openBtn = document.getElementById('ivOpenBtn');
+    openBtn.href = CLIENT_ID ? url : '#';
+    openBtn.style.opacity = CLIENT_ID ? '1' : '.5';
+    openBtn.style.pointerEvents = CLIENT_ID ? '' : 'none';
+}
+
+// ── Presets ───────────────────────────────────────────────────────────────────
+function applyPreset(preset) {
+    const target = preset === 'recommended' ? PRESET_RECOMMENDED
+                 : preset === 'admin'       ? PRESET_ADMIN
+                 : [];
+    document.querySelectorAll('.iv-perm-item input[type=checkbox]').forEach(cb => {
+        cb.checked = target.includes(cb.dataset.name);
+    });
+    build();
+}
+
+function toggleGroup(grp, val) {
+    document.querySelectorAll(`#grp-${grp} input[type=checkbox]`).forEach(cb => { cb.checked = val; });
+    build();
+}
+
+// ── Copy ──────────────────────────────────────────────────────────────────────
+async function copyUrl() {
+    const url = document.getElementById('ivUrl').value;
+    if (!url || !CLIENT_ID) return;
+    try {
+        await navigator.clipboard.writeText(url);
+        showMsg(null, 'Invite link copied!', 'success');
+    } catch {
+        document.getElementById('ivUrl').select();
+        document.execCommand('copy');
+        showMsg(null, 'Invite link copied!', 'success');
+    }
+}
+
+// Init with recommended preset
+applyPreset('recommended');
+</script>
+
+<%- include('../partials/footer') %>

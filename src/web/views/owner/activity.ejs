@@ -1,0 +1,233 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+
+<div class="dash-layout">
+<%- include('../partials/owner-sidebar', { activePage: 'activity' }) %>
+<main class="dash-main">
+
+    <div class="al-header">
+        <div class="al-header-left">
+            <div class="al-hicon"><i data-lucide="activity"></i></div>
+            <div>
+                <h1 class="al-title">Activity Log</h1>
+                <p class="al-sub"><%= logs.length %> <%= logs.length === 1 ? 'entry' : 'entries' %> recorded</p>
+            </div>
+        </div>
+        <% if (logs.length > 0) { %>
+        <button class="al-clear-btn" onclick="clearLog()">
+            <i data-lucide="trash-2"></i> <span>Clear Log</span>
+        </button>
+        <% } %>
+    </div>
+
+    <%
+    const CAT = {
+        'Maintenance ON':           'maintenance',
+        'Maintenance OFF':          'maintenance',
+        'Bot Status Changed':       'status',
+        'Left Guild':               'guild',
+        'Blacklist User Added':     'blacklist',
+        'Blacklist User Removed':   'blacklist',
+        'Blacklist Guild Added':    'blacklist',
+        'Blacklist Guild Removed':  'blacklist',
+        'Error Logs Cleared':       'system',
+        'Activity Log Cleared':     'system',
+        'Database Set':             'database',
+        'Database Delete':          'database',
+        'Broadcast Sent (text)':    'broadcast',
+        'Broadcast Sent (embed)':   'broadcast',
+        'Eval Executed':            'eval',
+        'Eval Error':               'eval',
+        'Bot Restart Initiated':    'system',
+    };
+    const CAT_COLOR = {
+        maintenance: '#F0A032',
+        status:      '#5865F2',
+        guild:       '#7289da',
+        blacklist:   '#ED4245',
+        system:      '#8e9297',
+        database:    '#57F287',
+        broadcast:   '#FF73FA',
+        eval:        '#fe4e3c',
+    };
+    const getCategory = (action) => {
+        for (const [key, cat] of Object.entries(CAT)) {
+            if (action.startsWith(key.split('(')[0].trim())) return cat;
+        }
+        return 'system';
+    };
+    %>
+
+    <% if (logs.length === 0) { %>
+    <div class="al-empty">
+        <div class="al-empty-icon"><i data-lucide="clipboard-list"></i></div>
+        <p class="al-empty-title">No activity recorded yet</p>
+        <p class="al-empty-sub">Actions taken in the dev console will appear here.</p>
+    </div>
+    <% } else { %>
+
+    <!-- Filter chips -->
+    <%
+    const cats = [...new Set(logs.map(l => getCategory(l.action)))];
+    %>
+    <div class="al-filters" id="alFilters">
+        <button class="al-chip active" onclick="filterCat('all',this)">
+            All <span class="al-chip-n"><%= logs.length %></span>
+        </button>
+        <% ['maintenance','status','guild','blacklist','broadcast','eval','database','system'].forEach(function(c) {
+            const cnt = logs.filter(l => getCategory(l.action) === c).length;
+            if (!cnt) return;
+        %>
+        <button class="al-chip al-chip-<%= c %>" onclick="filterCat('<%= c %>',this)" style="--cc:<%= CAT_COLOR[c] || '#8e9297' %>">
+            <%= c.charAt(0).toUpperCase() + c.slice(1) %>
+            <span class="al-chip-n"><%= cnt %></span>
+        </button>
+        <% }); %>
+    </div>
+
+    <!-- Log list -->
+    <div class="al-list" id="alList">
+        <% logs.forEach(function(log) {
+            const cat   = getCategory(log.action);
+            const color = CAT_COLOR[cat] || '#8e9297';
+            const date  = new Date(log.ts);
+        %>
+        <div class="al-entry" data-cat="<%= cat %>">
+            <div class="al-entry-bar" style="background:<%= color %>"></div>
+            <div class="al-entry-body">
+                <div class="al-entry-top">
+                    <span class="al-action"><%= log.action %></span>
+                    <% if (log.ip && log.ip !== '::1' && log.ip !== '::ffff:127.0.0.1') { %>
+                    <span class="al-ip"><i data-lucide="globe" style="width:10px;height:10px;"></i> <%= log.ip %></span>
+                    <% } %>
+                    <time class="al-ts" title="<%= date.toLocaleString() %>">
+                        <%= date.toLocaleString() %>
+                    </time>
+                </div>
+                <% if (log.detail) { %>
+                <div class="al-detail"><%= log.detail %></div>
+                <% } %>
+            </div>
+        </div>
+        <% }); %>
+    </div>
+
+    <% } %>
+
+</main>
+</div>
+
+<style>
+.al-header {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem;
+}
+.al-header-left { display: flex; align-items: center; gap: .9rem; flex: 1; }
+.al-hicon {
+    width: 46px; height: 46px; border-radius: 13px; flex-shrink: 0;
+    background: rgba(88,101,242,.18); color: #7289da;
+    display: flex; align-items: center; justify-content: center;
+}
+.al-hicon svg { width: 22px; height: 22px; }
+.al-title { font-size: 1.4rem; font-weight: 800; letter-spacing: -.02em; margin: 0; }
+.al-sub   { font-size: .8rem; color: var(--text-muted); margin: .1rem 0 0; }
+
+.al-clear-btn {
+    display: flex; align-items: center; gap: .4rem;
+    background: rgba(237,66,69,.1); color: #f27f81;
+    border: 1px solid rgba(237,66,69,.25); border-radius: 9px;
+    padding: .48rem 1rem; font-size: .82rem; font-weight: 600;
+    cursor: pointer; transition: background .2s, border-color .2s;
+}
+.al-clear-btn:hover { background: rgba(237,66,69,.2); border-color: rgba(237,66,69,.5); }
+.al-clear-btn svg { width: 14px; height: 14px; }
+
+/* Filter chips */
+.al-filters { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: 1.1rem; }
+.al-chip {
+    display: inline-flex; align-items: center; gap: .4rem;
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 8px; padding: .35rem .8rem;
+    font-size: .78rem; font-weight: 600; color: var(--text-muted);
+    cursor: pointer; transition: all .18s; white-space: nowrap;
+}
+.al-chip:hover { color: var(--text); border-color: rgba(88,101,242,.4); }
+.al-chip.active {
+    background: color-mix(in srgb, var(--cc, #5865F2) 14%, transparent);
+    border-color: color-mix(in srgb, var(--cc, #5865F2) 50%, transparent);
+    color: var(--cc, #949cf7);
+}
+.al-chip-n {
+    background: var(--bg3); color: var(--text-muted);
+    border-radius: 6px; padding: .03rem .4rem; font-size: .68rem;
+}
+.al-chip.active .al-chip-n {
+    background: color-mix(in srgb, var(--cc, #5865F2) 20%, transparent);
+    color: var(--cc, #949cf7);
+}
+
+/* Log list */
+.al-list { display: flex; flex-direction: column; gap: .4rem; }
+.al-entry {
+    display: flex; gap: 0;
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 10px; overflow: hidden;
+    transition: border-color .15s;
+}
+.al-entry:hover { border-color: rgba(88,101,242,.3); }
+.al-entry-bar { width: 3px; flex-shrink: 0; }
+.al-entry-body { flex: 1; padding: .65rem .9rem; min-width: 0; }
+.al-entry-top {
+    display: flex; align-items: center; flex-wrap: wrap;
+    gap: .4rem .75rem; margin-bottom: .2rem;
+}
+.al-action { font-size: .875rem; font-weight: 700; color: var(--text); }
+.al-ip {
+    display: flex; align-items: center; gap: .2rem;
+    font-size: .7rem; color: var(--text-muted);
+    background: var(--bg3); border-radius: 5px; padding: .08rem .4rem;
+}
+.al-ts { font-size: .72rem; color: var(--text-muted); margin-left: auto; }
+.al-detail { font-size: .8rem; color: var(--text-muted); font-family: monospace; word-break: break-all; }
+
+/* Empty */
+.al-empty {
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; gap: .5rem;
+    padding: 6rem 1rem; text-align: center;
+}
+.al-empty-icon {
+    width: 72px; height: 72px; border-radius: 20px;
+    background: rgba(88,101,242,.1); color: #7289da;
+    display: flex; align-items: center; justify-content: center; margin-bottom: .5rem;
+}
+.al-empty-icon svg { width: 32px; height: 32px; }
+.al-empty-title { font-size: 1.05rem; font-weight: 700; color: var(--text); margin: 0; }
+.al-empty-sub   { font-size: .83rem; color: var(--text-muted); margin: 0; }
+</style>
+
+<script>
+function filterCat(cat, btn) {
+    document.querySelectorAll('.al-chip').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('#alList .al-entry').forEach(el => {
+        el.style.display = (cat === 'all' || el.dataset.cat === cat) ? '' : 'none';
+    });
+}
+
+async function clearLog() {
+    if (!confirm('Clear activity log?')) return;
+    try {
+        const r = await fetch('/dev-console/activity/clear', { method: 'POST' });
+        const d = await r.json();
+        if (d.success) {
+            showMsg(null, 'Activity log cleared.', 'success');
+            setTimeout(() => location.reload(), 700);
+        }
+    } catch {
+        showMsg(null, 'Error clearing log.', 'error');
+    }
+}
+</script>
+
+<%- include('../partials/footer') %>
