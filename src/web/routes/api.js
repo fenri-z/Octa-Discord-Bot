@@ -1969,8 +1969,9 @@ router.post('/guild/:guildId/youtube/channels', requireLogin, requireManageGuild
     const notifier = req.discordClient?.youtubeNotifier;
     if (notifier) {
         notifier.subscribe(id).catch(() => {});
-        // Inisialisasi lastVideo sekarang agar tidak ada notif untuk video lama
+        // Inisialisasi lastVideo & liveNotified agar tidak ada notif untuk video/stream lama
         notifier.pollGuild(guildId).catch(() => {});
+        notifier.seedLiveNotified(guildId, id).catch(() => {});
     }
 
     res.json({ success: true, message: `Channel "${name}" added successfully.` });

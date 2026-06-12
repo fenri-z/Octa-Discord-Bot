@@ -89,6 +89,25 @@ class YouTubeNotifier {
         await this._pollGuild(guild, db);
     }
 
+    // Seed liveNotified untuk 5 video terbaru saat channel baru ditambahkan,
+    // agar _checkLive tidak mengirim notif untuk stream lama yang sudah berakhir
+    async seedLiveNotified(guildId, channelId) {
+        const db = this.client.database;
+        if (!db) return;
+        try {
+            const rssRes = await fetch(`${RSS_BASE}${channelId}`, {
+                signal:  AbortSignal.timeout(10_000),
+                headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' },
+            });
+            if (!rssRes.ok) return;
+            const entries = this._parseRssEntries(await rssRes.text());
+            for (const entry of entries.slice(0, 5)) {
+                const notifKey = `youtube-liveNotified-${guildId}-${entry.id}`;
+                if (!db.get(notifKey)) db.set(notifKey, String(Date.now()));
+            }
+        } catch { /* noop */ }
+    }
+
     // ─── Channel Lookup ────────────────────────────────────────────────────────
 
     async lookupChannel(input) {

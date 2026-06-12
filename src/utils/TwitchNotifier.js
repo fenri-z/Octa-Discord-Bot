@@ -250,6 +250,14 @@ class TwitchNotifier {
                 }
             }
         }
+
+        // Bersihkan _pendingOffline untuk session yang sudah tidak di-track
+        // (akun dihapus dari dashboard saat masih dalam status pending offline)
+        for (const sessionKey of this._pendingOffline.keys()) {
+            if (!this._liveSessions.has(sessionKey)) {
+                this._pendingOffline.delete(sessionKey);
+            }
+        }
     }
 
     // ─── Discord Embed ─────────────────────────────────────────────────────────

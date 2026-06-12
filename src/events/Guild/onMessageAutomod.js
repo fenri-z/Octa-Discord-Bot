@@ -4,6 +4,17 @@ const Event = require("../../structure/Event");
 // In-memory spam tracker: Map<guildId, Map<userId, { count, firstAt }>>
 const spamTracker = new Map();
 
+// Bersihkan entry spam yang sudah expired setiap 5 menit untuk cegah memory bloat
+setInterval(() => {
+    const now = Date.now();
+    for (const [guildId, guildMap] of spamTracker) {
+        for (const [userId, data] of guildMap) {
+            if (now - data.firstAt > 5 * 60_000) guildMap.delete(userId);
+        }
+        if (guildMap.size === 0) spamTracker.delete(guildId);
+    }
+}, 5 * 60_000);
+
 const URL_REGEX    = /(https?:\/\/[^\s]+)|(www\.[^\s]+)/gi;
 const INVITE_REGEX = /discord(?:\.gg|app\.com\/invite|\.com\/invite)\/[a-zA-Z0-9-]+/gi;
 
