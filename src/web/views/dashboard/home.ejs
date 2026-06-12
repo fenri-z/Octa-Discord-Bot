@@ -55,16 +55,6 @@
                 </div>
                 <div class="ov-stat-bar"></div>
             </div>
-            <div class="ov-stat-card" style="--accent-c:#FF73FA;">
-                <div class="ov-stat-icon" style="background:rgba(255,115,250,.12);color:#FF73FA;">
-                    <i data-lucide="terminal"></i>
-                </div>
-                <div class="ov-stat-body">
-                    <div class="ov-stat-value ov-stat-nickname"><%= botPrefix %></div>
-                    <div class="ov-stat-label"><%= t('home.prefix_label') %></div>
-                </div>
-                <div class="ov-stat-bar"></div>
-            </div>
         </div>
 
         <!-- ── Live Status Bar ───────────────────────────────────── -->
@@ -441,11 +431,10 @@
 /* ── Stats Grid ── */
 .ov-stats-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: .85rem; margin-bottom: 1.25rem;
 }
-@media(max-width:780px) { .ov-stats-grid { grid-template-columns: repeat(2,1fr); } }
-@media(max-width:400px) { .ov-stats-grid { grid-template-columns: 1fr; } }
+@media(max-width:600px) { .ov-stats-grid { grid-template-columns: 1fr; } }
 
 .ov-stat-card {
     background: var(--bg2); border: 1px solid var(--border);

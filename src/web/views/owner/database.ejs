@@ -6,15 +6,28 @@
 <main class="dash-main">
 
     <!-- ── Header ──────────────────────────────────────────────────────────── -->
+    <%
+    const _start = (page - 1) * limit + 1;
+    const _end   = Math.min(page * limit, total);
+    %>
     <div class="dv-header">
         <div class="dv-header-left">
             <div class="dv-hicon"><i data-lucide="database"></i></div>
             <div>
                 <h1 class="dv-title"><%= t('owner.db_title') %></h1>
-                <p class="dv-sub" id="dvSubtitle"><%= entries.length.toLocaleString() %> <%= t('owner.db_entries') %></p>
+                <p class="dv-sub" id="dvSubtitle">
+                    <% if (total === 0) { %>
+                        0 <%= t('owner.db_entries') %>
+                    <% } else if (total <= limit) { %>
+                        <%= total.toLocaleString() %> <%= t('owner.db_entries') %>
+                    <% } else { %>
+                        <%= _start.toLocaleString() %>–<%= _end.toLocaleString() %> of <%= total.toLocaleString() %> <%= t('owner.db_entries') %>
+                    <% } %>
+                </p>
             </div>
         </div>
-        <input type="text" id="dvSearch" class="input dv-search" placeholder="<%= t('owner.db_search_ph') %>" data-flt-ignore>
+        <input type="text" id="dvSearch" class="input dv-search" value="<%= q %>"
+            placeholder="<%= t('owner.db_search_ph') %>" autocomplete="off" data-flt-ignore>
     </div>
 
     <!-- ── Add Entry ────────────────────────────────────────────────────────── -->
@@ -30,10 +43,15 @@
     </div>
 
     <!-- ── Table ────────────────────────────────────────────────────────────── -->
-    <% if (entries.length === 0) { %>
+    <% if (total === 0 && !q) { %>
         <div class="dv-empty">
             <i data-lucide="inbox"></i>
             <p><%= t('owner.db_empty') %></p>
+        </div>
+    <% } else if (entries.length === 0) { %>
+        <div class="dv-empty">
+            <i data-lucide="search-x"></i>
+            <p><%= t('owner.db_search_ph') %></p>
         </div>
     <% } else { %>
         <div class="dv-table-card">
@@ -76,24 +94,40 @@
                 </div>
                 <% }); %>
             </div>
-            <!-- ── Pagination ─────────────────────────────────────────── -->
-            <div class="dv-pagination" id="dvPagination" style="display:none;">
-                <div class="dv-pg-info" id="dvPgInfo"></div>
+
+            <!-- ── Server-side Pagination ──────────────────────────────── -->
+            <% if (totalPages > 1) { %>
+            <div class="dv-pagination">
+                <div class="dv-pg-info"><%= _start.toLocaleString() %>–<%= _end.toLocaleString() %> of <%= total.toLocaleString() %></div>
                 <div class="dv-pg-controls">
-                    <button class="dv-pg-btn" id="dvPgPrev" onclick="_dvGoPage(_dvPage-1)"><i data-lucide="chevron-left"></i></button>
-                    <div class="dv-pg-pages" id="dvPgPages"></div>
-                    <button class="dv-pg-btn" id="dvPgNext" onclick="_dvGoPage(_dvPage+1)"><i data-lucide="chevron-right"></i></button>
+                    <% if (page > 1) { %>
+                    <a href="?page=<%= page-1 %>&q=<%= encodeURIComponent(q) %>&limit=<%= limit %>" class="dv-pg-btn"><i data-lucide="chevron-left"></i></a>
+                    <% } else { %>
+                    <button class="dv-pg-btn" disabled><i data-lucide="chevron-left"></i></button>
+                    <% } %>
+                    <div class="dv-pg-pages">
+                        <% pageRange.forEach(function(p) { %>
+                            <% if (p === '…') { %>
+                            <span class="dv-pg-ellipsis">…</span>
+                            <% } else { %>
+                            <a href="?page=<%= p %>&q=<%= encodeURIComponent(q) %>&limit=<%= limit %>"
+                               class="dv-pg-btn dv-pg-num<%= p === page ? ' active' : '' %>"><%= p %></a>
+                            <% } %>
+                        <% }); %>
+                    </div>
+                    <% if (page < totalPages) { %>
+                    <a href="?page=<%= page+1 %>&q=<%= encodeURIComponent(q) %>&limit=<%= limit %>" class="dv-pg-btn"><i data-lucide="chevron-right"></i></a>
+                    <% } else { %>
+                    <button class="dv-pg-btn" disabled><i data-lucide="chevron-right"></i></button>
+                    <% } %>
                 </div>
-                <select class="dv-pg-size" id="dvPgSize" data-flt-ignore onchange="_dvPageSize=+this.value;_dvPage=1;_renderPage()">
-                    <option value="25">25 / page</option>
-                    <option value="50">50 / page</option>
-                    <option value="100">100 / page</option>
+                <select class="dv-pg-size" onchange="dvChangePageSize(+this.value)">
+                    <option value="25"  <%= limit === 25  ? 'selected' : '' %>>25 / page</option>
+                    <option value="50"  <%= limit === 50  ? 'selected' : '' %>>50 / page</option>
+                    <option value="100" <%= limit === 100 ? 'selected' : '' %>>100 / page</option>
                 </select>
             </div>
-        </div>
-        <div class="dv-empty dv-search-empty" id="dvNoMatch" style="display:none;">
-            <i data-lucide="search-x"></i>
-            <p><%= t('owner.db_search_ph') %></p>
+            <% } %>
         </div>
     <% } %>
 </main>
@@ -315,6 +349,7 @@
     border: 1px solid transparent; color: var(--text-muted);
     font-size: .8rem; font-weight: 600; cursor: pointer;
     display: flex; align-items: center; justify-content: center;
+    text-decoration: none;
     transition: all .15s;
 }
 .dv-pg-btn svg { width: 13px; height: 13px; }
@@ -366,16 +401,13 @@ function toggleVal(btn) {
     const isTruncated = span.dataset.truncated === 'true';
 
     if (isTruncated) {
-        // Expand: show full value
         span.dataset.truncated = 'false';
-        // replace the text node before the button
         const textNodes = [...span.childNodes].filter(n => n.nodeType === Node.TEXT_NODE);
         textNodes.forEach(n => n.remove());
         span.insertBefore(document.createTextNode(full), btn);
         btn.classList.add('expanded');
         btn.innerHTML = '<i data-lucide="chevrons-left"></i>';
     } else {
-        // Collapse
         span.dataset.truncated = 'true';
         const textNodes = [...span.childNodes].filter(n => n.nodeType === Node.TEXT_NODE);
         textNodes.forEach(n => n.remove());
@@ -392,7 +424,6 @@ function startEdit(btn) {
     const span  = row.querySelector('.dv-val-text');
     const input = row.querySelector('.dv-val-input');
 
-    // Sync input from the authoritative data-full attribute (full, unescaped value)
     input.value = span.dataset.full ?? input.value;
 
     row.classList.add('is-editing');
@@ -412,7 +443,6 @@ function cancelEdit(btn) {
     const span  = row.querySelector('.dv-val-text');
     const input = row.querySelector('.dv-val-input');
 
-    // Reset input to the saved value so next edit starts fresh
     input.value = span.dataset.full ?? input.value;
 
     row.classList.remove('is-editing');
@@ -438,7 +468,6 @@ async function saveEntry(btn) {
         const d = await r.json();
         if (!d.success) { showMsg(null, d.message, 'error'); return; }
 
-        // Update display
         const span = row.querySelector('.dv-val-text');
         const short = value.length > 90;
         span.dataset.full      = value;
@@ -468,7 +497,6 @@ async function deleteEntry(btn) {
         const d = await r.json();
         if (!d.success) { showMsg(null, d.message, 'error'); btn.disabled = false; return; }
         row.remove();
-        _updateCount();
         showMsg(null, _dbt.deleted, 'success');
     } catch {
         showMsg(null, _dbt.error, 'error');
@@ -477,19 +505,6 @@ async function deleteEntry(btn) {
 }
 
 // ── Add entry ─────────────────────────────────────────────────────────────
-function _prefixClass(k) {
-    if (k.startsWith('blacklist-user-'))  return 'bl-user';
-    if (k.startsWith('blacklist-guild-')) return 'bl-guild';
-    if (k.startsWith('bot-'))             return 'bot';
-    if (k.startsWith('maintenance'))      return 'sys';
-    if (k.startsWith('youtube-'))         return 'yt';
-    if (k.startsWith('tiktok-'))          return 'tt';
-    if (k.startsWith('dm-guild-'))        return 'dm';
-    if (k.startsWith('prefix-'))          return 'prefix';
-    if (k.startsWith('error-'))           return 'err';
-    return 'other';
-}
-
 async function addEntry() {
     const keyEl  = document.getElementById('dvNewKey');
     const valEl  = document.getElementById('dvNewValue');
@@ -512,50 +527,8 @@ async function addEntry() {
         const d = await r.json();
         if (!d.success) { showMsg(null, d.message, 'error'); return; }
 
-        const body = document.getElementById('dvTableBody');
-        const existing = body?.querySelector(`[data-key="${CSS.escape(key)}"]`);
-
-        if (existing) {
-            const span = existing.querySelector('.dv-val-text');
-            const short = value.length > 90;
-            span.dataset.full = value;
-            span.dataset.truncated = String(short);
-            span.innerHTML = (short ? _esc(value.slice(0, 90)) + '…' : _esc(value))
-                + (short ? '<button class="dv-expand-btn" onclick="toggleVal(this)"><i data-lucide="chevrons-right"></i></button>' : '');
-            existing.querySelector('.dv-val-input').value = value;
-            if (window.lucide) lucide.createIcons();
-        } else if (body) {
-            const pfx   = _prefixClass(key);
-            const short = value.length > 90;
-            const row   = document.createElement('div');
-            row.className = 'dv-row';
-            row.dataset.key = key;
-            row.dataset.prefix = pfx;
-            row.innerHTML = `
-                <div class="dv-td dv-td-key">
-                    <span class="dv-prefix-badge dv-pfx-${pfx}">${pfx.toUpperCase()}</span>
-                    <code class="dv-key-text" title="${_escAttr(key)}">${_esc(key)}</code>
-                </div>
-                <div class="dv-td dv-td-val">
-                    <span class="dv-val-text" data-full="${_escAttr(value)}" data-truncated="${short}">${short ? _esc(value.slice(0,90))+'…' : _esc(value)}${short ? '<button class="dv-expand-btn" onclick="toggleVal(this)"><i data-lucide="chevrons-right"></i></button>' : ''}</span>
-                    <textarea class="input dv-val-input" style="display:none;" data-flt-ignore>${_esc(value)}</textarea>
-                </div>
-                <div class="dv-td dv-td-act">
-                    <button class="dv-btn dv-btn-edit"   onclick="startEdit(this)"><i data-lucide="pencil"></i></button>
-                    <button class="dv-btn dv-btn-save"   onclick="saveEntry(this)"  style="display:none;"><i data-lucide="check"></i></button>
-                    <button class="dv-btn dv-btn-cancel" onclick="cancelEdit(this)" style="display:none;"><i data-lucide="x"></i></button>
-                    <button class="dv-btn dv-btn-delete" onclick="deleteEntry(this)"><i data-lucide="trash-2"></i></button>
-                </div>`;
-            body.appendChild(row);
-            if (window.lucide) lucide.createIcons();
-        } else {
-            location.reload(); return;
-        }
-
-        keyEl.value = '';
-        valEl.value = '';
-        _updateCount();
         showMsg(null, _dbt.saved, 'success');
+        setTimeout(() => location.reload(), 500);
     } catch {
         showMsg(null, _dbt.error, 'error');
     } finally {
@@ -565,92 +538,26 @@ async function addEntry() {
     }
 }
 
-// ── Pagination state ──────────────────────────────────────────────────────
-let _dvPage = 1, _dvPageSize = 25, _searchQuery = '';
-
-function _dvGoPage(p) {
-    const rows     = [...document.querySelectorAll('#dvTableBody .dv-row')];
-    const filtered = _searchQuery ? rows.filter(r => r.dataset.key.toLowerCase().includes(_searchQuery)) : rows;
-    const total    = Math.max(1, Math.ceil(filtered.length / _dvPageSize));
-    _dvPage = Math.max(1, Math.min(p, total));
-    _renderPage();
-}
-
-function _renderPage() {
-    const rows     = [...document.querySelectorAll('#dvTableBody .dv-row')];
-    const filtered = _searchQuery ? rows.filter(r => r.dataset.key.toLowerCase().includes(_searchQuery)) : rows;
-    const totalF   = filtered.length;
-    const totalPg  = Math.max(1, Math.ceil(totalF / _dvPageSize));
-    if (_dvPage > totalPg) _dvPage = totalPg;
-
-    const start = (_dvPage - 1) * _dvPageSize;
-    const end   = start + _dvPageSize;
-    rows.forEach(r => r.style.display = 'none');
-    filtered.slice(start, end).forEach(r => r.style.display = '');
-
-    // No-match empty state
-    const noMatch = document.getElementById('dvNoMatch');
-    if (noMatch) noMatch.style.display = totalF === 0 ? 'flex' : 'none';
-
-    // Subtitle
-    const sub = document.getElementById('dvSubtitle');
-    if (sub) {
-        const s = start + 1, e = Math.min(end, totalF);
-        sub.textContent = totalF === rows.length
-            ? `${rows.length.toLocaleString()} ${_dbt.entries}`
-            : `${s.toLocaleString()}–${e.toLocaleString()} / ${totalF.toLocaleString()} ${_dbt.entries}`;
-    }
-
-    // Pagination bar
-    const pg = document.getElementById('dvPagination');
-    if (!pg) return;
-    pg.style.display = totalF <= _dvPageSize ? 'none' : '';
-
-    const infoEl = document.getElementById('dvPgInfo');
-    if (infoEl) infoEl.textContent = totalF > 0
-        ? `${(start+1).toLocaleString()}–${Math.min(end,totalF).toLocaleString()} of ${totalF.toLocaleString()}`
-        : '';
-
-    const prevBtn = document.getElementById('dvPgPrev');
-    const nextBtn = document.getElementById('dvPgNext');
-    if (prevBtn) prevBtn.disabled = _dvPage <= 1;
-    if (nextBtn) nextBtn.disabled = _dvPage >= totalPg;
-
-    const pagesEl = document.getElementById('dvPgPages');
-    if (pagesEl) {
-        pagesEl.innerHTML = '';
-        _pgRange(_dvPage, totalPg).forEach(p => {
-            if (p === '…') {
-                const s = document.createElement('span');
-                s.className = 'dv-pg-ellipsis'; s.textContent = '…';
-                pagesEl.appendChild(s);
-            } else {
-                const b = document.createElement('button');
-                b.className = 'dv-pg-btn dv-pg-num' + (p === _dvPage ? ' active' : '');
-                b.textContent = p;
-                b.onclick = () => _dvGoPage(p);
-                pagesEl.appendChild(b);
-            }
-        });
-    }
-    if (window.lucide) lucide.createIcons();
-}
-
-function _pgRange(cur, total) {
-    if (total <= 7) return Array.from({length: total}, (_, i) => i + 1);
-    if (cur <= 4)          return [1, 2, 3, 4, 5, '…', total];
-    if (cur >= total - 3)  return [1, '…', total-4, total-3, total-2, total-1, total];
-    return [1, '…', cur-1, cur, cur+1, '…', total];
-}
-
-function _updateCount() { _renderPage(); }
-
-// ── Search ────────────────────────────────────────────────────────────────
+// ── Search — debounce 400ms lalu navigate ke URL baru ────────────────────
+let _dvSearchTimer;
 document.getElementById('dvSearch')?.addEventListener('input', function () {
-    _searchQuery = this.value.toLowerCase().trim();
-    _dvPage = 1;
-    _renderPage();
+    clearTimeout(_dvSearchTimer);
+    const q = this.value.trim();
+    _dvSearchTimer = setTimeout(() => {
+        const url = new URL(window.location);
+        url.searchParams.set('q', q);
+        url.searchParams.set('page', '1');
+        window.location.href = url.toString();
+    }, 400);
 });
+
+// ── Change page size ──────────────────────────────────────────────────────
+function dvChangePageSize(size) {
+    const url = new URL(window.location);
+    url.searchParams.set('limit', size);
+    url.searchParams.set('page', '1');
+    window.location.href = url.toString();
+}
 
 // ── Keyboard shortcuts ────────────────────────────────────────────────────
 document.getElementById('dvNewValue')?.addEventListener('keydown', e => { if (e.key === 'Enter') addEntry(); });
@@ -665,9 +572,6 @@ document.addEventListener('keydown', e => {
         if (c) c.click();
     }
 });
-
-// Initialize pagination on load
-_renderPage();
 </script>
 
 <%- include('../partials/footer') %>

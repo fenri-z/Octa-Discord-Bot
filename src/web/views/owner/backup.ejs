@@ -1,0 +1,268 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+
+<div class="dash-layout">
+<%- include('../partials/owner-sidebar', { activePage: 'backup' }) %>
+<main class="dash-main">
+
+    <!-- ── Header ──────────────────────────────────────────────────────────── -->
+    <div class="bk-header">
+        <div class="bk-header-left">
+            <div class="bk-hicon"><i data-lucide="archive"></i></div>
+            <div>
+                <h1 class="bk-title"><%= t('owner.backup_title') %></h1>
+                <p class="bk-sub"><%= t('owner.backup_subtitle') %></p>
+            </div>
+        </div>
+        <button class="btn btn-primary bk-run-btn" id="bkRunBtn" onclick="runBackup()">
+            <i data-lucide="play"></i> <span id="bkRunLabel"><%= t('owner.backup_run_btn') %></span>
+        </button>
+    </div>
+
+    <!-- ── Status strip ────────────────────────────────────────────────────── -->
+    <div class="bk-status-strip">
+        <div class="bk-status-item">
+            <div class="bk-status-label"><%= t('owner.backup_last') %></div>
+            <div class="bk-status-value" id="bkLast">
+                <%= status.lastBackup ? new Date(status.lastBackup).toLocaleString() : t('owner.backup_never') %>
+            </div>
+        </div>
+        <div class="bk-status-div"></div>
+        <div class="bk-status-item">
+            <div class="bk-status-label"><%= t('owner.backup_next') %></div>
+            <div class="bk-status-value"><%= status.nextBackupIn %></div>
+        </div>
+        <div class="bk-status-div"></div>
+        <div class="bk-status-item">
+            <div class="bk-status-label"><%= t('owner.backup_count') %></div>
+            <div class="bk-status-value"><%= status.backupCount %> / <%= status.maxKept %></div>
+        </div>
+        <div class="bk-status-div"></div>
+        <div class="bk-status-item">
+            <div class="bk-status-label">Last File</div>
+            <div class="bk-status-value bk-mono"><%= status.lastFile || '—' %></div>
+        </div>
+    </div>
+
+    <!-- ── File list ────────────────────────────────────────────────────────── -->
+    <% if (files.length === 0) { %>
+        <div class="bk-empty">
+            <div class="bk-empty-icon"><i data-lucide="archive-x"></i></div>
+            <p class="bk-empty-title"><%= t('owner.backup_empty') %></p>
+            <p class="bk-empty-sub"><%= t('owner.backup_empty_sub') %></p>
+        </div>
+    <% } else { %>
+    <div class="bk-table-wrap">
+        <table class="bk-table">
+            <thead>
+                <tr>
+                    <th><%= t('owner.backup_file') %></th>
+                    <th><%= t('owner.backup_size') %></th>
+                    <th><%= t('owner.backup_date') %></th>
+                    <th><%= t('owner.backup_actions') %></th>
+                </tr>
+            </thead>
+            <tbody id="bkBody">
+            <% files.forEach(function(f, i) { %>
+                <tr id="bkRow<%= i %>">
+                    <td class="bk-cell-file"><i data-lucide="database" class="bk-file-icon"></i> <%= f.name %></td>
+                    <td class="bk-cell-size"><%= _fmtSize(f.size) %></td>
+                    <td class="bk-cell-date"><%= new Date(f.mtime).toLocaleString() %></td>
+                    <td class="bk-cell-actions">
+                        <a href="/dev-console/backup/download/<%= encodeURIComponent(f.name) %>" class="bk-btn bk-btn-dl" download>
+                            <i data-lucide="download"></i> <%= t('owner.backup_download') %>
+                        </a>
+                        <button class="bk-btn bk-btn-del" onclick="deleteBackup('<%= f.name %>',<%= i %>)">
+                            <i data-lucide="trash-2"></i> <%= t('owner.backup_delete') %>
+                        </button>
+                    </td>
+                </tr>
+            <% }); %>
+            </tbody>
+        </table>
+    </div>
+    <% } %>
+
+</main>
+</div>
+
+<%
+function _fmtSize(bytes) {
+    if (bytes >= 1024 * 1024) return (bytes / 1024 / 1024).toFixed(2) + ' MB';
+    if (bytes >= 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return bytes + ' B';
+}
+%>
+
+<style>
+/* ── Header ───────────────────────────────────────────────────────────────── */
+.bk-header {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem;
+}
+.bk-header-left { display: flex; align-items: center; gap: .9rem; flex: 1; }
+.bk-hicon {
+    width: 46px; height: 46px; border-radius: 13px; flex-shrink: 0;
+    background: rgba(88,101,242,.15); color: #7289da;
+    display: flex; align-items: center; justify-content: center;
+}
+.bk-hicon svg { width: 22px; height: 22px; }
+.bk-title { font-size: 1.4rem; font-weight: 800; letter-spacing: -.02em; margin: 0; }
+.bk-sub   { font-size: .8rem; color: var(--text-muted); margin: .1rem 0 0; }
+.bk-run-btn { display: flex; align-items: center; gap: .4rem; }
+.bk-run-btn svg { width: 14px; height: 14px; }
+
+/* ── Status strip ──────────────────────────────────────────────────────────── */
+.bk-status-strip {
+    display: flex; flex-wrap: wrap;
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 14px; overflow: hidden;
+    margin-bottom: 1.75rem;
+}
+.bk-status-item {
+    flex: 1; min-width: 130px; padding: 1rem 1.25rem;
+    display: flex; flex-direction: column; gap: .3rem;
+}
+.bk-status-div {
+    width: 1px; background: var(--border); flex-shrink: 0; margin: .75rem 0;
+}
+@media(max-width:640px) {
+    .bk-status-div { display: none; }
+    .bk-status-item { border-bottom: 1px solid var(--border); min-width: 100%; }
+    .bk-status-item:last-child { border-bottom: none; }
+}
+.bk-status-label {
+    font-size: .7rem; font-weight: 600; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: .08em;
+}
+.bk-status-value { font-size: .9rem; font-weight: 700; color: var(--text); }
+.bk-mono { font-family: monospace; font-size: .78rem; word-break: break-all; color: var(--text-muted); }
+
+/* ── Table ────────────────────────────────────────────────────────────────── */
+.bk-table-wrap {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 14px; overflow: hidden;
+}
+.bk-table {
+    width: 100%; border-collapse: collapse;
+}
+.bk-table thead th {
+    padding: .75rem 1.1rem;
+    background: var(--bg3); border-bottom: 1px solid var(--border);
+    font-size: .72rem; font-weight: 700; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: .08em;
+    text-align: left;
+}
+.bk-table tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background .15s;
+}
+.bk-table tbody tr:last-child { border-bottom: none; }
+.bk-table tbody tr:hover { background: var(--bg3); }
+.bk-table td { padding: .85rem 1.1rem; font-size: .85rem; color: var(--text); vertical-align: middle; }
+
+.bk-cell-file {
+    display: flex; align-items: center; gap: .55rem;
+    font-family: monospace; font-size: .82rem; color: var(--text);
+}
+.bk-file-icon { width: 14px; height: 14px; color: var(--text-muted); flex-shrink: 0; }
+.bk-cell-size { color: var(--text-muted); font-size: .82rem; white-space: nowrap; }
+.bk-cell-date { color: var(--text-muted); font-size: .82rem; white-space: nowrap; }
+.bk-cell-actions { display: flex; gap: .45rem; flex-wrap: wrap; }
+
+.bk-btn {
+    display: inline-flex; align-items: center; gap: .35rem;
+    border-radius: 8px; padding: .35rem .75rem;
+    font-size: .78rem; font-weight: 600; cursor: pointer;
+    border: 1px solid transparent; transition: all .2s; text-decoration: none;
+    white-space: nowrap;
+}
+.bk-btn svg { width: 12px; height: 12px; }
+.bk-btn-dl {
+    background: rgba(88,101,242,.12); color: #949cf7;
+    border-color: rgba(88,101,242,.3);
+}
+.bk-btn-dl:hover { background: rgba(88,101,242,.22); border-color: rgba(88,101,242,.55); }
+.bk-btn-del {
+    background: rgba(237,66,69,.1); color: #f27f81;
+    border-color: rgba(237,66,69,.25);
+}
+.bk-btn-del:hover { background: rgba(237,66,69,.2); border-color: rgba(237,66,69,.5); }
+
+/* ── Empty state ──────────────────────────────────────────────────────────── */
+.bk-empty {
+    display: flex; flex-direction: column; align-items: center;
+    padding: 5rem 1rem; text-align: center; gap: .5rem;
+}
+.bk-empty-icon {
+    width: 72px; height: 72px; border-radius: 20px;
+    background: rgba(88,101,242,.1); color: #7289da;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: .5rem;
+}
+.bk-empty-icon svg { width: 32px; height: 32px; }
+.bk-empty-title { font-size: 1.05rem; font-weight: 700; color: var(--text); margin: 0; }
+.bk-empty-sub   { font-size: .83rem; color: var(--text-muted); margin: 0; }
+
+/* Spin animation for run button */
+@keyframes bkSpin { to { transform: rotate(360deg); } }
+.bk-run-btn.loading svg { animation: bkSpin 1s linear infinite; }
+</style>
+
+<script>
+const _bkt = {
+    runBtn:    '<%= t("owner.backup_run_btn") %>',
+    running:   '<%= t("owner.backup_running") %>',
+    runOk:     '<%= t("owner.backup_run_ok") %>',
+    runFail:   '<%= t("owner.backup_run_fail") %>',
+    deleted:   '<%= t("owner.backup_deleted") %>',
+    error:     '<%= t("owner.bl_error") %>',
+    confirm:   'Delete this backup file?',
+};
+
+async function runBackup() {
+    const btn   = document.getElementById('bkRunBtn');
+    const label = document.getElementById('bkRunLabel');
+    btn.disabled = true;
+    btn.classList.add('loading');
+    label.textContent = _bkt.running;
+    if (window.lucide) lucide.createIcons();
+
+    try {
+        const r = await fetch('/dev-console/backup/run', { method: 'POST' });
+        const d = await r.json();
+        if (d.success) {
+            showMsg(null, _bkt.runOk, 'success');
+            setTimeout(() => location.reload(), 800);
+        } else {
+            showMsg(null, d.message || _bkt.runFail, 'error');
+        }
+    } catch {
+        showMsg(null, _bkt.error, 'error');
+    } finally {
+        btn.disabled = false;
+        btn.classList.remove('loading');
+        label.textContent = _bkt.runBtn;
+        if (window.lucide) lucide.createIcons();
+    }
+}
+
+async function deleteBackup(filename, rowIndex) {
+    if (!confirm(_bkt.confirm + '\n' + filename)) return;
+    try {
+        const r = await fetch(`/dev-console/backup/delete/${encodeURIComponent(filename)}`, { method: 'POST' });
+        const d = await r.json();
+        if (d.success) {
+            const row = document.getElementById('bkRow' + rowIndex);
+            if (row) row.remove();
+            showMsg(null, _bkt.deleted, 'success');
+        } else {
+            showMsg(null, d.message || _bkt.error, 'error');
+        }
+    } catch {
+        showMsg(null, _bkt.error, 'error');
+    }
+}
+</script>
+
+<%- include('../partials/footer') %>

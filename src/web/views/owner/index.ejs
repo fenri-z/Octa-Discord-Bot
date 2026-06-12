@@ -99,6 +99,35 @@
         </div>
     </div>
 
+    <!-- ── Backup Status ─────────────────────────────────────────────────── -->
+    <div class="op-section-title">
+        <i data-lucide="archive"></i> <%= t('owner.backup_title') %>
+        <a href="/dev-console/backup" class="op-backup-manage-link"><i data-lucide="external-link"></i> Manage</a>
+    </div>
+    <div class="op-backup-strip">
+        <div class="op-backup-item">
+            <div class="op-backup-label"><%= t('owner.backup_last') %></div>
+            <div class="op-backup-value">
+                <%= backup.lastBackup ? new Date(backup.lastBackup).toLocaleString() : t('owner.backup_never') %>
+            </div>
+        </div>
+        <div class="op-backup-divider"></div>
+        <div class="op-backup-item">
+            <div class="op-backup-label"><%= t('owner.backup_next') %></div>
+            <div class="op-backup-value"><%= backup.nextBackupIn %></div>
+        </div>
+        <div class="op-backup-divider"></div>
+        <div class="op-backup-item">
+            <div class="op-backup-label"><%= t('owner.backup_count') %></div>
+            <div class="op-backup-value"><%= backup.backupCount %> / <%= backup.maxKept %></div>
+        </div>
+        <div class="op-backup-divider"></div>
+        <div class="op-backup-item">
+            <div class="op-backup-label">Last File</div>
+            <div class="op-backup-value op-backup-file"><%= backup.lastFile || '—' %></div>
+        </div>
+    </div>
+
     <!-- ── Maintenance Mode Card ─────────────────────────────────────────── -->
     <div class="op-section-title">
         <i data-lucide="settings-2"></i> <%= t('owner.bot_controls') %>
@@ -419,6 +448,47 @@
 .op-danger-btn:hover { background: rgba(237,66,69,.22); border-color: rgba(237,66,69,.55); }
 .op-danger-btn:disabled { opacity: .55; cursor: default; }
 .op-danger-btn svg { width: 15px; height: 15px; }
+
+/* Backup strip */
+.op-backup-manage-link {
+    margin-left: auto; display: inline-flex; align-items: center; gap: .3rem;
+    font-size: .72rem; color: var(--text-muted); text-decoration: none;
+    text-transform: none; letter-spacing: 0; font-weight: 600;
+    transition: color .2s;
+}
+.op-backup-manage-link:hover { color: var(--accent); }
+.op-backup-manage-link svg { width: 11px; height: 11px; }
+
+.op-backup-strip {
+    display: flex; flex-wrap: wrap;
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 14px; overflow: hidden;
+    margin-bottom: 2rem;
+}
+.op-backup-item {
+    flex: 1; min-width: 130px; padding: 1rem 1.25rem;
+    display: flex; flex-direction: column; gap: .3rem;
+}
+.op-backup-divider {
+    width: 1px; background: var(--border); flex-shrink: 0;
+    margin: .75rem 0;
+}
+@media(max-width:640px) {
+    .op-backup-divider { display: none; }
+    .op-backup-item { border-bottom: 1px solid var(--border); min-width: 100%; }
+    .op-backup-item:last-child { border-bottom: none; }
+}
+.op-backup-label {
+    font-size: .7rem; font-weight: 600; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: .08em;
+}
+.op-backup-value {
+    font-size: .9rem; font-weight: 700; color: var(--text);
+}
+.op-backup-file {
+    font-size: .78rem; font-family: monospace; word-break: break-all;
+    color: var(--text-muted);
+}
 
 /* Section title */
 .op-section-title {

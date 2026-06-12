@@ -6,10 +6,15 @@
 
 const express        = require('express');
 const router         = express.Router();
+const path           = require('path');
+const fs             = require('fs');
 const { ActivityType, ChannelType, EmbedBuilder } = require('discord.js');
 const { requireOwner, requireOwnerPin } = require('../middleware/ownerAuth');
 const ErrorLogger       = require('../../utils/ErrorLogger');
 const ActivityLogger    = require('../../utils/ActivityLogger');
+const DatabaseBackup    = require('../../utils/DatabaseBackup');
+
+const BACKUP_DIR = path.resolve('./backups');
 
 const VALID_STATUSES = new Set(['online', 'idle', 'dnd', 'invisible']);
 const VALID_ACT_TYPES = new Set([0, 2, 3, 4, 5]); // Playing, Listening, Watching, Custom, Competing
@@ -117,7 +122,8 @@ router.get('/', (req, res) => {
         platform:    process.platform,
     };
 
-    res.render('owner/index', { title: 'Dev Console', hasSidebar: true, activePage: 'index', stats, maintenance, botStatus, botActType, botActName });
+    const backup = DatabaseBackup.getStatus();
+    res.render('owner/index', { title: 'Dev Console', hasSidebar: true, activePage: 'index', stats, maintenance, botStatus, botActType, botActName, backup });
 });
 
 // ── Stats API (real-time polling) ─────────────────────────────────────────────
@@ -251,14 +257,89 @@ router.post('/logs/clear', (req, res) => {
     res.json({ success: true });
 });
 
+router.get('/logs/data', (req, res) => {
+    const client = req.discordClient;
+    res.json(ErrorLogger.getAll(client?.database));
+});
+
+// ── Backup Manager ────────────────────────────────────────────────────────────
+router.get('/backup', (req, res) => {
+    let files = [];
+    try {
+        if (fs.existsSync(BACKUP_DIR)) {
+            files = fs.readdirSync(BACKUP_DIR)
+                .filter(f => f.startsWith('backup-') && f.endsWith('.db'))
+                .map(f => {
+                    const full  = path.join(BACKUP_DIR, f);
+                    const stat  = fs.statSync(full);
+                    return { name: f, size: stat.size, mtime: stat.mtime.toISOString() };
+                })
+                .sort((a, b) => new Date(b.mtime) - new Date(a.mtime));
+        }
+    } catch { /* ignore */ }
+
+    const status = DatabaseBackup.getStatus();
+    res.render('owner/backup', {
+        title: 'Backup Manager', hasSidebar: true, activePage: 'backup',
+        files, status,
+    });
+});
+
+router.post('/backup/run', async (req, res) => {
+    try {
+        await DatabaseBackup.runBackup();
+        ActivityLogger.log(req.discordClient?.database, 'Manual Backup Run', '', req.ip);
+        res.json({ success: true });
+    } catch (err) {
+        res.json({ success: false, message: err.message });
+    }
+});
+
+router.get('/backup/download/:filename', (req, res) => {
+    const filename = path.basename(req.params.filename);
+    if (!filename.startsWith('backup-') || !filename.endsWith('.db'))
+        return res.status(400).send('Invalid filename.');
+    const fullPath = path.join(BACKUP_DIR, filename);
+    if (!fs.existsSync(fullPath)) return res.status(404).send('File not found.');
+    res.download(fullPath, filename);
+});
+
+router.post('/backup/delete/:filename', (req, res) => {
+    const filename = path.basename(req.params.filename);
+    if (!filename.startsWith('backup-') || !filename.endsWith('.db'))
+        return res.json({ success: false, message: 'Invalid filename.' });
+    const fullPath = path.join(BACKUP_DIR, filename);
+    try {
+        if (fs.existsSync(fullPath)) fs.unlinkSync(fullPath);
+        ActivityLogger.log(req.discordClient?.database, 'Backup Deleted', filename, req.ip);
+        res.json({ success: true });
+    } catch (err) {
+        res.json({ success: false, message: err.message });
+    }
+});
+
 // ── Database Viewer ───────────────────────────────────────────────────────────
 router.get('/database', (req, res) => {
     const client = req.discordClient;
-    if (!client?.database) return res.render('owner/database', { title: 'Dev Console', hasSidebar: true, activePage: 'database', entries: [] });
 
-    const keys    = client.database.keysLike('%').filter(k => k !== 'error-logs');
-    const entries = keys.map(k => ({ key: k, value: client.database.get(k) }));
-    res.render('owner/database', { title: 'Dev Console', hasSidebar: true, activePage: 'database', entries });
+    const EMPTY = { title: 'Dev Console', hasSidebar: true, activePage: 'database',
+        entries: [], total: 0, page: 1, totalPages: 1, limit: 25, q: '', pageRange: [1] };
+    if (!client?.database) return res.render('owner/database', EMPTY);
+
+    const q          = (req.query.q || '').trim();
+    const limit      = [25, 50, 100].includes(+req.query.limit) ? +req.query.limit : 25;
+    const pattern    = q ? `%${q}%` : '%';
+    const total      = client.database.countEntries(pattern);
+    const totalPages = Math.max(1, Math.ceil(total / limit));
+    const page       = Math.max(1, Math.min(parseInt(req.query.page) || 1, totalPages));
+    const offset     = (page - 1) * limit;
+    const entries    = client.database.getEntriesPaged(pattern, limit, offset);
+
+    res.render('owner/database', {
+        title: 'Dev Console', hasSidebar: true, activePage: 'database',
+        entries, total, page, totalPages, limit, q,
+        pageRange: _pageRange(page, totalPages),
+    });
 });
 
 router.post('/database/set', (req, res) => {
@@ -614,6 +695,13 @@ router.get('/invite', (req, res) => {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function _mb(bytes) { return (bytes / 1024 / 1024).toFixed(1); }
+
+function _pageRange(cur, total) {
+    if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+    if (cur <= 4)         return [1, 2, 3, 4, 5, '…', total];
+    if (cur >= total - 3) return [1, '…', total-4, total-3, total-2, total-1, total];
+    return [1, '…', cur-1, cur, cur+1, '…', total];
+}
 
 function _formatUptime(sec) {
     const d = Math.floor(sec / 86400);

@@ -11,15 +11,29 @@
             <div class="lg-hicon"><i data-lucide="bug"></i></div>
             <div>
                 <h1 class="lg-title"><%= t('owner.logs_title') %></h1>
-                <p class="lg-sub"><%= logs.length %> <%= logs.length === 1 ? 'entry' : 'entries' %></p>
+                <p class="lg-sub" id="lgSubCount"><%= logs.length %> <%= logs.length === 1 ? 'entry' : 'entries' %></p>
             </div>
         </div>
-        <% if (logs.length > 0) { %>
-        <button class="lg-clear-btn" onclick="clearLogs()">
-            <i data-lucide="trash-2"></i> <span><%= t('owner.logs_clear') %></span>
-        </button>
-        <% } %>
+        <div class="lg-header-actions">
+            <button class="lg-refresh-btn" id="lgRefreshBtn" onclick="toggleAutoRefresh()" title="<%= t('owner.logs_auto_refresh') %>">
+                <i data-lucide="refresh-cw" id="lgRefreshIcon"></i>
+                <span id="lgRefreshLabel"><%= t('owner.logs_auto_refresh') %>: <strong><%= t('owner.logs_refresh_off') %></strong></span>
+            </button>
+            <% if (logs.length > 0) { %>
+            <button class="lg-clear-btn" onclick="clearLogs()">
+                <i data-lucide="trash-2"></i> <span><%= t('owner.logs_clear') %></span>
+            </button>
+            <% } %>
+        </div>
     </div>
+
+    <!-- ── Search ──────────────────────────────────────────────────────────── -->
+    <% if (logs.length > 0) { %>
+    <div class="lg-search-wrap">
+        <i data-lucide="search" class="lg-search-icon"></i>
+        <input type="text" id="lgSearch" class="lg-search-input" placeholder="<%= t('owner.logs_search_ph') %>" oninput="filterSearch(this.value)">
+    </div>
+    <% } %>
 
     <!-- ── Filter chips ─────────────────────────────────────────────────────── -->
     <% if (logs.length > 0) { %>
@@ -101,6 +115,9 @@
 .lg-title { font-size: 1.4rem; font-weight: 800; letter-spacing: -.02em; margin: 0; }
 .lg-sub   { font-size: .8rem; color: var(--text-muted); margin: .1rem 0 0; }
 
+.lg-header-actions {
+    display: flex; align-items: center; gap: .5rem; flex-wrap: wrap;
+}
 .lg-clear-btn {
     display: flex; align-items: center; gap: .4rem;
     background: rgba(237,66,69,.1); color: #f27f81;
@@ -110,6 +127,39 @@
 }
 .lg-clear-btn:hover { background: rgba(237,66,69,.2); border-color: rgba(237,66,69,.5); }
 .lg-clear-btn svg { width: 14px; height: 14px; }
+
+.lg-refresh-btn {
+    display: flex; align-items: center; gap: .4rem;
+    background: var(--bg2); color: var(--text-muted);
+    border: 1px solid var(--border); border-radius: 9px;
+    padding: .48rem 1rem; font-size: .82rem; font-weight: 600;
+    cursor: pointer; transition: all .2s; white-space: nowrap;
+}
+.lg-refresh-btn:hover { color: var(--text); border-color: rgba(88,101,242,.4); }
+.lg-refresh-btn.active {
+    background: rgba(87,242,135,.1); color: #57F287;
+    border-color: rgba(87,242,135,.35);
+}
+.lg-refresh-btn svg { width: 14px; height: 14px; }
+.lg-refresh-btn.active svg { animation: lgSpinIcon 1.5s linear infinite; }
+@keyframes lgSpinIcon { to { transform: rotate(360deg); } }
+
+.lg-search-wrap {
+    position: relative; margin-bottom: 1rem;
+}
+.lg-search-icon {
+    position: absolute; left: .85rem; top: 50%; transform: translateY(-50%);
+    width: 15px; height: 15px; color: var(--text-muted); pointer-events: none;
+}
+.lg-search-input {
+    width: 100%; padding: .55rem .85rem .55rem 2.4rem;
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 10px; color: var(--text); font-size: .875rem;
+    outline: none; transition: border-color .2s;
+    box-sizing: border-box;
+}
+.lg-search-input:focus { border-color: rgba(88,101,242,.5); }
+.lg-search-input::placeholder { color: var(--text-muted); }
 
 /* ── Filters ──────────────────────────────────────────────────────────────── */
 .lg-filters {
@@ -225,18 +275,71 @@
 
 <script>
 const _lt = {
-    cleared: '<%= t("owner.logs_cleared") %>',
-    error:   '<%= t("owner.bl_error") %>',
+    cleared:    '<%= t("owner.logs_cleared") %>',
+    error:      '<%= t("owner.bl_error") %>',
+    refreshOn:  '<%= t("owner.logs_refresh_on") %>',
+    refreshOff: '<%= t("owner.logs_refresh_off") %>',
+    autoRefresh:'<%= t("owner.logs_auto_refresh") %>',
 };
+
+// ── Type filter ───────────────────────────────────────────────────────────────
+let _activeType = 'all';
+let _searchQ    = '';
+
+function _applyFilters() {
+    document.querySelectorAll('#lgList .lg-entry').forEach(el => {
+        const typeOk = _activeType === 'all' || el.dataset.type === _activeType;
+        const searchOk = !_searchQ || (el.dataset.msg || '').includes(_searchQ);
+        el.style.display = (typeOk && searchOk) ? '' : 'none';
+    });
+}
 
 function filterType(type, btn) {
     document.querySelectorAll('.lg-chip').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-    document.querySelectorAll('#lgList .lg-entry').forEach(el => {
-        el.style.display = (type === 'all' || el.dataset.type === type) ? '' : 'none';
-    });
+    _activeType = type;
+    _applyFilters();
 }
 
+function filterSearch(q) {
+    _searchQ = q.toLowerCase();
+    _applyFilters();
+}
+
+// Cache message text for search
+document.querySelectorAll('#lgList .lg-entry').forEach(el => {
+    const msgEl = el.querySelector('.lg-message');
+    el.dataset.msg = (msgEl?.textContent || '').toLowerCase();
+});
+
+// ── Auto-refresh ──────────────────────────────────────────────────────────────
+let _refreshTimer = null;
+
+function toggleAutoRefresh() {
+    const btn   = document.getElementById('lgRefreshBtn');
+    const label = document.getElementById('lgRefreshLabel');
+    if (_refreshTimer) {
+        clearInterval(_refreshTimer);
+        _refreshTimer = null;
+        btn.classList.remove('active');
+        label.innerHTML = `${_lt.autoRefresh}: <strong>${_lt.refreshOff}</strong>`;
+    } else {
+        _refreshTimer = setInterval(_doRefresh, 30_000);
+        btn.classList.add('active');
+        label.innerHTML = `${_lt.autoRefresh}: <strong>${_lt.refreshOn}</strong>`;
+    }
+}
+
+async function _doRefresh() {
+    try {
+        const data = await fetch('/dev-console/logs/data').then(r => r.json());
+        const countEl = document.getElementById('lgSubCount');
+        if (countEl) countEl.textContent = data.length + (data.length === 1 ? ' entry' : ' entries');
+        location.reload();
+    } catch { /* ignore */ }
+}
+
+// ── Clear ─────────────────────────────────────────────────────────────────────
 async function clearLogs() {
     if (!confirm('<%= t("owner.logs_clear") %>?')) return;
     try {

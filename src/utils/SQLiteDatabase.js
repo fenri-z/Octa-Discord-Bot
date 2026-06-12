@@ -151,6 +151,31 @@ class SQLiteDatabase {
     }
 
     /**
+     * Hitung entry yang cocok dengan pola (untuk server-side pagination).
+     * @param {string} pattern  - SQL LIKE pattern, e.g. '%search%'
+     * @returns {number}
+     */
+    countEntries(pattern = '%') {
+        const row = this._db.prepare(
+            "SELECT COUNT(*) as n FROM kv WHERE key LIKE ? AND key != 'error-logs'"
+        ).get(pattern);
+        return row ? row.n : 0;
+    }
+
+    /**
+     * Ambil entry dengan pagination dan opsional filter (server-side).
+     * @param {string} pattern
+     * @param {number} limit
+     * @param {number} offset
+     * @returns {{ key: string, value: string }[]}
+     */
+    getEntriesPaged(pattern = '%', limit = 25, offset = 0) {
+        return this._db.prepare(
+            "SELECT key, value FROM kv WHERE key LIKE ? AND key != 'error-logs' ORDER BY key LIMIT ? OFFSET ?"
+        ).all(pattern, limit, offset);
+    }
+
+    /**
      * Hapus semua key yang cocok dengan pola SQL LIKE.
      * @param {string} pattern
      * @returns {number} Jumlah baris yang dihapus
