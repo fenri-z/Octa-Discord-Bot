@@ -8,7 +8,7 @@ const config = {
         devGuildId: '1507687982638039111', // Private guild ID of the bot owner/developer. PRIVATE_COMMANDS (like /server) are only registered here, never globally.
     },
     commands: {
-        prefix: '?', // For message commands, prefix is required. This can be changed by a database.
+        prefix: '?oc', // For message commands, prefix is required. This can be changed by a database.
         message_commands: true, // If true, the bot will allow users to use message (or prefix) commands.
         application_commands: {
             chat_input: true, // If true, the bot will allow users to use chat input (or slash) commands.
