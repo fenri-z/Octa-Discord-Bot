@@ -221,4 +221,53 @@ async function generateWelcomeCard({
         .toBuffer();
 }
 
-module.exports = { generateWelcomeCard, fetchAvatar };
+// ── Worker-thread support ─────────────────────────────────────────────────────
+// File ini berfungsi ganda: sebagai modul biasa DAN sebagai worker script.
+// Saat dijalankan sebagai worker, isMainThread = false → jalankan generasi lalu
+// kirim buffer balik ke main thread. Ini mencegah sharp memblokir event loop.
+const { Worker, isMainThread } = require('worker_threads');
+
+if (!isMainThread) {
+    const { workerData, parentPort } = require('worker_threads');
+    generateWelcomeCard(workerData)
+        .then(buf => parentPort.postMessage(buf))
+        .catch(err => parentPort.postMessage({ __error__: err.message }));
+}
+
+// Queue: max 2 worker threads active at once to prevent OOM under load
+const MAX_CARD_WORKERS = 2;
+let _activeCardWorkers = 0;
+const _cardQueue = [];
+
+function _runCardJob({ options, resolve, reject }) {
+    _activeCardWorkers++;
+    const w = new Worker(__filename, { workerData: options });
+    let settled = false;
+    const finish = () => {
+        if (settled) return;
+        settled = true;
+        _activeCardWorkers--;
+        if (_cardQueue.length > 0) _runCardJob(_cardQueue.shift());
+    };
+    w.once('message', r => {
+        finish();
+        if (r && r.__error__) reject(new Error(r.__error__));
+        else resolve(r);
+    });
+    w.once('error', err => { finish(); reject(err); });
+    w.once('exit', code => {
+        if (!settled) { finish(); reject(new Error(`Card worker exited with code ${code}`)); }
+    });
+}
+
+function generateCardAsync(options) {
+    return new Promise((resolve, reject) => {
+        if (_activeCardWorkers < MAX_CARD_WORKERS) {
+            _runCardJob({ options, resolve, reject });
+        } else {
+            _cardQueue.push({ options, resolve, reject });
+        }
+    });
+}
+
+module.exports = { generateWelcomeCard, fetchAvatar, generateCardAsync };

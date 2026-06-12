@@ -1,59 +1,73 @@
 const { EmbedBuilder, AttachmentBuilder } = require("discord.js");
-const { generateWelcomeCard } = require("../../utils/generateWelcomeCard");
+const { generateCardAsync } = require("../../utils/generateWelcomeCard");
+const { logError, safeRun } = require("../../utils/logError");
+const cache = require("../../utils/GuildCache");
 const Event = require("../../structure/Event");
 
-function getBool(client, key, defaultVal) {
-    const raw = client.database.get(key);
-    if (raw === null || raw === undefined) return defaultVal;
-    if (raw === 'false' || raw === false || raw === 0) return false;
-    return true;
+function bool(db, key, def = false) {
+    const v = db.get(key);
+    return (v === null || v === undefined) ? def : (v !== 'false' && v !== false && v !== 0);
+}
+
+function readWelcomeConfig(db, guildId) {
+    const g = guildId;
+    const cardTextColor = db.get(`welcome-cardTextColor-${g}`) ?? '#ffffff';
+    const cardAccent    = db.get(`welcome-cardAccent-${g}`)    ?? '#5865F2';
+    return {
+        enabled:            bool(db, `welcome-enabled-${g}`, false),
+        channelId:          db.get(`welcome-channel-${g}`)          ?? null,
+        title:              db.get(`welcome-title-${g}`)            ?? '',
+        description:        db.get(`welcome-description-${g}`)      ?? '',
+        color:              db.get(`welcome-color-${g}`)            ?? '#5865F2',
+        footerText:         db.get(`welcome-footer-${g}`)           ?? null,
+        messageType:        db.get(`welcome-messageType-${g}`)      ?? 'embed',
+        cardEnabled:        bool(db, `welcome-cardEnabled-${g}`, false),
+        cardBgColor:        db.get(`welcome-cardBgColor-${g}`)      ?? '#1a1a2e',
+        cardBgColor2:       db.get(`welcome-cardBgColor2-${g}`)     ?? '#16213e',
+        cardAccent,
+        cardTextColor,
+        cardWelcomeText:    db.get(`welcome-cardWelcomeText-${g}`)  ?? 'WELCOME',
+        cardUserPrefix:     db.get(`welcome-cardUserPrefix-${g}`)   ?? '.',
+        cardSubText:        db.get(`welcome-cardSubText-${g}`)      ?? 'TO {server}',
+        cardAvatarShape:    db.get(`welcome-cardAvatarShape-${g}`)  ?? 'circle',
+        cardBgType:         db.get(`welcome-cardBgType-${g}`)       ?? 'gradient',
+        cardBgImageUrl:     db.get(`welcome-cardBgImageUrl-${g}`)   ?? '',
+        cardOverlayColor:   db.get(`welcome-cardOverlayColor-${g}`) ?? '#000000',
+        cardOverlayOpacity: parseInt(db.get(`welcome-cardOverlayOpacity-${g}`) || '0'),
+        cardTitleColor:     db.get(`welcome-cardTitleColor-${g}`)   ?? cardTextColor,
+        cardUsernameColor:  db.get(`welcome-cardUsernameColor-${g}`)|| cardAccent,
+        cardMsgColor:       db.get(`welcome-cardMsgColor-${g}`)     ?? '#cccccc',
+        cardFont:           db.get(`welcome-cardFont-${g}`)         ?? 'impact',
+        plainText:          db.get(`welcome-plainText-${g}`)        ?? '',
+        thumbnail:          bool(db, `welcome-thumbnail-${g}`, false),
+    };
 }
 
 module.exports = new Event({
     event: 'guildMemberAdd',
     once: false,
-
-    /**
-     * @param {import("../../client/DiscordBot")} __client__
-     * @param {import("discord.js").GuildMember} member
-     */
-    run: async (__client__, member) => {
+    run: safeRun('[onMemberJoin]', async (__client__, member) => {
         const { guild } = member;
+        const guildId = guild.id;
 
-        const enabled          = getBool(__client__, `welcome-enabled-${guild.id}`,           false);
-        if (!enabled) return;
+        const cfgKey = `welcome-cfg-${guildId}`;
+        let cfg = cache.get(cfgKey);
+        if (!cfg) {
+            cfg = readWelcomeConfig(__client__.database, guildId);
+            cache.set(cfgKey, cfg);
+        }
 
-        const channelId        = __client__.database.get(`welcome-channel-${guild.id}`)       ?? null;
-        const title            = __client__.database.get(`welcome-title-${guild.id}`)         ?? '';
-        const description      = __client__.database.get(`welcome-description-${guild.id}`)   ?? '';
-        const color            = __client__.database.get(`welcome-color-${guild.id}`)         ?? '#5865F2';
-        const footerText       = __client__.database.get(`welcome-footer-${guild.id}`)        ?? null;
-        const messageType      = __client__.database.get(`welcome-messageType-${guild.id}`)   ?? 'embed';
-        // ── Welcome card config ───────────────────────────────────────────
-        const cardEnabled    = (() => {
-            const r = __client__.database.get(`welcome-cardEnabled-${guild.id}`);
-            if (r === null || r === undefined) return false;
-            if (r === 'false' || r === false || r === 0) return false;
-            return true;
-        })();
-        const cardBgColor      = __client__.database.get(`welcome-cardBgColor-${guild.id}`)      ?? '#1a1a2e';
-        const cardBgColor2     = __client__.database.get(`welcome-cardBgColor2-${guild.id}`)     ?? '#16213e';
-        const cardAccent       = __client__.database.get(`welcome-cardAccent-${guild.id}`)       ?? '#5865F2';
-        const cardTextColor    = __client__.database.get(`welcome-cardTextColor-${guild.id}`)    ?? '#ffffff';
-        const cardWelcomeText  = __client__.database.get(`welcome-cardWelcomeText-${guild.id}`)  ?? 'WELCOME';
-        const cardUserPrefix   = __client__.database.get(`welcome-cardUserPrefix-${guild.id}`)   ?? '.';
-        const cardSubText      = __client__.database.get(`welcome-cardSubText-${guild.id}`)      ?? 'TO {server}';
-        const cardAvatarShape  = __client__.database.get(`welcome-cardAvatarShape-${guild.id}`)  ?? 'circle';
-        const cardBgType       = __client__.database.get(`welcome-cardBgType-${guild.id}`)       ?? 'gradient';
-        const cardBgImageUrl   = __client__.database.get(`welcome-cardBgImageUrl-${guild.id}`)   ?? '';
-        const cardOverlayColor = __client__.database.get(`welcome-cardOverlayColor-${guild.id}`) ?? '#000000';
-        const cardOverlayOpacity = parseInt(__client__.database.get(`welcome-cardOverlayOpacity-${guild.id}`) || '0');
-        const cardTitleColor   = __client__.database.get(`welcome-cardTitleColor-${guild.id}`)   ?? cardTextColor;
-        const cardUsernameColor= __client__.database.get(`welcome-cardUsernameColor-${guild.id}`)|| cardAccent;
-        const cardMsgColor     = __client__.database.get(`welcome-cardMsgColor-${guild.id}`)     ?? '#cccccc';
-        const cardFont         = __client__.database.get(`welcome-cardFont-${guild.id}`)         ?? 'impact';
-        const plainText        = __client__.database.get(`welcome-plainText-${guild.id}`)     ?? '';
-        const thumbnail        = getBool(__client__, `welcome-thumbnail-${guild.id}`,          false);
+        if (!cfg.enabled) return;
+
+        const {
+            channelId, title, description, color, footerText, messageType,
+            cardEnabled, cardBgColor, cardBgColor2, cardAccent, cardTextColor,
+            cardWelcomeText, cardSubText, cardAvatarShape,
+            cardBgType, cardBgImageUrl, cardOverlayColor, cardOverlayOpacity,
+            cardTitleColor, cardUsernameColor, cardMsgColor, cardFont,
+            plainText, thumbnail,
+        } = cfg;
+
         // ── Cari channel sambutan ─────────────────────────────────────────
         const welcomeChannel =
             (channelId && guild.channels.cache.get(channelId)) ||
@@ -62,7 +76,6 @@ module.exports = new Event({
             guild.systemChannel;
 
         if (!welcomeChannel || !welcomeChannel.isTextBased()) return;
-
 
         // ── Deteksi invite yang digunakan ─────────────────────────────────
         let fetchedInvites = null;
@@ -96,7 +109,6 @@ module.exports = new Event({
         const displayName     = member.displayName || member.user.username;
         const createdRelative = `<t:${Math.floor(member.user.createdTimestamp / 1000)}:R>`;
 
-        // Untuk title & footer: {member} → @displayName (mention tidak render di embed title)
         const parseTitle = (str) => str
             .replace(/{member}/g,          `@${displayName}`)
             .replace(/{username}/g,        member.user.username)
@@ -108,7 +120,6 @@ module.exports = new Event({
             .replace(/{total\.invites}/g,  inviter ? String(inviterTotalUses) : '-')
             .replace(/{account\.created}/g,createdRelative);
 
-        // Untuk description & plain text: {member} → mention <@ID>
         const parse = (str) => str
             .replace(/{member}/g,          `<@${member.id}>`)
             .replace(/{username}/g,        member.user.username)
@@ -125,7 +136,7 @@ module.exports = new Event({
         if (cardEnabled) {
             try {
                 const avatarUrl = member.user.displayAvatarURL({ extension: 'png', size: 256, forceStatic: true });
-                const cardBuf   = await generateWelcomeCard({
+                const cardBuf   = await generateCardAsync({
                     avatarUrl,
                     username:       member.user.username,
                     serverName:     guild.name,
@@ -146,7 +157,7 @@ module.exports = new Event({
                 });
                 cardAttachment = new AttachmentBuilder(cardBuf, { name: 'welcome-card.png' });
             } catch (err) {
-                console.error('[onMemberJoin] Welcome card generation failed:', err.message);
+                logError('[onMemberJoin] Welcome card generation failed:', err);
             }
         }
 
@@ -161,7 +172,6 @@ module.exports = new Event({
                 await welcomeChannel.send({ files: [cardAttachment] }).catch(() => null);
             }
         } else {
-            // Mode embed (default)
             const colorHex = color.startsWith('#') ? color : `#${color}`;
             const hasText   = title.trim() || description.trim();
 
@@ -185,5 +195,5 @@ module.exports = new Event({
             if (cardAttachment) embedPayload.files = [cardAttachment];
             await welcomeChannel.send(embedPayload).catch(() => null);
         }
-    }
+    })
 }).toJSON();

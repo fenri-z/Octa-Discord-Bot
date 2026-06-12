@@ -1,4 +1,4 @@
-const {
+﻿const {
     ChatInputCommandInteraction,
     EmbedBuilder,
     AttachmentBuilder,
@@ -10,7 +10,7 @@ const ApplicationCommand = require("../../structure/ApplicationCommand");
 const { getLang, getStrings } = require('../../utils/BotLang');
 const { resolveChannel } = require('../../utils/resolveGuildOption');
 const { checkBotPermissions } = require('../../utils/checkBotPermissions');
-const { generateWelcomeCard } = require('../../utils/generateWelcomeCard');
+const { generateCardAsync } = require('../../utils/generateWelcomeCard');
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 function setBool(client, key, val) {
@@ -265,7 +265,7 @@ required: true
                 let unboostCard = null;
                 if (cfg.unboostCardEnabled) {
                     try {
-                        const buf = await generateWelcomeCard({
+                        const buf = await generateCardAsync({
                             avatarUrl:      interaction.member.user.displayAvatarURL({ extension: 'png', size: 256, forceStatic: true }),
                             username:       interaction.member.user.username,
                             serverName:     guild.name,

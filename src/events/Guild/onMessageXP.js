@@ -1,11 +1,11 @@
+const { safeRun } = require('../../utils/logError');
+const cache = require('../../utils/GuildCache');
 const Event = require('../../structure/Event');
 
-// XP dibutuhkan untuk naik dari level N ke level N+1 (formula MEE6)
 function xpForLevel(lvl) {
     return 5 * lvl * lvl + 50 * lvl + 100;
 }
 
-// Hitung level dari total XP
 function getLevelFromXP(totalXP) {
     let level = 0;
     let accumulated = 0;
@@ -18,10 +18,23 @@ function getLevelFromXP(totalXP) {
     return level;
 }
 
+function readLevelConfig(db, guildId) {
+    const g = guildId;
+    return {
+        enabled:     db.get(`level-enabled-${g}`) === 'true',
+        channelId:   db.get(`level-channel-${g}`) ?? null,
+        cooldownSec: parseInt(db.get(`level-cooldown-${g}`) || '60'),
+        xpMin:       parseInt(db.get(`level-xp-min-${g}`)  || '15'),
+        xpMax:       parseInt(db.get(`level-xp-max-${g}`)  || '25'),
+        levelMsg:    db.get(`level-msg-${g}`)  || '🎉 {member} leveled up to **Level {level}**!',
+        rolesRaw:    db.get(`level-roles-${g}`) ?? null,
+    };
+}
+
 module.exports = new Event({
     event: 'messageCreate',
     once:  false,
-    run: async (client, message) => {
+    run: safeRun('[onMessageXP]', async (client, message) => {
         if (!message.guild || message.author.bot || message.webhookId) return;
 
         const { guild, author } = message;
@@ -29,18 +42,22 @@ module.exports = new Event({
         const userId  = author.id;
         const db      = client.database;
 
-        if (db.get(`level-enabled-${guildId}`) !== 'true') return;
+        // Cache level config (not user XP data — that changes per message)
+        const cfgKey = `level-cfg-${guildId}`;
+        let cfg = cache.get(cfgKey);
+        if (!cfg) {
+            cfg = readLevelConfig(db, guildId);
+            cache.set(cfgKey, cfg);
+        }
+
+        if (!cfg.enabled) return;
 
         const raw      = db.get(`level-user-${guildId}-${userId}`);
         const userData = raw ? JSON.parse(raw) : { xp: 0, level: 0, lastMsg: 0 };
 
-        const cooldownSec = parseInt(db.get(`level-cooldown-${guildId}`) || '60');
-        if (Date.now() - userData.lastMsg < cooldownSec * 1000) return;
+        if (Date.now() - userData.lastMsg < cfg.cooldownSec * 1000) return;
 
-        const xpMin = parseInt(db.get(`level-xp-min-${guildId}`) || '15');
-        const xpMax = parseInt(db.get(`level-xp-max-${guildId}`) || '25');
-        const gain  = Math.floor(Math.random() * (xpMax - xpMin + 1)) + xpMin;
-
+        const gain  = Math.floor(Math.random() * (cfg.xpMax - cfg.xpMin + 1)) + cfg.xpMin;
         userData.xp     += gain;
         userData.lastMsg = Date.now();
 
@@ -51,15 +68,12 @@ module.exports = new Event({
         db.set(`level-user-${guildId}-${userId}`, JSON.stringify(userData));
 
         if (newLevel > oldLevel) {
-            const channelId     = db.get(`level-channel-${guildId}`);
-            const announceIn    = channelId
-                ? guild.channels.cache.get(channelId)
+            const announceIn = cfg.channelId
+                ? guild.channels.cache.get(cfg.channelId)
                 : message.channel;
 
             if (announceIn?.isTextBased()) {
-                const template = db.get(`level-msg-${guildId}`)
-                    || '🎉 {member} leveled up to **Level {level}**!';
-                const text = template
+                const text = cfg.levelMsg
                     .replace(/\{member\}/g,   `<@${userId}>`)
                     .replace(/\{level\}/g,    newLevel)
                     .replace(/\{server\}/g,   guild.name)
@@ -67,9 +81,8 @@ module.exports = new Event({
                 await announceIn.send({ content: text }).catch(() => null);
             }
 
-            const rolesRaw = db.get(`level-roles-${guildId}`);
-            if (rolesRaw) {
-                const rewards = JSON.parse(rolesRaw);
+            if (cfg.rolesRaw) {
+                const rewards = JSON.parse(cfg.rolesRaw);
                 const member  = guild.members.cache.get(userId)
                     ?? await guild.members.fetch(userId).catch(() => null);
                 if (member) {
@@ -83,5 +96,5 @@ module.exports = new Event({
                 }
             }
         }
-    }
+    })
 }).toJSON();

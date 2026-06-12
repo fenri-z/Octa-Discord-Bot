@@ -1,6 +1,8 @@
-const { EmbedBuilder, AttachmentBuilder } = require("discord.js");
+﻿const { EmbedBuilder, AttachmentBuilder } = require("discord.js");
 const Event = require("../../structure/Event");
-const { generateWelcomeCard } = require('../../utils/generateWelcomeCard');
+const { generateCardAsync } = require('../../utils/generateWelcomeCard');
+const { logError, safeRun } = require('../../utils/logError');
+const cache = require('../../utils/GuildCache');
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 function getBool(client, key, defaultVal) {
@@ -11,6 +13,15 @@ function getBool(client, key, defaultVal) {
 }
 
 function getConfig(client, guildId) {
+    const cfgKey = `booster-cfg-${guildId}`;
+    const cached = cache.get(cfgKey);
+    if (cached) return cached;
+    const cfg = _buildBoosterConfig(client, guildId);
+    cache.set(cfgKey, cfg);
+    return cfg;
+}
+
+function _buildBoosterConfig(client, guildId) {
     return {
         boostEnabled:       getBool(client, `booster-boost-enabled-${guildId}`,      false),
         boostChannelId:     client.database.get(`booster-boost-channel-${guildId}`)  ?? null,
@@ -109,7 +120,7 @@ module.exports = new Event({
      * @param {import("discord.js").GuildMember} oldMember
      * @param {import("discord.js").GuildMember} newMember
      */
-    run: async (client, oldMember, newMember) => {
+    run: safeRun('[onBoosterUpdate]', async (client, oldMember, newMember) => {
         const { guild } = newMember;
         const cfg = getConfig(client, guild.id);
 
@@ -155,7 +166,7 @@ module.exports = new Event({
             let boostCard = null;
             if (cfg.boostCardEnabled) {
                 try {
-                    const buf = await generateWelcomeCard({
+                    const buf = await generateCardAsync({
                         avatarUrl:      newMember.user.displayAvatarURL({ extension: 'png', size: 256, forceStatic: true }),
                         username:       newMember.user.username,
                         serverName:     guild.name,
@@ -178,7 +189,7 @@ module.exports = new Event({
                         fontFamily:     cfg.boostCardFont,
                     });
                     boostCard = new AttachmentBuilder(buf, { name: 'boost-card.png' });
-                } catch (err) { console.error('[boost] Card generation failed:', err.message); }
+                } catch (err) { logError('[onBoosterUpdate][boost] Card generation failed:', err); }
             }
 
             if (cfg.boostMessageType === 'plain') {
@@ -244,7 +255,7 @@ module.exports = new Event({
             let unboostCard = null;
             if (cfg.unboostCardEnabled) {
                 try {
-                    const buf = await generateWelcomeCard({
+                    const buf = await generateCardAsync({
                         avatarUrl:      newMember.user.displayAvatarURL({ extension: 'png', size: 256, forceStatic: true }),
                         username:       newMember.user.username,
                         serverName:     guild.name,
@@ -267,7 +278,7 @@ module.exports = new Event({
                         fontFamily:     cfg.unboostCardFont,
                     });
                     unboostCard = new AttachmentBuilder(buf, { name: 'unboost-card.png' });
-                } catch (err) { console.error('[unboost] Card generation failed:', err.message); }
+                } catch (err) { logError('[onBoosterUpdate][unboost] Card generation failed:', err); }
             }
 
             if (cfg.unboostMessageType === 'plain') {
@@ -297,5 +308,5 @@ module.exports = new Event({
                 await channel.send(payload).catch(() => null);
             }
         }
-    }
+    })
 }).toJSON();

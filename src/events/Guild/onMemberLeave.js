@@ -1,53 +1,71 @@
 const { EmbedBuilder, AttachmentBuilder } = require("discord.js");
+const { generateCardAsync } = require("../../utils/generateWelcomeCard");
+const { logError, safeRun } = require("../../utils/logError");
+const cache = require("../../utils/GuildCache");
 const Event = require("../../structure/Event");
-const { generateWelcomeCard } = require('../../utils/generateWelcomeCard');
 
-function getBool(client, key, defaultVal) {
-    const raw = client.database.get(key);
-    if (raw === null || raw === undefined) return defaultVal;
-    if (raw === 'false' || raw === false || raw === 0) return false;
-    return true;
+function bool(db, key, def = false) {
+    const v = db.get(key);
+    return (v === null || v === undefined) ? def : (v !== 'false' && v !== false && v !== 0);
+}
+
+function readGoodbyeConfig(db, guildId) {
+    const g = guildId;
+    const cardTextColor    = db.get(`goodbye-cardTextColor-${g}`)    ?? '#ffffff';
+    const cardAccentColor  = db.get(`goodbye-cardAccent-${g}`)       ?? '#ED4245';
+    return {
+        enabled:             bool(db, `goodbye-enabled-${g}`, false),
+        channelId:           db.get(`goodbye-channel-${g}`)          ?? null,
+        messageType:         db.get(`goodbye-messageType-${g}`)      ?? 'embed',
+        plainText:           db.get(`goodbye-plainText-${g}`)        ?? '',
+        title:               db.get(`goodbye-title-${g}`)            ?? '👋 Goodbye!',
+        description:         db.get(`goodbye-description-${g}`)      ?? '{member} has left the server.',
+        color:               db.get(`goodbye-color-${g}`)            ?? '#ED4245',
+        footerText:          db.get(`goodbye-footer-${g}`)           ?? null,
+        thumbnail:           bool(db, `goodbye-thumbnail-${g}`, false),
+        cardEnabled:         bool(db, `goodbye-cardEnabled-${g}`, false),
+        cardBgColor:         db.get(`goodbye-cardBgColor-${g}`)      ?? '#1a0a0a',
+        cardBgColor2:        db.get(`goodbye-cardBgColor2-${g}`)     ?? '#2e0a0a',
+        cardAccentColor,
+        cardTextColor,
+        cardWelcomeText:     db.get(`goodbye-cardWelcomeText-${g}`)  ?? 'GOODBYE',
+        cardSubText:         db.get(`goodbye-cardSubText-${g}`)      ?? 'FROM {server}',
+        cardAvatarShape:     db.get(`goodbye-cardAvatarShape-${g}`)  ?? 'circle',
+        cardBgType:          db.get(`goodbye-cardBgType-${g}`)       ?? 'gradient',
+        cardBgImageUrl:      db.get(`goodbye-cardBgImageUrl-${g}`)   ?? '',
+        cardOverlayColor:    db.get(`goodbye-cardOverlayColor-${g}`) ?? '#000000',
+        cardOverlayOpacity:  parseInt(db.get(`goodbye-cardOverlayOpacity-${g}`) || '0'),
+        cardTitleColor:      db.get(`goodbye-cardTitleColor-${g}`)   ?? '#ffffff',
+        cardUsernameColor:   db.get(`goodbye-cardUsernameColor-${g}`)|| cardAccentColor,
+        cardMsgColor:        db.get(`goodbye-cardMsgColor-${g}`)     ?? '#cccccc',
+        cardFont:            db.get(`goodbye-cardFont-${g}`)         ?? 'impact',
+    };
 }
 
 module.exports = new Event({
     event: 'guildMemberRemove',
     once: false,
-
-    /**
-     * @param {import("../../client/DiscordBot")} __client__
-     * @param {import("discord.js").GuildMember} member
-     */
-    run: async (__client__, member) => {
+    run: safeRun('[onMemberLeave]', async (__client__, member) => {
         const { guild } = member;
+        const guildId = guild.id;
 
-        const enabled = getBool(__client__, `goodbye-enabled-${guild.id}`, false);
-        if (!enabled) return;
+        const cfgKey = `goodbye-cfg-${guildId}`;
+        let cfg = cache.get(cfgKey);
+        if (!cfg) {
+            cfg = readGoodbyeConfig(__client__.database, guildId);
+            cache.set(cfgKey, cfg);
+        }
 
-        const channelId      = __client__.database.get(`goodbye-channel-${guild.id}`)      ?? null;
-        const messageType    = __client__.database.get(`goodbye-messageType-${guild.id}`)   ?? 'embed';
-        const plainText      = __client__.database.get(`goodbye-plainText-${guild.id}`)     ?? '';
-        const title          = __client__.database.get(`goodbye-title-${guild.id}`)         ?? '👋 Goodbye!';
-        const description    = __client__.database.get(`goodbye-description-${guild.id}`)   ?? '{member} has left the server.';
-        const color          = __client__.database.get(`goodbye-color-${guild.id}`)         ?? '#ED4245';
-        const footerText     = __client__.database.get(`goodbye-footer-${guild.id}`)        ?? null;
-        const thumbnail      = getBool(__client__, `goodbye-thumbnail-${guild.id}`,          false);
-        // ── Goodbye Card ─────────────────────────────────────────────────────
-        const cardEnabled        = getBool(__client__, `goodbye-cardEnabled-${guild.id}`,   false);
-        const cardBgColor        = __client__.database.get(`goodbye-cardBgColor-${guild.id}`)        ?? '#1a0a0a';
-        const cardBgColor2       = __client__.database.get(`goodbye-cardBgColor2-${guild.id}`)       ?? '#2e0a0a';
-        const cardAccentColor    = __client__.database.get(`goodbye-cardAccent-${guild.id}`)         ?? '#ED4245';
-        const cardTextColor      = __client__.database.get(`goodbye-cardTextColor-${guild.id}`)      ?? '#ffffff';
-        const cardWelcomeText    = __client__.database.get(`goodbye-cardWelcomeText-${guild.id}`)    ?? 'GOODBYE';
-        const cardSubText        = __client__.database.get(`goodbye-cardSubText-${guild.id}`)        ?? 'FROM {server}';
-        const cardAvatarShape    = __client__.database.get(`goodbye-cardAvatarShape-${guild.id}`)    ?? 'circle';
-        const cardBgType         = __client__.database.get(`goodbye-cardBgType-${guild.id}`)         ?? 'gradient';
-        const cardBgImageUrl     = __client__.database.get(`goodbye-cardBgImageUrl-${guild.id}`)     ?? '';
-        const cardOverlayColor   = __client__.database.get(`goodbye-cardOverlayColor-${guild.id}`)   ?? '#000000';
-        const cardOverlayOpacity = parseInt(__client__.database.get(`goodbye-cardOverlayOpacity-${guild.id}`) || '0');
-        const cardTitleColor     = __client__.database.get(`goodbye-cardTitleColor-${guild.id}`)     ?? '#ffffff';
-        const cardUsernameColor  = __client__.database.get(`goodbye-cardUsernameColor-${guild.id}`)  ?? '';
-        const cardMsgColor       = __client__.database.get(`goodbye-cardMsgColor-${guild.id}`)       ?? '#cccccc';
-        const cardFont           = __client__.database.get(`goodbye-cardFont-${guild.id}`)           ?? 'impact';
+        if (!cfg.enabled) return;
+
+        const {
+            channelId, messageType, plainText, title, description, color, footerText, thumbnail,
+            cardEnabled, cardBgColor, cardBgColor2, cardAccentColor, cardTextColor,
+            cardWelcomeText, cardSubText, cardAvatarShape, cardBgType, cardBgImageUrl,
+            cardOverlayColor, cardOverlayOpacity, cardTitleColor, cardUsernameColor,
+            cardMsgColor, cardFont,
+        } = cfg;
+
         // ── Cari channel tujuan ───────────────────────────────────────────
         const goodbyeChannel =
             (channelId && guild.channels.cache.get(channelId)) ||
@@ -58,34 +76,32 @@ module.exports = new Event({
         if (!goodbyeChannel || !goodbyeChannel.isTextBased()) return;
 
         // ── Placeholder replacer ──────────────────────────────────────────
-        const totalMembers   = guild.memberCount;
-        const displayName    = member.displayName || member.user.username;
+        const totalMembers    = guild.memberCount;
+        const displayName     = member.displayName || member.user.username;
         const createdRelative = `<t:${Math.floor(member.user.createdTimestamp / 1000)}:R>`;
 
-        // Untuk title & footer: {member} → @displayName (mention tidak render di embed title)
         const parseTitle = (str) => str
-            .replace(/{member}/g,       `@${displayName}`)
-            .replace(/{username}/g,     member.user.username)
-            .replace(/{tag}/g,          member.user.tag)
-            .replace(/{server}/g,       guild.name)
-            .replace(/{count}/g,        String(totalMembers))
+            .replace(/{member}/g,           `@${displayName}`)
+            .replace(/{username}/g,         member.user.username)
+            .replace(/{tag}/g,              member.user.tag)
+            .replace(/{server}/g,           guild.name)
+            .replace(/{count}/g,            String(totalMembers))
             .replace(/{account\.created}/g, createdRelative);
 
-        // Untuk description & plain text: {member} → mention <@ID>
         const parse = (str) => str
-            .replace(/{member}/g,          `<@${member.id}>`)
-            .replace(/{username}/g,        member.user.username)
-            .replace(/{tag}/g,             member.user.tag)
-            .replace(/{server}/g,          guild.name)
-            .replace(/{count}/g,           String(totalMembers))
-            .replace(/{account\.created}/g,createdRelative);
+            .replace(/{member}/g,           `<@${member.id}>`)
+            .replace(/{username}/g,         member.user.username)
+            .replace(/{tag}/g,              member.user.tag)
+            .replace(/{server}/g,           guild.name)
+            .replace(/{count}/g,            String(totalMembers))
+            .replace(/{account\.created}/g, createdRelative);
 
         // ── Generate goodbye card ─────────────────────────────────────────
         let cardAttachment = null;
         if (cardEnabled) {
             try {
                 const avatarUrl = member.user.displayAvatarURL({ extension: 'png', size: 256, forceStatic: true });
-                const cardBuf = await generateWelcomeCard({
+                const cardBuf = await generateCardAsync({
                     avatarUrl,
                     username:       member.user.username,
                     serverName:     guild.name,
@@ -106,7 +122,7 @@ module.exports = new Event({
                 });
                 cardAttachment = new AttachmentBuilder(cardBuf, { name: 'goodbye-card.png' });
             } catch (err) {
-                console.error('[goodbye] Card generation failed:', err.message);
+                logError('[onMemberLeave] Goodbye card generation failed:', err);
             }
         }
 
@@ -124,8 +140,7 @@ module.exports = new Event({
 
         // ── Mode embed ────────────────────────────────────────────────────
         const colorHex = color.startsWith('#') ? color : `#${color}`;
-        const embed = new EmbedBuilder()
-            .setColor(colorHex);
+        const embed = new EmbedBuilder().setColor(colorHex);
         const parsedTitle = parseTitle(title);
         if (parsedTitle) embed.setTitle(parsedTitle);
         const parsedDesc = parse(description);
@@ -138,5 +153,5 @@ module.exports = new Event({
         const payload = { embeds: [embed] };
         if (cardAttachment) payload.files = [cardAttachment];
         await goodbyeChannel.send(payload).catch(() => null);
-    }
+    })
 }).toJSON();

@@ -1,5 +1,6 @@
 const Event        = require('../../structure/Event');
 const { EmbedBuilder } = require('discord.js');
+const cache        = require('../../utils/GuildCache');
 
 module.exports = new Event({
     event: 'messageCreate',
@@ -10,7 +11,12 @@ module.exports = new Event({
         const db      = client.database;
         const guildId = message.guild.id;
 
-        const raw = db.get(`customcmd-list-${guildId}`);
+        const cacheKey = `customcmd-list-${guildId}`;
+        let raw = cache.get(cacheKey);
+        if (raw === null) {
+            raw = db.get(cacheKey);
+            if (raw) cache.set(cacheKey, raw);
+        }
         if (!raw) return;
 
         let commands;

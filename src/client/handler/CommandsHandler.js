@@ -80,6 +80,19 @@ class CommandsHandler {
     }
 
     reload = () => {
+        // Clear require cache so re-require picks up file changes on disk
+        for (const directory of readdirSync('./src/commands/')) {
+            let files;
+            try { files = readdirSync('./src/commands/' + directory).filter(f => f.endsWith('.js')); }
+            catch { continue; }
+            for (const file of files) {
+                try {
+                    const key = require.resolve('../../commands/' + directory + '/' + file);
+                    delete require.cache[key];
+                } catch { /* skip unknown */ }
+            }
+        }
+
         this.client.collection.message_commands.clear();
         this.client.collection.message_commands_aliases.clear();
         this.client.collection.application_commands.clear();

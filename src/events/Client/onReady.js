@@ -171,6 +171,14 @@ module.exports = new Event({
         } catch (err) {
             warn(`[Kick] Failed to start KickNotifier: ${err.message}`);
         }
+
+        // ── Poll persistence ───────────────────────────────────────────────
+        try {
+            const { restoreActivePolls } = require('../../utils/PollManager');
+            await restoreActivePolls(client);
+        } catch (err) {
+            warn(`[Poll] Failed to restore active polls: ${err.message}`);
+        }
     }
 }).toJSON();
 

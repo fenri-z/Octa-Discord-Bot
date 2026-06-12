@@ -31,6 +31,12 @@ class SQLiteDatabase {
         this._db.pragma('synchronous = NORMAL');
         // Retry otomatis hingga 5 detik jika database sedang dikunci proses lain
         this._db.pragma('busy_timeout = 5000');
+        // 64 MB page cache di RAM (negative = satuan KB)
+        this._db.pragma('cache_size = -65536');
+        // 256 MB memory-mapped I/O — baca DB langsung dari memori jika muat
+        this._db.pragma('mmap_size = 268435456');
+        // Tabel sementara di RAM bukan di disk
+        this._db.pragma('temp_store = MEMORY');
 
         // Buat tabel jika belum ada
         this._db.exec(`

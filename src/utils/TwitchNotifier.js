@@ -19,13 +19,14 @@ const POLL_INTERVAL_MS = 2 * 60 * 1000; // cek tiap 2 menit
 
 class TwitchNotifier {
     constructor(client) {
-        this.client        = client;
-        this._pollTimer    = null;
-        this._liveSessions = new Map(); // "guildId:userId" → streamId
-        this._accessToken  = null;
-        this._tokenExpires = 0;
-        this._clientId     = process.env.TWITCH_CLIENT_ID     || '';
-        this._clientSecret = process.env.TWITCH_CLIENT_SECRET || '';
+        this.client          = client;
+        this._pollTimer      = null;
+        this._liveSessions   = new Map(); // "guildId:userId" → streamId
+        this._pendingOffline = new Map(); // "guildId:userId" → consecutive offline poll count
+        this._accessToken    = null;
+        this._tokenExpires   = 0;
+        this._clientId       = process.env.TWITCH_CLIENT_ID     || '';
+        this._clientSecret   = process.env.TWITCH_CLIENT_SECRET || '';
     }
 
     // ─── Lifecycle ─────────────────────────────────────────────────────────────
@@ -207,6 +208,7 @@ class TwitchNotifier {
                 const isLive     = !!stream;
 
                 if (isLive && !wasLive) {
+                    this._pendingOffline.delete(sessionKey);
                     this._liveSessions.set(sessionKey, stream.id);
                     db.set(dbKey, stream.id);
 
@@ -229,10 +231,22 @@ class TwitchNotifier {
                     await this._sendNotification(guild, freshAccount, streamData);
                     info(`[Twitch] ${login} LIVE di guild ${guild.id}`);
 
+                } else if (isLive && wasLive) {
+                    // Masih live — reset pending offline jika sebelumnya ada blip
+                    this._pendingOffline.delete(sessionKey);
+
                 } else if (!isLive && wasLive) {
-                    this._liveSessions.delete(sessionKey);
-                    db.delete(dbKey);
-                    info(`[Twitch] ${login} offline di guild ${guild.id}`);
+                    // Twitch API kadang blip — konfirmasi offline setelah 2 poll berturut-turut
+                    const offlineCount = (this._pendingOffline.get(sessionKey) || 0) + 1;
+                    if (offlineCount >= 2) {
+                        this._pendingOffline.delete(sessionKey);
+                        this._liveSessions.delete(sessionKey);
+                        db.delete(dbKey);
+                        info(`[Twitch] ${login} offline di guild ${guild.id}`);
+                    } else {
+                        this._pendingOffline.set(sessionKey, offlineCount);
+                        info(`[Twitch] ${login} tidak terdeteksi di poll ini (${offlineCount}/2) — menunggu konfirmasi offline`);
+                    }
                 }
             }
         }

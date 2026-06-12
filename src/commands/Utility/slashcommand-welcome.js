@@ -1,4 +1,4 @@
-const {
+﻿const {
     ChatInputCommandInteraction,
     EmbedBuilder,
     AttachmentBuilder,
@@ -14,7 +14,7 @@ const ApplicationCommand = require("../../structure/ApplicationCommand");
 const { getLang, getStrings } = require('../../utils/BotLang');
 const { resolveChannel } = require('../../utils/resolveGuildOption');
 const { checkBotPermissions } = require('../../utils/checkBotPermissions');
-const { generateWelcomeCard } = require('../../utils/generateWelcomeCard');
+const { generateCardAsync } = require('../../utils/generateWelcomeCard');
 
 function setBool(client, key, val) {
     client.database.set(key, val ? 'true' : 'false');
@@ -507,7 +507,7 @@ module.exports = new ApplicationCommand({
             if (cfg.cardEnabled) {
                 try {
                     const avatarUrl = member.user.displayAvatarURL({ extension: 'png', size: 256, forceStatic: true });
-                    const cardBuf   = await generateWelcomeCard({
+                    const cardBuf   = await generateCardAsync({
                         avatarUrl,
                         username:       member.user.username,
                         serverName:     interaction.guild.name,

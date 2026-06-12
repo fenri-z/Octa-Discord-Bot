@@ -9,6 +9,7 @@ const express              = require('express');
 const { PermissionsBitField } = require('discord.js');
 const { body }             = require('express-validator');
 const { handleValidation } = require('../middleware/validate');
+const guildCache           = require('../../utils/GuildCache');
 const router  = express.Router();
 
 // ── Shared regex ──────────────────────────────────────────────────────────────
@@ -99,6 +100,24 @@ function requireManageGuild(req, res, next) {
 function setDbBool(db, key, val) {
     db.set(key, val ? 'true' : 'false');
 }
+
+// ── In-memory rate limiter (30 write requests/minute per user) ────────────────
+const _rlStore = new Map();
+setInterval(() => {
+    const now = Date.now();
+    for (const [k, e] of _rlStore) if (now > e.reset) _rlStore.delete(k);
+}, 300_000);
+
+router.use((req, res, next) => {
+    if (req.method === 'GET') return next();
+    const uid = req.user?.id ?? req.ip;
+    const now = Date.now();
+    let e = _rlStore.get(uid);
+    if (!e || now > e.reset) { e = { count: 0, reset: now + 60_000 }; _rlStore.set(uid, e); }
+    e.count++;
+    if (e.count > 30) return res.status(429).json({ success: false, message: 'Too many requests. Please slow down.' });
+    next();
+});
 
 // ── GET /api/guild/:guildId — info singkat server ─────────────────────────────
 router.get('/guild/:guildId', requireLogin, requireManageGuild, (req, res) => {
@@ -203,6 +222,7 @@ router.post('/guild/:guildId/welcome', requireLogin, requireManageGuild, vNotifF
     db.set(`welcome-cardMsgColor-${guildId}`,       hexRe.test(cardMsgColor)       ? cardMsgColor       : '#cccccc');
     db.set(`welcome-cardFont-${guildId}`,           ['impact','arial','georgia','courier','verdana'].includes(cardFont) ? cardFont : 'impact');
 
+    guildCache.del(`welcome-cfg-${guildId}`);
     res.json({ success: true, message: 'Welcome settings saved successfully.' });
 });
 
@@ -284,6 +304,7 @@ router.post('/guild/:guildId/goodbye', requireLogin, requireManageGuild, vNotifF
     setDbBool(db, `goodbye-showAkunDibuat-${guildId}`,  !!showAkunDibuat);
     setDbBool(db, `goodbye-showTotalMember-${guildId}`, !!showTotalMember);
 
+    guildCache.del(`goodbye-cfg-${guildId}`);
     res.json({ success: true, message: 'Goodbye settings saved successfully.' });
 });
 
@@ -324,6 +345,7 @@ router.post('/guild/:guildId/autorole-join', requireLogin, requireManageGuild, (
     if (botRoleId) db.set(`autorole-bot-role-${guildId}`, botRoleId);
     else           db.delete(`autorole-bot-role-${guildId}`);
 
+    guildCache.del(`autorole-cfg-${guildId}`);
     res.json({ success: true, message: 'Join Autorole saved successfully.' });
 });
 
@@ -387,6 +409,7 @@ router.post('/guild/:guildId/booster-boost', requireLogin, requireManageGuild, (
         else            db.delete(`booster-boost-footer-${guildId}`);
     }
 
+    guildCache.del(`booster-cfg-${guildId}`);
     res.json({ success: true, message: 'Boost Notification settings saved successfully.' });
 });
 
@@ -449,6 +472,7 @@ router.post('/guild/:guildId/booster-unboost', requireLogin, requireManageGuild,
         else            db.delete(`booster-unboost-footer-${guildId}`);
     }
 
+    guildCache.del(`booster-cfg-${guildId}`);
     res.json({ success: true, message: 'Unboost Notification settings saved successfully.' });
 });
 
@@ -477,6 +501,7 @@ router.post('/guild/:guildId/autorole-booster', requireLogin, requireManageGuild
     if (autoroleRoleId) db.set(`booster-autorole-role-${guildId}`, autoroleRoleId);
     else                db.delete(`booster-autorole-role-${guildId}`);
 
+    guildCache.del(`booster-cfg-${guildId}`);
     res.json({ success: true, message: 'Booster Autorole saved successfully.' });
 });
 
@@ -3106,6 +3131,7 @@ router.post('/guild/:guildId/level', requireLogin, requireManageGuild, (req, res
         db.set(`level-roles-${guildId}`, JSON.stringify(clean));
     }
 
+    guildCache.del(`level-cfg-${guildId}`);
     res.json({ success: true, message: 'Pengaturan level berhasil disimpan.' });
 });
 
@@ -3151,6 +3177,8 @@ router.post('/guild/:guildId/custom-commands', requireLogin, requireManageGuild,
         return res.status(400).json({ success: false, message: 'Maksimal 100 custom command per server.' });
 
     db.set(`customcmd-list-${guildId}`, JSON.stringify(clean));
+    guildCache.del(`customcmd-list-${guildId}`);
+
     res.json({ success: true, message: 'Custom commands berhasil disimpan.' });
 });
 
