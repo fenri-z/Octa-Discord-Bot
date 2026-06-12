@@ -26,7 +26,7 @@
     <%
         const typeCounts = {};
         logs.forEach(l => { typeCounts[l.type] = (typeCounts[l.type] || 0) + 1; });
-        const typeOrder = ['command_error','component_error','uncaught_exception','unhandled_rejection'];
+        const typeOrder = ['command_error','component_error','uncaught_exception','unhandled_rejection','event_handler_error'];
     %>
     <div class="lg-filters">
         <button class="lg-chip lg-chip-all active" onclick="filterType('all',this)">
@@ -51,9 +51,10 @@
         <div class="lg-list" id="lgList">
             <% logs.forEach(function(log) {
                 const typeSlug = log.type.replace(/_/g, '-');
-                const icon = log.type === 'command_error'   ? 'terminal'
-                           : log.type === 'component_error' ? 'layers'
-                           : log.type === 'uncaught_exception' ? 'zap'
+                const icon = log.type === 'command_error'      ? 'terminal'
+                           : log.type === 'component_error'    ? 'layers'
+                           : log.type === 'uncaught_exception'  ? 'zap'
+                           : log.type === 'event_handler_error' ? 'radio'
                            : 'alert-triangle';
             %>
             <div class="lg-entry" data-type="<%= log.type %>">
@@ -147,7 +148,8 @@
 .lg-entry[data-type="command_error"]     { border-left-color: #f27f81; }
 .lg-entry[data-type="component_error"]   { border-left-color: #F0A032; }
 .lg-entry[data-type="uncaught_exception"]{ border-left-color: #fe4e3c; }
-.lg-entry[data-type="unhandled_rejection"]{ border-left-color: #e94560; }
+.lg-entry[data-type="unhandled_rejection"] { border-left-color: #e94560; }
+.lg-entry[data-type="event_handler_error"] { border-left-color: #9b59b6; }
 .lg-entry:hover { border-color: rgba(88,101,242,.3); }
 
 .lg-entry-left {
@@ -163,7 +165,8 @@
 .lg-badge-command-error       { background: rgba(237,66,69,.14);  color: #f27f81; border: 1px solid rgba(237,66,69,.25); }
 .lg-badge-component-error     { background: rgba(240,160,50,.14); color: #F0A032; border: 1px solid rgba(240,160,50,.25); }
 .lg-badge-uncaught-exception  { background: rgba(254,78,60,.14);  color: #fe4e3c; border: 1px solid rgba(254,78,60,.25); }
-.lg-badge-unhandled-rejection { background: rgba(233,69,96,.14);  color: #e94560; border: 1px solid rgba(233,69,96,.25); }
+.lg-badge-unhandled-rejection  { background: rgba(233,69,96,.14);  color: #e94560; border: 1px solid rgba(233,69,96,.25); }
+.lg-badge-event-handler-error  { background: rgba(155,89,182,.14); color: #b07fd4; border: 1px solid rgba(155,89,182,.25); }
 
 .lg-context {
     font-size: .72rem; color: var(--text-muted);

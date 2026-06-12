@@ -1020,6 +1020,7 @@
     "logs_type_component_error": "Error Komponen",
     "logs_type_uncaught_exception": "Uncaught Exception",
     "logs_type_unhandled_rejection": "Unhandled Rejection",
+    "logs_type_event_handler_error": "Error Event Handler",
     "logs_stack": "Stack Trace",
     "logs_context": "Konteks",
     "logs_card_title": "Log Error",

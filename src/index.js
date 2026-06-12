@@ -5,6 +5,7 @@ const { startWebServer } = require('./web/server');
 const YouTubeNotifier    = require('./utils/YouTubeNotifier');
 const TikTokNotifier     = require('./utils/TikTokNotifier');
 const ErrorLogger        = require('./utils/ErrorLogger');
+const { init: initLogError } = require('./utils/logError');
 const { warn, success, error: logErr } = require('./utils/Console');
 const DatabaseBackup = require('./utils/DatabaseBackup');
 
@@ -58,6 +59,7 @@ process.on('SIGINT',  () => gracefulShutdown('SIGINT'));
 
 // Jalankan web server dan notifier polling setelah event clientReady
 client.once('clientReady', () => {
+    initLogError(client.database);
     const ytNotifier = new YouTubeNotifier(client);
     client.youtubeNotifier = ytNotifier;
     ytNotifier.start();
