@@ -645,11 +645,11 @@ const _initPrefix   = document.getElementById('prefixInput').value;
 
 window._floatSave = async function () {
     const nickname = document.getElementById('nicknameInput').value.trim();
-    const prefix   = document.getElementById('prefixInput').value.trim() || '!';
+    const prefix   = document.getElementById('prefixInput').value.trim() || '<%- defaultPrefix %>';
     const msg      = document.getElementById('settingsMsg');
 
     const nickChanged = nickname !== _initNickname.trim();
-    const prefChanged = (prefix   !== (_initPrefix.trim() || '!'));
+    const prefChanged = (prefix   !== (_initPrefix.trim() || '<%- defaultPrefix %>'));
 
     const tasks = [];
     if (nickChanged) tasks.push(

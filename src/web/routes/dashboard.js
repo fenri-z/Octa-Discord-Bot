@@ -5,6 +5,7 @@
 
 const express             = require('express');
 const { PermissionsBitField } = require('discord.js');
+const config  = require('../config');
 const router  = express.Router();
 
 // ── In-memory member cache (60 detik TTL) ──────────────────────────────────
@@ -225,7 +226,7 @@ router.get('/:guildId', requireLogin, requireManageGuild, (req, res) => {
     const me          = guild.members.me;
     const db          = req.discordClient?.database;
     const botNickname = me?.nickname || req.discordClient?.user?.username || 'Bot';
-    const botPrefix   = db?.get(`prefix_${guild.id}`) || '!';
+    const botPrefix   = db?.get(`prefix_${guild.id}`) || config.commands.prefix;
 
     const missingPerms = me
         ? REQUIRED_PERMS.filter(p => !me.permissions.has(p.flag))
@@ -237,6 +238,7 @@ router.get('/:guildId', requireLogin, requireManageGuild, (req, res) => {
         guildData: req.userGuildData,
         botNickname,
         botPrefix,
+        defaultPrefix: config.commands.prefix,
         missingPerms,
         activePage: 'home',
         hasSidebar: true

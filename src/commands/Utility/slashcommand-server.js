@@ -7,6 +7,7 @@ const {
 const DiscordBot = require("../../client/DiscordBot");
 const ApplicationCommand = require("../../structure/ApplicationCommand");
 const { isDeveloper } = require("../../utils/dmGuildProxy");
+const config = require("../../config");
 
 // ── Channel type labels ────────────────────────────────────────────────────
 const CHANNEL_TYPE_LABEL = {
@@ -597,7 +598,7 @@ module.exports = new ApplicationCommand({
                             name: '`!setprefix`',
                             desc: 'Change the message command prefix for this server.',
                             fields: [
-                                { name: 'Current Prefix', value: `\`${getStr(`prefix-${guildId}`, '!')}\``, inline: false }
+                                { name: 'Current Prefix', value: `\`${getStr(`prefix-${guildId}`, config.commands.prefix)}\``, inline: false }
                             ]
                         },
                         {
