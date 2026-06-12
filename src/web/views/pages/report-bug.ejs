@@ -15,7 +15,7 @@
 .rb-header h1 {
     font-size: clamp(1.6rem, 5vw, 2.2rem); font-weight: 800;
     margin-bottom: .5rem;
-    background: linear-gradient(135deg, #fff 30%, #8b95f7 100%);
+    background: linear-gradient(135deg, var(--text) 30%, var(--accent) 100%);
     -webkit-background-clip: text; -webkit-text-fill-color: transparent;
     background-clip: text;
 }
@@ -53,11 +53,11 @@
 /* ── Upload area ─────────────────────────────────────────────────────────── */
 .rb-upload-label { display: block; font-size: .8rem; font-weight: 600; color: var(--text-muted); margin-bottom: .4rem; }
 .rb-upload-area {
-    border: 1.5px dashed rgba(255,255,255,.15);
+    border: 1.5px dashed var(--border);
     border-radius: 8px; padding: 1.5rem 1rem;
     text-align: center; cursor: pointer;
     transition: border-color .15s, background .15s;
-    background: rgba(255,255,255,.02);
+    background: var(--bg3, transparent);
     position: relative; overflow: hidden;
 }
 .rb-upload-area:hover { border-color: rgba(88,101,242,.4); background: rgba(88,101,242,.04); }
@@ -104,7 +104,7 @@
 /* ── Tips ────────────────────────────────────────────────────────────────── */
 .rb-tips {
     margin-top: 1.5rem;
-    background: rgba(255,255,255,.03);
+    background: var(--bg2);
     border: 1px solid var(--border);
     border-radius: 10px; padding: 1rem 1.25rem;
 }

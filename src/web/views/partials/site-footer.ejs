@@ -1,7 +1,7 @@
 <style>
 /* ── Site Footer ─────────────────────────────────────────────────────────── */
 .site-footer {
-    background: #0e0f18;
+    background: var(--bg);
     border-top: none;
     padding: 3.5rem 0 0;
     margin-top: auto;
@@ -20,8 +20,8 @@
 .site-footer-avatar {
     width: 52px; height: 52px; border-radius: 50%;
     object-fit: cover; flex-shrink: 0;
-    border: 2px solid rgba(88,101,242,.35);
-    box-shadow: 0 0 0 4px rgba(88,101,242,.08);
+    border: 2px solid rgba(var(--accent-rgb),.35);
+    box-shadow: 0 0 0 4px rgba(var(--accent-rgb),.08);
 }
 .site-footer-name {
     display: flex; align-items: center; gap: .45rem;
@@ -60,7 +60,7 @@
 .site-footer-bottom {
     max-width: 1440px; margin: 0 auto;
     padding: 1.1rem 2.5rem;
-    border-top: 1px solid rgba(255,255,255,.06);
+    border-top: 1px solid var(--border);
     display: flex; align-items: center; justify-content: space-between;
     gap: 1rem; flex-wrap: wrap;
 }

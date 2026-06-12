@@ -2,6 +2,16 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
+    <script>
+    (function(){
+        var t=localStorage.getItem('octa-theme')||'auto';
+        var a=localStorage.getItem('octa-accent');
+        var r=t==='auto'?(window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'):t;
+        document.documentElement.setAttribute('data-theme',r);
+        document.documentElement.setAttribute('data-theme-pref',t);
+        if(a&&a!=='blue')document.documentElement.setAttribute('data-accent',a);
+    })();
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title><%- locals.botNavName || 'Bot' %> • <%- locals.title || 'Dashboard' %></title>
     <link rel="icon" type="image/png" href="<%- locals.botNavAvatar || 'https://cdn.discordapp.com/embed/avatars/0.png' %>">

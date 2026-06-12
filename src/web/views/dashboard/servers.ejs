@@ -25,7 +25,7 @@
         <div class="srv-card" data-name="<%= guild.name.toLowerCase() %>">
 
             <!-- Banner -->
-            <div class="srv-card-banner" <%- guild.bannerURL ? `style="background-image:url('${guild.bannerURL}')"` : '' %>>
+            <div class="srv-card-banner<%- guild.bannerURL ? ' srv-banner-img' : '' %>" <%- guild.bannerURL ? `style="background-image:url('${guild.bannerURL}')"` : '' %>>
                 <div class="srv-card-overlay"></div>
             </div>
 
@@ -136,9 +136,17 @@
     background-size: cover;
     background-position: center;
 }
+/* Light mode fallback — visible medium gray gradient */
+[data-theme="light"] .srv-card-banner:not(.srv-banner-img) {
+    background: linear-gradient(135deg, #b8bcc8 0%, #c8cbd5 100%);
+}
 .srv-card-overlay {
     position: absolute; inset: 0;
     background: rgba(0,0,0,.38);
+}
+/* No overlay when no banner image — the gradient already provides contrast */
+.srv-card-banner:not(.srv-banner-img) .srv-card-overlay {
+    background: transparent;
 }
 
 /* ── Icon wrap: sibling banner, rata kiri ────────────── */

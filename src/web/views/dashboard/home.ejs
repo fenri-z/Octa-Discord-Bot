@@ -8,7 +8,9 @@
     <div class="dash-content-wide">
 
         <!-- ── Server Banner ─────────────────────────────────────── -->
-        <div class="ov-banner">
+        <% const _gBannerURL = guild.bannerURL({ size: 1024, dynamic: true }); %>
+        <div class="ov-banner<%- _gBannerURL ? ' ov-banner-img' : '' %>"
+             <%- _gBannerURL ? `style="background-image:url('${_gBannerURL}')"` : '' %>>
             <div class="ov-banner-bg"></div>
             <div class="ov-banner-content">
                 <% if (guild.iconURL()) { %>
@@ -377,21 +379,43 @@
 .ov-banner {
     position: relative; overflow: hidden;
     border-radius: 14px; margin-bottom: 1.5rem;
-    background: linear-gradient(135deg, #1e2035 0%, #16182b 60%, #1a1c2e 100%);
+    background: linear-gradient(135deg, #1a1b2e 0%, #2a2b38 100%);
+    background-size: cover;
+    background-position: center top;
     border: 1px solid var(--border);
     padding: 1.75rem 1.75rem;
 }
+/* Light mode fallback */
+[data-theme="light"] .ov-banner:not(.ov-banner-img) {
+    background: linear-gradient(135deg, #b8bcc8 0%, #c8cbd5 100%);
+}
+/* Dark mode: text white over dark gradient */
+.ov-banner:not(.ov-banner-img) .ov-server-name { color: #fff; }
+.ov-banner:not(.ov-banner-img) .ov-server-sub  { color: rgba(255,255,255,.6); }
+/* Light mode: revert to theme text colors */
+[data-theme="light"] .ov-banner:not(.ov-banner-img) .ov-server-name { color: var(--text); }
+[data-theme="light"] .ov-banner:not(.ov-banner-img) .ov-server-sub  { color: var(--text-muted); }
 .ov-banner-bg {
     position: absolute; inset: 0; pointer-events: none;
     background: radial-gradient(circle at 80% 50%, rgba(88,101,242,.18) 0%, transparent 60%),
                 radial-gradient(circle at 10% 80%, rgba(87,242,135,.07) 0%, transparent 50%);
 }
+/* No extra glow overlay in light mode without banner */
+[data-theme="light"] .ov-banner:not(.ov-banner-img) .ov-banner-bg { background: none; }
+/* When guild has an actual banner image */
+.ov-banner.ov-banner-img .ov-banner-bg {
+    background: linear-gradient(to top, rgba(0,0,0,.72) 0%, rgba(0,0,0,.25) 60%, rgba(0,0,0,.1) 100%);
+}
+.ov-banner.ov-banner-img .ov-server-name { color: #fff; }
+.ov-banner.ov-banner-img .ov-server-sub  { color: rgba(255,255,255,.75); }
+.ov-banner.ov-banner-img .ov-server-icon { border-color: rgba(255,255,255,.2); }
+.ov-banner.ov-banner-img .ov-server-icon-placeholder { border-color: rgba(255,255,255,.2); }
 .ov-banner-content {
     position: relative; display: flex; align-items: center; gap: 1.25rem;
 }
 .ov-server-icon {
     width: 64px; height: 64px; border-radius: 16px;
-    border: 2px solid rgba(255,255,255,.12); flex-shrink: 0;
+    border: 2px solid var(--border); flex-shrink: 0;
     object-fit: cover;
 }
 .ov-server-icon-placeholder {
@@ -399,23 +423,23 @@
     background: var(--accent); color: #fff;
     display: flex; align-items: center; justify-content: center;
     font-size: 1.6rem; font-weight: 700; flex-shrink: 0;
-    border: 2px solid rgba(255,255,255,.12);
+    border: 2px solid var(--border);
 }
 .ov-server-name {
-    font-size: 1.5rem; font-weight: 800; color: #fff;
+    font-size: 1.5rem; font-weight: 800; color: var(--text);
     letter-spacing: -.02em; margin: 0 0 .2rem;
 }
-.ov-server-sub { color: rgba(255,255,255,.5); font-size: .875rem; margin: 0; }
+.ov-server-sub { color: var(--text-muted); font-size: .875rem; margin: 0; }
 
 /* ── Live Bar ── */
 .ov-live-bar {
     display: flex; align-items: center; gap: .45rem;
-    font-size: .78rem; color: rgba(255,255,255,.55);
+    font-size: .78rem; color: var(--text-muted);
     background: var(--bg2); border: 1px solid var(--border);
     border-radius: 8px; padding: .4rem .85rem;
     margin-bottom: 1rem;
 }
-.ov-live-bar strong { color: rgba(255,255,255,.85); font-weight: 600; }
+.ov-live-bar strong { color: var(--text); font-weight: 600; }
 .ov-live-dot {
     width: 7px; height: 7px; border-radius: 50%;
     background: #57F287; flex-shrink: 0;
@@ -499,7 +523,7 @@
 }
 .ov-botsettings-icon {
     width: 34px; height: 34px; border-radius: 9px; flex-shrink: 0;
-    background: rgba(88,101,242,.15); color: #949cf7;
+    background: rgba(var(--accent-rgb),.15); color: var(--accent);
     display: flex; align-items: center; justify-content: center;
 }
 .ov-botsettings-icon svg { width: 16px; height: 16px; }

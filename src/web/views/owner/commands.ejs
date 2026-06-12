@@ -28,7 +28,11 @@
         <div class="cm-row">
             <div class="cm-row-name"><span class="cm-slash">/</span><%= cmd.name %></div>
             <div class="cm-row-desc"><%= cmd.description || '—' %></div>
-            <div class="cm-row-opts"><%= cmd.options > 0 ? cmd.options + ' option' + (cmd.options !== 1 ? 's' : '') : '—' %></div>
+            <div class="cm-row-opts">
+                <% if (cmd.options > 0) { %>
+                <span class="cm-opts-badge"><%= cmd.options %> opt</span>
+                <% } else { %>—<% } %>
+            </div>
         </div>
         <% }); %>
     </div>
@@ -125,6 +129,11 @@
     font-size: .78rem; color: var(--text-muted);
     display: flex; justify-content: flex-end; flex-wrap: wrap; gap: .3rem;
 }
+.cm-opts-badge {
+    background: rgba(88,101,242,.15); color: #949cf7;
+    border-radius: 5px; padding: .1rem .45rem;
+    font-size: .68rem; font-weight: 700;
+}
 .cm-alias-tag {
     background: var(--bg3); border: 1px solid var(--border);
     border-radius: 5px; padding: .1rem .45rem;
@@ -139,12 +148,26 @@
 .cm-empty svg { width: 24px; height: 24px; opacity: .4; }
 
 @media(max-width:640px) {
-    .cm-th-opts, .cm-th-alias, .cm-row-opts, .cm-row-alias { display: none; }
-    .cm-th-name, .cm-row-name { width: 140px; }
-}
-@media(max-width:440px) {
-    .cm-th-desc, .cm-row-desc { display: none; }
-    .cm-th-name, .cm-row-name { width: 100%; }
+    /* Hide table header, reflow each row as a mini-card */
+    .cm-table-head { display: none; }
+    .cm-row {
+        flex-direction: column; align-items: flex-start;
+        gap: .2rem; padding: .75rem 1rem;
+    }
+    .cm-row-name {
+        width: 100%; white-space: normal;
+        overflow: visible; text-overflow: unset;
+        font-size: .875rem;
+    }
+    .cm-row-desc {
+        width: 100%; padding: 0; flex: unset;
+        white-space: normal; overflow: visible; text-overflow: unset;
+        font-size: .78rem; color: var(--text-muted);
+    }
+    .cm-row-opts, .cm-row-alias {
+        width: auto; text-align: left;
+        justify-content: flex-start; margin-top: .15rem;
+    }
 }
 </style>
 

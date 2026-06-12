@@ -37,6 +37,19 @@
                 <a href="/dev-console" class="nav-dropdown-item nav-dropdown-owner"><i data-lucide="shield-check"></i> Dev Console</a>
                 <% } %>
                 <div class="nav-dropdown-divider"></div>
+                <div class="nav-dropdown-label"><i data-lucide="palette"></i> Appearance</div>
+                <div class="nav-appearance">
+                    <button class="theme-btn" data-theme-val="auto"  title="Follow System"><i data-lucide="monitor"></i></button>
+                    <button class="theme-btn" data-theme-val="light" title="Light"><i data-lucide="sun"></i></button>
+                    <button class="theme-btn" data-theme-val="dark"  title="Dark"><i data-lucide="moon"></i></button>
+                    <span class="nav-appearance-sep"></span>
+                    <button class="accent-dot" data-accent-val="blue"    title="Blue"    style="background:#5865f2"></button>
+                    <button class="accent-dot" data-accent-val="blurple" title="Blurple" style="background:#7289da"></button>
+                    <button class="accent-dot" data-accent-val="emerald" title="Emerald" style="background:#2ecc71"></button>
+                    <button class="accent-dot" data-accent-val="rose"    title="Rose"    style="background:#eb459e"></button>
+                    <button class="accent-dot" data-accent-val="amber"   title="Amber"   style="background:#f0a032"></button>
+                </div>
+                <div class="nav-dropdown-divider"></div>
                 <div class="nav-dropdown-label"><i data-lucide="languages"></i> Language</div>
                 <a href="/lang/en" class="nav-dropdown-item<%= _lang === 'en' ? ' active' : '' %>">
                     <span class="nav-lang-flag">🇬🇧</span> English
@@ -205,6 +218,76 @@ document.addEventListener('click', (e) => {
         dd.classList.remove('open');
     }
 });
+
+/* ── Theme & Accent Manager ── */
+(function () {
+    var THEME_KEY  = 'octa-theme';
+    var ACCENT_KEY = 'octa-accent';
+
+    function getThemePref()  { return localStorage.getItem(THEME_KEY)  || 'auto'; }
+    function getAccentPref() { return localStorage.getItem(ACCENT_KEY) || 'blue'; }
+
+    function resolveTheme(pref) {
+        return pref === 'auto'
+            ? (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark')
+            : pref;
+    }
+
+    function applyTheme(pref) {
+        var html = document.documentElement;
+        html.classList.add('theme-transitioning');
+        html.setAttribute('data-theme', resolveTheme(pref));
+        html.setAttribute('data-theme-pref', pref);
+        updateThemeUI(pref);
+        setTimeout(function () { html.classList.remove('theme-transitioning'); }, 160);
+    }
+
+    function applyAccent(accent) {
+        var html = document.documentElement;
+        if (!accent || accent === 'blue') html.removeAttribute('data-accent');
+        else html.setAttribute('data-accent', accent);
+        updateAccentUI(accent || 'blue');
+    }
+
+    function updateThemeUI(pref) {
+        document.querySelectorAll('.theme-btn').forEach(function (btn) {
+            btn.classList.toggle('active', btn.getAttribute('data-theme-val') === pref);
+        });
+    }
+
+    function updateAccentUI(accent) {
+        document.querySelectorAll('.accent-dot').forEach(function (dot) {
+            dot.classList.toggle('active', dot.getAttribute('data-accent-val') === accent);
+        });
+    }
+
+    // Init UI state
+    updateThemeUI(getThemePref());
+    updateAccentUI(getAccentPref());
+
+    // Ikuti perubahan OS preference saat mode auto
+    window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', function () {
+        if (getThemePref() === 'auto') applyTheme('auto');
+    });
+
+    // Theme button clicks
+    document.addEventListener('click', function (e) {
+        var btn = e.target.closest('.theme-btn');
+        if (!btn) return;
+        var pref = btn.getAttribute('data-theme-val');
+        localStorage.setItem(THEME_KEY, pref);
+        applyTheme(pref);
+    });
+
+    // Accent dot clicks
+    document.addEventListener('click', function (e) {
+        var dot = e.target.closest('.accent-dot');
+        if (!dot) return;
+        var accent = dot.getAttribute('data-accent-val');
+        localStorage.setItem(ACCENT_KEY, accent);
+        applyAccent(accent);
+    });
+})();
 
 /* ── Auto-hide navbar on scroll ── */
 (function () {
