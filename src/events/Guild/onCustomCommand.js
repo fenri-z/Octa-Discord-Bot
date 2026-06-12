@@ -40,8 +40,10 @@ module.exports = new Event({
                 matches = content === trigger ||
                           (contentNaked !== null && contentNaked === trigger);
             } else {
-                matches = content.startsWith(trigger) ||
-                          (contentNaked !== null && contentNaked.startsWith(trigger));
+                const prefixMatch = (str) =>
+                    str === trigger || str.startsWith(trigger + ' ');
+                matches = prefixMatch(content) ||
+                          (contentNaked !== null && prefixMatch(contentNaked));
             }
             if (!matches) continue;
 
@@ -51,25 +53,43 @@ module.exports = new Event({
                 const embed = new EmbedBuilder().setColor(res.color || '#5865F2');
 
                 if (res.author?.name) {
-                    const ao = { name: rp(res.author.name) };
-                    if (res.author.iconURL) try { new URL(res.author.iconURL); ao.iconURL = res.author.iconURL; } catch {}
-                    embed.setAuthor(ao);
+                    const resolvedName = rp(res.author.name);
+                    if (resolvedName) {
+                        const ao = { name: resolvedName };
+                        if (res.author.iconURL) { const ri = rp(res.author.iconURL); try { new URL(ri); ao.iconURL = ri; } catch {} }
+                        if (res.author.url)     try { new URL(res.author.url); ao.url = res.author.url; } catch {}
+                        try { embed.setAuthor(ao); } catch {}
+                    }
                 }
-                if (res.title)       embed.setTitle(rp(res.title));
-                if (res.description) embed.setDescription(rp(res.description));
+                if (res.title) {
+                    const resolvedTitle = rp(res.title);
+                    if (resolvedTitle) {
+                        try { embed.setTitle(resolvedTitle); } catch {}
+                        if (res.titleUrl) try { embed.setURL(res.titleUrl); } catch {}
+                    }
+                }
+                if (res.description) {
+                    const resolvedDesc = rp(res.description);
+                    if (resolvedDesc) try { embed.setDescription(resolvedDesc); } catch {}
+                }
                 if (Array.isArray(res.fields) && res.fields.length) {
                     try {
                         embed.addFields(res.fields.filter(f => f.name && f.value).map(f => ({
-                            name: rp(f.name), value: rp(f.value), inline: !!f.inline,
+                            name:   rp(f.name)  || '​',
+                            value:  rp(f.value) || '​',
+                            inline: !!f.inline,
                         })));
                     } catch {}
                 }
-                if (res.thumbnailURL) try { embed.setThumbnail(res.thumbnailURL); } catch {}
-                if (res.imageURL)     try { embed.setImage(res.imageURL); } catch {}
+                if (res.thumbnailURL) { const rt = rp(res.thumbnailURL); try { embed.setThumbnail(rt); } catch {} }
+                if (res.imageURL)     { const ri = rp(res.imageURL);     try { embed.setImage(ri);     } catch {} }
                 if (res.footer?.text) {
-                    const fo = { text: rp(res.footer.text) };
-                    if (res.footer.iconURL) try { new URL(res.footer.iconURL); fo.iconURL = res.footer.iconURL; } catch {}
-                    embed.setFooter(fo);
+                    const resolvedFooter = rp(res.footer.text);
+                    if (resolvedFooter) {
+                        const fo = { text: resolvedFooter };
+                        if (res.footer.iconURL) { const rfi = rp(res.footer.iconURL); try { new URL(rfi); fo.iconURL = rfi; } catch {} }
+                        try { embed.setFooter(fo); } catch {}
+                    }
                 }
                 if (res.timestamp) embed.setTimestamp();
 
@@ -78,24 +98,54 @@ module.exports = new Event({
                     sendOpts.content = rp(res.text);
                     sendOpts.allowedMentions = { parse: ['users', 'roles'] };
                 }
+                if (res.plainImageURL) {
+                    const ri = rp(res.plainImageURL);
+                    try { new URL(ri); if (isDirectImageUrl(ri)) sendOpts.files = [{ attachment: ri }]; } catch {}
+                }
                 await message.channel.send(sendOpts).catch(() => null);
             } else {
-                const text = (cmd.response && cmd.response.text) || '';
-                await message.channel.send({
+                const text     = (cmd.response && cmd.response.text) || '';
+                const plainImg = (cmd.response && cmd.response.plainImageURL) || '';
+                const sendOpts = {
                     content: replacePlaceholders(text, message),
                     allowedMentions: { parse: ['users', 'roles'] },
-                }).catch(() => null);
+                };
+                if (plainImg) {
+                    const ri = replacePlaceholders(plainImg, message);
+                    try { new URL(ri); if (isDirectImageUrl(ri)) sendOpts.files = [{ attachment: ri }]; } catch {}
+                }
+                await message.channel.send(sendOpts).catch(() => null);
             }
             break;
         }
     }
 }).toJSON();
 
+function isDirectImageUrl(url) {
+    return /\.(png|jpe?g|gif|webp|bmp|avif)(?:[?#]|$)/i.test(url);
+}
+
 function replacePlaceholders(text, message) {
     if (!text || typeof text !== 'string') return '';
+    const nickname      = message.member?.displayName || message.author.username;
+    const avatarUrl     = message.author.displayAvatarURL?.({ extension: 'png', size: 256 }) || '';
+    const serverIconUrl = message.guild.iconURL?.({ extension: 'png', size: 256 }) || '';
     return text
-        .replace(/\{member\}/g,   `<@${message.author.id}>`)
-        .replace(/\{username\}/g, message.author.username)
-        .replace(/\{server\}/g,   message.guild.name)
-        .replace(/\{channel\}/g,  `<#${message.channel.id}>`);
+        // Dot-notation placeholders (process multi-part first to avoid partial matches)
+        .replace(/\{user\.username\}/g, message.author.username)
+        .replace(/\{user\.id\}/g,       message.author.id)
+        .replace(/\{user\.avatar\}/g,   avatarUrl)
+        .replace(/\{user\.mention\}/g,  `<@${message.author.id}>`)
+        .replace(/\{user\}/g,           `<@${message.author.id}>`)
+        .replace(/\{server\.name\}/g,   message.guild.name)
+        .replace(/\{server\.id\}/g,     message.guild.id)
+        .replace(/\{server\.icon\}/g,   serverIconUrl)
+        // Legacy placeholders (backward compat)
+        .replace(/\{member\}/g,         `<@${message.author.id}>`)
+        .replace(/\{username\}/g,       message.author.username)
+        .replace(/\{nickname\}/g,       nickname)
+        .replace(/\{id\}/g,             message.author.id)
+        .replace(/\{tag\}/g,            message.author.username)
+        .replace(/\{server\}/g,         message.guild.name)
+        .replace(/\{channel\}/g,        `<#${message.channel.id}>`);
 }

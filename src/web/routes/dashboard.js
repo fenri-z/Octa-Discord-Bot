@@ -1499,12 +1499,36 @@ router.get('/:guildId/custom-commands', requireLogin, requireManageGuild, async 
         const guildId = req.params.guildId;
         const guild   = req.botGuild;
 
+        await _ensureRoles(guild);
+        await _ensureChannels(guild);
+
         let commands = [];
         try { commands = JSON.parse(db?.get(`customcmd-list-${guildId}`) || '[]'); } catch {}
 
+        const channels = [...guild.channels.cache.values()]
+            .filter(c => c.type === 0 || c.type === 5 || c.type === 10 || c.type === 11 || c.type === 12)
+            .map(c => ({ id: c.id, name: c.name }))
+            .sort((a, b) => a.name.localeCompare(b.name));
+
+        const roles = [...guild.roles.cache.values()]
+            .filter(r => r.id !== guild.id)
+            .map(r => ({ id: r.id, name: r.name, color: r.hexColor === '#000000' ? '#99aab5' : r.hexColor }))
+            .sort((a, b) => a.name.localeCompare(b.name));
+
+        const u = req.user || {};
+        const sampleUser = {
+            username: u.username || 'user',
+            id:       u.id       || '000000000000000000',
+            avatarUrl: u.avatar
+                ? `https://cdn.discordapp.com/avatars/${u.id}/${u.avatar}.png?size=256`
+                : 'https://cdn.discordapp.com/embed/avatars/0.png',
+        };
+        const guildIconUrl = guild.iconURL?.({ extension: 'png', size: 64 }) || '';
+
         res.render('dashboard/custom-commands', {
             title: 'Custom Commands',
-            guild, commands,
+            guild, commands, channels, roles,
+            sampleUser, guildIconUrl,
             missingPerms: getMissingPerms(guild),
             activePage: 'custom-commands',
             hasSidebar: true,

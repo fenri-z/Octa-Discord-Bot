@@ -7,3 +7,4 @@ database.db-wal
 terminal.log
 .claude
 .vscode
+backups

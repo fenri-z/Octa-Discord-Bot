@@ -9,7 +9,7 @@
         <%- include('../partials/perm-notice') %>
 
         <div class="page-header">
-            <h1>⚙️ <%= t('custom_commands.page_title') %></h1>
+            <h1><%= t('custom_commands.page_title') %></h1>
             <p><%= t('custom_commands.page_desc') %></p>
         </div>
 
@@ -54,12 +54,17 @@
                     <div class="guide-desc"><%= t('custom_commands.step3_desc') %></div>
                 </div>
             </div>
-            <div class="guide-tip">💡 <%= t('custom_commands.tip') %></div>
+            <div class="guide-tip">💡 <%- t('custom_commands.tip') %></div>
         </div>
 
         <!-- Add Command Form -->
-        <div class="settings-card">
-            <h2><%= t('custom_commands.add_title') %></h2>
+        <div class="settings-card" id="ccFormCard">
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;margin-bottom:.9rem;">
+                <h2 id="ccFormTitle" style="margin:0;"><%= t('custom_commands.add_title') %></h2>
+                <button type="button" id="ccCancelEdit" class="btn btn-sm" style="display:none;" onclick="cancelEdit()">
+                    <i data-lucide="x" style="width:13px;height:13px;"></i> Cancel Edit
+                </button>
+            </div>
 
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
                 <div class="form-group">
@@ -79,83 +84,165 @@
                 <!-- Left: response inputs -->
                 <div class="cc-form-inputs">
                     <div id="ccPlainSection" class="form-group">
-                        <label class="label"><%= t('custom_commands.plain_label') %></label>
+                        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.35rem;margin-bottom:.45rem;">
+                            <label class="label" style="margin:0;"><%= t('custom_commands.plain_label') %></label>
+                            <div class="ph-btn-group">
+                                <div class="ph-picker-anchor">
+                                    <button type="button" class="ph-toggle-btn" onclick="toggleCcPicker('ccPlainPhPicker',event)">{…} Placeholder</button>
+                                    <div class="ph-dropdown" id="ccPlainPhPicker" style="display:none;"></div>
+                                </div>
+                                <div class="ph-picker-anchor mention-anchor">
+                                    <button type="button" class="ph-toggle-btn" onclick="toggleCcPicker('ccPlainMentionPicker',event)">@ Mention</button>
+                                    <div class="ph-dropdown mention-dd" id="ccPlainMentionPicker" style="display:none;"></div>
+                                </div>
+                            </div>
+                        </div>
                         <textarea id="ccPlainText" class="input" data-flt-ignore rows="3" placeholder="<%= t('custom_commands.plain_placeholder') %>" maxlength="2000" style="resize:vertical;" oninput="updatePreview()"></textarea>
+                        <div style="margin-top:.5rem;">
+                            <input type="text" id="ccPlainImage" class="input input-sm" data-flt-ignore
+                                   placeholder="Image URL (https://...) — optional"
+                                   data-url-label="Image URL"
+                                   oninput="updatePreview()">
+                        </div>
                     </div>
                     <div id="ccEmbedSection">
-                        <!-- Color + Thumbnail -->
-                        <div style="display:grid;grid-template-columns:130px 1fr;gap:1rem;">
-                            <div class="form-group">
-                                <label class="label"><%= t('custom_commands.embed_color_label') %></label>
-                                <input type="color" id="ccEmbedColor" class="input" data-flt-ignore value="#5865F2" style="height:42px;padding:.25rem;" oninput="updatePreview()">
-                            </div>
-                            <div class="form-group">
-                                <label class="label">Thumbnail URL</label>
-                                <input type="text" id="ccEmbedThumbnail" class="input" data-flt-ignore placeholder="https://… (optional)" oninput="updatePreview()">
-                            </div>
-                        </div>
-                        <!-- Author -->
-                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
-                            <div class="form-group">
-                                <label class="label">Author Name</label>
-                                <input type="text" id="ccEmbedAuthor" class="input" data-flt-ignore placeholder="Author name… (optional)" maxlength="256" oninput="updatePreview()">
-                            </div>
-                            <div class="form-group">
-                                <label class="label">Author Icon URL</label>
-                                <input type="text" id="ccEmbedAuthorIcon" class="input" data-flt-ignore placeholder="https://… (optional)" oninput="updatePreview()">
+                        <!-- Embed Builder header -->
+                        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem;">
+                            <span class="label" style="margin:0;display:flex;align-items:center;gap:.45rem;">
+                                <i data-lucide="layers" style="width:14px;height:14px;color:var(--accent,#5865F2);flex-shrink:0;"></i>
+                                <%= t('custom_commands.ee_builder') %>
+                            </span>
+                            <div style="display:flex;align-items:center;gap:.45rem;">
+                                <span class="label" style="margin:0;"><%= t('custom_commands.ee_accent') %></span>
+                                <input type="color" id="ccEmbedColor" class="cc-ee-color-pk" data-flt-ignore value="#5865F2" oninput="onEeColor()">
                             </div>
                         </div>
-                        <!-- Title -->
-                        <div class="form-group">
-                            <label class="label"><%= t('custom_commands.embed_title_label') %></label>
-                            <input type="text" id="ccEmbedTitle" class="input" data-flt-ignore placeholder="<%= t('custom_commands.embed_title_placeholder') %>" maxlength="256" oninput="updatePreview()">
-                        </div>
-                        <!-- Description -->
-                        <div class="form-group">
-                            <label class="label"><%= t('custom_commands.embed_desc_label') %></label>
-                            <textarea id="ccEmbedDesc" class="input" data-flt-ignore rows="3" placeholder="<%= t('custom_commands.embed_desc_placeholder') %>" maxlength="4096" style="resize:vertical;" oninput="updatePreview()"></textarea>
-                        </div>
-                        <!-- Fields -->
-                        <div class="form-group">
-                            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.55rem;">
-                                <label class="label" style="margin:0;">Fields <span id="ccFieldCount" style="font-size:.72rem;color:var(--text-muted);font-weight:400;">(0 / 25)</span></label>
-                                <button type="button" class="btn btn-outline btn-sm" onclick="addEmbedField()">
-                                    <i data-lucide="plus" style="width:13px;height:13px;"></i> Add Field
-                                </button>
+
+                        <!-- Embed sections -->
+                        <div class="ee-body">
+
+                            <!-- AUTHOR -->
+                            <div class="ee-section">
+                                <div class="ee-sec-label"><%= t('custom_commands.ee_author') %></div>
+                                <div class="form-group" style="margin-bottom:.5rem;">
+                                    <input type="text" id="ccEmbedAuthor" class="input" data-flt-ignore
+                                           placeholder="<%= t('custom_commands.ee_author_name_ph') %>" maxlength="256" oninput="updatePreview()">
+                                </div>
+                                <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;">
+                                    <input type="text" id="ccEmbedAuthorUrl" class="input input-sm" data-flt-ignore
+                                           placeholder="<%= t('custom_commands.ee_author_url_ph') %>" oninput="updatePreview()"
+                                           data-url-label="Author URL">
+                                    <input type="text" id="ccEmbedAuthorIcon" class="input input-sm" data-flt-ignore
+                                           placeholder="<%= t('custom_commands.ee_author_icon_ph') %>"
+                                           title="Discord only supports public https:// URLs."
+                                           data-url-label="Author Icon URL"
+                                           oninput="onEeAuthIcon()">
+                                </div>
                             </div>
-                            <div id="ccFieldsList"></div>
-                        </div>
-                        <!-- Image URL -->
-                        <div class="form-group">
-                            <label class="label">Image URL <span style="font-size:.72rem;color:var(--text-muted);">(large image below description)</span></label>
-                            <input type="text" id="ccEmbedImage" class="input" data-flt-ignore placeholder="https://… (optional)" oninput="updatePreview()">
-                        </div>
-                        <!-- Footer -->
-                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
-                            <div class="form-group">
-                                <label class="label">Footer Text</label>
-                                <input type="text" id="ccEmbedFooter" class="input" data-flt-ignore placeholder="Footer text… (optional)" maxlength="2048" oninput="updatePreview()">
+
+                            <div class="ee-sep"></div>
+
+                            <!-- TITLE -->
+                            <div class="ee-section">
+                                <div class="ee-sec-label"><%= t('custom_commands.ee_title') %></div>
+                                <div class="form-group" style="margin-bottom:.5rem;">
+                                    <input type="text" id="ccEmbedTitle" class="input ee-title-input" data-flt-ignore
+                                           placeholder="<%= t('custom_commands.ee_title_ph') %>" maxlength="256" oninput="updatePreview()">
+                                </div>
+                                <input type="text" id="ccEmbedTitleUrl" class="input input-sm" data-flt-ignore
+                                       placeholder="<%= t('custom_commands.ee_title_url_ph') %>" oninput="updatePreview()"
+                                       data-url-label="Title URL">
                             </div>
-                            <div class="form-group">
-                                <label class="label">Footer Icon URL</label>
-                                <input type="text" id="ccEmbedFooterIcon" class="input" data-flt-ignore placeholder="https://… (optional)" oninput="updatePreview()">
+
+                            <div class="ee-sep"></div>
+
+                            <!-- DESCRIPTION -->
+                            <div class="ee-section">
+                                <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.3rem;margin-bottom:.45rem;">
+                                    <div class="ee-sec-label" style="margin:0;"><%= t('custom_commands.ee_description') %></div>
+                                    <div class="ph-btn-group">
+                                        <div class="ph-picker-anchor">
+                                            <button type="button" class="ph-toggle-btn cc-ph-dark-btn" onclick="toggleCcPicker('ccDescPhPicker',event)">{…} Placeholder</button>
+                                            <div class="ph-dropdown" id="ccDescPhPicker" style="display:none;"></div>
+                                        </div>
+                                        <div class="ph-picker-anchor mention-anchor">
+                                            <button type="button" class="ph-toggle-btn cc-ph-dark-btn" onclick="toggleCcPicker('ccDescMentionPicker',event)">@ Mention</button>
+                                            <div class="ph-dropdown mention-dd" id="ccDescMentionPicker" style="display:none;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <textarea id="ccEmbedDesc" class="input" data-flt-ignore rows="4"
+                                          placeholder="<%= t('custom_commands.ee_desc_ph') %>"
+                                          maxlength="4096" style="resize:vertical;width:100%;box-sizing:border-box;" oninput="updatePreview()"></textarea>
                             </div>
-                        </div>
-                        <!-- Timestamp -->
-                        <div class="form-group" style="display:flex;align-items:center;gap:.6rem;margin-bottom:0;">
-                            <label class="toggle-label" style="gap:.6rem;cursor:pointer;">
-                                <input type="checkbox" id="ccEmbedTimestamp" class="toggle-input" data-flt-ignore onchange="updatePreview()">
-                                <span class="toggle-slider"></span>
-                                <span style="font-size:.875rem;">Include Timestamp</span>
-                            </label>
-                        </div>
+
+                            <div class="ee-sep"></div>
+
+                            <!-- MEDIA -->
+                            <div class="ee-section">
+                                <div class="ee-sec-label"><%= t('custom_commands.ee_media') %></div>
+                                <div class="form-group" style="margin-bottom:.5rem;">
+                                    <label class="label"><%= t('custom_commands.ee_thumbnail') %></label>
+                                    <input type="text" id="ccEmbedThumbnail" class="input input-sm" data-flt-ignore
+                                           placeholder="https://..."
+                                           title="Discord only supports public https:// URLs."
+                                           data-url-label="Thumbnail URL"
+                                           oninput="onEeThumb()">
+                                </div>
+                                <div>
+                                    <label class="label"><%= t('custom_commands.ee_image') %></label>
+                                    <input type="text" id="ccEmbedImage" class="input input-sm" data-flt-ignore
+                                           placeholder="https://..."
+                                           title="Discord only supports public https:// URLs."
+                                           data-url-label="Image URL"
+                                           oninput="onEeImage()">
+                                </div>
+                            </div>
+
+                            <div class="ee-sep"></div>
+
+                            <!-- FIELDS -->
+                            <div class="ee-section">
+                                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem;">
+                                    <div class="ee-sec-label" style="margin:0;"><%= t('custom_commands.ee_fields') %> <span id="ccFieldCount" style="font-weight:400;text-transform:none;letter-spacing:0;">(0 / 25)</span></div>
+                                    <button type="button" class="btn btn-outline btn-sm" onclick="addEmbedField()">
+                                        <i data-lucide="plus" style="width:13px;height:13px;"></i> <%= t('custom_commands.ee_add_field') %>
+                                    </button>
+                                </div>
+                                <div id="ccFieldsList"></div>
+                            </div>
+
+                            <div class="ee-sep"></div>
+
+                            <!-- FOOTER -->
+                            <div class="ee-section">
+                                <div class="ee-sec-label"><%= t('custom_commands.ee_footer') %></div>
+                                <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;">
+                                    <input type="text" id="ccEmbedFooterIcon" class="input input-sm" data-flt-ignore
+                                           style="flex:1;min-width:130px;"
+                                           placeholder="<%= t('custom_commands.ee_footer_icon_ph') %>"
+                                           title="Discord only supports public https:// URLs."
+                                           data-url-label="Footer Icon URL"
+                                           oninput="onEeFooterIcon()">
+                                    <input type="text" id="ccEmbedFooter" class="input input-sm" data-flt-ignore
+                                           style="flex:1;min-width:130px;"
+                                           placeholder="<%= t('custom_commands.ee_footer_text_ph') %>" maxlength="2048" oninput="updatePreview()">
+                                    <label class="toggle-label" style="gap:.5rem;cursor:pointer;flex-shrink:0;">
+                                        <input type="checkbox" id="ccEmbedTimestamp" class="toggle-input" data-flt-ignore onchange="updatePreview()">
+                                        <span class="toggle-slider"></span>
+                                        <span class="label" style="margin:0;white-space:nowrap;"><%= t('custom_commands.ee_show_timestamp') %></span>
+                                    </label>
+                                </div>
+                            </div>
+
+                        </div><!-- /.ee-body -->
                     </div>
                 </div>
 
                 <!-- Right: Discord-style preview -->
                 <div class="cc-preview-panel">
-                    <div class="cc-preview-label">
-                        <i data-lucide="eye" style="width:13px;height:13px;flex-shrink:0;"></i> PREVIEW
+                    <div class="cc-preview-label" onclick="toggleCcPreview()" style="cursor:pointer;user-select:none;" title="Toggle preview">
+                        <i id="ccPreviewEyeIcon" data-lucide="eye" style="width:13px;height:13px;flex-shrink:0;"></i> PREVIEW
                     </div>
                     <div class="cc-discord-preview">
                         <div class="cc-dp-channel">
@@ -179,12 +266,15 @@
                                     <span class="cc-dp-time">Today at 12:00</span>
                                 </div>
                                 <div id="ccDpText" class="cc-dp-text" style="display:none;"></div>
+                                <div id="ccDpPlainImage" class="cc-dp-plain-image" style="display:none;">
+                                    <img id="ccDpPlainImg" src="" alt="" onerror="this.closest('.cc-dp-plain-image').style.display='none'">
+                                </div>
                                 <div id="ccDpEmbed" class="cc-dp-embed" style="display:none;">
                                     <div id="ccDpEmbedBar" class="cc-dp-embed-bar" style="background:#5865F2;"></div>
                                     <div class="cc-dp-embed-body">
-                                        <div id="ccDpEmbedAuthor" class="cc-dp-embed-author" style="display:none;"></div>
                                         <div class="cc-dp-embed-main">
                                             <div class="cc-dp-embed-content">
+                                                <div id="ccDpEmbedAuthor" class="cc-dp-embed-author" style="display:none;"></div>
                                                 <div id="ccDpEmbedTitle"  class="cc-dp-embed-title"  style="display:none;"></div>
                                                 <div id="ccDpEmbedDesc"   class="cc-dp-embed-desc"   style="display:none;"></div>
                                                 <div id="ccDpEmbedFields" class="cc-dp-embed-fields" style="display:none;"></div>
@@ -229,7 +319,10 @@
                             <input type="checkbox" class="toggle-input cc-enabled" data-flt-ignore <%= cmd.enabled ? 'checked' : '' %> onchange="toggleCmd(this)">
                             <span class="toggle-slider"></span>
                         </label>
-                        <button class="btn btn-danger btn-sm" onclick="deleteCommand(this)">
+                        <button class="btn btn-sm cc-btn-edit" onclick="loadCommandForEdit(parseInt(this.closest('.cc-row').dataset.idx))" title="Edit command">
+                            <i data-lucide="pencil" style="width:13px;height:13px;"></i>
+                        </button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteCommand(this)" title="Delete command">
                             <i data-lucide="trash-2" style="width:14px;height:14px;"></i>
                         </button>
                     </div>
@@ -247,7 +340,8 @@
 .cc-row {
     display: flex; align-items: center; justify-content: space-between;
     gap: .75rem; padding: .6rem .75rem;
-    background: rgba(255,255,255,.03); border-radius: 8px; margin-bottom: .4rem;
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 8px; margin-bottom: .4rem;
     flex-wrap: wrap;
 }
 .cc-row-left  { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; min-width: 0; }
@@ -259,6 +353,9 @@
 }
 .cc-badge-exact   { background: rgba(87,242,135,.12); color: #57F287; }
 .cc-badge-prefix  { background: rgba(254,231,92,.12);  color: #FEE75C; }
+[data-theme="light"] .cc-badge { background: rgba(0,0,0,.06); }
+[data-theme="light"] .cc-badge-exact  { background: rgba(40,140,70,.12);  color: #1c7a3f; }
+[data-theme="light"] .cc-badge-prefix { background: rgba(180,140,0,.12);  color: #7a5a00; }
 
 @media (max-width: 600px) {
     [style*="grid-template-columns:1fr 1fr"] { grid-template-columns: 1fr !important; }
@@ -269,7 +366,7 @@
     display: flex; gap: 1.25rem; align-items: flex-start; margin-top: .25rem;
 }
 .cc-form-inputs { flex: 1; min-width: 0; }
-.cc-preview-panel { width: 380px; flex-shrink: 0; }
+.cc-preview-panel { width: 460px; flex-shrink: 0; position: sticky; top: calc(var(--navbar-h) + 1.5rem); }
 
 .cc-preview-label {
     font-size: .68rem; font-weight: 700; color: var(--text-muted);
@@ -277,16 +374,27 @@
     display: flex; align-items: center; gap: .35rem;
     margin-bottom: .55rem;
 }
-
-/* ── Discord preview container (always dark — Discord UI) ───────────── */
+.cc-preview-label:hover { color: var(--text); }
 .cc-discord-preview {
-    background: #313338; border-radius: 10px;
+    transition: opacity .2s, transform .2s;
+    transform-origin: top center;
+}
+.cc-preview-hidden .cc-discord-preview {
+    opacity: 0; pointer-events: none;
+    transform: scaleY(0.92);
+    max-height: 0; overflow: hidden; margin: 0; border: none;
+}
+
+/* ── Discord preview container (theme-adaptive) ───────────────────── */
+.cc-discord-preview {
+    background: var(--bg2); border-radius: 10px;
     overflow: hidden; user-select: none;
+    border: 1px solid var(--border);
 }
 .cc-dp-channel {
-    background: #2b2d31; border-bottom: 1px solid rgba(0,0,0,.25);
+    background: var(--bg3); border-bottom: 1px solid var(--border);
     padding: .45rem .8rem;
-    font-size: .75rem; color: rgba(255,255,255,.4);
+    font-size: .75rem; color: var(--text-muted);
     display: flex; align-items: center; gap: .4rem;
 }
 .cc-dp-channel svg { opacity: .5; flex-shrink: 0; }
@@ -304,60 +412,66 @@
 
 .cc-dp-name {
     display: flex; align-items: center; gap: .35rem; flex-wrap: wrap;
-    font-size: .875rem; font-weight: 700; color: #fff;
+    font-size: .875rem; font-weight: 700; color: var(--text);
     margin-bottom: .25rem; line-height: 1.2;
 }
 .cc-dp-app-badge {
-    font-size: .58rem; font-weight: 700; padding: .08rem .3rem;
+    display: inline-flex; align-items: center; gap: .2rem;
+    font-size: .58rem; font-weight: 700; padding: .12rem .28rem;
     border-radius: 3px; background: #5865F2; color: #fff;
-    letter-spacing: .04em; text-transform: uppercase;
-    display: inline-flex; align-items: center; gap: .2rem; flex-shrink: 0;
+    letter-spacing: .03em; text-transform: uppercase;
+    line-height: 1; flex-shrink: 0;
 }
+.cc-dp-app-badge svg { flex-shrink: 0; }
 .cc-dp-time {
-    font-size: .72rem; font-weight: 400; color: rgba(255,255,255,.3);
+    font-size: .72rem; font-weight: 400; color: var(--text-muted);
 }
 
 .cc-dp-text {
-    font-size: .875rem; color: #dbdee1;
+    font-size: .875rem; color: var(--text);
     line-height: 1.5; word-break: break-word;
     white-space: pre-wrap; margin-bottom: .2rem;
 }
 
+/* Plain text image */
+.cc-dp-plain-image { margin-top: .35rem; border-radius: 4px; overflow: hidden; max-width: 400px; max-height: 300px; }
+.cc-dp-plain-image img { width: 100%; display: block; object-fit: cover; max-height: 300px; }
+
 /* Embed */
 .cc-dp-embed {
     display: flex; border-radius: 0 4px 4px 0;
-    background: #2b2d31; margin-top: .35rem;
+    background: var(--bg3); margin-top: .35rem;
     overflow: hidden; max-width: 100%;
 }
 .cc-dp-embed-bar { width: 4px; flex-shrink: 0; }
 .cc-dp-embed-body { padding: .55rem .75rem; min-width: 0; }
 .cc-dp-embed-title {
-    font-size: .875rem; font-weight: 700; color: #fff;
+    font-size: .875rem; font-weight: 700; color: var(--text);
     margin-bottom: .2rem; word-break: break-word; line-height: 1.4;
 }
 .cc-dp-embed-desc {
-    font-size: .8rem; color: rgba(255,255,255,.7);
+    font-size: .8rem; color: var(--text-muted);
     line-height: 1.55; word-break: break-word; white-space: pre-wrap;
 }
 
 .cc-dp-empty {
-    font-size: .78rem; color: rgba(255,255,255,.28);
-    padding: .2rem 0; font-style: italic;
+    font-size: .78rem; color: var(--text-muted);
+    padding: .2rem 0; font-style: italic; opacity: .6;
 }
 
 /* Author */
 .cc-dp-embed-author {
     display: flex; align-items: center; gap: .4rem;
-    font-size: .78rem; font-weight: 700; color: #fff;
+    font-size: .78rem; font-weight: 700; color: var(--text);
     margin-bottom: .3rem;
 }
 .cc-dp-author-icon {
     width: 18px; height: 18px; border-radius: 50%; object-fit: cover;
 }
 /* Main content + thumbnail */
-.cc-dp-embed-main { display: flex; gap: .6rem; }
+.cc-dp-embed-main { display: flex; gap: .75rem; align-items: flex-start; }
 .cc-dp-embed-content { flex: 1; min-width: 0; }
-.cc-dp-embed-thumb { flex-shrink: 0; width: 64px; height: 64px; border-radius: 4px; overflow: hidden; }
+.cc-dp-embed-thumb { flex-shrink: 0; width: 80px; height: 80px; border-radius: 4px; overflow: hidden; margin-top: .1rem; }
 .cc-dp-embed-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
 /* Fields grid */
@@ -367,8 +481,8 @@
 }
 .cc-dp-field { }
 .cc-dp-field-block { grid-column: 1 / -1; }
-.cc-dp-field-name { font-size: .78rem; font-weight: 700; color: #fff; margin-bottom: .1rem; word-break: break-word; }
-.cc-dp-field-val  { font-size: .77rem; color: rgba(255,255,255,.7); word-break: break-word; white-space: pre-wrap; }
+.cc-dp-field-name { font-size: .78rem; font-weight: 700; color: var(--text); margin-bottom: .1rem; word-break: break-word; }
+.cc-dp-field-val  { font-size: .77rem; color: var(--text-muted); word-break: break-word; white-space: pre-wrap; }
 
 /* Large image */
 .cc-dp-embed-image { margin-top: .5rem; border-radius: 4px; overflow: hidden; max-height: 140px; }
@@ -377,12 +491,36 @@
 /* Footer */
 .cc-dp-embed-footer {
     display: flex; align-items: center; gap: .35rem; flex-wrap: wrap;
-    font-size: .72rem; color: rgba(255,255,255,.45);
-    margin-top: .5rem; padding-top: .4rem;
-    border-top: 1px solid rgba(255,255,255,.06);
+    font-size: .72rem; color: var(--text-muted);
+    margin-top: .5rem;
 }
 .cc-dp-footer-icon { width: 16px; height: 16px; border-radius: 50%; object-fit: cover; }
 .cc-dp-footer-sep  { opacity: .5; }
+
+/* Discord markdown in preview */
+.cc-inline-code {
+    background: rgba(0,0,0,.25); color: #f8cdbc;
+    padding: .1em .3em; border-radius: 3px;
+    font-family: Consolas, 'Courier New', monospace; font-size: .875em;
+}
+[data-theme="light"] .cc-inline-code { background: rgba(0,0,0,.07); color: #c0392b; }
+.cc-code-block {
+    display: block; background: rgba(0,0,0,.22); color: var(--text);
+    padding: .4rem .6rem; border-radius: 4px;
+    font-family: Consolas, 'Courier New', monospace; font-size: .82em;
+    white-space: pre; overflow-x: auto; max-width: 100%; margin: .1rem 0;
+}
+[data-theme="light"] .cc-code-block { background: rgba(0,0,0,.05); }
+.cc-spoiler {
+    background: var(--text-muted); color: transparent;
+    border-radius: 2px; padding: 0 2px;
+    cursor: pointer; transition: color .15s, background .15s; user-select: none;
+}
+.cc-spoiler:hover { color: var(--text); background: var(--bg3); }
+.cc-blockquote {
+    display: inline-block; border-left: 3px solid rgba(128,128,128,.5);
+    padding-left: .45rem; min-width: calc(100% - .45rem);
+}
 
 /* Embed field rows in form */
 .cc-field-row {
@@ -400,6 +538,118 @@
     .cc-form-preview-row { flex-direction: column; }
     .cc-preview-panel { width: 100%; }
 }
+
+/* ── Embed Builder ───────────────────────────────────────────────── */
+.cc-ee-color-pk {
+    width: 30px; height: 30px; padding: 2px; border-radius: 6px;
+    border: 1px solid var(--border); background: none; cursor: pointer;
+}
+.ee-body {
+    border: 1px solid var(--border); border-radius: 10px; overflow: visible;
+}
+.ee-section { padding: .85rem 1rem; }
+.ee-sep { height: 1px; background: var(--border); }
+.ee-sec-label {
+    font-size: .68rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .06em; color: var(--text-muted); margin-bottom: .5rem;
+}
+.ee-title-input { font-weight: 600 !important; }
+.input-sm { font-size: .85rem !important; padding: .35rem .65rem !important; }
+
+/* ── URL warning state ───────────────────────────────────────────── */
+.cc-url-warn {
+    border-color: rgba(240,71,71,.55) !important;
+    background: rgba(240,71,71,.06) !important;
+}
+.cc-url-warn-msg {
+    font-size: .7rem; color: rgba(240,71,71,.85);
+    display: flex; align-items: center; gap: .25rem;
+    margin-top: .2rem;
+}
+
+/* ── Field cards inside embed builder ───────────────────────────── */
+.ee-body .cc-field-row { background: var(--bg2, rgba(255,255,255,.02)); }
+.ee-body .cc-field-inline-row input[type="checkbox"] { accent-color: #5865F2; }
+
+/* ── Edit button ─────────────────────────────────────────────────── */
+.cc-btn-edit {
+    background: rgba(255,255,255,.06);
+    border: 1px solid rgba(255,255,255,.1);
+    color: rgba(255,255,255,.55);
+}
+[data-theme="light"] .cc-btn-edit {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+}
+[data-theme="light"] .cc-btn-edit:hover {
+    background: rgba(88,101,242,.1);
+    border-color: rgba(88,101,242,.4);
+    color: #5865F2;
+}
+.cc-btn-edit:hover {
+    background: rgba(88,101,242,.18);
+    border-color: rgba(88,101,242,.4);
+    color: #c0c7ff;
+}
+
+/* ── Placeholder / Mention picker ────────────────────────────────── */
+.ph-picker-anchor { position: relative; }
+.ph-toggle-btn {
+    font-size: .72rem; padding: 3px 10px;
+    border: 1px solid var(--border, #3f4147); border-radius: 5px;
+    background: rgba(255,255,255,.04); color: rgba(255,255,255,.5);
+    cursor: pointer; font-family: inherit; white-space: nowrap;
+    line-height: 1.6; transition: background .15s, color .15s, border-color .15s;
+    display: inline-flex; align-items: center; gap: 4px;
+}
+.ph-toggle-btn:hover { background: rgba(255,255,255,.1); color: var(--text, #dbdee1); border-color: rgba(255,255,255,.2); }
+.ph-toggle-btn.active { background: rgba(88,101,242,.18); border-color: rgba(88,101,242,.5); color: #c0c7ff; }
+/* Dark panel variant */
+.cc-ph-dark-btn {
+    font-size: .68rem; padding: 2px 8px;
+    background: rgba(255,255,255,.05); color: rgba(255,255,255,.35);
+    border-color: rgba(255,255,255,.1);
+}
+.cc-ph-dark-btn:hover { background: rgba(255,255,255,.12); color: rgba(255,255,255,.75); border-color: rgba(255,255,255,.2); }
+.cc-ph-dark-btn.active { background: rgba(88,101,242,.2); border-color: rgba(88,101,242,.4); color: #c0c7ff; }
+.ph-btn-group { display: flex; align-items: stretch; flex-shrink: 0; }
+.ph-btn-group .ph-picker-anchor:first-child .ph-toggle-btn { border-radius: 5px 0 0 5px; }
+.ph-btn-group .ph-picker-anchor:last-child  .ph-toggle-btn { border-radius: 0 5px 5px 0; border-left: none; }
+.ph-btn-group .ph-picker-anchor:only-child  .ph-toggle-btn { border-radius: 5px; }
+.ph-dropdown {
+    position: absolute; top: calc(100% + 4px); right: 0; z-index: 500;
+    background: #2b2d31; border: 1px solid #3f4147;
+    border-radius: 8px; padding: .5rem; min-width: 300px;
+    box-shadow: 0 8px 28px rgba(0,0,0,.65);
+    display: grid; grid-template-columns: 1fr 1fr; gap: .25rem;
+}
+.ph-item {
+    display: flex; flex-direction: column; align-items: flex-start;
+    padding: .32rem .5rem; border: 1px solid transparent;
+    border-radius: 5px; background: transparent;
+    cursor: pointer; text-align: left; width: 100%;
+    transition: background .12s;
+}
+.ph-item:hover { background: rgba(255,255,255,.09); border-color: #4f5660; }
+.ph-item code { font-size: .76rem; color: #7289da; font-family: monospace; }
+.ph-item span { font-size: .67rem; color: #80848e; margin-top: 1px; }
+.mention-dd { grid-template-columns: 1fr; min-width: 200px; max-height: 280px; overflow-y: auto; padding: .35rem; }
+.mention-dd .ph-item span { font-size: .82rem; color: inherit; margin-top: 0; }
+.ph-group-label {
+    font-size: .67rem; font-weight: 700; color: #80848e;
+    text-transform: uppercase; letter-spacing: .04em;
+    padding: .45rem .5rem .1rem; pointer-events: none;
+    grid-column: 1 / -1;
+}
+.mention-search-input {
+    width: 100%; box-sizing: border-box; padding: .28rem .45rem;
+    font-size: .8rem; background: rgba(255,255,255,.06);
+    border: 1px solid #3f4147; border-radius: 4px;
+    color: #dbdee1; outline: none; margin-bottom: .15rem;
+    grid-column: 1 / -1;
+}
+.mention-search-input:focus { border-color: var(--accent, #5865F2); }
 </style>
 
 <script>
@@ -407,9 +657,11 @@ const GUILD_ID = '<%= guild.id %>';
 let commands      = <%- JSON.stringify(commands) %>;
 let savedCommands = JSON.parse(JSON.stringify(commands));
 let embedFields   = []; // { name, value, inline }
+let editingIdx    = -1;
 
 const i18n = {
     empty:        '<%= t('custom_commands.empty') %>',
+    add_title:    '<%= t('custom_commands.add_title') %>',
     badge_exact:  '<%= t('custom_commands.badge_exact') %>',
     badge_prefix: '<%= t('custom_commands.badge_prefix') %>',
     badge_embed:  '<%= t('custom_commands.badge_embed') %>',
@@ -419,6 +671,33 @@ const i18n = {
     err_no_text:    '<%= t('custom_commands.err_no_text') %>',
     err_no_embed:   '<%= t('custom_commands.err_no_embed') %>',
     err_no_both:    '<%= t('custom_commands.err_no_both') %>',
+};
+
+// Maps for mention picker
+const CC_CHANNELS = <%- JSON.stringify(Object.fromEntries((locals.channels||[]).map(ch=>[ch.id,ch.name]))) %>;
+const CC_ROLES    = <%- JSON.stringify(Object.fromEntries((locals.roles||[]).map(r=>[r.id,{name:r.name,color:r.color||'#99aab5'}]))) %>;
+const CC_PLACEHOLDERS = [
+    { group: 'USER', items: [
+        ['{user.mention}',  'Mention user'],
+        ['{user.username}', 'Username'],
+        ['{user.id}',       'User ID'],
+        ['{user.avatar}',   'Avatar URL'],
+    ]},
+    { group: 'SERVER', items: [
+        ['{server.name}',   'Server name'],
+        ['{server.id}',     'Server ID'],
+        ['{server.icon}',   'Server icon URL'],
+    ]},
+];
+
+const CC_SAMPLE = {
+    user_username: <%- JSON.stringify(sampleUser.username) %>,
+    user_id:       <%- JSON.stringify(sampleUser.id) %>,
+    user_avatar:   <%- JSON.stringify(sampleUser.avatarUrl) %>,
+    server_name:   <%- JSON.stringify(guild.name) %>,
+    server_id:     <%- JSON.stringify(guild.id) %>,
+    server_icon:   <%- JSON.stringify(guildIconUrl) %>,
+    channel_name:  Object.values(CC_CHANNELS)[0] || 'general',
 };
 
 function showMsg(el, text, type) {
@@ -439,11 +718,14 @@ async function apiFetch(path, method, body) {
 
 
 function updatePreview() {
-    const text   = (document.getElementById('ccPlainText')?.value       || '').trimEnd();
-    const author = (document.getElementById('ccEmbedAuthor')?.value     || '').trim();
-    const aIcon  = (document.getElementById('ccEmbedAuthorIcon')?.value || '').trim();
-    const title  = (document.getElementById('ccEmbedTitle')?.value      || '').trim();
-    const desc   = (document.getElementById('ccEmbedDesc')?.value       || '').trimEnd();
+    const plainImg  = (document.getElementById('ccPlainImage')?.value      || '').trim();
+    const text      = (document.getElementById('ccPlainText')?.value       || '').trimEnd();
+    const author    = (document.getElementById('ccEmbedAuthor')?.value     || '').trim();
+    const aIcon     = (document.getElementById('ccEmbedAuthorIcon')?.value || '').trim();
+    const authorUrl = (document.getElementById('ccEmbedAuthorUrl')?.value  || '').trim();
+    const title     = (document.getElementById('ccEmbedTitle')?.value      || '').trim();
+    const titleUrl  = (document.getElementById('ccEmbedTitleUrl')?.value   || '').trim();
+    const desc      = (document.getElementById('ccEmbedDesc')?.value       || '').trimEnd();
     const color  = (document.getElementById('ccEmbedColor')?.value      || '#5865F2');
     const thumb  = (document.getElementById('ccEmbedThumbnail')?.value  || '').trim();
     const image  = (document.getElementById('ccEmbedImage')?.value      || '').trim();
@@ -455,11 +737,30 @@ function updatePreview() {
     const showText  = text.length > 0;
     const showEmbed = !!(author || title || desc || activeFields.length || image || thumb || footer || ts);
 
-    document.getElementById('ccDpText').style.display  = showText  ? '' : 'none';
-    document.getElementById('ccDpEmbed').style.display = showEmbed ? '' : 'none';
-    document.getElementById('ccDpEmpty').style.display = (!showText && !showEmbed) ? '' : 'none';
+    const showPlainImg = !!(plainImg && isDirectImageUrl(plainImg));
+    // Warn: red border if URL is not empty and not a direct image link
+    (function() {
+        const el = document.getElementById('ccPlainImage');
+        if (!el) return;
+        const bad = !!plainImg && !isUrlPlaceholder(plainImg) && !isDirectImageUrl(plainImg);
+        el.classList.toggle('cc-url-warn', bad);
+        el.title = bad
+            ? (isHttpUrl(plainImg) ? '⚠ Must be a direct image link (.png, .jpg, .gif, .webp)' : '⚠ URL must start with https://')
+            : '';
+    })();
+    document.getElementById('ccDpText').style.display       = showText     ? '' : 'none';
+    document.getElementById('ccDpEmbed').style.display      = showEmbed    ? '' : 'none';
+    document.getElementById('ccDpEmpty').style.display      = (!showText && !showEmbed && !showPlainImg) ? '' : 'none';
 
-    if (showText) document.getElementById('ccDpText').textContent = text;
+    if (showText) document.getElementById('ccDpText').innerHTML = resolveCcPreview(text, true);
+
+    const dpPlainImage = document.getElementById('ccDpPlainImage');
+    if (showPlainImg) {
+        dpPlainImage.style.display = '';
+        document.getElementById('ccDpPlainImg').src = resolveSampleUrl(plainImg) || plainImg;
+    } else {
+        dpPlainImage.style.display = 'none';
+    }
 
     if (showEmbed) {
         document.getElementById('ccDpEmbedBar').style.background = color;
@@ -468,18 +769,30 @@ function updatePreview() {
         const dpAuthor = document.getElementById('ccDpEmbedAuthor');
         dpAuthor.style.display = author ? '' : 'none';
         if (author) {
-            dpAuthor.innerHTML = (aIcon ? `<img class="cc-dp-author-icon" src="${escHtml(aIcon)}" onerror="this.style.display='none'" alt=""> ` : '') + escHtml(author);
+            const authorResolved = resolveCcPreview(author);
+            const authorText = authorUrl
+                ? `<span style="cursor:pointer;text-decoration:underline;text-underline-offset:2px;text-decoration-color:rgba(255,255,255,.35);">${authorResolved}</span>`
+                : authorResolved;
+            const aIconOk = aIcon && isDirectImageUrl(aIcon);
+            dpAuthor.innerHTML = (aIconOk ? `<img class="cc-dp-author-icon" src="${escHtml(resolveSampleUrl(aIcon) || aIcon)}" onerror="this.style.display='none'" alt=""> ` : '') + authorText;
         }
 
         // Title
         const dpTitle = document.getElementById('ccDpEmbedTitle');
         dpTitle.style.display = title ? '' : 'none';
-        if (title) dpTitle.textContent = title;
+        if (title) {
+            const titleResolved = resolveCcPreview(title);
+            if (titleUrl) {
+                dpTitle.innerHTML = `<span style="color:#5d9ef3;text-decoration:underline;text-underline-offset:2px;cursor:pointer;">${titleResolved}</span>`;
+            } else {
+                dpTitle.innerHTML = titleResolved;
+            }
+        }
 
         // Desc
         const dpDesc = document.getElementById('ccDpEmbedDesc');
         dpDesc.style.display = desc ? '' : 'none';
-        if (desc) dpDesc.textContent = desc;
+        if (desc) dpDesc.innerHTML = resolveCcPreview(desc, true);
 
         // Fields
         const dpFields = document.getElementById('ccDpEmbedFields');
@@ -487,36 +800,39 @@ function updatePreview() {
             dpFields.style.display = '';
             dpFields.innerHTML = activeFields.map(f =>
                 `<div class="cc-dp-field${f.inline ? '' : ' cc-dp-field-block'}">
-                    <div class="cc-dp-field-name">${escHtml(f.name || '​')}</div>
-                    <div class="cc-dp-field-val">${escHtml(f.value || '​')}</div>
+                    <div class="cc-dp-field-name">${resolveCcPreview(f.name || '​')}</div>
+                    <div class="cc-dp-field-val">${resolveCcPreview(f.value || '​')}</div>
                 </div>`
             ).join('');
         } else { dpFields.style.display = 'none'; }
 
         // Thumbnail
         const dpThumb = document.getElementById('ccDpEmbedThumb');
-        dpThumb.style.display = thumb ? '' : 'none';
-        if (thumb) {
+        const thumbOk = thumb && isDirectImageUrl(thumb);
+        dpThumb.style.display = thumbOk ? '' : 'none';
+        if (thumbOk) {
             const img = document.getElementById('ccDpThumbImg');
-            img.src = thumb; img.onerror = () => { dpThumb.style.display = 'none'; };
+            img.src = resolveSampleUrl(thumb) || thumb; img.onerror = () => { dpThumb.style.display = 'none'; };
         }
 
         // Image
         const dpImage = document.getElementById('ccDpEmbedImage');
-        dpImage.style.display = image ? '' : 'none';
-        if (image) {
+        const imageOk = image && isDirectImageUrl(image);
+        dpImage.style.display = imageOk ? '' : 'none';
+        if (imageOk) {
             const img = document.getElementById('ccDpImageImg');
-            img.src = image; img.onerror = () => { dpImage.style.display = 'none'; };
+            img.src = resolveSampleUrl(image) || image; img.onerror = () => { dpImage.style.display = 'none'; };
         }
 
         // Footer
         const dpFooter = document.getElementById('ccDpEmbedFooter');
         if (footer || ts) {
             dpFooter.style.display = '';
-            const now = new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            const _d = new Date();
+            const now = 'Today at ' + _d.toLocaleString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
             dpFooter.innerHTML =
-                (fIcon ? `<img class="cc-dp-footer-icon" src="${escHtml(fIcon)}" onerror="this.style.display='none'" alt=""> ` : '') +
-                (footer ? escHtml(footer) : '') +
+                (fIcon && isDirectImageUrl(fIcon) ? `<img class="cc-dp-footer-icon" src="${escHtml(resolveSampleUrl(fIcon) || fIcon)}" onerror="this.style.display='none'" alt=""> ` : '') +
+                (footer ? resolveCcPreview(footer) : '') +
                 (footer && ts ? '<span class="cc-dp-footer-sep"> • </span>' : '') +
                 (ts ? `<span>${now}</span>` : '');
         } else { dpFooter.style.display = 'none'; }
@@ -581,18 +897,28 @@ function onFormInput() {
 }
 
 function clearForm() {
-    document.getElementById('ccTrigger').value         = '';
-    document.getElementById('ccPlainText').value       = '';
-    document.getElementById('ccEmbedAuthor').value     = '';
-    document.getElementById('ccEmbedAuthorIcon').value = '';
-    document.getElementById('ccEmbedTitle').value      = '';
-    document.getElementById('ccEmbedDesc').value       = '';
-    document.getElementById('ccEmbedThumbnail').value  = '';
-    document.getElementById('ccEmbedImage').value      = '';
-    document.getElementById('ccEmbedFooter').value     = '';
-    document.getElementById('ccEmbedFooterIcon').value = '';
-    document.getElementById('ccEmbedTimestamp').checked= false;
+    document.getElementById('ccTrigger').value          = '';
+    document.getElementById('ccPlainText').value        = '';
+    document.getElementById('ccPlainImage').value       = '';
+    document.getElementById('ccEmbedAuthor').value      = '';
+    document.getElementById('ccEmbedAuthorUrl').value   = '';
+    document.getElementById('ccEmbedAuthorIcon').value  = '';
+    document.getElementById('ccEmbedTitle').value       = '';
+    document.getElementById('ccEmbedTitleUrl').value    = '';
+    document.getElementById('ccEmbedDesc').value        = '';
+    document.getElementById('ccEmbedThumbnail').value   = '';
+    document.getElementById('ccEmbedImage').value       = '';
+    document.getElementById('ccEmbedFooter').value      = '';
+    document.getElementById('ccEmbedFooterIcon').value  = '';
+    document.getElementById('ccEmbedTimestamp').checked = false;
+    document.getElementById('ccEmbedColor').value       = '#5865F2';
     document.getElementById('ccMode').value = 'prefix';
+    const barEl = document.getElementById('ccEeBarEl');
+    if (barEl) barEl.style.background = '#5865F2';
+    ['ccEmbedAuthorIcon','ccEmbedThumbnail','ccEmbedImage','ccEmbedFooterIcon'].forEach(id => {
+        document.getElementById(id)?.classList.remove('cc-url-warn');
+    });
+    _lastWarnedUrl.clear();
     embedFields = [];
     renderEmbedFields();
     updatePreview();
@@ -604,7 +930,9 @@ function clearForm() {
 function buildEmbedResponse() {
     const authorName  = document.getElementById('ccEmbedAuthor').value.trim();
     const authorIcon  = document.getElementById('ccEmbedAuthorIcon').value.trim();
+    const authorUrl   = document.getElementById('ccEmbedAuthorUrl').value.trim();
     const title       = document.getElementById('ccEmbedTitle').value.trim();
+    const titleUrl    = document.getElementById('ccEmbedTitleUrl').value.trim();
     const description = document.getElementById('ccEmbedDesc').value.trim();
     const color       = document.getElementById('ccEmbedColor').value;
     const thumbnail   = document.getElementById('ccEmbedThumbnail').value.trim();
@@ -615,40 +943,76 @@ function buildEmbedResponse() {
     const cleanFields = embedFields.filter(f => f.name.trim() && f.value.trim())
                         .map(f => ({ name: f.name.trim(), value: f.value.trim(), inline: !!f.inline }));
     const r = { color };
-    if (authorName)         r.author       = { name: authorName, iconURL: authorIcon || null };
+    if (authorName)         r.author       = { name: authorName, iconURL: httpUrlOrNull(authorIcon), url: httpUrlOrNull(authorUrl) };
     if (title)              r.title        = title;
+    if (titleUrl && isHttpUrl(titleUrl)) r.titleUrl = titleUrl;
     if (description)        r.description  = description;
     if (cleanFields.length) r.fields       = cleanFields;
-    if (thumbnail)          r.thumbnailURL = thumbnail;
-    if (imageURL)           r.imageURL     = imageURL;
-    if (footerText||footerIcon) r.footer   = { text: footerText, iconURL: footerIcon || null };
+    if (thumbnail && isHttpUrl(thumbnail)) r.thumbnailURL = thumbnail;
+    if (imageURL && isHttpUrl(imageURL))   r.imageURL     = imageURL;
+    if (footerText||footerIcon) r.footer   = { text: footerText, iconURL: httpUrlOrNull(footerIcon) };
     if (timestamp)          r.timestamp    = true;
     return r;
 }
 
 function addCommandFromForm() {
     const trigger = document.getElementById('ccTrigger').value.trim();
-    if (!trigger) return true; // form is empty, nothing to add
+    const addMsg  = document.getElementById('ccAddMsg');
+
+    // URL validation always runs first — red borders must block save regardless of trigger state
+    const badUrl = getInvalidUrlField();
+    if (badUrl) {
+        const msg = badUrl.reason === 'not_image'
+            ? `**${badUrl.label}**: Must be a direct image link ending with .png, .jpg, .gif, or .webp`
+            : (/^https?:\/\//i.test(document.getElementById(badUrl.id)?.value || '')
+                ? `**${badUrl.label}**: Not a valid URL — must be a public https:// link.`
+                : `**${badUrl.label}**: URL must start with https://`);
+        showMsg(addMsg, msg, 'error');
+        document.getElementById(badUrl.id)?.focus();
+        return false;
+    }
+
+    if (!trigger) {
+        const hasContent = !!(
+            document.getElementById('ccPlainText').value.trim() ||
+            document.getElementById('ccEmbedAuthor').value.trim() ||
+            document.getElementById('ccEmbedTitle').value.trim() ||
+            document.getElementById('ccEmbedDesc').value.trim()
+        );
+        if (hasContent) {
+            showMsg(addMsg, i18n.err_no_trigger || 'Trigger / keyword is required.', 'error');
+            document.getElementById('ccTrigger').focus();
+            return false;
+        }
+        return true; // form is truly empty, nothing to add
+    }
 
     const mode   = document.getElementById('ccMode').value;
-    const addMsg = document.getElementById('ccAddMsg');
-    const text   = document.getElementById('ccPlainText').value.trim();
+    const text      = document.getElementById('ccPlainText').value.trim();
+    const plainImg  = document.getElementById('ccPlainImage').value.trim();
     const embedResp = buildEmbedResponse();
     const hasEmbed  = !!(embedResp.author?.name || embedResp.title || embedResp.description ||
                          embedResp.fields?.length || embedResp.imageURL || embedResp.thumbnailURL ||
                          embedResp.footer?.text || embedResp.timestamp);
 
-    if (!text && !hasEmbed) {
+    if (!text && !hasEmbed && !plainImg) {
         showMsg(addMsg, i18n.err_no_text, 'error');
         return false;
     }
 
     let resType, response;
-    if (text && hasEmbed)  { resType = 'both';  response = { text, ...embedResp }; }
+    if (text && hasEmbed)  { resType = 'both';  response = { text, plainImageURL: plainImg || undefined, ...embedResp }; }
     else if (hasEmbed)     { resType = 'embed'; response = embedResp; }
-    else                   { resType = 'plain'; response = { text }; }
+    else                   { resType = 'plain'; response = { text, plainImageURL: plainImg || undefined }; }
 
-    commands.push({ trigger, mode, responseType: resType, response, enabled: true });
+    if (editingIdx >= 0) {
+        commands[editingIdx] = { ...commands[editingIdx], trigger, mode, responseType: resType, response };
+        editingIdx = -1;
+        document.getElementById('ccFormTitle').textContent = i18n.add_title;
+        document.getElementById('ccCancelEdit').style.display = 'none';
+    } else {
+        commands.push({ trigger, mode, responseType: resType, response, enabled: true });
+    }
     clearForm();
     renderList();
     return true;
@@ -680,7 +1044,10 @@ function renderList() {
                     <input type="checkbox" class="toggle-input cc-enabled" data-flt-ignore ${cmd.enabled ? 'checked' : ''} onchange="toggleCmd(this)">
                     <span class="toggle-slider"></span>
                 </label>
-                <button class="btn btn-danger btn-sm" onclick="deleteCommand(this)">
+                <button class="btn btn-sm cc-btn-edit" onclick="loadCommandForEdit(${i})" title="Edit command">
+                    <i data-lucide="pencil" style="width:13px;height:13px;"></i>
+                </button>
+                <button class="btn btn-danger btn-sm" onclick="deleteCommand(this)" title="Delete command">
                     <i data-lucide="trash-2" style="width:14px;height:14px;"></i>
                 </button>
             </div>
@@ -697,15 +1064,20 @@ function toggleCmd(el) {
 
 function syncFloatBar() {
     const formHasContent = !!(
-        document.getElementById('ccTrigger').value.trim()     ||
-        document.getElementById('ccPlainText').value.trim()   ||
-        document.getElementById('ccEmbedAuthor').value.trim() ||
-        document.getElementById('ccEmbedTitle').value.trim()  ||
-        document.getElementById('ccEmbedDesc').value.trim()   ||
-        document.getElementById('ccEmbedThumbnail').value.trim() ||
-        document.getElementById('ccEmbedImage').value.trim()  ||
-        document.getElementById('ccEmbedFooter').value.trim() ||
-        document.getElementById('ccEmbedTimestamp').checked   ||
+        document.getElementById('ccTrigger').value.trim()          ||
+        document.getElementById('ccPlainText').value.trim()        ||
+        document.getElementById('ccEmbedAuthor').value.trim()      ||
+        document.getElementById('ccEmbedAuthorUrl').value.trim()   ||
+        document.getElementById('ccEmbedAuthorIcon').value.trim()  ||
+        document.getElementById('ccEmbedTitle').value.trim()       ||
+        document.getElementById('ccEmbedTitleUrl').value.trim()    ||
+        document.getElementById('ccEmbedDesc').value.trim()        ||
+        document.getElementById('ccEmbedThumbnail').value.trim()   ||
+        document.getElementById('ccEmbedImage').value.trim()       ||
+        document.getElementById('ccEmbedFooter').value.trim()      ||
+        document.getElementById('ccEmbedFooterIcon').value.trim()  ||
+        document.getElementById('ccEmbedTimestamp').checked        ||
+        (document.getElementById('ccEmbedColor').value.toLowerCase() !== '#5865f2') ||
         embedFields.some(f => f.name.trim() || f.value.trim())
     );
     const listClean = JSON.stringify(commands) === JSON.stringify(savedCommands);
@@ -717,13 +1089,359 @@ function escHtml(s) {
     return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
+/* ── URL validation helpers ──────────────────────────────────── */
+function isUrlPlaceholder(url) {
+    return /\{(user\.avatar|server\.icon)\}/.test(url);
+}
+function resolveSampleUrl(url) {
+    if (!url) return '';
+    return url
+        .replace(/\{user\.avatar\}/g, CC_SAMPLE.user_avatar || '')
+        .replace(/\{server\.icon\}/g,  CC_SAMPLE.server_icon  || '');
+}
+function isHttpUrl(url) {
+    if (!url) return true; // empty is fine
+    if (isUrlPlaceholder(url)) return true; // placeholder resolves to real URL at runtime
+    try { const u = new URL(url); return u.protocol === 'http:' || u.protocol === 'https:'; }
+    catch { return false; }
+}
+function httpUrlOrNull(url) {
+    return (url && isHttpUrl(url)) ? url : null;
+}
+function isDirectImageUrl(url) {
+    if (!url || isUrlPlaceholder(url)) return true; // placeholder or empty — valid at runtime
+    if (!isHttpUrl(url)) return false;
+    return /\.(png|jpe?g|gif|webp|bmp|avif)(?:[?#]|$)/i.test(url);
+}
+
+const _lastWarnedUrl = new Map();
+function validateUrlOnBlur(el, event) {
+    // If focus moved to the Reset button, suppress — reset will clear the field anyway
+    const target = event?.relatedTarget;
+    if (target && (target.id === 'flt-reset' || target.closest?.('#flt-bar'))) return;
+    const url = el.value.trim();
+    if (!url || isUrlPlaceholder(url) || isHttpUrl(url)) {
+        _lastWarnedUrl.delete(el.id);
+        return;
+    }
+    if (_lastWarnedUrl.get(el.id) === url) return;
+    _lastWarnedUrl.set(el.id, url);
+    const label = el.dataset.urlLabel || 'URL';
+    const msg = /^https?:\/\//i.test(url)
+        ? `**${label}**: Not a valid URL — must be a public https:// link.`
+        : `**${label}**: URL must start with https://`;
+    showMsg(null, msg, 'error');
+}
+function getInvalidUrlField() {
+    // [id, label, mustBeImage]
+    const fields = [
+        ['ccPlainImage',      'Image URL',         true],
+        ['ccEmbedAuthorUrl',  'Author URL',         false],
+        ['ccEmbedAuthorIcon', 'Author Icon URL',    true],
+        ['ccEmbedTitleUrl',   'Title URL',          false],
+        ['ccEmbedThumbnail',  'Thumbnail URL',      true],
+        ['ccEmbedImage',      'Embed Image URL',    true],
+        ['ccEmbedFooterIcon', 'Footer Icon URL',    true],
+    ];
+    for (const [id, label, mustBeImage] of fields) {
+        const el = document.getElementById(id);
+        if (!el) continue;
+        const url = el.value.trim();
+        if (!url || isUrlPlaceholder(url)) continue;
+        if (!isHttpUrl(url)) return { id, label, reason: 'not_https' };
+        if (mustBeImage && !isDirectImageUrl(url)) return { id, label, reason: 'not_image' };
+    }
+    return null;
+}
+
+function setWarn(inputId, url, requireImage = false) {
+    const el = document.getElementById(inputId);
+    if (!el) return;
+    let bad = false, tip = '';
+    if (url && !isUrlPlaceholder(url)) {
+        if (!isHttpUrl(url))                        { bad = true; tip = '⚠ URL must start with https://'; }
+        else if (requireImage && !isDirectImageUrl(url)) { bad = true; tip = '⚠ Must be a direct image link (.png, .jpg, .gif, .webp)'; }
+    }
+    el.classList.toggle('cc-url-warn', bad);
+    el.title = bad ? tip : '';
+}
+
+/* ── Placeholder insert ──────────────────────────────────────── */
+function insertPlaceholder(targetId, text) {
+    const el = document.getElementById(targetId);
+    if (!el) return;
+    const start = el.selectionStart ?? el.value.length;
+    const end   = el.selectionEnd   ?? el.value.length;
+    el.value = el.value.slice(0, start) + text + el.value.slice(end);
+    el.selectionStart = el.selectionEnd = start + text.length;
+    el.focus();
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+}
+
+/* ── Embed editor live helpers ───────────────────────────────── */
+function onEeColor() {
+    const v = document.getElementById('ccEmbedColor').value;
+    const bar = document.getElementById('ccEeBarEl');
+    if (bar) bar.style.background = v;
+    updatePreview();
+}
+
+function onEeAuthIcon() {
+    setWarn('ccEmbedAuthorIcon', document.getElementById('ccEmbedAuthorIcon')?.value.trim(), true);
+    updatePreview();
+}
+
+function onEeThumb() {
+    setWarn('ccEmbedThumbnail', document.getElementById('ccEmbedThumbnail')?.value.trim(), true);
+    updatePreview();
+}
+
+function onEeImage() {
+    setWarn('ccEmbedImage', document.getElementById('ccEmbedImage')?.value.trim(), true);
+    updatePreview();
+}
+
+function onEeFooterIcon() {
+    setWarn('ccEmbedFooterIcon', document.getElementById('ccEmbedFooterIcon')?.value.trim(), true);
+    updatePreview();
+}
+
+/* ── Preview placeholder resolver ───────────────────────────────── */
+function ccMentionBadge(label) {
+    return `<span style="color:#7289da;background:rgba(88,101,242,.15);border-radius:3px;padding:0 3px;font-weight:600;">${label}</span>`;
+}
+function ccChannelBadge(name) {
+    return `<span style="color:#7289da;background:rgba(88,101,242,.15);border-radius:3px;padding:0 3px;font-weight:600;">#${name}</span>`;
+}
+function ccSubtle(text) {
+    return `<span style="color:#5d9ef3;font-style:italic;font-size:.85em;">${text}</span>`;
+}
+function applyInlineMd(s) {
+    const saved = [];
+    // Protect inline code spans first
+    s = s.replace(/`([^`\n]+)`/g, (_, c) => {
+        saved.push(`<code class="cc-inline-code">${c}</code>`);
+        return '\x00' + (saved.length - 1) + '\x00';
+    });
+    s = s.replace(/\|\|(.+?)\|\|/g, '<span class="cc-spoiler" title="Spoiler">$1</span>');
+    s = s.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
+    s = s.replace(/___(.+?)___/g, '<strong><em>$1</em></strong>');
+    s = s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    s = s.replace(/__(.+?)__/g, '<u>$1</u>');
+    s = s.replace(/\*([^*\n]+)\*/g, '<em>$1</em>');
+    s = s.replace(/(?<!\w)_([^_\n]+)_(?!\w)/g, '<em>$1</em>');
+    s = s.replace(/~~(.+?)~~/g, '<s>$1</s>');
+    s = s.replace(/\[([^\]]+)\]\(https?:\/\/[^)]*\)/g, '<span style="color:#00aff4;text-decoration:underline;cursor:default;">$1</span>');
+    s = s.replace(/\x00(\d+)\x00/g, (_, i) => saved[+i]);
+    return s;
+}
+function applyDiscordMarkdown(s) {
+    const lines = s.split('\n');
+    const out = [];
+    let inCb = false, cbLines = [];
+    for (const line of lines) {
+        if (/^```/.test(line)) {
+            if (!inCb) { inCb = true; cbLines = []; }
+            else { out.push('<span class="cc-code-block">' + cbLines.join('\n') + '</span>'); inCb = false; }
+            continue;
+        }
+        if (inCb) { cbLines.push(line); continue; }
+        let m;
+        if ((m = line.match(/^### (.*)/)))        { out.push('<strong style="font-size:1em;">'    + applyInlineMd(m[1]) + '</strong>'); continue; }
+        if ((m = line.match(/^## (.*)/)))         { out.push('<strong style="font-size:1.17em;">' + applyInlineMd(m[1]) + '</strong>'); continue; }
+        if ((m = line.match(/^# (.*)/)))          { out.push('<strong style="font-size:1.5em;">'  + applyInlineMd(m[1]) + '</strong>'); continue; }
+        if ((m = line.match(/^-# (.*)/)))         { out.push('<span style="font-size:.78em;color:var(--text-muted);">' + applyInlineMd(m[1]) + '</span>'); continue; }
+        if ((m = line.match(/^&gt;(?: (.*))?$/))) { out.push('<span class="cc-blockquote">' + applyInlineMd(m[1] || '') + '</span>'); continue; }
+        out.push(applyInlineMd(line));
+    }
+    if (inCb && cbLines.length) out.push('<span class="cc-code-block">' + cbLines.join('\n') + '</span>');
+    return out.join('<br>');
+}
+
+function resolveCcPreview(text, richMentions = false) {
+    if (!text) return '';
+    let s = escHtml(text);
+    const u = escHtml(CC_SAMPLE.user_username);
+    s = s
+        .replace(/\{user\.username\}/g, u)
+        .replace(/\{user\.id\}/g,       escHtml(CC_SAMPLE.user_id))
+        .replace(/\{user\.avatar\}/g,   ccSubtle(escHtml(CC_SAMPLE.user_avatar || '[avatar url]')))
+        .replace(/\{user\.mention\}/g,  ccMentionBadge('@' + u))
+        .replace(/\{user\}/g,           ccMentionBadge('@' + u))
+        .replace(/\{server\.name\}/g,   escHtml(CC_SAMPLE.server_name))
+        .replace(/\{server\.id\}/g,     escHtml(CC_SAMPLE.server_id))
+        .replace(/\{server\.icon\}/g,   ccSubtle(escHtml(CC_SAMPLE.server_icon || '[icon url]')))
+        // Legacy
+        .replace(/\{member\}/g,         ccMentionBadge('@' + u))
+        .replace(/\{username\}/g,       u)
+        .replace(/\{nickname\}/g,       u)
+        .replace(/\{id\}/g,             escHtml(CC_SAMPLE.user_id))
+        .replace(/\{tag\}/g,            u)
+        .replace(/\{server\}/g,         escHtml(CC_SAMPLE.server_name))
+        .replace(/\{channel\}/g,        ccChannelBadge(escHtml(CC_SAMPLE.channel_name)));
+    if (richMentions) {
+        // Discord raw mention syntax (matched after escHtml: < → &lt; > → &gt; & → &amp;)
+        s = s
+            .replace(/&lt;@&amp;(\d+)&gt;/g, (_, id) => {
+                const r = CC_ROLES[id];
+                if (!r) return ccMentionBadge('@Unknown Role');
+                const col = r.color && r.color !== '#000000' ? r.color : null;
+                return col
+                    ? `<span style="color:${col};background:${col}22;border-radius:3px;padding:0 3px;font-weight:600;">@${escHtml(r.name)}</span>`
+                    : ccMentionBadge('@' + escHtml(r.name));
+            })
+            .replace(/&lt;@(\d+)&gt;/g, () => ccMentionBadge('@user'))
+            .replace(/&lt;#(\d+)&gt;/g, (_, id) => {
+                const name = CC_CHANNELS[id];
+                return ccChannelBadge(name ? escHtml(name) : id);
+            });
+    }
+    return applyDiscordMarkdown(s);
+}
+
+/* ── Preview toggle ─────────────────────────────────────────────── */
+function toggleCcPreview() {
+    const panel = document.querySelector('.cc-preview-panel');
+    const icon  = document.getElementById('ccPreviewEyeIcon');
+    const hidden = panel.classList.toggle('cc-preview-hidden');
+    icon.setAttribute('data-lucide', hidden ? 'eye-off' : 'eye');
+    if (window.lucide) lucide.createIcons({ nodes: [icon] });
+}
+
+/* ── Placeholder / Mention picker ───────────────────────────────── */
+function toggleCcPicker(id, event) {
+    if (event) event.stopPropagation();
+    const el = document.getElementById(id);
+    const wasHidden = el.style.display === 'none';
+    document.querySelectorAll('.ph-dropdown').forEach(d => d.style.display = 'none');
+    document.querySelectorAll('.ph-toggle-btn').forEach(b => b.classList.remove('active'));
+    if (wasHidden) {
+        el.style.display = 'grid';
+        if (event?.currentTarget) event.currentTarget.classList.add('active');
+    }
+}
+document.addEventListener('click', () => {
+    document.querySelectorAll('.ph-dropdown').forEach(d => d.style.display = 'none');
+    document.querySelectorAll('.ph-toggle-btn').forEach(b => b.classList.remove('active'));
+});
+
+function buildCcPhPicker(pickerId, targetId) {
+    const el = document.getElementById(pickerId);
+    if (!el) return;
+    let html = '';
+    CC_PLACEHOLDERS.forEach(({ group, items }, gi) => {
+        if (gi > 0) html += `<div style="grid-column:1/-1;height:1px;background:rgba(255,255,255,.1);margin:.2rem 0;"></div>`;
+        html += `<div class="ph-group-label">${group}</div>`;
+        items.forEach(([ph, desc]) => {
+            html += `<button type="button" class="ph-item" onclick="insertPlaceholder('${targetId}','${ph}');closeCcPickers()">
+                <code>${ph}</code><span>${desc}</span>
+            </button>`;
+        });
+    });
+    el.innerHTML = html;
+}
+
+function buildCcMentionDd(pickerId, targetId) {
+    const dd = document.getElementById(pickerId);
+    if (!dd) return;
+    dd.innerHTML = '';
+    const inp = document.createElement('input');
+    inp.type = 'text'; inp.className = 'mention-search-input'; inp.placeholder = 'Search...';
+    inp.addEventListener('click', e => e.stopPropagation());
+    inp.addEventListener('input', () => {
+        const q = inp.value.toLowerCase();
+        dd.querySelectorAll('.ph-item').forEach(el => {
+            el.style.display = el.textContent.toLowerCase().includes(q) ? '' : 'none';
+        });
+    });
+    dd.appendChild(inp);
+    function addItem(html, mention) {
+        const b = document.createElement('button');
+        b.type = 'button'; b.className = 'ph-item';
+        b.innerHTML = html;
+        b.addEventListener('click', () => { insertPlaceholder(targetId, mention); closeCcPickers(); });
+        dd.appendChild(b);
+    }
+    function addHdr(t) {
+        const h = document.createElement('div');
+        h.className = 'ph-group-label'; h.textContent = t; dd.appendChild(h);
+    }
+    const rKeys = Object.keys(CC_ROLES);
+    if (rKeys.length) {
+        addHdr('Roles');
+        rKeys.forEach(id => {
+            const r = CC_ROLES[id];
+            addItem(`<span style="color:${r.color}">@${r.name}</span>`, `<@&${id}>`);
+        });
+    }
+    const cKeys = Object.keys(CC_CHANNELS);
+    if (cKeys.length) {
+        addHdr('Channels');
+        cKeys.forEach(id => addItem(`<span>#${CC_CHANNELS[id]}</span>`, `<#${id}>`));
+    }
+}
+
+function closeCcPickers() {
+    document.querySelectorAll('.ph-dropdown').forEach(d => d.style.display = 'none');
+    document.querySelectorAll('.ph-toggle-btn').forEach(b => b.classList.remove('active'));
+}
+
+/* ── Edit command ────────────────────────────────────────────────── */
+function loadCommandForEdit(idx) {
+    const cmd = commands[idx];
+    if (!cmd) return;
+    editingIdx = idx;
+    const res = cmd.response || {};
+    document.getElementById('ccTrigger').value           = cmd.trigger || '';
+    document.getElementById('ccMode').value              = cmd.mode    || 'prefix';
+    document.getElementById('ccPlainText').value         = res.text    || '';
+    document.getElementById('ccPlainImage').value        = res.plainImageURL || '';
+    document.getElementById('ccEmbedAuthor').value       = res.author?.name    || '';
+    document.getElementById('ccEmbedAuthorUrl').value    = res.author?.url     || '';
+    document.getElementById('ccEmbedAuthorIcon').value   = res.author?.iconURL || '';
+    document.getElementById('ccEmbedTitle').value        = res.title    || '';
+    document.getElementById('ccEmbedTitleUrl').value     = res.titleUrl || '';
+    document.getElementById('ccEmbedDesc').value         = res.description || '';
+    document.getElementById('ccEmbedThumbnail').value    = res.thumbnailURL || '';
+    document.getElementById('ccEmbedImage').value        = res.imageURL     || '';
+    document.getElementById('ccEmbedFooter').value       = res.footer?.text    || '';
+    document.getElementById('ccEmbedFooterIcon').value   = res.footer?.iconURL || '';
+    document.getElementById('ccEmbedTimestamp').checked  = !!res.timestamp;
+    document.getElementById('ccEmbedColor').value        = res.color || '#5865F2';
+    embedFields = (res.fields || []).map(f => ({ name: f.name||'', value: f.value||'', inline: !!f.inline }));
+    onEeColor(); onEeAuthIcon(); onEeThumb(); onEeImage(); onEeFooterIcon();
+    renderEmbedFields();
+    updatePreview();
+    document.getElementById('ccFormTitle').textContent  = `Edit: "${cmd.trigger}"`;
+    document.getElementById('ccCancelEdit').style.display = '';
+    if (window.lucide) lucide.createIcons();
+    document.getElementById('ccFormCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    window._floatDirty?.();
+}
+
+function cancelEdit() {
+    editingIdx = -1;
+    document.getElementById('ccFormTitle').textContent  = i18n.add_title;
+    document.getElementById('ccCancelEdit').style.display = 'none';
+    clearForm();
+}
+
+// Init pickers
+buildCcPhPicker('ccPlainPhPicker', 'ccPlainText');
+buildCcMentionDd('ccPlainMentionPicker', 'ccPlainText');
+buildCcPhPicker('ccDescPhPicker', 'ccEmbedDesc');
+buildCcMentionDd('ccDescMentionPicker', 'ccEmbedDesc');
+
 window._floatSave = async function () {
     const ok = addCommandFromForm();
-    if (!ok) return; // validation failed, abort save
+    if (!ok) throw new Error('validation'); // throw so float bar does NOT hide or re-capture
     await saveCommands();
 };
 
 window._floatReset = function () {
+    editingIdx = -1;
+    document.getElementById('ccFormTitle').textContent = i18n.add_title;
+    document.getElementById('ccCancelEdit').style.display = 'none';
     clearForm();
     commands = JSON.parse(JSON.stringify(savedCommands));
     renderList();

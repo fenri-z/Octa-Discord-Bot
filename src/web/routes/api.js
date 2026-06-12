@@ -1953,7 +1953,7 @@ router.post('/guild/:guildId/youtube/channels', requireLogin, requireManageGuild
 
     const channels = getYtChannels(db, guildId);
     if (channels.length >= MAX_YT_CHANNELS)
-        return res.json({ success: false, message: `Maksimal ${MAX_YT_CHANNELS} channel YouTube per server.` });
+        return res.json({ success: false, message: `Maximum ${MAX_YT_CHANNELS} YouTube channels per server.` });
     if (channels.find(c => c.id === id))
         return res.json({ success: false, message: 'This channel has already been added.' });
 
@@ -2157,7 +2157,7 @@ router.post('/guild/:guildId/tiktok/accounts', requireLogin, requireManageGuild,
 
     const accounts = getTtAccounts(db, guildId);
     if (accounts.length >= MAX_TT_ACCOUNTS)
-        return res.json({ success: false, message: `Maksimal ${MAX_TT_ACCOUNTS} akun TikTok per server.` });
+        return res.json({ success: false, message: `Maximum ${MAX_TT_ACCOUNTS} TikTok accounts per server.` });
     if (accounts.find(a => a.username === username))
         return res.json({ success: false, message: 'This account has already been added.' });
 
@@ -2341,7 +2341,7 @@ router.post('/guild/:guildId/twitch/accounts', requireLogin, requireManageGuild,
 
     const accounts = getTwAccounts(db, guildId);
     if (accounts.length >= MAX_TWITCH_ACCOUNTS)
-        return res.json({ success: false, message: `Batas maksimal ${MAX_TWITCH_ACCOUNTS} akun Twitch per server.` });
+        return res.json({ success: false, message: `Maximum ${MAX_TWITCH_ACCOUNTS} Twitch accounts per server.` });
     if (accounts.find(a => a.userId === userId))
         return res.json({ success: false, message: `Account "${login}" has already been added.` });
 
@@ -2584,7 +2584,7 @@ router.post('/guild/:guildId/kick/accounts', requireLogin, requireManageGuild, (
 
     const accounts = getKickAccounts(db, guildId);
     if (accounts.length >= MAX_KICK_ACCOUNTS)
-        return res.json({ success: false, message: `Maksimal ${MAX_KICK_ACCOUNTS} akun Kick per server.` });
+        return res.json({ success: false, message: `Maximum ${MAX_KICK_ACCOUNTS} Kick accounts per server.` });
     if (accounts.find(a => a.slug === slug))
         return res.json({ success: false, message: 'This account has already been added.' });
 
@@ -3117,7 +3117,7 @@ router.post('/guild/:guildId/level', requireLogin, requireManageGuild, (req, res
     const { enabled, channelId, message, xpMin, xpMax, cooldown, roleRewards } = req.body;
 
     if (channelId && !req.botGuild.channels.cache.get(channelId))
-        return res.status(400).json({ success: false, message: 'Channel tidak ditemukan.' });
+        return res.status(400).json({ success: false, message: 'Channel not found.' });
 
     setDbBool(db, `level-enabled-${guildId}`, !!enabled);
     if (channelId) db.set(`level-channel-${guildId}`, channelId); else db.delete(`level-channel-${guildId}`);
@@ -3134,7 +3134,7 @@ router.post('/guild/:guildId/level', requireLogin, requireManageGuild, (req, res
     }
 
     guildCache.del(`level-cfg-${guildId}`);
-    res.json({ success: true, message: 'Pengaturan level berhasil disimpan.' });
+    res.json({ success: true, message: 'Level settings saved successfully.' });
 });
 
 // ── POST /api/guild/:guildId/starboard ────────────────────────────────────────
@@ -3145,16 +3145,16 @@ router.post('/guild/:guildId/starboard', requireLogin, requireManageGuild, (req,
 
     const { enabled, channelId, emoji, threshold } = req.body;
 
-    if (!channelId) return res.status(400).json({ success: false, message: 'Channel wajib dipilih.' });
+    if (!channelId) return res.status(400).json({ success: false, message: 'A channel must be selected.' });
     if (!req.botGuild.channels.cache.get(channelId))
-        return res.status(400).json({ success: false, message: 'Channel tidak ditemukan.' });
+        return res.status(400).json({ success: false, message: 'Channel not found.' });
 
     setDbBool(db, `starboard-enabled-${guildId}`, !!enabled);
     db.set(`starboard-channel-${guildId}`,   channelId);
     db.set(`starboard-emoji-${guildId}`,     (emoji || '⭐').slice(0, 10));
     db.set(`starboard-threshold-${guildId}`, String(Math.max(1, Math.min(50, parseInt(threshold) || 3))));
 
-    res.json({ success: true, message: 'Pengaturan starboard berhasil disimpan.' });
+    res.json({ success: true, message: 'Starboard settings saved successfully.' });
 });
 
 // ── POST /api/guild/:guildId/custom-commands ──────────────────────────────────
@@ -3165,7 +3165,7 @@ router.post('/guild/:guildId/custom-commands', requireLogin, requireManageGuild,
 
     const { commands } = req.body;
     if (!Array.isArray(commands))
-        return res.status(400).json({ success: false, message: 'Format commands tidak valid.' });
+        return res.status(400).json({ success: false, message: 'Invalid commands format.' });
 
     const clean = commands.filter(c => c.trigger && typeof c.trigger === 'string').map(c => ({
         trigger:      String(c.trigger).trim().slice(0, 50),
@@ -3176,12 +3176,12 @@ router.post('/guild/:guildId/custom-commands', requireLogin, requireManageGuild,
     }));
 
     if (clean.length > 100)
-        return res.status(400).json({ success: false, message: 'Maksimal 100 custom command per server.' });
+        return res.status(400).json({ success: false, message: 'Maximum 100 custom commands per server.' });
 
     db.set(`customcmd-list-${guildId}`, JSON.stringify(clean));
     guildCache.del(`customcmd-list-${guildId}`);
 
-    res.json({ success: true, message: 'Custom commands berhasil disimpan.' });
+    res.json({ success: true, message: 'Custom commands saved successfully.' });
 });
 
 // ── POST /api/guild/:guildId/extlog ───────────────────────────────────────────
@@ -3193,9 +3193,9 @@ router.post('/guild/:guildId/extlog', requireLogin, requireManageGuild, (req, re
     const { enabled, channelId, events } = req.body;
 
     if (enabled && !channelId)
-        return res.status(400).json({ success: false, message: 'Channel log wajib dipilih saat logging diaktifkan.' });
+        return res.status(400).json({ success: false, message: 'A log channel must be selected when logging is enabled.' });
     if (channelId && !req.botGuild.channels.cache.get(channelId))
-        return res.status(400).json({ success: false, message: 'Channel tidak ditemukan.' });
+        return res.status(400).json({ success: false, message: 'Channel not found.' });
 
     setDbBool(db, `extlog-enabled-${guildId}`, !!enabled);
     if (channelId) db.set(`extlog-channel-${guildId}`, channelId); else db.delete(`extlog-channel-${guildId}`);
@@ -3211,7 +3211,7 @@ router.post('/guild/:guildId/extlog', requireLogin, requireManageGuild, (req, re
         db.set(`extlog-events-${guildId}`, JSON.stringify(safe));
     }
 
-    res.json({ success: true, message: 'Pengaturan extended logging berhasil disimpan.' });
+    res.json({ success: true, message: 'Extended logging settings saved successfully.' });
 });
 
 module.exports = router;
