@@ -161,6 +161,16 @@ class SQLiteDatabase {
     }
 
     /**
+     * Buat backup database ke file tujuan.
+     * Menggunakan SQLite online backup API — aman dipakai saat DB sedang aktif.
+     * @param {string} destPath  - Path file tujuan, e.g. './backups/backup-2026.db'
+     * @returns {Promise<void>}
+     */
+    backup(destPath) {
+        return this._db.backup(destPath);
+    }
+
+    /**
      * Tutup koneksi database (opsional, dipanggil saat proses berhenti).
      */
     close() {

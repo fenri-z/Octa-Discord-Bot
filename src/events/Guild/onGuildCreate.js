@@ -1,5 +1,6 @@
 const { success, warn } = require('../../utils/Console');
 const Event = require('../../structure/Event');
+const { safeRun } = require('../../utils/logError');
 
 const DEV_ONLY_COMMANDS = new Set(['server', 'eval', 'reload', 'components', 'show-modal', 'autocomplete', 'restart', 'offline']);
 
@@ -7,7 +8,7 @@ module.exports = new Event({
     event: 'guildCreate',
     once: false,
 
-    run: async (client, guild) => {
+    run: safeRun('[onGuildCreate]', async (client, guild) => {
         // 1. Fetch cache
         await Promise.all([
             guild.channels.fetch().catch(() => null),
@@ -49,5 +50,5 @@ module.exports = new Event({
         }
 
         success(`Joined new guild: ${guild.name} (${guild.id})`);
-    }
+    })
 }).toJSON();

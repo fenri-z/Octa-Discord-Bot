@@ -1,5 +1,6 @@
 const Event        = require('../../structure/Event');
 const { EmbedBuilder, AttachmentBuilder } = require('discord.js');
+const { safeRun } = require('../../utils/logError');
 
 async function handleReaction(client, reaction, user, isAdd) {
     if (user.bot) return;
@@ -70,5 +71,5 @@ async function handleReaction(client, reaction, user, isAdd) {
 module.exports = new Event({
     event: 'messageReactionAdd',
     once:  false,
-    run:   (client, reaction, user) => handleReaction(client, reaction, user, true),
+    run:   safeRun('[onStarboardReaction]', (client, reaction, user) => handleReaction(client, reaction, user, true)),
 }).toJSON();

@@ -1,6 +1,7 @@
 const Event        = require('../../structure/Event');
 const { EmbedBuilder } = require('discord.js');
 const { getLang, getStrings } = require('../../utils/BotLang');
+const { safeRun } = require('../../utils/logError');
 
 function isEnabled(client, guildId, event) {
     const db = client.database;
@@ -22,7 +23,7 @@ async function sendLog(client, guildId, embed) {
 module.exports = new Event({
     event: 'guildMemberUpdate',
     once:  false,
-    run: async (client, oldMember, newMember) => {
+    run: safeRun('[onExtLogMember]', async (client, oldMember, newMember) => {
         const guildId = newMember.guild.id;
         const user    = newMember.user;
         const s       = getStrings(getLang(client.database, guildId)).extlog_event;
@@ -65,5 +66,5 @@ module.exports = new Event({
             .setTimestamp();
 
         await sendLog(client, guildId, embed);
-    }
+    })
 }).toJSON();

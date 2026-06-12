@@ -1,6 +1,7 @@
 const Event        = require('../../structure/Event');
 const { EmbedBuilder } = require('discord.js');
 const { getLang, getStrings } = require('../../utils/BotLang');
+const { safeRun } = require('../../utils/logError');
 
 function isEnabled(client, guildId, event) {
     const db = client.database;
@@ -22,7 +23,7 @@ async function sendLog(client, guildId, embed) {
 module.exports = new Event({
     event: 'voiceStateUpdate',
     once:  false,
-    run: async (client, oldState, newState) => {
+    run: safeRun('[onExtLogVoice]', async (client, oldState, newState) => {
         const guildId = newState.guild.id;
         if (!isEnabled(client, guildId, 'voiceActivity')) return;
 
@@ -61,5 +62,5 @@ module.exports = new Event({
             .setTimestamp();
 
         await sendLog(client, guildId, embed);
-    }
+    })
 }).toJSON();

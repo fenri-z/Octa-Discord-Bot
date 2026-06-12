@@ -1,11 +1,12 @@
 const { warn, success } = require('../../utils/Console');
 const Event = require('../../structure/Event');
+const { safeRun } = require('../../utils/logError');
 
 module.exports = new Event({
     event: 'guildDelete',
     once: false,
 
-    run: async (client, guild) => {
+    run: safeRun('[onGuildDelete]', async (client, guild) => {
         const guildId = guild.id;
 
         warn(`[guildDelete] Bot left server: ${guild.name} (${guildId}). Data retained for 14 days.`);
@@ -25,5 +26,5 @@ module.exports = new Event({
         } catch (err) {
             warn(`[guildDelete] ${guild.name} — error saat guildDelete: ${err.message}`);
         }
-    }
+    })
 }).toJSON();

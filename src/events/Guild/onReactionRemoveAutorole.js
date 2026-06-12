@@ -1,4 +1,5 @@
 const Event = require("../../structure/Event");
+const { safeRun } = require('../../utils/logError');
 
 // ── Helpers (duplikasi dari onReactionAutorole.js untuk menghindari circular dep) ──
 
@@ -24,7 +25,7 @@ module.exports = new Event({
      * @param {import("discord.js").MessageReaction} reaction
      * @param {import("discord.js").User} user
      */
-    run: async (client, reaction, user) => {
+    run: safeRun('[onReactionRemoveAutorole]', async (client, reaction, user) => {
         if (user.bot) return;
         if (!reaction.message.guild) return;
 
@@ -61,5 +62,5 @@ module.exports = new Event({
         if (member.roles.cache.has(reactEntry.roleId)) {
             await member.roles.remove(role, `Autorole Reaction (remove) – panel: ${panelName}`).catch(() => null);
         }
-    }
+    })
 }).toJSON();

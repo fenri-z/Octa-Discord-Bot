@@ -1,10 +1,11 @@
 const Event = require('../../structure/Event');
 const { getLang, getStrings } = require('../../utils/BotLang');
+const { safeRun } = require('../../utils/logError');
 
 module.exports = new Event({
     event: 'messageCreate',
     once:  false,
-    run: async (client, message) => {
+    run: safeRun('[onAFKCheck]', async (client, message) => {
         if (!message.guild || message.author.bot || message.webhookId) return;
 
         const db      = client.database;
@@ -44,7 +45,7 @@ module.exports = new Event({
                 allowedMentions: { repliedUser: false },
             }).catch(() => null);
         }
-    }
+    })
 }).toJSON();
 
 function formatElapsed(ms, s) {

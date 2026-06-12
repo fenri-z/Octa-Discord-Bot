@@ -1,5 +1,6 @@
 const { AuditLogEvent, EmbedBuilder } = require('discord.js');
 const Event = require('../../structure/Event');
+const { safeRun } = require('../../utils/logError');
 
 const DEFAULT_EVENTS = { ban: true, unban: true, kick: true, timeout: true, warn: true };
 
@@ -12,7 +13,7 @@ function getEvents(client, guildId) {
 module.exports = new Event({
     event: 'guildAuditLogEntryCreate',
     once: false,
-    run: async (client, auditLogEntry, guild) => {
+    run: safeRun('[onModLogEntry]', async (client, auditLogEntry, guild) => {
         const logChId = client.database.get(`modlog-channel-${guild.id}`);
         if (!logChId) return;
 
@@ -98,5 +99,5 @@ module.exports = new Event({
         if (embed) {
             await logChannel.send({ embeds: [embed] }).catch(() => null);
         }
-    },
+    }),
 }).toJSON();

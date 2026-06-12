@@ -1,5 +1,6 @@
 const Event = require("../../structure/Event");
 const { updateStats } = require("../../utils/serverStatsHelper");
+const { safeRun } = require('../../utils/logError');
 
 module.exports = new Event({
     event: 'guildMemberRemove',
@@ -9,7 +10,7 @@ module.exports = new Event({
      * @param {import("../../client/DiscordBot")} __client__
      * @param {import("discord.js").GuildMember} member
      */
-    run: async (__client__, member) => {
+    run: safeRun('[onMemberLeaveStats]', async (__client__, member) => {
         await updateStats(__client__, member.guild);
-    }
+    })
 }).toJSON();

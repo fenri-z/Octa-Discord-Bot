@@ -1,5 +1,6 @@
 const { EmbedBuilder, MessageFlags } = require("discord.js");
 const Event = require("../../structure/Event");
+const { safeRun } = require('../../utils/logError');
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -120,7 +121,7 @@ module.exports = new Event({
      * @param {import("discord.js").MessageReaction} reaction
      * @param {import("discord.js").User} user
      */
-    run: async (client, reaction, user) => {
+    run: safeRun('[onReactionAutorole]', async (client, reaction, user) => {
         await handleReaction(client, reaction, user, true);
-    }
+    })
 }).toJSON();

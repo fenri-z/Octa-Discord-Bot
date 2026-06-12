@@ -18,6 +18,8 @@ const compression        = require('compression');
 const Database           = require('better-sqlite3');
 const SQLiteSessionStore = require('../utils/SQLiteSessionStore');
 const config             = require('../config');
+const { success: logOk, error: logErr } = require('../utils/Console');
+const DatabaseBackup     = require('../utils/DatabaseBackup');
 const i18next            = require('i18next');
 const i18nextMiddleware  = require('i18next-http-middleware');
 const Backend            = require('i18next-fs-backend');
@@ -237,15 +239,46 @@ app.post('/report-bug', (req, res) => {
 
             if (!r.ok) {
                 const err = await r.text();
-                console.error('[Report Bug] Webhook error:', r.status, err);
+                logErr(`[ReportBug] Webhook error: ${r.status} ${err}`);
                 return res.json({ success: false, message: 'Failed to send report. Please try again later.' });
             }
 
             res.json({ success: true, message: 'Report sent successfully! Thank you.' });
         } catch (err) {
-            console.error('[Report Bug] Error:', err.message);
+            logErr(`[ReportBug] ${err.message}`);
             res.json({ success: false, message: 'Failed to connect to server. Please try again later.' });
         }
+    });
+});
+
+// ── GET /health — status bot untuk monitoring eksternal ───────────────────────
+app.get('/health', (req, res) => {
+    const mem = process.memoryUsage();
+    const mb  = b => `${Math.round(b / 1024 / 1024)} MB`;
+
+    const botReady = discordClient?.isReady() ?? false;
+    const dbOk = (() => {
+        try { discordClient?.database?.has('__health_check__'); return true; }
+        catch { return false; }
+    })();
+
+    const status = botReady && dbOk ? 'ok' : 'degraded';
+
+    res.status(status === 'ok' ? 200 : 503).json({
+        status,
+        timestamp: new Date().toISOString(),
+        uptime:    Math.floor(process.uptime()),
+        bot: {
+            ready:  botReady,
+            guilds: discordClient?.guilds?.cache?.size ?? 0,
+            ping:   discordClient?.ws?.ping ?? -1,
+        },
+        database:  { connected: dbOk },
+        memory: {
+            rss:  mb(mem.rss),
+            heap: mb(mem.heapUsed),
+        },
+        backup: DatabaseBackup.getStatus(),
     });
 });
 
@@ -254,7 +287,7 @@ app.use((req, res) => {
 });
 
 app.use((err, req, res, next) => {
-    console.error('[WebServer Error]', err);
+    logErr(`[WebServer] ${err.message || err}`);
     res.status(500).render('error', { hasSidebar: false, title: '500 Error', message: 'Terjadi kesalahan pada server.' });
 });
 
@@ -267,7 +300,7 @@ function startWebServer(client) {
 
     const PORT = process.env.WEB_PORT || 3000;
     app.listen(PORT, () => {
-        console.log(`[WebServer] Dashboard berjalan di http://localhost:${PORT}`);
+        logOk(`[WebServer] Dashboard running at http://localhost:${PORT}`);
     });
 }
 

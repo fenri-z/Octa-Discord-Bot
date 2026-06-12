@@ -1,6 +1,7 @@
 const Event        = require('../../structure/Event');
 const { EmbedBuilder } = require('discord.js');
 const { getLang, getStrings } = require('../../utils/BotLang');
+const { safeRun } = require('../../utils/logError');
 
 function isEnabled(client, guildId, event) {
     const db = client.database;
@@ -22,7 +23,7 @@ async function sendLog(client, guildId, embed) {
 module.exports = new Event({
     event: 'messageDelete',
     once:  false,
-    run: async (client, message) => {
+    run: safeRun('[onExtLogMessageDelete]', async (client, message) => {
         if (!message.guild) return;
         if (message.author?.bot) return;
         if (!isEnabled(client, message.guild.id, 'messageDelete')) return;
@@ -43,5 +44,5 @@ module.exports = new Event({
             embed.setAuthor({ name: message.author.tag, iconURL: message.author.displayAvatarURL() });
 
         await sendLog(client, message.guild.id, embed);
-    }
+    })
 }).toJSON();

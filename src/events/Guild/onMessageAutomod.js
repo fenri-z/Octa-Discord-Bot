@@ -1,5 +1,7 @@
 const { EmbedBuilder, PermissionFlagsBits } = require("discord.js");
 const Event = require("../../structure/Event");
+const { safeRun } = require('../../utils/logError');
+const { warn } = require('../../utils/Console');
 
 // In-memory spam tracker: Map<guildId, Map<userId, { count, firstAt }>>
 const spamTracker = new Map();
@@ -46,7 +48,7 @@ async function applyAction(client, message, member, action, reason, muteDuration
     if (canDelete) {
         await message.delete().catch(() => null);
     } else {
-        console.warn(`[Automod] Bot lacks ManageMessages in #${message.channel.name} (${message.guild.name}). Message not deleted but action still applied.`);
+        warn(`[Automod] Bot lacks ManageMessages in #${message.channel.name} (${message.guild.name}). Message not deleted but action still applied.`);
     }
 
     const logEmbed = new EmbedBuilder()
@@ -96,7 +98,7 @@ async function applyAction(client, message, member, action, reason, muteDuration
                 }).catch(() => null);
                 logEmbed.setTitle(`🔇 Automod — Timeout (${formatDuration(durationMs)})`);
             } else {
-                console.warn(`[Automod] Bot lacks ModerateMembers in ${message.guild.name}. Timeout cannot be applied.`);
+                warn(`[Automod] Bot lacks ModerateMembers in ${message.guild.name}. Timeout cannot be applied.`);
                 logEmbed.setTitle('🔇 Automod — Timeout Failed (Insufficient Permission)');
                 logEmbed.setColor('#FEE75C');
             }
@@ -149,7 +151,7 @@ module.exports = new Event({
      * @param {import("../../client/DiscordBot")} __client__
      * @param {import("discord.js").Message} message
      */
-    run: async (__client__, message) => {
+    run: safeRun('[onMessageAutomod]', async (__client__, message) => {
         if (!message.guild || message.author.bot || !message.member) return;
 
         const { guild, member, channel } = message;
@@ -238,5 +240,5 @@ module.exports = new Event({
                     `Message contains a banned word: \`${found}\``, muteDuration, logChannel);
             }
         }
-    }
+    })
 }).toJSON();

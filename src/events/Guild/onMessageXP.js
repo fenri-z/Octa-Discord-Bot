@@ -24,9 +24,9 @@ function readLevelConfig(db, guildId) {
         enabled:     db.get(`level-enabled-${g}`) === 'true',
         channelId:   db.get(`level-channel-${g}`) ?? null,
         cooldownSec: parseInt(db.get(`level-cooldown-${g}`) || '60'),
-        xpMin:       parseInt(db.get(`level-xp-min-${g}`)  || '15'),
-        xpMax:       parseInt(db.get(`level-xp-max-${g}`)  || '25'),
-        levelMsg:    db.get(`level-msg-${g}`)  || '🎉 {member} leveled up to **Level {level}**!',
+        xpMin:       parseInt(db.get(`level-xpMin-${g}`)    || '15'),
+        xpMax:       parseInt(db.get(`level-xpMax-${g}`)    || '25'),
+        levelMsg:    db.get(`level-message-${g}`) || '🎉 {member} leveled up to **Level {level}**!',
         rolesRaw:    db.get(`level-roles-${g}`) ?? null,
     };
 }

@@ -1,6 +1,7 @@
 const Event        = require('../../structure/Event');
 const { EmbedBuilder } = require('discord.js');
 const { getLang, getStrings } = require('../../utils/BotLang');
+const { safeRun } = require('../../utils/logError');
 
 async function sendLog(client, guildId, embed) {
     const db        = client.database;
@@ -22,7 +23,7 @@ function isEnabled(client, guildId, event) {
 module.exports = new Event({
     event: 'messageUpdate',
     once:  false,
-    run: async (client, oldMsg, newMsg) => {
+    run: safeRun('[onExtLog]', async (client, oldMsg, newMsg) => {
         if (!newMsg.guild || newMsg.author?.bot) return;
         if (oldMsg.content === newMsg.content) return;
         if (!isEnabled(client, newMsg.guild.id, 'messageEdit')) return;
@@ -42,5 +43,5 @@ module.exports = new Event({
             .setTimestamp();
 
         await sendLog(client, newMsg.guild.id, embed);
-    }
+    })
 }).toJSON();

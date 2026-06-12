@@ -1,5 +1,6 @@
 const { EmbedBuilder } = require("discord.js");
 const Event = require("../../structure/Event");
+const { safeRun } = require('../../utils/logError');
 
 // In-memory raid tracker: Map<guildId, { joins: number[], locked: boolean }>
 const raidTracker = new Map();
@@ -18,7 +19,7 @@ module.exports = new Event({
      * @param {import("../../client/DiscordBot")} __client__
      * @param {import("discord.js").GuildMember} member
      */
-    run: async (__client__, member) => {
+    run: safeRun('[onMemberJoinAntiRaid]', async (__client__, member) => {
         const { guild } = member;
         const guildId = guild.id;
 
@@ -86,5 +87,5 @@ module.exports = new Event({
                 }
             }, 5 * 60 * 1000);
         }
-    }
+    })
 }).toJSON();

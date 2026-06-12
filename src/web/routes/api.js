@@ -10,6 +10,7 @@ const { PermissionsBitField } = require('discord.js');
 const { body }             = require('express-validator');
 const { handleValidation } = require('../middleware/validate');
 const guildCache           = require('../../utils/GuildCache');
+const { logError }         = require('../../utils/logError');
 const router  = express.Router();
 
 // ── Shared regex ──────────────────────────────────────────────────────────────
@@ -676,7 +677,7 @@ router.post('/guild/:guildId/autorole-button/:name', requireLogin, requireManage
                 }
             }
         }
-    } catch (err) { console.error('[autorole-button/edit]', err.message); }
+    } catch (err) { logError('[autorole-button/edit]', err); }
 
     res.json({ success: true, message: `Panel "${name}" successfully updated.${liveUpdate}` });
 });
@@ -700,7 +701,7 @@ router.delete('/guild/:guildId/autorole-button/:name', requireLogin, requireMana
                 if (msg) await msg.delete().catch(() => null);
             }
         } catch (err) {
-            console.error('[autorole-button/delete] failed to delete Discord message:', err.message);
+            logError('[autorole-button/delete] failed to delete Discord message:', err);
         }
     }
 
@@ -790,7 +791,7 @@ router.post('/guild/:guildId/autorole-button/:name/buttons', requireLogin, requi
                 }
             }
         }
-    } catch (err) { console.error('[autorole-button/buttons]', err.message); }
+    } catch (err) { logError('[autorole-button/buttons]', err); }
 
     res.json({ success: true, message: 'Button(s) saved successfully.' });
 });
@@ -889,7 +890,7 @@ router.post('/guild/:guildId/autorole-button/:name/send', requireLogin, requireM
         res.json({ success: true, message: `Panel successfully sent to #${channel.name}!` });
     }
     } catch (err) {
-        console.error('[autorole-button/send]', err);
+        logError('[autorole-button/send]', err);
         res.json({ success: false, message: 'Failed to send panel. Check bot permissions.' });
     } finally {
         db?.unlock(lockKey);
@@ -1040,7 +1041,7 @@ router.post('/guild/:guildId/autorole-reaction/:name', requireLogin, requireMana
                 }
             }
         }
-    } catch (err) { console.error('[autorole-reaction/edit]', err.message); }
+    } catch (err) { logError('[autorole-reaction/edit]', err); }
 
     res.json({ success: true, message: `Panel "${name}" successfully updated.${liveUpdate}` });
 });
@@ -1064,7 +1065,7 @@ router.delete('/guild/:guildId/autorole-reaction/:name', requireLogin, requireMa
             }
             db?.delete(`autoreact-msgmap-${guildId}-${sent.messageId}`);
         } catch (err) {
-            console.error('[autorole-reaction/delete]', err.message);
+            logError('[autorole-reaction/delete]', err);
         }
     }
 
@@ -1117,7 +1118,7 @@ router.post('/guild/:guildId/autorole-reaction/:name/reactions', requireLogin, r
                 }
             }
         }
-    } catch (err) { console.error('[autorole-reaction/reactions]', err.message); }
+    } catch (err) { logError('[autorole-reaction/reactions]', err); }
 
     res.json({ success: true, message: 'Reactions saved successfully.' });
 });
@@ -1201,7 +1202,7 @@ router.post('/guild/:guildId/autorole-reaction/:name/send', requireLogin, requir
 
         res.json({ success: true, message: `Panel successfully sent to #${channel.name}!` });
     } catch (err) {
-        console.error('[autorole-reaction/send]', err);
+        logError('[autorole-reaction/send]', err);
         res.json({ success: false, message: 'Failed to send panel. Check bot permissions.' });
     } finally {
         db?.unlock(lockKey);
@@ -1324,7 +1325,7 @@ router.post('/guild/:guildId/ticket/send-panel', requireLogin, requireManageGuil
 
         res.json({ success: true, message: `Panel successfully sent to #${channel.name}!` });
     } catch (err) {
-        console.error('[ticket/send-panel]', err);
+        logError('[ticket/send-panel]', err);
         res.json({ success: false, message: 'Failed to send panel. Check bot permissions.' });
     }
 });
@@ -1362,7 +1363,7 @@ router.post('/guild/:guildId/nickname', requireLogin, requireManageGuild, async 
             : 'Nickname successfully reset to the original name.';
         res.json({ success: true, message: msg });
     } catch (e) {
-        console.error('[nickname set]', e);
+        logError('[nickname set]', e);
         res.json({ success: false, message: 'Failed to change nickname. Make sure the bot has the Manage Nicknames permission.' });
     }
 });
@@ -1576,7 +1577,7 @@ router.post('/guild/:guildId/message-builder', requireLogin, requireManageGuild,
                     db?.delete(`pesan-unik-sent-${guildId}-${name}`);
                     return res.json({ success: true, message: `Template saved, but the Discord message was deleted. Resend it via the Send button.` });
                 }
-                console.error('[message-builder/edit-unik]', err.message);
+                logError('[message-builder/edit-unik]', err);
                 return res.json({ success: true, message: `Template saved, but failed to edit Discord message: ${err.message}` });
             }
         }
@@ -1624,7 +1625,7 @@ router.delete('/guild/:guildId/message-builder/:name', requireLogin, requireMana
             db?.delete(`autobtn-sent-${guildId}-${panelName}`);
         }
     } catch (err) {
-        console.error('[message-builder/delete] failed to delete panel message:', err.message);
+        logError('[message-builder/delete] failed to delete panel message:', err);
     }
 
     mbDeleteTemplate(db, guildId, name);
@@ -1693,7 +1694,7 @@ router.post('/guild/:guildId/message-builder/:name/send', requireLogin, requireM
 
         res.json({ success: true, message: `Successfully sent to #${channel.name}!` });
     } catch (err) {
-        console.error('[message-builder/send]', err);
+        logError('[message-builder/send]', err);
         res.json({ success: false, message: 'Failed to send message. Check bot permissions.' });
     }
 });

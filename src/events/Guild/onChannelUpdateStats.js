@@ -1,5 +1,6 @@
 const Event = require('../../structure/Event');
 const { getServerStatsConfig, parseLabel } = require('../../utils/serverStatsHelper');
+const { safeRun } = require('../../utils/logError');
 
 /**
  * Ekstrak template dari nama channel yang sudah ter-render.
@@ -44,7 +45,7 @@ module.exports = new Event({
      * @param {import('discord.js').GuildChannel} oldChannel
      * @param {import('discord.js').GuildChannel} newChannel
      */
-    run: async (client, oldChannel, newChannel) => {
+    run: safeRun('[onChannelUpdateStats]', async (client, oldChannel, newChannel) => {
         // Hanya proses kalau nama berubah
         if (oldChannel.name === newChannel.name) return;
 
@@ -93,5 +94,5 @@ module.exports = new Event({
 
         // Simpan template baru ke database
         client.database.set(labelKey, newTemplate);
-    }
+    })
 }).toJSON();

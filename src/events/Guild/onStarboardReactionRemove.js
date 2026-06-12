@@ -1,4 +1,5 @@
 const Event = require('../../structure/Event');
+const { safeRun } = require('../../utils/logError');
 
 // Import handler yang sama dari onStarboardReaction
 async function handleReaction(client, reaction, user) {
@@ -40,5 +41,5 @@ async function handleReaction(client, reaction, user) {
 module.exports = new Event({
     event: 'messageReactionRemove',
     once:  false,
-    run:   (client, reaction, user) => handleReaction(client, reaction, user),
+    run:   safeRun('[onStarboardReactionRemove]', (client, reaction, user) => handleReaction(client, reaction, user)),
 }).toJSON();
