@@ -204,8 +204,11 @@
 
 /* Runtime grid */
 .cv-runtime-grid {
-    display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
     gap: .6rem;
+}
+@media(max-width:480px) {
+    .cv-runtime-grid { grid-template-columns: repeat(2, 1fr); }
 }
 .cv-stat {
     background: var(--bg3); border: 1px solid var(--border);
@@ -244,6 +247,11 @@
     font-size: .78rem; font-weight: 700; color: var(--text-muted);
     font-family: monospace; min-width: 220px; flex-shrink: 0;
 }
+@media(max-width:600px) {
+    .cv-env-row { flex-direction: column; align-items: flex-start; gap: .2rem; padding: .6rem .85rem; }
+    .cv-env-key { min-width: unset; font-size: .7rem; }
+    .cv-env-val { font-size: .75rem; }
+}
 .cv-env-val-wrap { display: flex; align-items: center; gap: .5rem; flex: 1; min-width: 0; }
 .cv-env-val {
     font-size: .8rem; font-family: monospace; color: var(--text);
@@ -263,8 +271,11 @@
 
 /* config.js grid */
 .cv-cfg-grid {
-    display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
     gap: .75rem; align-items: start;
+}
+@media(max-width:480px) {
+    .cv-cfg-grid { grid-template-columns: 1fr; }
 }
 .cv-cfg-card {
     background: var(--bg3); border: 1px solid var(--border);

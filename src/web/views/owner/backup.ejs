@@ -52,7 +52,9 @@
             <p class="bk-empty-sub"><%= t('owner.backup_empty_sub') %></p>
         </div>
     <% } else { %>
-    <div class="bk-table-wrap">
+
+    <!-- Desktop table -->
+    <div class="bk-table-wrap bk-desktop">
         <table class="bk-table">
             <thead>
                 <tr>
@@ -81,6 +83,31 @@
             </tbody>
         </table>
     </div>
+
+    <!-- Mobile cards -->
+    <div class="bk-card-list bk-mobile">
+        <% files.forEach(function(f, i) { %>
+        <div class="bk-card" id="bkRowM<%= i %>">
+            <div class="bk-card-top">
+                <i data-lucide="database" class="bk-file-icon"></i>
+                <span class="bk-card-name"><%= f.name %></span>
+            </div>
+            <div class="bk-card-meta">
+                <span class="bk-card-meta-item"><i data-lucide="hard-drive"></i> <%= _fmtSize(f.size) %></span>
+                <span class="bk-card-meta-item"><i data-lucide="clock"></i> <%= new Date(f.mtime).toLocaleString() %></span>
+            </div>
+            <div class="bk-card-actions">
+                <a href="/dev-console/backup/download/<%= encodeURIComponent(f.name) %>" class="bk-btn bk-btn-dl" download>
+                    <i data-lucide="download"></i> <%= t('owner.backup_download') %>
+                </a>
+                <button class="bk-btn bk-btn-del" onclick="deleteBackup('<%= f.name %>',<%= i %>)">
+                    <i data-lucide="trash-2"></i> <%= t('owner.backup_delete') %>
+                </button>
+            </div>
+        </div>
+        <% }); %>
+    </div>
+
     <% } %>
 
 </main>
@@ -204,6 +231,54 @@ function _fmtSize(bytes) {
 .bk-empty-title { font-size: 1.05rem; font-weight: 700; color: var(--text); margin: 0; }
 .bk-empty-sub   { font-size: .83rem; color: var(--text-muted); margin: 0; }
 
+/* ── Responsive visibility ─────────────────────────────────────────────────── */
+.bk-mobile { display: none; }
+@media(max-width:640px) {
+    .bk-desktop { display: none; }
+    .bk-mobile  { display: flex; }
+}
+
+/* ── Mobile cards ──────────────────────────────────────────────────────────── */
+.bk-card-list { flex-direction: column; gap: .6rem; }
+.bk-card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 12px; padding: .85rem 1rem;
+    display: flex; flex-direction: column; gap: .55rem;
+    transition: border-color .15s;
+}
+.bk-card:hover { border-color: rgba(88,101,242,.3); }
+.bk-card-top {
+    display: flex; align-items: flex-start; gap: .5rem;
+}
+.bk-card-top .bk-file-icon { margin-top: 2px; flex-shrink: 0; }
+.bk-card-name {
+    font-family: monospace; font-size: .82rem; font-weight: 700;
+    color: var(--text); word-break: break-all; line-height: 1.4;
+}
+.bk-card-meta {
+    display: flex; flex-wrap: wrap; gap: .4rem .85rem;
+}
+.bk-card-meta-item {
+    display: flex; align-items: center; gap: .3rem;
+    font-size: .75rem; color: var(--text-muted);
+}
+.bk-card-meta-item svg { width: 11px; height: 11px; flex-shrink: 0; }
+.bk-card-actions { display: flex; gap: .45rem; flex-wrap: wrap; }
+
+/* ── Status strip mobile ───────────────────────────────────────────────────── */
+@media(max-width:480px) {
+    .bk-status-strip { display: grid; grid-template-columns: 1fr 1fr; }
+    .bk-status-div   { display: none; }
+    .bk-status-item  {
+        border-bottom: 1px solid var(--border);
+        border-right: 1px solid var(--border);
+        min-width: unset;
+    }
+    .bk-status-item:nth-child(4n),
+    .bk-status-item:last-child { border-right: none; }
+    .bk-status-item:nth-last-child(-n+2):not(.bk-status-div) { border-bottom: none; }
+}
+
 /* Spin animation for run button */
 @keyframes bkSpin { to { transform: rotate(360deg); } }
 .bk-run-btn.loading svg { animation: bkSpin 1s linear infinite; }
@@ -253,8 +328,8 @@ async function deleteBackup(filename, rowIndex) {
         const r = await fetch(`/dev-console/backup/delete/${encodeURIComponent(filename)}`, { method: 'POST' });
         const d = await r.json();
         if (d.success) {
-            const row = document.getElementById('bkRow' + rowIndex);
-            if (row) row.remove();
+            document.getElementById('bkRow'  + rowIndex)?.remove();
+            document.getElementById('bkRowM' + rowIndex)?.remove();
             showMsg(null, _bkt.deleted, 'success');
         } else {
             showMsg(null, d.message || _bkt.error, 'error');
