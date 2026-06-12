@@ -5,7 +5,7 @@
 
 const express             = require('express');
 const { PermissionsBitField } = require('discord.js');
-const config  = require('../config');
+const config  = require('../../config');
 const router  = express.Router();
 
 // ── In-memory member cache (60 detik TTL) ──────────────────────────────────
