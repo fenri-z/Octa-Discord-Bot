@@ -77,13 +77,16 @@ function requireLogin(req, res, next) {
 function requireManageGuild(req, res, next) {
     const { guildId } = req.params;
     const userGuilds  = req.user?.guilds || [];
-    const MANAGE_GUILD = 0x20;
 
-    const guild = userGuilds.find(g =>
-        g.id === guildId && (
-            (parseInt(g.permissions) & MANAGE_GUILD) !== 0 || g.owner
-        )
-    );
+    function canManage(g) {
+        if (g.owner) return true;
+        try {
+            const p = BigInt(g.permissions || '0');
+            return (p & 0x20n) !== 0n || (p & 0x8n) !== 0n; // Manage Guild or Administrator
+        } catch { return false; }
+    }
+
+    const guild = userGuilds.find(g => g.id === guildId && canManage(g));
 
     if (!guild) {
         return res.status(403).json({ success: false, message: 'Akses ditolak.' });
