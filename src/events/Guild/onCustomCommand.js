@@ -45,13 +45,40 @@ module.exports = new Event({
             }
             if (!matches) continue;
 
-            if (cmd.responseType === 'embed') {
+            if (cmd.responseType === 'embed' || cmd.responseType === 'both') {
                 const res   = cmd.response || {};
-                const embed = new EmbedBuilder()
-                    .setColor(res.color || '#5865F2');
-                if (res.title)       embed.setTitle(replacePlaceholders(res.title, message));
-                if (res.description) embed.setDescription(replacePlaceholders(res.description, message));
-                await message.channel.send({ embeds: [embed] }).catch(() => null);
+                const rp    = (t) => replacePlaceholders(t, message);
+                const embed = new EmbedBuilder().setColor(res.color || '#5865F2');
+
+                if (res.author?.name) {
+                    const ao = { name: rp(res.author.name) };
+                    if (res.author.iconURL) try { new URL(res.author.iconURL); ao.iconURL = res.author.iconURL; } catch {}
+                    embed.setAuthor(ao);
+                }
+                if (res.title)       embed.setTitle(rp(res.title));
+                if (res.description) embed.setDescription(rp(res.description));
+                if (Array.isArray(res.fields) && res.fields.length) {
+                    try {
+                        embed.addFields(res.fields.filter(f => f.name && f.value).map(f => ({
+                            name: rp(f.name), value: rp(f.value), inline: !!f.inline,
+                        })));
+                    } catch {}
+                }
+                if (res.thumbnailURL) try { embed.setThumbnail(res.thumbnailURL); } catch {}
+                if (res.imageURL)     try { embed.setImage(res.imageURL); } catch {}
+                if (res.footer?.text) {
+                    const fo = { text: rp(res.footer.text) };
+                    if (res.footer.iconURL) try { new URL(res.footer.iconURL); fo.iconURL = res.footer.iconURL; } catch {}
+                    embed.setFooter(fo);
+                }
+                if (res.timestamp) embed.setTimestamp();
+
+                const sendOpts = { embeds: [embed] };
+                if (cmd.responseType === 'both' && res.text) {
+                    sendOpts.content = rp(res.text);
+                    sendOpts.allowedMentions = { parse: ['users', 'roles'] };
+                }
+                await message.channel.send(sendOpts).catch(() => null);
             } else {
                 const text = (cmd.response && cmd.response.text) || '';
                 await message.channel.send({

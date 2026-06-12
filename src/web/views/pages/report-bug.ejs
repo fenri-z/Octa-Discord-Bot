@@ -183,11 +183,11 @@
             <div class="rb-row">
                 <div>
                     <label class="rb-label" for="rbFirstName"><%= t('report_bug.first_name') %> <span>*</span></label>
-                    <input class="rb-input" id="rbFirstName" type="text" placeholder="<%= t('report_bug.first_name_ph') %>" required maxlength="50">
+                    <input class="rb-input" id="rbFirstName" type="text" placeholder="<%= t('report_bug.first_name_ph') %>" required maxlength="50" data-flt-ignore>
                 </div>
                 <div>
                     <label class="rb-label" for="rbLastName"><%= t('report_bug.last_name') %> <span>*</span></label>
-                    <input class="rb-input" id="rbLastName" type="text" placeholder="<%= t('report_bug.last_name_ph') %>" required maxlength="50">
+                    <input class="rb-input" id="rbLastName" type="text" placeholder="<%= t('report_bug.last_name_ph') %>" required maxlength="50" data-flt-ignore>
                 </div>
             </div>
 
@@ -199,7 +199,7 @@
                         <span style="font-weight:400;color:var(--text-muted);font-size:.72rem;margin-left:.3rem;"><%= t('report_bug.discord_user_hint') %></span>
                     </label>
                     <input class="rb-input" id="rbDiscordUser" type="text" placeholder="username"
-                           required maxlength="100"
+                           required maxlength="100" data-flt-ignore
                            value="<%= locals.reportUser ? locals.reportUser.username : '' %>"
                            <%= locals.reportUser ? 'readonly style="opacity:.7;cursor:not-allowed;"' : '' %>>
                 </div>
@@ -209,7 +209,7 @@
                         <span style="font-weight:400;color:var(--text-muted);font-size:.72rem;margin-left:.3rem;"><%= t('report_bug.discord_id_hint') %></span>
                     </label>
                     <input class="rb-input" id="rbDiscordId" type="text" placeholder="123456789012345678"
-                           required maxlength="20" pattern="\d{15,20}"
+                           required maxlength="20" pattern="\d{15,20}" data-flt-ignore
                            value="<%= locals.reportUser ? locals.reportUser.id : '' %>"
                            <%= locals.reportUser ? 'readonly style="opacity:.7;cursor:not-allowed;"' : '' %>>
                 </div>
@@ -223,14 +223,14 @@
             <!-- Pesan -->
             <div class="rb-field">
                 <label class="rb-label" for="rbMessage"><%= t('report_bug.message_label') %> <span>*</span></label>
-                <textarea class="rb-textarea" id="rbMessage" placeholder="<%= t('report_bug.message_ph') %>" required maxlength="2000"></textarea>
+                <textarea class="rb-textarea" id="rbMessage" placeholder="<%= t('report_bug.message_ph') %>" required maxlength="2000" data-flt-ignore></textarea>
             </div>
 
             <!-- Upload gambar -->
             <div class="rb-field">
                 <label class="rb-upload-label"><%= t('report_bug.image_label') %> <span style="font-weight:400;color:var(--text-muted);font-size:.75rem;"><%= t('report_bug.image_optional') %></span></label>
                 <div class="rb-upload-area" onclick="document.getElementById('rbFile').click()">
-                    <input type="file" id="rbFile" accept="image/jpeg,image/png,image/gif,image/webp" style="display:none;" onchange="previewFile(this)">
+                    <input type="file" id="rbFile" accept="image/jpeg,image/png,image/gif,image/webp" style="display:none;" onchange="previewFile(this)" data-flt-ignore>
                     <svg class="rb-upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
                         <polyline points="17 8 12 3 7 8"/>

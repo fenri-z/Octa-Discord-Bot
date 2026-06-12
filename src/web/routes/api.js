@@ -3170,7 +3170,7 @@ router.post('/guild/:guildId/custom-commands', requireLogin, requireManageGuild,
     const clean = commands.filter(c => c.trigger && typeof c.trigger === 'string').map(c => ({
         trigger:      String(c.trigger).trim().slice(0, 50),
         mode:         ['prefix', 'exact'].includes(c.mode) ? c.mode : 'prefix',
-        responseType: ['plain', 'embed'].includes(c.responseType) ? c.responseType : 'plain',
+        responseType: ['plain', 'embed', 'both'].includes(c.responseType) ? c.responseType : 'plain',
         response:     c.response || {},
         enabled:      c.enabled !== false,
     }));

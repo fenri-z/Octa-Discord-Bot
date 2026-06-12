@@ -1345,6 +1345,7 @@
     "type_label": "Tipe Respons",
     "type_plain": "Teks Biasa",
     "type_embed": "Embed",
+    "type_both": "Teks + Embed",
     "plain_label": "Teks Balasan",
     "plain_placeholder": "Ketik balasan bot di sini...",
     "embed_title_label": "Judul Embed",
@@ -1359,9 +1360,11 @@
     "badge_prefix": "Prefix",
     "badge_embed": "Embed",
     "badge_plain": "Plain",
+    "badge_both": "Teks + Embed",
     "err_no_trigger": "Trigger tidak boleh kosong.",
     "err_no_text": "Teks balasan tidak boleh kosong.",
-    "err_no_embed": "Judul atau deskripsi embed harus diisi."
+    "err_no_embed": "Judul atau deskripsi embed harus diisi.",
+    "err_no_both": "Isi minimal satu field (teks, judul, atau deskripsi)."
   },
   "extlog": {
     "page_title": "Extended Logging",

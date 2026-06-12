@@ -267,12 +267,12 @@ code {
     -webkit-tap-highlight-color: transparent;
 }
 .btn-primary  {
-    background: linear-gradient(135deg, var(--accent) 0%, #7289da 100%);
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-h) 100%);
     color: #fff; border-color: transparent;
     box-shadow: 0 2px 12px rgba(var(--accent-rgb),.3);
 }
 .btn-primary:hover  {
-    background: linear-gradient(135deg, var(--accent-h) 0%, #5b73bc 100%);
+    background: linear-gradient(135deg, var(--accent-h) 0%, var(--accent-h) 100%);
     border-color: transparent;
     box-shadow: 0 4px 18px rgba(var(--accent-rgb),.5);
     transform: translateY(-1px);
@@ -447,7 +447,7 @@ code {
 }
 .sidebar-guild-icon-placeholder {
     width: 32px; height: 32px; border-radius: 8px;
-    background: linear-gradient(135deg, var(--accent), #7289da);
+    background: linear-gradient(135deg, var(--accent), var(--accent-h));
     color: #fff; font-weight: 700; font-size: .8rem;
     display: flex; align-items: center; justify-content: center;
     flex-shrink: 0;

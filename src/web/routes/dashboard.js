@@ -110,6 +110,16 @@ function getMissingPerms(guild) {
     return me ? REQUIRED_PERMS.filter(p => !me.permissions.has(p.flag)) : [];
 }
 
+// Cek permission dengan BigInt agar tidak terpotong di atas 32-bit.
+// Administrator (0x8) dianggap setara dengan Manage Guild.
+function canManageGuild(g) {
+    if (g.owner) return true;
+    try {
+        const p = BigInt(g.permissions || '0');
+        return (p & 0x20n) !== 0n || (p & 0x8n) !== 0n;
+    } catch { return false; }
+}
+
 function requireLogin(req, res, next) {
     if (!req.isAuthenticated()) {
         req.session.returnTo = req.originalUrl;
@@ -121,13 +131,8 @@ function requireLogin(req, res, next) {
 function requireManageGuild(req, res, next) {
     const { guildId } = req.params;
     const userGuilds  = req.user?.guilds || [];
-    const MANAGE_GUILD = 0x20;
 
-    const guild = userGuilds.find(g =>
-        g.id === guildId && (
-            (parseInt(g.permissions) & MANAGE_GUILD) !== 0 || g.owner
-        )
-    );
+    const guild = userGuilds.find(g => g.id === guildId && canManageGuild(g));
 
     if (!guild) {
         return res.status(403).render('error', { hasSidebar: false,
@@ -146,9 +151,7 @@ function requireManageGuild(req, res, next) {
     }
 
     // Daftar server mutual (user punya akses + bot ada di sana) untuk sidebar switcher
-    const manageableGuilds = userGuilds.filter(g =>
-        (parseInt(g.permissions) & MANAGE_GUILD) !== 0 || g.owner
-    );
+    const manageableGuilds = userGuilds.filter(canManageGuild);
     res.locals.mutualGuilds = manageableGuilds
         .filter(g => req.discordClient?.guilds.cache.has(g.id))
         .map(g => {
@@ -193,12 +196,9 @@ router.get('/refresh', requireLogin, async (req, res) => {
 
 // GET /dashboard
 router.get('/', requireLogin, (req, res) => {
-    const userGuilds   = req.user?.guilds || [];
-    const MANAGE_GUILD = 0x20;
+    const userGuilds = req.user?.guilds || [];
 
-    const manageableGuilds = userGuilds.filter(g =>
-        (parseInt(g.permissions) & MANAGE_GUILD) !== 0 || g.owner
-    );
+    const manageableGuilds = userGuilds.filter(canManageGuild);
 
     const guildsWithStatus = manageableGuilds.map(g => {
         const botGuild = req.discordClient?.guilds.cache.get(g.id);

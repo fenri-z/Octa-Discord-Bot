@@ -1345,6 +1345,7 @@
     "type_label": "Response Type",
     "type_plain": "Plain Text",
     "type_embed": "Embed",
+    "type_both": "Text + Embed",
     "plain_label": "Response Text",
     "plain_placeholder": "Type the bot response here...",
     "embed_title_label": "Embed Title",
@@ -1359,9 +1360,11 @@
     "badge_prefix": "Prefix",
     "badge_embed": "Embed",
     "badge_plain": "Plain",
+    "badge_both": "Text + Embed",
     "err_no_trigger": "Trigger cannot be empty.",
     "err_no_text": "Response text cannot be empty.",
-    "err_no_embed": "Embed title or description must be filled."
+    "err_no_embed": "Embed title or description must be filled.",
+    "err_no_both": "Fill in at least one field (text, title, or description)."
   },
   "extlog": {
     "page_title": "Extended Logging",

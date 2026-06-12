@@ -68,42 +68,143 @@
                 </div>
                 <div class="form-group">
                     <label class="label"><%= t('custom_commands.mode_label') %></label>
-                    <select id="ccMode" class="select" data-flt-ignore>
+                    <select id="ccMode" class="select" data-flt-ignore onchange="syncFloatBar()">
                         <option value="prefix"><%= t('custom_commands.mode_prefix') %></option>
                         <option value="exact"><%= t('custom_commands.mode_exact') %></option>
                     </select>
                 </div>
             </div>
 
-            <div class="form-group">
-                <label class="label"><%= t('custom_commands.type_label') %></label>
-                <select id="ccType" class="select" data-flt-ignore onchange="updateResponseType()">
-                    <option value="plain"><%= t('custom_commands.type_plain') %></option>
-                    <option value="embed"><%= t('custom_commands.type_embed') %></option>
-                </select>
-            </div>
-
-            <div id="ccPlainSection" class="form-group">
-                <label class="label"><%= t('custom_commands.plain_label') %></label>
-                <textarea id="ccPlainText" class="input" data-flt-ignore rows="3" placeholder="<%= t('custom_commands.plain_placeholder') %>" maxlength="2000" style="resize:vertical;"></textarea>
-            </div>
-
-            <div id="ccEmbedSection" style="display:none;">
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
-                    <div class="form-group">
-                        <label class="label"><%= t('custom_commands.embed_title_label') %></label>
-                        <input type="text" id="ccEmbedTitle" class="input" data-flt-ignore placeholder="<%= t('custom_commands.embed_title_placeholder') %>" maxlength="256">
+            <div class="cc-form-preview-row">
+                <!-- Left: response inputs -->
+                <div class="cc-form-inputs">
+                    <div id="ccPlainSection" class="form-group">
+                        <label class="label"><%= t('custom_commands.plain_label') %></label>
+                        <textarea id="ccPlainText" class="input" data-flt-ignore rows="3" placeholder="<%= t('custom_commands.plain_placeholder') %>" maxlength="2000" style="resize:vertical;" oninput="updatePreview()"></textarea>
                     </div>
-                    <div class="form-group">
-                        <label class="label"><%= t('custom_commands.embed_color_label') %></label>
-                        <input type="color" id="ccEmbedColor" class="input" data-flt-ignore value="#5865F2" style="height:42px;padding:.25rem;">
+                    <div id="ccEmbedSection">
+                        <!-- Color + Thumbnail -->
+                        <div style="display:grid;grid-template-columns:130px 1fr;gap:1rem;">
+                            <div class="form-group">
+                                <label class="label"><%= t('custom_commands.embed_color_label') %></label>
+                                <input type="color" id="ccEmbedColor" class="input" data-flt-ignore value="#5865F2" style="height:42px;padding:.25rem;" oninput="updatePreview()">
+                            </div>
+                            <div class="form-group">
+                                <label class="label">Thumbnail URL</label>
+                                <input type="text" id="ccEmbedThumbnail" class="input" data-flt-ignore placeholder="https://… (optional)" oninput="updatePreview()">
+                            </div>
+                        </div>
+                        <!-- Author -->
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+                            <div class="form-group">
+                                <label class="label">Author Name</label>
+                                <input type="text" id="ccEmbedAuthor" class="input" data-flt-ignore placeholder="Author name… (optional)" maxlength="256" oninput="updatePreview()">
+                            </div>
+                            <div class="form-group">
+                                <label class="label">Author Icon URL</label>
+                                <input type="text" id="ccEmbedAuthorIcon" class="input" data-flt-ignore placeholder="https://… (optional)" oninput="updatePreview()">
+                            </div>
+                        </div>
+                        <!-- Title -->
+                        <div class="form-group">
+                            <label class="label"><%= t('custom_commands.embed_title_label') %></label>
+                            <input type="text" id="ccEmbedTitle" class="input" data-flt-ignore placeholder="<%= t('custom_commands.embed_title_placeholder') %>" maxlength="256" oninput="updatePreview()">
+                        </div>
+                        <!-- Description -->
+                        <div class="form-group">
+                            <label class="label"><%= t('custom_commands.embed_desc_label') %></label>
+                            <textarea id="ccEmbedDesc" class="input" data-flt-ignore rows="3" placeholder="<%= t('custom_commands.embed_desc_placeholder') %>" maxlength="4096" style="resize:vertical;" oninput="updatePreview()"></textarea>
+                        </div>
+                        <!-- Fields -->
+                        <div class="form-group">
+                            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.55rem;">
+                                <label class="label" style="margin:0;">Fields <span id="ccFieldCount" style="font-size:.72rem;color:var(--text-muted);font-weight:400;">(0 / 25)</span></label>
+                                <button type="button" class="btn btn-outline btn-sm" onclick="addEmbedField()">
+                                    <i data-lucide="plus" style="width:13px;height:13px;"></i> Add Field
+                                </button>
+                            </div>
+                            <div id="ccFieldsList"></div>
+                        </div>
+                        <!-- Image URL -->
+                        <div class="form-group">
+                            <label class="label">Image URL <span style="font-size:.72rem;color:var(--text-muted);">(large image below description)</span></label>
+                            <input type="text" id="ccEmbedImage" class="input" data-flt-ignore placeholder="https://… (optional)" oninput="updatePreview()">
+                        </div>
+                        <!-- Footer -->
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+                            <div class="form-group">
+                                <label class="label">Footer Text</label>
+                                <input type="text" id="ccEmbedFooter" class="input" data-flt-ignore placeholder="Footer text… (optional)" maxlength="2048" oninput="updatePreview()">
+                            </div>
+                            <div class="form-group">
+                                <label class="label">Footer Icon URL</label>
+                                <input type="text" id="ccEmbedFooterIcon" class="input" data-flt-ignore placeholder="https://… (optional)" oninput="updatePreview()">
+                            </div>
+                        </div>
+                        <!-- Timestamp -->
+                        <div class="form-group" style="display:flex;align-items:center;gap:.6rem;margin-bottom:0;">
+                            <label class="toggle-label" style="gap:.6rem;cursor:pointer;">
+                                <input type="checkbox" id="ccEmbedTimestamp" class="toggle-input" data-flt-ignore onchange="updatePreview()">
+                                <span class="toggle-slider"></span>
+                                <span style="font-size:.875rem;">Include Timestamp</span>
+                            </label>
+                        </div>
                     </div>
                 </div>
-                <div class="form-group">
-                    <label class="label"><%= t('custom_commands.embed_desc_label') %></label>
-                    <textarea id="ccEmbedDesc" class="input" data-flt-ignore rows="3" placeholder="<%= t('custom_commands.embed_desc_placeholder') %>" maxlength="4096" style="resize:vertical;"></textarea>
+
+                <!-- Right: Discord-style preview -->
+                <div class="cc-preview-panel">
+                    <div class="cc-preview-label">
+                        <i data-lucide="eye" style="width:13px;height:13px;flex-shrink:0;"></i> PREVIEW
+                    </div>
+                    <div class="cc-discord-preview">
+                        <div class="cc-dp-channel">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                            preview
+                        </div>
+                        <div class="cc-dp-msg">
+                            <div class="cc-dp-ava">
+                                <img src="<%- locals.botNavAvatar || 'https://cdn.discordapp.com/embed/avatars/0.png' %>"
+                                     alt="" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+                            </div>
+                            <div class="cc-dp-right">
+                                <div class="cc-dp-name">
+                                    <%- locals.botNavName || 'Bot' %>
+                                    <span class="cc-dp-app-badge">
+                                        <svg width="9" height="9" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                            <path d="M1.5 6L4.5 9L10.5 3" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg>
+                                        APP
+                                    </span>
+                                    <span class="cc-dp-time">Today at 12:00</span>
+                                </div>
+                                <div id="ccDpText" class="cc-dp-text" style="display:none;"></div>
+                                <div id="ccDpEmbed" class="cc-dp-embed" style="display:none;">
+                                    <div id="ccDpEmbedBar" class="cc-dp-embed-bar" style="background:#5865F2;"></div>
+                                    <div class="cc-dp-embed-body">
+                                        <div id="ccDpEmbedAuthor" class="cc-dp-embed-author" style="display:none;"></div>
+                                        <div class="cc-dp-embed-main">
+                                            <div class="cc-dp-embed-content">
+                                                <div id="ccDpEmbedTitle"  class="cc-dp-embed-title"  style="display:none;"></div>
+                                                <div id="ccDpEmbedDesc"   class="cc-dp-embed-desc"   style="display:none;"></div>
+                                                <div id="ccDpEmbedFields" class="cc-dp-embed-fields" style="display:none;"></div>
+                                            </div>
+                                            <div id="ccDpEmbedThumb" class="cc-dp-embed-thumb" style="display:none;">
+                                                <img id="ccDpThumbImg" src="" alt="">
+                                            </div>
+                                        </div>
+                                        <div id="ccDpEmbedImage" class="cc-dp-embed-image" style="display:none;">
+                                            <img id="ccDpImageImg" src="" alt="">
+                                        </div>
+                                        <div id="ccDpEmbedFooter" class="cc-dp-embed-footer" style="display:none;"></div>
+                                    </div>
+                                </div>
+                                <div id="ccDpEmpty" class="cc-dp-empty">Type a response to see the preview...</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
+            </div><!-- /.cc-form-preview-row -->
 
             <div id="ccAddMsg" class="form-message" style="margin-top:.5rem;"></div>
         </div>
@@ -121,7 +222,7 @@
                     <div class="cc-row-left">
                         <span class="cc-trigger"><code><%= cmd.trigger %></code></span>
                         <span class="cc-badge cc-badge-<%= cmd.mode %>"><%= cmd.mode === 'exact' ? t('custom_commands.badge_exact') : t('custom_commands.badge_prefix') %></span>
-                        <span class="cc-badge" style="background:rgba(88,101,242,.15);color:#5865F2;"><%= cmd.responseType === 'embed' ? t('custom_commands.badge_embed') : t('custom_commands.badge_plain') %></span>
+                        <span class="cc-badge" style="background:rgba(88,101,242,.15);color:#5865F2;"><%= cmd.responseType === 'embed' ? t('custom_commands.badge_embed') : cmd.responseType === 'both' ? t('custom_commands.badge_both') : t('custom_commands.badge_plain') %></span>
                     </div>
                     <div class="cc-row-right">
                         <label class="toggle-label" style="gap:.35rem;">
@@ -162,12 +263,150 @@
 @media (max-width: 600px) {
     [style*="grid-template-columns:1fr 1fr"] { grid-template-columns: 1fr !important; }
 }
+
+/* ── Form + Preview layout ──────────────────────────────────────────── */
+.cc-form-preview-row {
+    display: flex; gap: 1.25rem; align-items: flex-start; margin-top: .25rem;
+}
+.cc-form-inputs { flex: 1; min-width: 0; }
+.cc-preview-panel { width: 380px; flex-shrink: 0; }
+
+.cc-preview-label {
+    font-size: .68rem; font-weight: 700; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: .1em;
+    display: flex; align-items: center; gap: .35rem;
+    margin-bottom: .55rem;
+}
+
+/* ── Discord preview container (always dark — Discord UI) ───────────── */
+.cc-discord-preview {
+    background: #313338; border-radius: 10px;
+    overflow: hidden; user-select: none;
+}
+.cc-dp-channel {
+    background: #2b2d31; border-bottom: 1px solid rgba(0,0,0,.25);
+    padding: .45rem .8rem;
+    font-size: .75rem; color: rgba(255,255,255,.4);
+    display: flex; align-items: center; gap: .4rem;
+}
+.cc-dp-channel svg { opacity: .5; flex-shrink: 0; }
+
+.cc-dp-msg {
+    display: flex; gap: .75rem;
+    padding: .85rem .85rem .9rem;
+}
+.cc-dp-ava {
+    width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+    overflow: hidden; background: #5865F2;
+}
+.cc-dp-ava img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.cc-dp-right { min-width: 0; flex: 1; }
+
+.cc-dp-name {
+    display: flex; align-items: center; gap: .35rem; flex-wrap: wrap;
+    font-size: .875rem; font-weight: 700; color: #fff;
+    margin-bottom: .25rem; line-height: 1.2;
+}
+.cc-dp-app-badge {
+    font-size: .58rem; font-weight: 700; padding: .08rem .3rem;
+    border-radius: 3px; background: #5865F2; color: #fff;
+    letter-spacing: .04em; text-transform: uppercase;
+    display: inline-flex; align-items: center; gap: .2rem; flex-shrink: 0;
+}
+.cc-dp-time {
+    font-size: .72rem; font-weight: 400; color: rgba(255,255,255,.3);
+}
+
+.cc-dp-text {
+    font-size: .875rem; color: #dbdee1;
+    line-height: 1.5; word-break: break-word;
+    white-space: pre-wrap; margin-bottom: .2rem;
+}
+
+/* Embed */
+.cc-dp-embed {
+    display: flex; border-radius: 0 4px 4px 0;
+    background: #2b2d31; margin-top: .35rem;
+    overflow: hidden; max-width: 100%;
+}
+.cc-dp-embed-bar { width: 4px; flex-shrink: 0; }
+.cc-dp-embed-body { padding: .55rem .75rem; min-width: 0; }
+.cc-dp-embed-title {
+    font-size: .875rem; font-weight: 700; color: #fff;
+    margin-bottom: .2rem; word-break: break-word; line-height: 1.4;
+}
+.cc-dp-embed-desc {
+    font-size: .8rem; color: rgba(255,255,255,.7);
+    line-height: 1.55; word-break: break-word; white-space: pre-wrap;
+}
+
+.cc-dp-empty {
+    font-size: .78rem; color: rgba(255,255,255,.28);
+    padding: .2rem 0; font-style: italic;
+}
+
+/* Author */
+.cc-dp-embed-author {
+    display: flex; align-items: center; gap: .4rem;
+    font-size: .78rem; font-weight: 700; color: #fff;
+    margin-bottom: .3rem;
+}
+.cc-dp-author-icon {
+    width: 18px; height: 18px; border-radius: 50%; object-fit: cover;
+}
+/* Main content + thumbnail */
+.cc-dp-embed-main { display: flex; gap: .6rem; }
+.cc-dp-embed-content { flex: 1; min-width: 0; }
+.cc-dp-embed-thumb { flex-shrink: 0; width: 64px; height: 64px; border-radius: 4px; overflow: hidden; }
+.cc-dp-embed-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+/* Fields grid */
+.cc-dp-embed-fields {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: .35rem .65rem; margin-top: .35rem;
+}
+.cc-dp-field { }
+.cc-dp-field-block { grid-column: 1 / -1; }
+.cc-dp-field-name { font-size: .78rem; font-weight: 700; color: #fff; margin-bottom: .1rem; word-break: break-word; }
+.cc-dp-field-val  { font-size: .77rem; color: rgba(255,255,255,.7); word-break: break-word; white-space: pre-wrap; }
+
+/* Large image */
+.cc-dp-embed-image { margin-top: .5rem; border-radius: 4px; overflow: hidden; max-height: 140px; }
+.cc-dp-embed-image img { width: 100%; display: block; object-fit: cover; max-height: 140px; }
+
+/* Footer */
+.cc-dp-embed-footer {
+    display: flex; align-items: center; gap: .35rem; flex-wrap: wrap;
+    font-size: .72rem; color: rgba(255,255,255,.45);
+    margin-top: .5rem; padding-top: .4rem;
+    border-top: 1px solid rgba(255,255,255,.06);
+}
+.cc-dp-footer-icon { width: 16px; height: 16px; border-radius: 50%; object-fit: cover; }
+.cc-dp-footer-sep  { opacity: .5; }
+
+/* Embed field rows in form */
+.cc-field-row {
+    display: flex; gap: .6rem; align-items: flex-start;
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 8px; padding: .65rem .75rem; margin-bottom: .45rem;
+}
+.cc-field-inputs { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: .4rem; }
+.cc-field-inline-row { display: flex; align-items: center; gap: .5rem; margin-top: .15rem; }
+.cc-field-inline-row label { font-size: .8rem; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; gap: .3rem; }
+.cc-field-num { font-size: .68rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: .1rem; }
+.cc-field-del { flex-shrink: 0; margin-top: .1rem; }
+
+@media (max-width: 840px) {
+    .cc-form-preview-row { flex-direction: column; }
+    .cc-preview-panel { width: 100%; }
+}
 </style>
 
 <script>
 const GUILD_ID = '<%= guild.id %>';
-let commands     = <%- JSON.stringify(commands) %>;
+let commands      = <%- JSON.stringify(commands) %>;
 let savedCommands = JSON.parse(JSON.stringify(commands));
+let embedFields   = []; // { name, value, inline }
 
 const i18n = {
     empty:        '<%= t('custom_commands.empty') %>',
@@ -175,9 +414,11 @@ const i18n = {
     badge_prefix: '<%= t('custom_commands.badge_prefix') %>',
     badge_embed:  '<%= t('custom_commands.badge_embed') %>',
     badge_plain:  '<%= t('custom_commands.badge_plain') %>',
+    badge_both:   '<%= t('custom_commands.badge_both') %>',
     err_no_trigger: '<%= t('custom_commands.err_no_trigger') %>',
     err_no_text:    '<%= t('custom_commands.err_no_text') %>',
     err_no_embed:   '<%= t('custom_commands.err_no_embed') %>',
+    err_no_both:    '<%= t('custom_commands.err_no_both') %>',
 };
 
 function showMsg(el, text, type) {
@@ -196,10 +437,132 @@ async function apiFetch(path, method, body) {
     return res.json();
 }
 
-function updateResponseType() {
-    const type = document.getElementById('ccType').value;
-    document.getElementById('ccPlainSection').style.display = type === 'plain' ? '' : 'none';
-    document.getElementById('ccEmbedSection').style.display = type === 'embed' ? '' : 'none';
+
+function updatePreview() {
+    const text   = (document.getElementById('ccPlainText')?.value       || '').trimEnd();
+    const author = (document.getElementById('ccEmbedAuthor')?.value     || '').trim();
+    const aIcon  = (document.getElementById('ccEmbedAuthorIcon')?.value || '').trim();
+    const title  = (document.getElementById('ccEmbedTitle')?.value      || '').trim();
+    const desc   = (document.getElementById('ccEmbedDesc')?.value       || '').trimEnd();
+    const color  = (document.getElementById('ccEmbedColor')?.value      || '#5865F2');
+    const thumb  = (document.getElementById('ccEmbedThumbnail')?.value  || '').trim();
+    const image  = (document.getElementById('ccEmbedImage')?.value      || '').trim();
+    const footer = (document.getElementById('ccEmbedFooter')?.value     || '').trim();
+    const fIcon  = (document.getElementById('ccEmbedFooterIcon')?.value || '').trim();
+    const ts     = document.getElementById('ccEmbedTimestamp')?.checked;
+
+    const activeFields = embedFields.filter(f => f.name.trim() || f.value.trim());
+    const showText  = text.length > 0;
+    const showEmbed = !!(author || title || desc || activeFields.length || image || thumb || footer || ts);
+
+    document.getElementById('ccDpText').style.display  = showText  ? '' : 'none';
+    document.getElementById('ccDpEmbed').style.display = showEmbed ? '' : 'none';
+    document.getElementById('ccDpEmpty').style.display = (!showText && !showEmbed) ? '' : 'none';
+
+    if (showText) document.getElementById('ccDpText').textContent = text;
+
+    if (showEmbed) {
+        document.getElementById('ccDpEmbedBar').style.background = color;
+
+        // Author
+        const dpAuthor = document.getElementById('ccDpEmbedAuthor');
+        dpAuthor.style.display = author ? '' : 'none';
+        if (author) {
+            dpAuthor.innerHTML = (aIcon ? `<img class="cc-dp-author-icon" src="${escHtml(aIcon)}" onerror="this.style.display='none'" alt=""> ` : '') + escHtml(author);
+        }
+
+        // Title
+        const dpTitle = document.getElementById('ccDpEmbedTitle');
+        dpTitle.style.display = title ? '' : 'none';
+        if (title) dpTitle.textContent = title;
+
+        // Desc
+        const dpDesc = document.getElementById('ccDpEmbedDesc');
+        dpDesc.style.display = desc ? '' : 'none';
+        if (desc) dpDesc.textContent = desc;
+
+        // Fields
+        const dpFields = document.getElementById('ccDpEmbedFields');
+        if (activeFields.length) {
+            dpFields.style.display = '';
+            dpFields.innerHTML = activeFields.map(f =>
+                `<div class="cc-dp-field${f.inline ? '' : ' cc-dp-field-block'}">
+                    <div class="cc-dp-field-name">${escHtml(f.name || '​')}</div>
+                    <div class="cc-dp-field-val">${escHtml(f.value || '​')}</div>
+                </div>`
+            ).join('');
+        } else { dpFields.style.display = 'none'; }
+
+        // Thumbnail
+        const dpThumb = document.getElementById('ccDpEmbedThumb');
+        dpThumb.style.display = thumb ? '' : 'none';
+        if (thumb) {
+            const img = document.getElementById('ccDpThumbImg');
+            img.src = thumb; img.onerror = () => { dpThumb.style.display = 'none'; };
+        }
+
+        // Image
+        const dpImage = document.getElementById('ccDpEmbedImage');
+        dpImage.style.display = image ? '' : 'none';
+        if (image) {
+            const img = document.getElementById('ccDpImageImg');
+            img.src = image; img.onerror = () => { dpImage.style.display = 'none'; };
+        }
+
+        // Footer
+        const dpFooter = document.getElementById('ccDpEmbedFooter');
+        if (footer || ts) {
+            dpFooter.style.display = '';
+            const now = new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            dpFooter.innerHTML =
+                (fIcon ? `<img class="cc-dp-footer-icon" src="${escHtml(fIcon)}" onerror="this.style.display='none'" alt=""> ` : '') +
+                (footer ? escHtml(footer) : '') +
+                (footer && ts ? '<span class="cc-dp-footer-sep"> • </span>' : '') +
+                (ts ? `<span>${now}</span>` : '');
+        } else { dpFooter.style.display = 'none'; }
+    }
+    syncFloatBar();
+}
+
+/* ── Embed field management ─────────────────────────────────────────── */
+function addEmbedField() {
+    if (embedFields.length >= 25) return;
+    embedFields.push({ name: '', value: '', inline: false });
+    renderEmbedFields();
+    updatePreview();
+}
+
+function removeEmbedField(idx) {
+    embedFields.splice(idx, 1);
+    renderEmbedFields();
+    updatePreview();
+}
+
+function renderEmbedFields() {
+    const container = document.getElementById('ccFieldsList');
+    const countEl   = document.getElementById('ccFieldCount');
+    if (countEl) countEl.textContent = `(${embedFields.length} / 25)`;
+    if (!embedFields.length) { container.innerHTML = ''; return; }
+    container.innerHTML = embedFields.map((f, i) => `
+        <div class="cc-field-row" data-fi="${i}">
+            <div class="cc-field-inputs">
+                <div class="cc-field-num">Field #${i + 1}</div>
+                <input type="text" class="input" placeholder="Field name…" maxlength="256" value="${escHtml(f.name)}"
+                    oninput="embedFields[${i}].name=this.value;updatePreview()">
+                <textarea class="input" placeholder="Field value…" maxlength="1024" rows="2" style="resize:vertical;"
+                    oninput="embedFields[${i}].value=this.value;updatePreview()">${escHtml(f.value)}</textarea>
+                <div class="cc-field-inline-row">
+                    <label>
+                        <input type="checkbox" ${f.inline ? 'checked' : ''} onchange="embedFields[${i}].inline=this.checked;updatePreview()">
+                        Inline
+                    </label>
+                </div>
+            </div>
+            <button type="button" class="btn btn-danger btn-sm cc-field-del" onclick="removeEmbedField(${i})">
+                <i data-lucide="trash-2" style="width:13px;height:13px;"></i>
+            </button>
+        </div>`).join('');
+    if (window.lucide) lucide.createIcons();
 }
 
 async function saveCommands() {
@@ -218,42 +581,72 @@ function onFormInput() {
 }
 
 function clearForm() {
-    document.getElementById('ccTrigger').value    = '';
-    document.getElementById('ccPlainText').value  = '';
-    document.getElementById('ccEmbedTitle').value = '';
-    document.getElementById('ccEmbedDesc').value  = '';
-    document.getElementById('ccMode').value       = 'prefix';
-    document.getElementById('ccType').value       = 'plain';
-    updateResponseType();
+    document.getElementById('ccTrigger').value         = '';
+    document.getElementById('ccPlainText').value       = '';
+    document.getElementById('ccEmbedAuthor').value     = '';
+    document.getElementById('ccEmbedAuthorIcon').value = '';
+    document.getElementById('ccEmbedTitle').value      = '';
+    document.getElementById('ccEmbedDesc').value       = '';
+    document.getElementById('ccEmbedThumbnail').value  = '';
+    document.getElementById('ccEmbedImage').value      = '';
+    document.getElementById('ccEmbedFooter').value     = '';
+    document.getElementById('ccEmbedFooterIcon').value = '';
+    document.getElementById('ccEmbedTimestamp').checked= false;
+    document.getElementById('ccMode').value = 'prefix';
+    embedFields = [];
+    renderEmbedFields();
+    updatePreview();
     const addMsg = document.getElementById('ccAddMsg');
     addMsg.textContent = '';
     addMsg.className   = 'form-message';
+}
+
+function buildEmbedResponse() {
+    const authorName  = document.getElementById('ccEmbedAuthor').value.trim();
+    const authorIcon  = document.getElementById('ccEmbedAuthorIcon').value.trim();
+    const title       = document.getElementById('ccEmbedTitle').value.trim();
+    const description = document.getElementById('ccEmbedDesc').value.trim();
+    const color       = document.getElementById('ccEmbedColor').value;
+    const thumbnail   = document.getElementById('ccEmbedThumbnail').value.trim();
+    const imageURL    = document.getElementById('ccEmbedImage').value.trim();
+    const footerText  = document.getElementById('ccEmbedFooter').value.trim();
+    const footerIcon  = document.getElementById('ccEmbedFooterIcon').value.trim();
+    const timestamp   = document.getElementById('ccEmbedTimestamp').checked;
+    const cleanFields = embedFields.filter(f => f.name.trim() && f.value.trim())
+                        .map(f => ({ name: f.name.trim(), value: f.value.trim(), inline: !!f.inline }));
+    const r = { color };
+    if (authorName)         r.author       = { name: authorName, iconURL: authorIcon || null };
+    if (title)              r.title        = title;
+    if (description)        r.description  = description;
+    if (cleanFields.length) r.fields       = cleanFields;
+    if (thumbnail)          r.thumbnailURL = thumbnail;
+    if (imageURL)           r.imageURL     = imageURL;
+    if (footerText||footerIcon) r.footer   = { text: footerText, iconURL: footerIcon || null };
+    if (timestamp)          r.timestamp    = true;
+    return r;
 }
 
 function addCommandFromForm() {
     const trigger = document.getElementById('ccTrigger').value.trim();
     if (!trigger) return true; // form is empty, nothing to add
 
-    const mode    = document.getElementById('ccMode').value;
-    const resType = document.getElementById('ccType').value;
-    const addMsg  = document.getElementById('ccAddMsg');
+    const mode   = document.getElementById('ccMode').value;
+    const addMsg = document.getElementById('ccAddMsg');
+    const text   = document.getElementById('ccPlainText').value.trim();
+    const embedResp = buildEmbedResponse();
+    const hasEmbed  = !!(embedResp.author?.name || embedResp.title || embedResp.description ||
+                         embedResp.fields?.length || embedResp.imageURL || embedResp.thumbnailURL ||
+                         embedResp.footer?.text || embedResp.timestamp);
 
-    let response = {};
-    if (resType === 'plain') {
-        const text = document.getElementById('ccPlainText').value.trim();
-        if (!text) { showMsg(addMsg, i18n.err_no_text, 'error'); return false; }
-        response = { text };
-    } else {
-        response = {
-            title:       document.getElementById('ccEmbedTitle').value.trim(),
-            description: document.getElementById('ccEmbedDesc').value.trim(),
-            color:       document.getElementById('ccEmbedColor').value,
-        };
-        if (!response.title && !response.description) {
-            showMsg(addMsg, i18n.err_no_embed, 'error');
-            return false;
-        }
+    if (!text && !hasEmbed) {
+        showMsg(addMsg, i18n.err_no_text, 'error');
+        return false;
     }
+
+    let resType, response;
+    if (text && hasEmbed)  { resType = 'both';  response = { text, ...embedResp }; }
+    else if (hasEmbed)     { resType = 'embed'; response = embedResp; }
+    else                   { resType = 'plain'; response = { text }; }
 
     commands.push({ trigger, mode, responseType: resType, response, enabled: true });
     clearForm();
@@ -280,7 +673,7 @@ function renderList() {
             <div class="cc-row-left">
                 <span class="cc-trigger"><code>${escHtml(cmd.trigger)}</code></span>
                 <span class="cc-badge cc-badge-${cmd.mode}">${cmd.mode === 'exact' ? i18n.badge_exact : i18n.badge_prefix}</span>
-                <span class="cc-badge" style="background:rgba(88,101,242,.15);color:#5865F2;">${cmd.responseType === 'embed' ? i18n.badge_embed : i18n.badge_plain}</span>
+                <span class="cc-badge" style="background:rgba(88,101,242,.15);color:#5865F2;">${cmd.responseType === 'embed' ? i18n.badge_embed : cmd.responseType === 'both' ? i18n.badge_both : i18n.badge_plain}</span>
             </div>
             <div class="cc-row-right">
                 <label class="toggle-label" style="gap:.35rem;">
@@ -303,9 +696,20 @@ function toggleCmd(el) {
 }
 
 function syncFloatBar() {
-    const formEmpty = !document.getElementById('ccTrigger').value.trim();
+    const formHasContent = !!(
+        document.getElementById('ccTrigger').value.trim()     ||
+        document.getElementById('ccPlainText').value.trim()   ||
+        document.getElementById('ccEmbedAuthor').value.trim() ||
+        document.getElementById('ccEmbedTitle').value.trim()  ||
+        document.getElementById('ccEmbedDesc').value.trim()   ||
+        document.getElementById('ccEmbedThumbnail').value.trim() ||
+        document.getElementById('ccEmbedImage').value.trim()  ||
+        document.getElementById('ccEmbedFooter').value.trim() ||
+        document.getElementById('ccEmbedTimestamp').checked   ||
+        embedFields.some(f => f.name.trim() || f.value.trim())
+    );
     const listClean = JSON.stringify(commands) === JSON.stringify(savedCommands);
-    if (formEmpty && listClean) window._floatClean?.();
+    if (!formHasContent && listClean) window._floatClean?.();
     else window._floatDirty?.();
 }
 
