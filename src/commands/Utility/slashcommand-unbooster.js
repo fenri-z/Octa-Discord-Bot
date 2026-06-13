@@ -287,7 +287,8 @@ required: true
                             messageColor:   cfg.unboostCardMsgColor,
                             fontFamily:     cfg.unboostCardFont,
                         });
-                        unboostCard = new AttachmentBuilder(buf, { name: 'unboost-card.png' });
+                        if (buf?.length > 0)
+                            unboostCard = new AttachmentBuilder(Buffer.from(buf), { name: 'unboost-card.png' });
                     } catch (err) { console.error('[preview-unboost] Card generation failed:', err.message); }
                 }
 

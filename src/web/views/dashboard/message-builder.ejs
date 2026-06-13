@@ -411,86 +411,6 @@
     font-weight:600; white-space:nowrap;
 }
 
-/* ── Form + Preview layout (shared with custom-commands) ── */
-.cc-form-preview-row {
-    display:flex; gap:1.25rem; align-items:flex-start; margin-top:.25rem;
-}
-.cc-form-inputs { flex:1; min-width:0; }
-.cc-preview-panel { width:420px; flex-shrink:0; position:sticky; top:calc(var(--navbar-h, 64px) + 1.5rem); }
-
-.cc-preview-label {
-    font-size:.68rem; font-weight:700; color:var(--text-muted);
-    text-transform:uppercase; letter-spacing:.1em;
-    display:flex; align-items:center; gap:.35rem;
-    margin-bottom:.55rem;
-}
-.cc-preview-label:hover { color:var(--text); }
-.cc-preview-hidden .cc-discord-preview {
-    opacity:0; pointer-events:none;
-    transform:scaleY(0.92);
-    max-height:0; overflow:hidden; margin:0; border:none;
-}
-
-/* ── Discord preview container ── */
-.cc-discord-preview {
-    background:var(--bg2); border-radius:10px;
-    overflow:hidden; user-select:none;
-    border:1px solid var(--border);
-    transition:opacity .2s, transform .2s;
-    transform-origin:top center;
-    max-width:100%;
-}
-.cc-dp-channel {
-    background:var(--bg3); border-bottom:1px solid var(--border);
-    padding:.45rem .8rem;
-    font-size:.75rem; color:var(--text-muted);
-    display:flex; align-items:center; gap:.4rem;
-}
-.cc-dp-channel svg { opacity:.5; flex-shrink:0; }
-.cc-dp-msg { display:flex; gap:.75rem; padding:.85rem .85rem .9rem; }
-.cc-dp-ava { width:36px; height:36px; border-radius:50%; flex-shrink:0; overflow:hidden; background:#5865F2; }
-.cc-dp-ava img { width:100%; height:100%; object-fit:cover; display:block; }
-.cc-dp-right { min-width:0; flex:1; }
-.cc-dp-name {
-    display:flex; align-items:center; gap:.35rem; flex-wrap:wrap;
-    font-size:.875rem; font-weight:700; color:var(--text);
-    margin-bottom:.25rem; line-height:1.2;
-}
-.cc-dp-app-badge {
-    display:inline-flex; align-items:center; gap:.2rem;
-    font-size:.58rem; font-weight:700; padding:.12rem .28rem;
-    border-radius:3px; background:#5865F2; color:#fff;
-    letter-spacing:.03em; text-transform:uppercase;
-    line-height:1; flex-shrink:0;
-}
-.cc-dp-app-badge svg { flex-shrink:0; }
-.cc-dp-time { font-size:.72rem; font-weight:400; color:var(--text-muted); }
-.cc-dp-text {
-    font-size:.875rem; color:var(--text);
-    line-height:1.5; word-break:break-all; overflow-wrap:anywhere;
-    white-space:pre-wrap; margin-bottom:.2rem;
-}
-.cc-dp-plain-image { margin-top:.35rem; border-radius:4px; overflow:hidden; max-width:400px; max-height:300px; }
-.cc-dp-plain-image img { width:100%; display:block; object-fit:cover; max-height:300px; }
-.cc-dp-embed { display:flex; border-radius:0 4px 4px 0; background:var(--bg3); margin-top:.35rem; overflow:hidden; max-width:100%; }
-.cc-dp-embed-bar { width:4px; flex-shrink:0; }
-.cc-dp-embed-body { padding:.55rem .75rem; min-width:0; flex:1; }
-.cc-dp-embed-main { display:flex; gap:.75rem; align-items:flex-start; }
-.cc-dp-embed-content { flex:1; min-width:0; }
-.cc-dp-embed-author { display:flex; align-items:center; gap:.4rem; font-size:.78rem; font-weight:700; color:var(--text); margin-bottom:.3rem; overflow:hidden; }
-.cc-dp-author-icon { width:18px; height:18px; border-radius:50%; object-fit:cover; flex-shrink:0; }
-.cc-dp-text-wrap { min-width:0; flex:1; word-break:break-all; overflow-wrap:anywhere; }
-.cc-dp-embed-title { font-size:.875rem; font-weight:700; color:var(--text); margin-bottom:.2rem; word-break:break-all; overflow-wrap:anywhere; line-height:1.4; }
-.cc-dp-embed-desc { font-size:.8rem; color:var(--text-muted); line-height:1.55; word-break:break-all; overflow-wrap:anywhere; white-space:pre-wrap; }
-.cc-dp-embed-thumb { flex-shrink:0; width:80px; height:80px; border-radius:4px; overflow:hidden; margin-top:.1rem; }
-.cc-dp-embed-thumb img { width:100%; height:100%; object-fit:cover; display:block; }
-.cc-dp-embed-image { margin-top:.5rem; border-radius:4px; overflow:hidden; }
-.cc-dp-embed-image img { width:100%; display:block; height:auto; }
-.cc-dp-embed-footer { display:flex; align-items:center; gap:.35rem; flex-wrap:wrap; font-size:.72rem; color:var(--text-muted); margin-top:.5rem; }
-.cc-dp-footer-icon { width:16px; height:16px; border-radius:50%; object-fit:cover; }
-.cc-dp-footer-sep  { opacity:.5; }
-.cc-dp-empty { font-size:.78rem; color:var(--text-muted); padding:.2rem 0; font-style:italic; opacity:.6; }
-
 /* ── Template list row ── */
 .mb-row {
     display:flex; align-items:center; justify-content:space-between;
@@ -578,13 +498,6 @@
 .mb-char-count.warn   { color:#f0b232; }
 .mb-char-count.danger { color:#ed4245; font-weight:600; }
 
-/* ── Embed fields (preview) ── */
-.cc-dp-embed-fields { display:grid; grid-template-columns:repeat(3,1fr); gap:.35rem .65rem; margin-top:.35rem; }
-.cc-dp-field { }
-.cc-dp-field-block { grid-column:1/-1; }
-.cc-dp-field-name { font-size:.78rem; font-weight:700; color:var(--text); margin-bottom:.1rem; word-break:break-all; overflow-wrap:anywhere; }
-.cc-dp-field-val  { font-size:.77rem; color:var(--text-muted); word-break:break-all; overflow-wrap:anywhere; white-space:pre-wrap; }
-
 /* ── Embed field rows (form) ── */
 .cc-field-row { display:flex; gap:.6rem; align-items:flex-start; background:var(--bg3); border:1px solid var(--border); border-radius:8px; padding:.65rem .75rem; margin-bottom:.45rem; }
 .cc-field-inputs { flex:1; min-width:0; display:flex; flex-direction:column; gap:.4rem; }
@@ -636,10 +549,6 @@
 .mb-modal-footer { padding:1rem 1.25rem; border-top:1px solid var(--border); flex-shrink:0; }
 
 /* ── Responsive ── */
-@media (max-width:900px) {
-    .cc-form-preview-row { flex-direction:column; }
-    .cc-preview-panel { width:100%; position:static; max-width:100%; overflow-x:hidden; }
-}
 @media (max-width:640px) {
     .mb-top-grid  { grid-template-columns:1fr !important; }
     .mb-url-pair  { grid-template-columns:1fr !important; }
@@ -653,17 +562,6 @@
     .mb-row-preview { max-width:none; }
     .settings-card { padding:1rem; }
     .stats-grid { grid-template-columns:1fr 1fr; }
-}
-@media (max-width:640px) {
-    .cc-dp-embed-footer { flex-wrap:nowrap; overflow:hidden; }
-    .cc-dp-embed-footer .cc-dp-text-wrap,
-    .cc-dp-embed-author .cc-dp-text-wrap {
-        overflow:hidden;
-        text-overflow:ellipsis;
-        white-space:nowrap;
-        flex:1 1 0;
-        min-width:0;
-    }
 }
 @media (max-width:420px) {
     .stats-grid { grid-template-columns:1fr; }

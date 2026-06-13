@@ -155,21 +155,24 @@ module.exports = new Event({
                     messageColor:   cardMsgColor,
                     fontFamily:     cardFont,
                 });
-                cardAttachment = new AttachmentBuilder(cardBuf, { name: 'welcome-card.png' });
+                cardAttachment = new AttachmentBuilder(Buffer.from(cardBuf), { name: 'welcome-card.png' });
+                console.log('[onMemberJoin] Card generated OK, size:', cardBuf.length);
             } catch (err) {
                 logError('[onMemberJoin] Welcome card generation failed:', err);
             }
         }
+        console.log('[onMemberJoin] cardAttachment:', cardAttachment ? 'set' : 'null', '| messageType:', messageType);
 
         // ── Kirim pesan sesuai tipe ───────────────────────────────────────
+        const _sendErr = (label, err) => logError(`[onMemberJoin] ${label}:`, err);
         if (messageType === 'plain') {
             let content = parse(plainText).trim();
             if (content) {
                 const plainPayload = { content, allowedMentions: { users: [member.id] } };
                 if (cardAttachment) plainPayload.files = [cardAttachment];
-                await welcomeChannel.send(plainPayload).catch(() => null);
+                await welcomeChannel.send(plainPayload).catch(e => _sendErr('plain send failed', e));
             } else if (cardAttachment) {
-                await welcomeChannel.send({ files: [cardAttachment] }).catch(() => null);
+                await welcomeChannel.send({ files: [cardAttachment] }).catch(e => _sendErr('card-only plain send failed', e));
             }
         } else {
             const colorHex = color.startsWith('#') ? color : `#${color}`;
@@ -178,7 +181,7 @@ module.exports = new Event({
             if (!hasText) {
                 if (cardAttachment) {
                     const cardOnlyEmbed = new EmbedBuilder().setColor(colorHex).setImage('attachment://welcome-card.png');
-                    await welcomeChannel.send({ embeds: [cardOnlyEmbed], files: [cardAttachment] }).catch(() => null);
+                    await welcomeChannel.send({ embeds: [cardOnlyEmbed], files: [cardAttachment] }).catch(e => _sendErr('card-only embed send failed', e));
                 }
                 return;
             }
@@ -193,7 +196,15 @@ module.exports = new Event({
 
             const embedPayload = { embeds: [embed] };
             if (cardAttachment) embedPayload.files = [cardAttachment];
-            await welcomeChannel.send(embedPayload).catch(() => null);
+            await welcomeChannel.send(embedPayload).catch(async (err) => {
+                if (cardAttachment) {
+                    _sendErr('embed+card send failed (retrying without card)', err);
+                    if (embed.data.image) delete embed.data.image;
+                    await welcomeChannel.send({ embeds: [embed] }).catch(e => _sendErr('embed send failed', e));
+                } else {
+                    _sendErr('embed send failed', err);
+                }
+            });
         }
     })
 }).toJSON();

@@ -1,5 +1,5 @@
 const Event = require('../../structure/Event');
-const { safeRun } = require('../../utils/logError');
+const { safeRun, logError } = require('../../utils/logError');
 
 // Import handler yang sama dari onStarboardReaction
 async function handleReaction(client, reaction, user) {
@@ -33,7 +33,7 @@ async function handleReaction(client, reaction, user) {
 
     if (count < threshold && existingId) {
         const sbMsg = await sbChannel.messages.fetch(existingId).catch(() => null);
-        if (sbMsg) await sbMsg.delete().catch(() => null);
+        if (sbMsg) await sbMsg.delete().catch(err => logError('[Starboard] delete failed:', err));
         db.delete(existingKey);
     }
 }

@@ -44,7 +44,7 @@ async function closePoll(client, pollData) {
         .setDescription(resultDesc || s.no_votes)
         .setFooter({ text: s.footer_total(total) });
 
-    await updated.edit({ embeds: [resultEmbed] }).catch(() => null);
+    await updated.edit({ embeds: [resultEmbed] }).catch(err => logError('[PollManager] edit result failed:', err));
 
     // Hapus dari DB setelah ditutup
     client.database.delete(`poll-active-${channelId}-${messageId}`);

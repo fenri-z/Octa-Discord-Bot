@@ -1,6 +1,6 @@
 const { EmbedBuilder, MessageFlags } = require("discord.js");
 const Event = require("../../structure/Event");
-const { safeRun } = require('../../utils/logError');
+const { safeRun, logError } = require('../../utils/logError');
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -65,9 +65,9 @@ async function handleReaction(client, reaction, user, isAdd) {
     // ════════════════════════════════════════════════════════════════════════
     if (panel.mode !== 'single') {
         if (isAdd) {
-            if (!hasRole) await member.roles.add(role, `Autorole Reaction (multi) – panel: ${panelName}`).catch(() => null);
+            if (!hasRole) await member.roles.add(role, `Autorole Reaction (multi) – panel: ${panelName}`).catch(err => logError('[onReactionAutorole] roles.add (multi) failed:', err));
         } else {
-            if (hasRole) await member.roles.remove(role, `Autorole Reaction (multi) – panel: ${panelName}`).catch(() => null);
+            if (hasRole) await member.roles.remove(role, `Autorole Reaction (multi) – panel: ${panelName}`).catch(err => logError('[onReactionAutorole] roles.remove (multi) failed:', err));
         }
         return;
     }
@@ -84,7 +84,7 @@ async function handleReaction(client, reaction, user, isAdd) {
             // Lepas semua role panel lain yang aktif
             const currentPanelRoles = member.roles.cache.filter(r => allPanelRoleIds.includes(r.id));
             for (const [, oldRole] of currentPanelRoles) {
-                await member.roles.remove(oldRole, `Autorole Reaction (single) – replaced – panel: ${panelName}`).catch(() => null);
+                await member.roles.remove(oldRole, `Autorole Reaction (single) – replaced – panel: ${panelName}`).catch(err => logError('[onReactionAutorole] roles.remove (single/replace) failed:', err));
                 // Hapus reaction lama di pesan supaya UI sinkron
                 try {
                     const oldEntry = panel.reactions.find(r => r.roleId === oldRole.id);
@@ -102,10 +102,10 @@ async function handleReaction(client, reaction, user, isAdd) {
                 } catch {}
             }
 
-            await member.roles.add(role, `Autorole Reaction (single) – panel: ${panelName}`).catch(() => null);
+            await member.roles.add(role, `Autorole Reaction (single) – panel: ${panelName}`).catch(err => logError('[onReactionAutorole] roles.add (single) failed:', err));
         } else {
             // Remove reaction → lepas role jika punya
-            if (hasRole) await member.roles.remove(role, `Autorole Reaction (single) – panel: ${panelName}`).catch(() => null);
+            if (hasRole) await member.roles.remove(role, `Autorole Reaction (single) – panel: ${panelName}`).catch(err => logError('[onReactionAutorole] roles.remove (single) failed:', err));
         }
     }
 }

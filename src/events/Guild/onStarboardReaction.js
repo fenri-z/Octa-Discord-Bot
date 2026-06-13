@@ -1,6 +1,6 @@
 const Event        = require('../../structure/Event');
 const { EmbedBuilder, AttachmentBuilder } = require('discord.js');
-const { safeRun } = require('../../utils/logError');
+const { safeRun, logError } = require('../../utils/logError');
 
 async function handleReaction(client, reaction, user, isAdd) {
     if (user.bot) return;
@@ -60,10 +60,10 @@ async function handleReaction(client, reaction, user, isAdd) {
     if (existingId) {
         // Update pesan yang sudah ada
         const sbMsg = await sbChannel.messages.fetch(existingId).catch(() => null);
-        if (sbMsg) await sbMsg.edit({ content, embeds: [embed] }).catch(() => null);
+        if (sbMsg) await sbMsg.edit({ content, embeds: [embed] }).catch(err => logError('[Starboard] edit failed:', err));
     } else {
         // Kirim pesan baru ke starboard
-        const sent = await sbChannel.send({ content, embeds: [embed] }).catch(() => null);
+        const sent = await sbChannel.send({ content, embeds: [embed] }).catch(err => logError('[Starboard] send failed:', err));
         if (sent) db.set(existingKey, sent.id);
     }
 }

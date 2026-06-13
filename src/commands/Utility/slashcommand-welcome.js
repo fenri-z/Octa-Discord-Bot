@@ -526,8 +526,8 @@ module.exports = new ApplicationCommand({
                         messageColor:   cfg.cardMsgColor,
                         fontFamily:     cfg.cardFont,
                     });
-                    if (Buffer.isBuffer(cardBuf) && cardBuf.length > 0)
-                        cardAttachment = new AttachmentBuilder(cardBuf, { name: 'welcome-card.png' });
+                    if (cardBuf?.length > 0)
+                        cardAttachment = new AttachmentBuilder(Buffer.from(cardBuf), { name: 'welcome-card.png' });
                 } catch (err) {
                     console.error('[preview] Welcome card generation failed:', err.message);
                 }

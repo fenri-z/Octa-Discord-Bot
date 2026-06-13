@@ -337,7 +337,7 @@ class YouTubeNotifier {
             const isExpired = meta.expiresAt && meta.expiresAt < Date.now();
             const needsSub  = (meta.status !== 'active' && meta.status !== 'pending') || isExpired;
             if (needsSub) {
-                await this.subscribe(id).catch(() => {});
+                await this.subscribe(id).catch(err => warn(`[WebSub] Subscribe failed for ${id}: ${err.message}`));
                 await new Promise(r => setTimeout(r, 500)); // hindari rate limit hub
             }
         }
@@ -356,7 +356,7 @@ class YouTubeNotifier {
 
             if (needsRenew) {
                 info(`[WebSub] Memperbarui subscription: ${id}`);
-                await this.subscribe(id).catch(() => {});
+                await this.subscribe(id).catch(err => warn(`[WebSub] Renew failed for ${id}: ${err.message}`));
                 await new Promise(r => setTimeout(r, 500));
             }
         }

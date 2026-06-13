@@ -450,8 +450,8 @@ module.exports = new ApplicationCommand({
                         messageColor:   cfg.cardMsgColor,
                         fontFamily:     cfg.cardFont,
                     });
-                    if (Buffer.isBuffer(cardBuf) && cardBuf.length > 0)
-                        cardAttachment = new AttachmentBuilder(cardBuf, { name: 'goodbye-card.png' });
+                    if (cardBuf?.length > 0)
+                        cardAttachment = new AttachmentBuilder(Buffer.from(cardBuf), { name: 'goodbye-card.png' });
                 } catch (err) {
                     console.error('[goodbye preview] Card generation failed:', err.message);
                 }

@@ -1,5 +1,5 @@
 const Event = require("../../structure/Event");
-const { safeRun } = require('../../utils/logError');
+const { safeRun, logError } = require('../../utils/logError');
 
 // ── Helpers (duplikasi dari onReactionAutorole.js untuk menghindari circular dep) ──
 
@@ -60,7 +60,7 @@ module.exports = new Event({
         if (!member) return;
 
         if (member.roles.cache.has(reactEntry.roleId)) {
-            await member.roles.remove(role, `Autorole Reaction (remove) – panel: ${panelName}`).catch(() => null);
+            await member.roles.remove(role, `Autorole Reaction (remove) – panel: ${panelName}`).catch(err => logError('[onReactionRemoveAutorole] roles.remove failed:', err));
         }
     })
 }).toJSON();

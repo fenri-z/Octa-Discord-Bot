@@ -413,6 +413,11 @@ class TikTokNotifier {
         // Thumbnail video dari RSS feed (gambar besar di bawah embed)
         if (entry.thumbnail)   embed.setImage(entry.thumbnail);
 
+        const _ttBase = (process.env.BASE_URL || '').replace(/\/$/, '');
+        const _ttVideoFooter = { text: _ttBase ? 'TikTok Video' : '🎵 TikTok Video' };
+        if (_ttBase) _ttVideoFooter.iconURL = `${_ttBase}/img/tiktok.png`;
+        embed.setFooter(_ttVideoFooter).setTimestamp();
+
         info(`[TikTok] Video notif: "${entry.title}" | ${account.username} → ${guild.name}`);
         await discordCh.send({ embeds: [embed] }).catch(err =>
             warn(`[TikTok] Failed to send embed: ${err.message}`)
@@ -450,6 +455,11 @@ class TikTokNotifier {
             embed.setThumbnail(account.thumbnail);
             embed.setImage(account.thumbnail);
         }
+
+        const _ttBase = (process.env.BASE_URL || '').replace(/\/$/, '');
+        const _ttLiveFooter = { text: _ttBase ? 'TikTok LIVE' : '🔴 TikTok LIVE' };
+        if (_ttBase) _ttLiveFooter.iconURL = `${_ttBase}/img/tiktok.png`;
+        embed.setFooter(_ttLiveFooter).setTimestamp();
 
         info(`[TikTok/Live] Live notif: ${account.username} → ${guild.name}`);
         await discordCh.send({ embeds: [embed] }).catch(err =>
@@ -500,7 +510,7 @@ class TikTokNotifier {
             if (wasAlerted) {
                 db.set(alertedKey, 'false');
                 info('[TikTok/Health] RSSHub kembali normal — kirim notif recovery ke owner.');
-                await this._sendHealthDM(true).catch(() => {});
+                await this._sendHealthDM(true).catch(err => warn(`[TikTok/Health] Failed to send recovery DM: ${err.message}`));
             }
         } else {
             const failures = parseInt(db.get(failKey) || '0') + 1;
@@ -510,7 +520,7 @@ class TikTokNotifier {
             if (failures >= HEALTH_FAIL_THRESHOLD && db.get(alertedKey) !== 'true') {
                 db.set(alertedKey, 'true');
                 info('[TikTok/Health] Threshold tercapai — kirim alert ke owner.');
-                await this._sendHealthDM(false).catch(() => {});
+                await this._sendHealthDM(false).catch(err => warn(`[TikTok/Health] Failed to send alert DM: ${err.message}`));
             }
         }
     }

@@ -1,6 +1,6 @@
 const { AuditLogEvent, EmbedBuilder } = require('discord.js');
 const Event = require('../../structure/Event');
-const { safeRun } = require('../../utils/logError');
+const { safeRun, logError } = require('../../utils/logError');
 
 const DEFAULT_EVENTS = { ban: true, unban: true, kick: true, timeout: true, warn: true };
 
@@ -97,7 +97,7 @@ module.exports = new Event({
         }
 
         if (embed) {
-            await logChannel.send({ embeds: [embed] }).catch(() => null);
+            await logChannel.send({ embeds: [embed] }).catch(err => logError('[onModLogEntry] send failed:', err));
         }
     }),
 }).toJSON();

@@ -120,11 +120,15 @@ module.exports = new Event({
                     messageColor:   cardMsgColor,
                     fontFamily:     cardFont,
                 });
-                cardAttachment = new AttachmentBuilder(cardBuf, { name: 'goodbye-card.png' });
+                cardAttachment = new AttachmentBuilder(Buffer.from(cardBuf), { name: 'goodbye-card.png' });
+                console.log('[onMemberLeave] Card generated OK, size:', cardBuf.length);
             } catch (err) {
                 logError('[onMemberLeave] Goodbye card generation failed:', err);
             }
         }
+        console.log('[onMemberLeave] cardAttachment:', cardAttachment ? 'set' : 'null', '| messageType:', messageType);
+
+        const _sendErr = (label, err) => logError(`[onMemberLeave] ${label}:`, err);
 
         // ── Mode teks biasa ───────────────────────────────────────────────
         if (messageType === 'plain') {
@@ -133,7 +137,7 @@ module.exports = new Event({
                 const payload = {};
                 if (content) { payload.content = content; payload.allowedMentions = { users: [member.id] }; }
                 if (cardAttachment) payload.files = [cardAttachment];
-                await goodbyeChannel.send(payload).catch(() => null);
+                await goodbyeChannel.send(payload).catch(e => _sendErr('plain send failed', e));
             }
             return;
         }
@@ -152,6 +156,14 @@ module.exports = new Event({
 
         const payload = { embeds: [embed] };
         if (cardAttachment) payload.files = [cardAttachment];
-        await goodbyeChannel.send(payload).catch(() => null);
+        await goodbyeChannel.send(payload).catch(async (err) => {
+            if (cardAttachment) {
+                _sendErr('embed+card send failed (retrying without card)', err);
+                if (embed.data.image) delete embed.data.image;
+                await goodbyeChannel.send({ embeds: [embed] }).catch(e => _sendErr('embed send failed', e));
+            } else {
+                _sendErr('embed send failed', err);
+            }
+        });
     })
 }).toJSON();

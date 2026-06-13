@@ -1,4 +1,4 @@
-const { safeRun } = require('../../utils/logError');
+const { safeRun, logError } = require('../../utils/logError');
 const cache = require('../../utils/GuildCache');
 const Event = require('../../structure/Event');
 
@@ -78,7 +78,7 @@ module.exports = new Event({
                     .replace(/\{level\}/g,    newLevel)
                     .replace(/\{server\}/g,   guild.name)
                     .replace(/\{username\}/g, author.username);
-                await announceIn.send({ content: text }).catch(() => null);
+                await announceIn.send({ content: text }).catch(err => logError('[onMessageXP] level-up send failed:', err));
             }
 
             if (cfg.rolesRaw) {
@@ -90,7 +90,7 @@ module.exports = new Event({
                         if (rr.level <= newLevel) {
                             const role = guild.roles.cache.get(rr.roleId);
                             if (role && !member.roles.cache.has(rr.roleId))
-                                await member.roles.add(role).catch(() => null);
+                                await member.roles.add(role).catch(err => logError('[onMessageXP] role reward add failed:', err));
                         }
                     }
                 }

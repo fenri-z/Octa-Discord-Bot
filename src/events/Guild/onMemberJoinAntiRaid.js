@@ -1,6 +1,6 @@
 const { EmbedBuilder } = require("discord.js");
 const Event = require("../../structure/Event");
-const { safeRun } = require('../../utils/logError');
+const { safeRun, logError } = require('../../utils/logError');
 
 // In-memory raid tracker: Map<guildId, { joins: number[], locked: boolean }>
 const raidTracker = new Map();
@@ -63,7 +63,7 @@ module.exports = new Event({
                             ].join('\n'))
                             .setTimestamp()
                     ]
-                }).catch(() => null);
+                }).catch(err => logError('[onMemberJoinAntiRaid] alert send failed:', err));
             }
 
             // Kembalikan verifikasi ke normal setelah 5 menit
@@ -83,7 +83,7 @@ module.exports = new Event({
                                 .setDescription('Verifikasi server dikembalikan ke level normal.\nPantau server jika serangan berlanjut.')
                                 .setTimestamp()
                         ]
-                    }).catch(() => null);
+                    }).catch(err => logError('[onMemberJoinAntiRaid] alert send failed:', err));
                 }
             }, 5 * 60 * 1000);
         }

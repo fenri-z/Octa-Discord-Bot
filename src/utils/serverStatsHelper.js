@@ -1,3 +1,5 @@
+const { warn } = require('./Console');
+
 /**
  * Utility untuk fitur Server Stats.
  * Dipisahkan agar bisa di-import dari command maupun event
@@ -21,7 +23,7 @@ function parseLabel(template, count) {
  */
 async function safeRename(channel, newName) {
     if (!channel || channel.name === newName) return;
-    await channel.setName(newName).catch(() => null);
+    await channel.setName(newName).catch(err => warn(`[ServerStats] setName failed for #${channel.name}: ${err.message}`));
 }
 
 /**

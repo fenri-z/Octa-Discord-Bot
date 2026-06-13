@@ -17,38 +17,6 @@
     text-transform: uppercase; letter-spacing: .08em; margin-bottom: .5rem;
 }
 
-/* ── Discord mock ────────────────────────────────────────────────────────── */
-.dc-window {
-    background: #313338; border-radius: 8px; overflow: hidden;
-    font-family: 'gg sans','Noto Sans','Helvetica Neue',Arial,sans-serif;
-    font-size: 14px; color: #dbdee1; box-shadow: 0 4px 20px rgba(0,0,0,.5);
-}
-.dc-channel-bar {
-    background: #2b2d31; padding: .45rem .85rem;
-    border-bottom: 1px solid #1e1f22;
-    display: flex; align-items: center; gap: .35rem;
-    font-size: .82rem; font-weight: 600; color: #dbdee1;
-}
-.dc-channel-hash { color: #80848e; font-size: 1rem; }
-.dc-messages     { padding: .85rem; }
-.dc-message      { display: flex; gap: .65rem; }
-.dc-avatar       { width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0; object-fit: cover; }
-.dc-msg-body     { flex: 1; min-width: 0; }
-.dc-username     { font-weight: 600; font-size: .85rem; }
-.dc-timestamp    { font-size: .66rem; color: #80848e; margin-left: .45rem; }
-.dc-embed {
-    display: flex; background: #2b2d31; border-radius: 4px;
-    margin-top: .3rem; overflow: hidden; max-width: min(420px, 100%);
-}
-.dc-embed-inner  { padding: .55rem .7rem; flex: 1; min-width: 0; }
-.dc-embed-title  { font-size: .88rem; font-weight: 700; color: #00b0f4; word-break: break-word; margin-bottom: .2rem; }
-.dc-embed-title:empty { display: none; }
-.dc-embed-desc   { font-size: .8rem; color: #dbdee1; line-height: 1.4; }
-.dc-embed-desc:empty { display: none; }
-.dc-embed-field  { margin-top: .4rem; }
-.dc-field-name   { font-size: .72rem; font-weight: 700; color: #dbdee1; }
-.dc-field-value  { font-size: .78rem; color: #00b0f4; }
-
 /* ── TikTok thumbnail mock ───────────────────────────────────────────────── */
 .tt-thumb-mock {
     border-radius: 4px; overflow: hidden;
@@ -208,10 +176,6 @@
 
     /* Textarea kompak */
     .tt-form-col .textarea, .form-group .textarea { min-height: 70px; }
-
-    /* Preview dc-window lebih kecil */
-    .dc-window        { font-size: 12px; }
-    .dc-messages      { padding: .6rem; }
 
     /* Lookup result wraps */
     .tt-lookup-result-inner { flex-wrap: wrap !important; }
@@ -502,93 +466,125 @@
                 <!-- Kanan: preview -->
                 <div class="tt-preview-col">
                     <div class="preview-label">Preview</div>
-                    <div class="dc-window">
-                        <div class="dc-channel-bar">
-                            <span class="dc-channel-hash">#</span>
+
+                    <!-- Video tab preview -->
+                    <div class="cc-discord-preview" id="prev-video-<%= key %>">
+                        <div class="cc-dp-channel">
+                            <span style="opacity:.5;font-weight:700;font-size:.85rem;flex-shrink:0;">#</span>
                             <span id="prevCh-<%= key %>"><%= ((locals.channels||[]).find(c=>c.id===acc.videoChannelId)||{}).name || 'select-channel' %></span>
                         </div>
-                        <div class="dc-messages">
-                            <div class="dc-message">
-                                <img class="dc-avatar"
-                                     src="<%- botUser ? botUser.avatarUrl : 'https://cdn.discordapp.com/embed/avatars/0.png' %>"
+                        <div class="cc-dp-msg">
+                            <div class="cc-dp-ava">
+                                <img src="<%- botUser ? botUser.avatarUrl : 'https://cdn.discordapp.com/embed/avatars/0.png' %>"
                                      alt="bot" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
-                                <div class="dc-msg-body">
-                                    <span class="dc-username" style="color:<%- botUser ? botUser.roleColor : '#ffffff' %>">
-                                        <%= botUser ? botUser.username : 'Bot' %>
+                            </div>
+                            <div class="cc-dp-right">
+                                <div class="cc-dp-name">
+                                    <span style="color:<%- botUser ? botUser.roleColor : 'var(--text)' %>"><%= botUser ? botUser.username : 'Bot' %></span>
+                                    <span class="cc-dp-app-badge">
+                                        <svg width="9" height="9" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M1.5 6L4.5 9L10.5 3" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                        APP
                                     </span>
-                                    <span class="dc-timestamp">Today at 12:00 PM</span>
-
-                                    <!-- Video preview -->
-                                    <div id="prev-video-<%= key %>" class="dc-embed" style="max-width:100%;">
-                                        <div style="width:4px;flex-shrink:0;background:#010101;"></div>
-                                        <div class="dc-embed-inner" style="flex:1;min-width:0;">
-
-                                            <!-- Title + right profile -->
-                                            <div style="display:flex;align-items:flex-start;gap:.5rem;">
-                                                <div style="flex:1;min-width:0;">
-                                                    <div class="dc-embed-title">🎵 <%= acc.name||acc.username %> — New Video!</div>
-                                                    <div class="dc-embed-desc" id="prevVideoDesc-<%= key %>" style="margin-top:.2rem;">
-                                                        <strong><%= acc.name||acc.username %></strong> just posted a new video on TikTok!<br>Don't miss it, watch now! 🎉
+                                    <span class="cc-dp-time">Today at 12:00 PM</span>
+                                </div>
+                                <div class="cc-dp-embed">
+                                    <div class="cc-dp-embed-bar" style="background:#010101;"></div>
+                                    <div class="cc-dp-embed-body">
+                                        <div class="cc-dp-embed-main">
+                                            <div class="cc-dp-embed-content">
+                                                <div class="cc-dp-embed-title">🎵 <%= acc.name||acc.username %> — New Video!</div>
+                                                <div class="cc-dp-embed-desc" id="prevVideoDesc-<%= key %>" style="margin-top:.15rem;"><strong><%= acc.name||acc.username %></strong> just posted a new video on TikTok!<br>Don't miss it, watch now! 🎉</div>
+                                                <div style="margin-top:.35rem;">
+                                                    <div style="margin-bottom:.3rem;">
+                                                        <div class="cc-dp-field-name">🎬 Title</div>
+                                                        <div class="cc-dp-field-val">[TEST] Example Video Notification</div>
                                                     </div>
-                                                    <div class="dc-embed-field">
-                                                        <div class="dc-field-name">🎬 Title</div>
-                                                        <div class="dc-field-value" style="color:#dbdee1;">[TEST] Example Video Notification from <%= acc.name||acc.username %></div>
-                                                    </div>
-                                                    <div class="dc-embed-field">
-                                                        <div class="dc-field-name">🔗 Link</div>
-                                                        <div class="dc-field-value">Click Me ▶</div>
+                                                    <div>
+                                                        <div class="cc-dp-field-name">🔗 Link</div>
+                                                        <div class="cc-dp-field-val">Click Me ▶</div>
                                                     </div>
                                                 </div>
-                                                <% if (acc.thumbnail) { %>
-                                                <img src="<%= acc.thumbnail %>" referrerpolicy="no-referrer"
-                                                     style="width:48px;height:48px;border-radius:4px;object-fit:cover;flex-shrink:0;margin-top:.1rem;"
-                                                     onerror="this.style.display='none'">
-                                                <% } %>
-                                            </div>
-
-                                            <!-- Thumbnail video (vertikal 9:16) -->
-                                            <div class="tt-thumb-mock">
-                                                <div class="tt-thumb-mock-inner">
-                                                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.93a8.17 8.17 0 0 0 4.78 1.52V7.01a4.85 4.85 0 0 1-1.01-.32z"/></svg>
-                                                </div>
-                                            </div>
-
-                                        </div>
-                                    </div>
-
-                                    <!-- Live preview -->
-                                    <div id="prev-live-<%= key %>" class="dc-embed" style="display:none;">
-                                        <div style="width:4px;flex-shrink:0;background:#FE2C55;"></div>
-                                        <div class="dc-embed-inner" style="flex:1;min-width:0;">
-                                            <div style="display:flex;align-items:flex-start;gap:.5rem;">
-                                                <div style="flex:1;min-width:0;">
-                                                    <div class="dc-embed-title" style="color:#FE2C55;">🔴 <%= acc.name||acc.username %> is Live Now!</div>
-                                                    <div class="dc-embed-desc" id="prevLiveDesc-<%= key %>">
-                                                        Hey, <strong><%= acc.name||acc.username %></strong> is <strong>LIVE</strong> on TikTok right now!<br>Come join and watch the stream~ 🎉
-                                                    </div>
-                                                    <div class="dc-embed-field">
-                                                        <div class="dc-field-name">🔗 Link</div>
-                                                        <div class="dc-field-value">Click Me ▶</div>
-                                                    </div>
-                                                </div>
-                                                <% if (acc.thumbnail) { %>
-                                                <img src="<%= acc.thumbnail %>" referrerpolicy="no-referrer"
-                                                     style="width:48px;height:48px;border-radius:4px;object-fit:cover;flex-shrink:0;margin-top:.1rem;"
-                                                     onerror="this.style.display='none'">
-                                                <% } %>
                                             </div>
                                             <% if (acc.thumbnail) { %>
-                                            <img src="<%= acc.thumbnail %>" referrerpolicy="no-referrer"
-                                                 style="width:100%;max-height:200px;border-radius:4px;object-fit:cover;margin-top:.6rem;display:block;"
-                                                 onerror="this.style.display='none'">
+                                            <div class="cc-dp-embed-thumb">
+                                                <img src="<%= acc.thumbnail %>" referrerpolicy="no-referrer"
+                                                     alt="" onerror="this.closest('.cc-dp-embed-thumb').style.display='none'">
+                                            </div>
                                             <% } %>
                                         </div>
+                                        <div class="tt-thumb-mock">
+                                            <div class="tt-thumb-mock-inner">
+                                                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.93a8.17 8.17 0 0 0 4.78 1.52V7.01a4.85 4.85 0 0 1-1.01-.32z"/></svg>
+                                            </div>
+                                        </div>
+                                        <div class="cc-dp-embed-footer">
+                                            <svg viewBox="0 0 24 24" fill="#FE2C55" style="width:12px;height:12px;flex-shrink:0;"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg>
+                                            <span>TikTok Video</span>
+                                            <span class="cc-dp-footer-sep"> • </span>
+                                            <span>Today at 12:00 PM</span>
+                                        </div>
                                     </div>
-
                                 </div>
                             </div>
                         </div>
                     </div>
+
+                    <!-- Live tab preview (hidden by default) -->
+                    <div class="cc-discord-preview" id="prev-live-<%= key %>" style="display:none;">
+                        <div class="cc-dp-channel">
+                            <span style="opacity:.5;font-weight:700;font-size:.85rem;flex-shrink:0;">#</span>
+                            <span id="prevChLive-<%= key %>"><%= ((locals.channels||[]).find(c=>c.id===acc.liveChannelId)||{}).name || 'select-channel' %></span>
+                        </div>
+                        <div class="cc-dp-msg">
+                            <div class="cc-dp-ava">
+                                <img src="<%- botUser ? botUser.avatarUrl : 'https://cdn.discordapp.com/embed/avatars/0.png' %>"
+                                     alt="bot" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+                            </div>
+                            <div class="cc-dp-right">
+                                <div class="cc-dp-name">
+                                    <span style="color:<%- botUser ? botUser.roleColor : 'var(--text)' %>"><%= botUser ? botUser.username : 'Bot' %></span>
+                                    <span class="cc-dp-app-badge">
+                                        <svg width="9" height="9" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M1.5 6L4.5 9L10.5 3" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                        APP
+                                    </span>
+                                    <span class="cc-dp-time">Today at 12:00 PM</span>
+                                </div>
+                                <div class="cc-dp-embed">
+                                    <div class="cc-dp-embed-bar" style="background:#FE2C55;"></div>
+                                    <div class="cc-dp-embed-body">
+                                        <div class="cc-dp-embed-main">
+                                            <div class="cc-dp-embed-content">
+                                                <div class="cc-dp-embed-title">🔴 <%= acc.name||acc.username %> is Live Now!</div>
+                                                <div class="cc-dp-embed-desc" id="prevLiveDesc-<%= key %>" style="margin-top:.15rem;">Hey, <strong><%= acc.name||acc.username %></strong> is <strong>LIVE</strong> on TikTok right now!<br>Come join and watch the stream~ 🎉</div>
+                                                <div style="margin-top:.35rem;">
+                                                    <div>
+                                                        <div class="cc-dp-field-name">🔗 Link</div>
+                                                        <div class="cc-dp-field-val">Click Me ▶</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <% if (acc.thumbnail) { %>
+                                            <div class="cc-dp-embed-thumb">
+                                                <img src="<%= acc.thumbnail %>" referrerpolicy="no-referrer"
+                                                     alt="" onerror="this.closest('.cc-dp-embed-thumb').style.display='none'">
+                                            </div>
+                                            <% } %>
+                                        </div>
+                                        <div style="border-radius:4px;overflow:hidden;background:rgba(254,44,85,.08);aspect-ratio:16/9;max-width:100%;margin-top:.5rem;display:flex;align-items:center;justify-content:center;">
+                                            <svg viewBox="0 0 24 24" fill="#FE2C55" style="width:28px;height:28px;opacity:.3;"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg>
+                                        </div>
+                                        <div class="cc-dp-embed-footer">
+                                            <svg viewBox="0 0 24 24" fill="#FE2C55" style="width:12px;height:12px;flex-shrink:0;"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg>
+                                            <span>TikTok LIVE</span>
+                                            <span class="cc-dp-footer-sep"> • </span>
+                                            <span>Today at 12:00 PM</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </div><!-- /tt-panel-layout -->
         </div><!-- /tt-channel-card -->
@@ -736,8 +732,8 @@ function switchTab(key, tab) {
     document.getElementById(`tab-live-${key}`).className  = isVideo ? 'tt-tab-btn' : 'tt-tab-btn active-live';
     document.getElementById(`panel-video-${key}`).style.display = isVideo ? '' : 'none';
     document.getElementById(`panel-live-${key}`).style.display  = isVideo ? 'none' : '';
-    document.getElementById(`prev-video-${key}`).style.display  = isVideo ? 'flex' : 'none';
-    document.getElementById(`prev-live-${key}`).style.display   = isVideo ? 'none' : 'flex';
+    document.getElementById(`prev-video-${key}`).style.display  = isVideo ? '' : 'none';
+    document.getElementById(`prev-live-${key}`).style.display   = isVideo ? 'none' : '';
     // Update test button label
     const testBtn = document.getElementById(`testBtn-${key}`);
     if (testBtn) testBtn.dataset.tab = tab;
@@ -748,6 +744,10 @@ function switchTab(key, tab) {
 function updatePreview(key) {
     const chanId  = document.getElementById(`vidChannel-${key}`)?.value || '';
     document.getElementById(`prevCh-${key}`).textContent = chanId && CHANNELS[chanId] ? CHANNELS[chanId] : I18N_TT_PREV_NO_CH;
+
+    const liveChanId = document.getElementById(`liveChannel-${key}`)?.value || '';
+    const liveChanEl = document.getElementById(`prevChLive-${key}`);
+    if (liveChanEl) liveChanEl.textContent = liveChanId && CHANNELS[liveChanId] ? CHANNELS[liveChanId] : I18N_TT_PREV_NO_CH;
 
     // Ambil nama akun dari header card
     const accName = document.getElementById(`ttCard-${key}`)?.querySelector('.tt-card-name')?.textContent?.trim() || key;

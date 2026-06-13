@@ -1,4 +1,4 @@
-const { safeRun } = require("../../utils/logError");
+const { safeRun, logError } = require("../../utils/logError");
 const cache = require("../../utils/GuildCache");
 const Event = require("../../structure/Event");
 
@@ -47,6 +47,6 @@ module.exports = new Event({
         if (!botMember || !botMember.permissions.has('ManageRoles')) return;
         if (botMember.roles.highest.comparePositionTo(role) <= 0) return;
 
-        await member.roles.add(role, `Autorole ${isBot ? 'Bot' : 'Member'}`).catch(() => null);
+        await member.roles.add(role, `Autorole ${isBot ? 'Bot' : 'Member'}`).catch(err => logError('[onMemberJoinAutoRole] roles.add failed:', err));
     })
 }).toJSON();

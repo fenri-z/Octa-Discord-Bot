@@ -282,8 +282,7 @@ class KickNotifier {
             .setColor(0x53FC18)
             .setTitle(`🔴 ${displayName} is Live Right Now!`)
             .setURL(streamUrl)
-            .setDescription(description)
-            .setTimestamp();
+            .setDescription(description);
 
         embed.addFields({ name: '🎙️ Stream Title', value: title, inline: false });
         if (category) embed.addFields({ name: '🎮 Category', value: category, inline: true });
@@ -292,7 +291,16 @@ class KickNotifier {
         if (thumbUrl)          embed.setImage(thumbUrl);
         if (account.thumbnail) embed.setThumbnail(account.thumbnail);
 
-        await channel.send({ embeds: [embed] });
+        const _kkBase = (process.env.BASE_URL || '').replace(/\/$/, '');
+        const _kkFooter = { text: _kkBase ? 'Kick LIVE' : '🟢 Kick LIVE' };
+        if (_kkBase) _kkFooter.iconURL = `${_kkBase}/img/kick.png`;
+        embed.setFooter(_kkFooter).setTimestamp();
+
+        try {
+            await channel.send({ embeds: [embed] });
+        } catch (err) {
+            warn(`[Kick] Failed to send notification to #${channel.name} (${guild.name}): ${err.message}`);
+        }
     }
 
     async sendTestNotification(guild, account) {

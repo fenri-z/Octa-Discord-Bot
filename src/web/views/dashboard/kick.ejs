@@ -17,43 +17,6 @@
     text-transform: uppercase; letter-spacing: .08em; margin-bottom: .5rem;
 }
 
-/* ── Discord mock ────────────────────────────────────────────────────────── */
-.dc-window {
-    background: #313338; border-radius: 8px; overflow: hidden;
-    font-family: 'gg sans','Noto Sans','Helvetica Neue',Arial,sans-serif;
-    font-size: 14px; color: #dbdee1; box-shadow: 0 4px 20px rgba(0,0,0,.5);
-}
-.dc-channel-bar {
-    background: #2b2d31; padding: .45rem .85rem;
-    border-bottom: 1px solid #1e1f22;
-    display: flex; align-items: center; gap: .35rem;
-    font-size: .82rem; font-weight: 600; color: #dbdee1;
-}
-.dc-channel-hash { color: #80848e; font-size: 1rem; }
-.dc-messages     { padding: .85rem; }
-.dc-message      { display: flex; gap: .65rem; }
-.dc-avatar       { width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0; object-fit: cover; }
-.dc-msg-body     { flex: 1; min-width: 0; }
-.dc-username     { font-weight: 600; font-size: .85rem; }
-.dc-timestamp    { font-size: .66rem; color: #80848e; margin-left: .45rem; }
-.dc-embed {
-    display: flex; background: #2b2d31; border-radius: 4px;
-    margin-top: .3rem; overflow: hidden; max-width: min(420px, 100%);
-}
-.dc-embed-inner  { padding: .55rem .7rem; flex: 1; min-width: 0; }
-.dc-embed-author { display:flex; align-items:center; gap:.4rem; margin-bottom:.3rem; }
-.dc-embed-author img { width:18px;height:18px;border-radius:50%; }
-.dc-embed-author span { font-size:.78rem;font-weight:600;color:#dbdee1; }
-.dc-embed-title  { font-size: .88rem; font-weight: 700; color: #00b0f4; word-break: break-word; margin-bottom: .25rem; }
-.dc-embed-desc   { font-size: .8rem; color: #dbdee1; line-height: 1.4; }
-.dc-embed-field  { margin-top: .4rem; }
-.dc-field-name   { font-size: .72rem; font-weight: 700; color: #dbdee1; }
-.dc-field-value  { font-size: .78rem; color: #00b0f4; }
-.kk-thumb-mock {
-    border-radius: 4px; overflow: hidden;
-    background: #1a1a1a; aspect-ratio: 16/9; max-width: 100%;
-}
-
 /* ── Account card ────────────────────────────────────────────────────────── */
 .kk-channel-card {
     border-radius: 10px; padding: 1.1rem; margin-bottom: 1.25rem;
@@ -161,10 +124,6 @@
 
     /* Textarea kompak */
     .form-group .textarea { min-height: 70px; }
-
-    /* Preview dc-window lebih kecil */
-    .dc-window        { font-size: 12px; }
-    .dc-messages      { padding: .6rem; }
 
     /* Lookup result wraps */
     .kk-lookup-result-inner { flex-wrap: wrap !important; }
@@ -399,60 +358,64 @@
                 <!-- Kanan: preview Discord -->
                 <div class="kk-preview-col">
                     <div class="preview-label">Preview</div>
-                    <div class="dc-window">
-                        <div class="dc-channel-bar">
-                            <span class="dc-channel-hash">#</span>
+                    <div class="cc-discord-preview">
+                        <div class="cc-dp-channel">
+                            <span style="opacity:.5;font-weight:700;font-size:.85rem;flex-shrink:0;">#</span>
                             <span id="kkPrevCh-<%= cardKey %>"><%= ((locals.channels||[]).find(c=>c.id===acc.channelId)||{}).name || 'select-channel' %></span>
                         </div>
-                        <div class="dc-messages">
-                            <div class="dc-message">
-                                <img class="dc-avatar"
-                                     src="<%= locals.botNavAvatar || 'https://cdn.discordapp.com/embed/avatars/0.png' %>"
+                        <div class="cc-dp-msg">
+                            <div class="cc-dp-ava">
+                                <img src="<%= locals.botNavAvatar || 'https://cdn.discordapp.com/embed/avatars/0.png' %>"
                                      alt="bot" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
-                                <div class="dc-msg-body">
-                                    <span class="dc-username"><%= locals.botNavName || 'Bot' %></span>
-                                    <span class="dc-timestamp">Today at 12:00 PM</span>
-
-                                    <div id="kkPrev-<%= cardKey %>" class="dc-embed" style="max-width:100%;">
-                                        <div style="width:4px;flex-shrink:0;background:#53FC18;"></div>
-                                        <div class="dc-embed-inner" style="flex:1;min-width:0;">
-
-                                            <div style="display:flex;align-items:flex-start;gap:.5rem;">
-                                                <div style="flex:1;min-width:0;">
-                                                    <div class="dc-embed-title">
-                                                        🔴 <%= acc.displayName||acc.slug %> is Live Now!
+                            </div>
+                            <div class="cc-dp-right">
+                                <div class="cc-dp-name">
+                                    <%= locals.botNavName || 'Bot' %>
+                                    <span class="cc-dp-app-badge">
+                                        <svg width="9" height="9" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M1.5 6L4.5 9L10.5 3" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                        APP
+                                    </span>
+                                    <span class="cc-dp-time">Today at 12:00 PM</span>
+                                </div>
+                                <div class="cc-dp-embed" id="kkPrev-<%= cardKey %>">
+                                    <div class="cc-dp-embed-bar" style="background:#53FC18;"></div>
+                                    <div class="cc-dp-embed-body">
+                                        <div class="cc-dp-embed-main">
+                                            <div class="cc-dp-embed-content">
+                                                <div class="cc-dp-embed-title">🔴 <%= acc.displayName||acc.slug %> is Live Now!</div>
+                                                <div class="cc-dp-embed-desc" id="kkPrevDesc-<%= cardKey %>" style="margin-top:.15rem;margin-bottom:.35rem;"></div>
+                                                <div style="margin-top:.35rem;">
+                                                    <div style="margin-bottom:.3rem;">
+                                                        <div class="cc-dp-field-name">🎙️ Stream Title</div>
+                                                        <div class="cc-dp-field-val">[TEST] Example stream title</div>
                                                     </div>
-                                                    <div class="dc-embed-desc" id="kkPrevDesc-<%= cardKey %>" style="margin-bottom:.35rem;font-size:.8rem;color:#dbdee1;line-height:1.4;"></div>
-                                                    <div class="dc-embed-field">
-                                                        <div class="dc-field-name">🎙️ Stream Title</div>
-                                                        <div class="dc-field-value">[TEST] Example stream title</div>
+                                                    <div style="margin-bottom:.3rem;">
+                                                        <div class="cc-dp-field-name">🎮 Category</div>
+                                                        <div class="cc-dp-field-val">Just Chatting</div>
                                                     </div>
-                                                    <div class="dc-embed-field">
-                                                        <div class="dc-field-name">🎮 Category</div>
-                                                        <div class="dc-field-value" style="color:#dbdee1;">Just Chatting</div>
-                                                    </div>
-                                                    <div class="dc-embed-field">
-                                                        <div class="dc-field-name">🔗 Link</div>
-                                                        <div class="dc-field-value">Click Me ▶</div>
+                                                    <div>
+                                                        <div class="cc-dp-field-name">🔗 Link</div>
+                                                        <div class="cc-dp-field-val">Click Me ▶</div>
                                                     </div>
                                                 </div>
-                                                <% if (acc.thumbnail) { %>
+                                            </div>
+                                            <% if (acc.thumbnail) { %>
+                                            <div class="cc-dp-embed-thumb">
                                                 <img src="<%= acc.thumbnail %>" referrerpolicy="no-referrer"
-                                                     style="width:60px;height:60px;border-radius:4px;object-fit:cover;flex-shrink:0;margin-top:.1rem;"
-                                                     onerror="this.style.display='none'">
-                                                <% } %>
+                                                     alt="" onerror="this.closest('.cc-dp-embed-thumb').style.display='none'">
                                             </div>
-
-                                            <!-- Thumbnail stream besar -->
-                                            <div class="kk-thumb-mock" style="margin-top:.6rem;">
-                                                <div style="width:100%;aspect-ratio:16/9;background:linear-gradient(135deg,rgba(83,252,24,.08) 0%,rgba(83,252,24,.03) 100%);display:flex;align-items:center;justify-content:center;">
-                                                    <svg viewBox="0 0 24 24" fill="currentColor" style="width:32px;height:32px;color:#53FC18;opacity:.25;"><path d="M2.664 0v24h5.227v-8.01l2.557-2.503 5.186 10.513H21l-7.527-14.6L20.188 3.54h-5.753L8.083 9.872 7.89 9.68V0z"/></svg>
-                                                </div>
-                                            </div>
-
+                                            <% } %>
+                                        </div>
+                                        <div style="border-radius:4px;overflow:hidden;background:rgba(83,252,24,.06);aspect-ratio:16/9;max-width:100%;margin-top:.5rem;display:flex;align-items:center;justify-content:center;">
+                                            <svg viewBox="0 0 24 24" fill="#53FC18" style="width:32px;height:32px;opacity:.25;"><path d="M2.664 0v24h5.227v-8.01l2.557-2.503 5.186 10.513H21l-7.527-14.6L20.188 3.54h-5.753L8.083 9.872 7.89 9.68V0z"/></svg>
+                                        </div>
+                                        <div class="cc-dp-embed-footer">
+                                            <svg viewBox="0 0 24 24" fill="#53FC18" style="width:12px;height:12px;flex-shrink:0;"><path d="M2.664 0v24h5.227v-8.01l2.557-2.503 5.186 10.513H21l-7.527-14.6L20.188 3.54h-5.753L8.083 9.872 7.89 9.68V0z"/></svg>
+                                            <span>Kick LIVE</span>
+                                            <span class="cc-dp-footer-sep"> • </span>
+                                            <span>Today at 12:00 PM</span>
                                         </div>
                                     </div>
-
                                 </div>
                             </div>
                         </div>

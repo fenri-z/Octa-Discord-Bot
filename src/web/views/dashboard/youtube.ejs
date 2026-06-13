@@ -29,16 +29,17 @@
 /* YouTube thumbnail placeholder */
 .yt-thumb-mock {
     border-radius: 4px; overflow: hidden;
-    background: var(--bg3); aspect-ratio: 16/9; max-width: 100%;
+    background: rgba(0,0,0,.32); aspect-ratio: 16/9; max-width: 100%;
     display: flex; align-items: center; justify-content: center;
     position: relative;
 }
 .yt-thumb-mock-inner {
-    width: 36px; height: 36px; border-radius: 50%;
-    background: rgba(255,0,0,.85);
+    width: 44px; height: 44px; border-radius: 50%;
+    background: rgba(255,0,0,.9);
     display: flex; align-items: center; justify-content: center; z-index: 1;
+    box-shadow: 0 2px 8px rgba(0,0,0,.4);
 }
-.yt-thumb-mock-inner svg { width: 16px; height: 16px; fill: #fff; margin-left: 2px; }
+.yt-thumb-mock-inner svg { width: 20px; height: 20px; fill: #fff; margin-left: 3px; }
 
 /* ── YouTube Notifications — Responsive ─────────────────────────────────── */
 

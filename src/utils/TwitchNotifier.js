@@ -284,8 +284,7 @@ class TwitchNotifier {
             .setColor(0x9146FF)
             .setTitle(`🔴 ${displayName} is Live Right Now!`)
             .setURL(streamUrl)
-            .setDescription(description)
-            .setTimestamp();
+            .setDescription(description);
 
         embed.addFields({ name: '🎙️ Stream Title', value: streamData?.title || 'Live Stream', inline: false });
         if (streamData?.gameName) {
@@ -296,7 +295,16 @@ class TwitchNotifier {
         if (streamData?.thumbnailUrl) embed.setImage(streamData.thumbnailUrl);
         if (account.thumbnail)        embed.setThumbnail(account.thumbnail);
 
-        await channel.send({ embeds: [embed] });
+        const _twBase = (process.env.BASE_URL || '').replace(/\/$/, '');
+        const _twFooter = { text: _twBase ? 'Twitch LIVE' : '🟣 Twitch LIVE' };
+        if (_twBase) _twFooter.iconURL = `${_twBase}/img/twitch.png`;
+        embed.setFooter(_twFooter).setTimestamp();
+
+        try {
+            await channel.send({ embeds: [embed] });
+        } catch (err) {
+            warn(`[Twitch] Failed to send notification to #${channel.name} (${guild.name}): ${err.message}`);
+        }
     }
 
     async sendTestNotification(guild, account) {

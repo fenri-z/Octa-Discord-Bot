@@ -83,7 +83,7 @@ async function applyAction(client, message, member, action, reason, muteDuration
             const canTimeout = botMember?.permissions.has(PermissionFlagsBits.ModerateMembers) ?? false;
             if (canTimeout) {
                 const durationMs = muteDuration ?? 600_000; // default 10 minutes
-                await member.timeout(durationMs, `Automod: ${reason}`).catch(() => null);
+                await member.timeout(durationMs, `Automod: ${reason}`).catch(err => warn(`[Automod] timeout failed for ${member.user.tag}: ${err.message}`));
                 await member.user.send({
                     embeds: [
                         new EmbedBuilder()
@@ -115,7 +115,7 @@ async function applyAction(client, message, member, action, reason, muteDuration
                         .setTimestamp()
                 ]
             }).catch(() => null);
-            await member.kick(`Automod: ${reason}`).catch(() => null);
+            await member.kick(`Automod: ${reason}`).catch(err => warn(`[Automod] kick failed for ${member.user.tag}: ${err.message}`));
             logEmbed.setTitle('👢 Automod — Kick');
             break;
 
@@ -129,7 +129,7 @@ async function applyAction(client, message, member, action, reason, muteDuration
                         .setTimestamp()
                 ]
             }).catch(() => null);
-            await member.ban({ deleteMessageSeconds: 86400, reason: `Automod: ${reason}` }).catch(() => null);
+            await member.ban({ deleteMessageSeconds: 86400, reason: `Automod: ${reason}` }).catch(err => warn(`[Automod] ban failed for ${member.user.tag}: ${err.message}`));
             logEmbed.setTitle('🔨 Automod — Ban');
             break;
 
@@ -139,7 +139,7 @@ async function applyAction(client, message, member, action, reason, muteDuration
     }
 
     if (logChannel?.isTextBased()) {
-        await logChannel.send({ embeds: [logEmbed] }).catch(() => null);
+        await logChannel.send({ embeds: [logEmbed] }).catch(err => warn(`[Automod] log send failed: ${err.message}`));
     }
 }
 

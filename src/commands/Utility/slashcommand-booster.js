@@ -324,8 +324,8 @@ required: true
                             messageColor:   cfg.boostCardMsgColor,
                             fontFamily:     cfg.boostCardFont,
                         });
-                        if (Buffer.isBuffer(buf) && buf.length > 0)
-                            boostCard = new AttachmentBuilder(buf, { name: 'boost-card.png' });
+                        if (buf?.length > 0)
+                            boostCard = new AttachmentBuilder(Buffer.from(buf), { name: 'boost-card.png' });
                     } catch (err) { console.error('[preview-boost] Card generation failed:', err.message); }
                 }
 

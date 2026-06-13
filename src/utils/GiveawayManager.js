@@ -252,8 +252,8 @@ class GiveawayManager {
             if (!msg) return;
 
             const embed = this._buildEmbed({ ...gw, ended: true, winners: winners.map(u => u.id) });
-            await msg.edit({ embeds: [embed] }).catch(() => {});
-        } catch { /* noop */ }
+            await msg.edit({ embeds: [embed] }).catch(err => warn(`[Giveaway] Failed to update message: ${err.message}`));
+        } catch (err) { warn(`[Giveaway] _updateMessage error: ${err.message}`); }
     }
 
     async _announceWinners(gw, winners, isReroll = false) {
@@ -263,7 +263,7 @@ class GiveawayManager {
             if (!channel) return;
 
             if (!winners.length) {
-                await channel.send(`😢 Tidak ada peserta yang memenuhi syarat untuk giveaway **${gw.prize}**.`).catch(() => {});
+                await channel.send(`😢 Tidak ada peserta yang memenuhi syarat untuk giveaway **${gw.prize}**.`).catch(err => warn(`[Giveaway] no-winner send failed: ${err.message}`));
                 return;
             }
 
@@ -272,8 +272,8 @@ class GiveawayManager {
             await channel.send(
                 `${prefix} ${mention} memenangkan **${gw.prize}**! ` +
                 `[View giveaway](https://discord.com/channels/${gw.guildId}/${gw.channelId}/${gw.messageId})`
-            ).catch(() => {});
-        } catch { /* noop */ }
+            ).catch(err => warn(`[Giveaway] winner announce send failed: ${err.message}`));
+        } catch (err) { warn(`[Giveaway] _announceWinners error: ${err.message}`); }
     }
 
     // ─── Timer ─────────────────────────────────────────────────────────────────

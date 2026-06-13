@@ -186,27 +186,22 @@ async function generateWelcomeCard({
         t: escXml(subText),
     };
     const cardSvgBuf = Buffer.from(`<svg width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur stdDeviation="2" result="blur"/>
-      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
-    <filter id="shadow">
-      <feDropShadow dx="0" dy="1.5" stdDeviation="2" flood-color="rgba(0,0,0,0.65)"/>
-    </filter>
-  </defs>
   <!-- Decorative circles -->
   <circle cx="${W-60}" cy="40"       r="80" fill="${accentColor}" opacity="0.07"/>
   <circle cx="${W-20}" cy="${H-20}"  r="60" fill="${accentColor}" opacity="0.04"/>
-  <!-- Text -->
+  <!-- Title: stacked copy for soft glow without SVG filters -->
   <text x="${TX}" y="115" font-family="${resolvedFont}" font-size="56" font-weight="900"
-        letter-spacing="3" fill="${resolvedTitle}" filter="url(#glow)"
-        text-rendering="optimizeLegibility">${s.w}</text>
+        letter-spacing="3" fill="${resolvedTitle}" opacity="0.35">${s.w}</text>
+  <text x="${TX}" y="115" font-family="${resolvedFont}" font-size="56" font-weight="900"
+        letter-spacing="3" fill="${resolvedTitle}">${s.w}</text>
+  <!-- Username: offset dark copy as shadow, then main text -->
+  <text x="${TX}" y="159" font-family="${resolvedFont}" font-size="25" font-weight="700"
+        fill="rgba(0,0,0,0.6)">${s.u}</text>
   <text x="${TX}" y="157" font-family="${resolvedFont}" font-size="25" font-weight="700"
-        fill="${resolvedUsername}" filter="url(#shadow)"
-        text-rendering="optimizeLegibility">${s.u}</text>
+        fill="${resolvedUsername}">${s.u}</text>
+  <!-- Sub text -->
   <text x="${TX}" y="192" font-family="${resolvedFont}" font-size="17" font-weight="600"
-        fill="${resolvedMsg}" text-rendering="optimizeLegibility">${s.t}</text>
+        fill="${resolvedMsg}">${s.t}</text>
 </svg>`);
 
     composites.push({ input: await svgAt2x(cardSvgBuf, W, H), top: 0, left: 0 });
@@ -229,9 +224,16 @@ const { Worker, isMainThread } = require('worker_threads');
 
 if (!isMainThread) {
     const { workerData, parentPort } = require('worker_threads');
+    console.log('[CardWorker] started');
     generateWelcomeCard(workerData)
-        .then(buf => parentPort.postMessage(buf))
-        .catch(err => parentPort.postMessage({ __error__: err.message }));
+        .then(buf => {
+            console.log('[CardWorker] done, size:', buf.length);
+            parentPort.postMessage(buf);
+        })
+        .catch(err => {
+            console.error('[CardWorker] error:', err.message);
+            parentPort.postMessage({ __error__: err.message });
+        });
 }
 
 // Queue: max 2 worker threads active at once to prevent OOM under load
@@ -239,13 +241,26 @@ const MAX_CARD_WORKERS = 2;
 let _activeCardWorkers = 0;
 const _cardQueue = [];
 
+const WORKER_TIMEOUT_MS = 20_000;
+
 function _runCardJob({ options, resolve, reject }) {
     _activeCardWorkers++;
     const w = new Worker(__filename, { workerData: options });
     let settled = false;
+
+    const timer = setTimeout(() => {
+        if (settled) return;
+        settled = true;
+        _activeCardWorkers--;
+        w.terminate();
+        if (_cardQueue.length > 0) _runCardJob(_cardQueue.shift());
+        reject(new Error('Card worker timed out'));
+    }, WORKER_TIMEOUT_MS);
+
     const finish = () => {
         if (settled) return;
         settled = true;
+        clearTimeout(timer);
         _activeCardWorkers--;
         if (_cardQueue.length > 0) _runCardJob(_cardQueue.shift());
     };

@@ -1,7 +1,7 @@
 const Event        = require('../../structure/Event');
 const { EmbedBuilder } = require('discord.js');
 const { getLang, getStrings } = require('../../utils/BotLang');
-const { safeRun } = require('../../utils/logError');
+const { safeRun, logError } = require('../../utils/logError');
 
 async function sendLog(client, guildId, embed) {
     const db        = client.database;
@@ -9,7 +9,7 @@ async function sendLog(client, guildId, embed) {
     if (!channelId) return;
     const guild   = client.guilds.cache.get(guildId);
     const channel = guild?.channels.cache.get(channelId);
-    if (channel?.isTextBased()) await channel.send({ embeds: [embed] }).catch(() => null);
+    if (channel?.isTextBased()) await channel.send({ embeds: [embed] }).catch(err => logError('[ExtLog] sendLog failed:', err));
 }
 
 function isEnabled(client, guildId, event) {

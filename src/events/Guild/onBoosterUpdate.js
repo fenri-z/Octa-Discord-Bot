@@ -152,7 +152,7 @@ module.exports = new Event({
                     botMember.permissions.has('ManageRoles') &&
                     botMember.roles.highest.comparePositionTo(role) > 0
                 ) {
-                    await newMember.roles.add(role, 'Autorole Booster').catch(() => null);
+                    await newMember.roles.add(role, 'Autorole Booster').catch(err => logError('[onBoosterUpdate][boost] autorole add failed:', err));
                 }
             }
 
@@ -188,7 +188,7 @@ module.exports = new Event({
                         messageColor:   cfg.boostCardMsgColor,
                         fontFamily:     cfg.boostCardFont,
                     });
-                    boostCard = new AttachmentBuilder(buf, { name: 'boost-card.png' });
+                    boostCard = new AttachmentBuilder(Buffer.from(buf), { name: 'boost-card.png' });
                 } catch (err) { logError('[onBoosterUpdate][boost] Card generation failed:', err); }
             }
 
@@ -197,7 +197,7 @@ module.exports = new Event({
                 const payload = {};
                 if (text) { payload.content = text; payload.allowedMentions = { users: [newMember.id] }; }
                 if (boostCard) payload.files = [boostCard];
-                if (payload.content || payload.files) await channel.send(payload).catch(() => null);
+                if (payload.content || payload.files) await channel.send(payload).catch(e => logError('[onBoosterUpdate][boost] plain send failed:', e));
             } else {
                 const embed = new EmbedBuilder()
                     .setColor(cfg.boostColor)
@@ -217,7 +217,15 @@ module.exports = new Event({
                 if (boostCard) embed.setImage('attachment://boost-card.png');
                 const payload = { embeds: [embed] };
                 if (boostCard) payload.files = [boostCard];
-                await channel.send(payload).catch(() => null);
+                await channel.send(payload).catch(async (err) => {
+                    if (boostCard) {
+                        logError('[onBoosterUpdate][boost] embed+card send failed (retrying without card):', err);
+                        if (embed.data.image) delete embed.data.image;
+                        await channel.send({ embeds: [embed] }).catch(e => logError('[onBoosterUpdate][boost] embed send failed:', e));
+                    } else {
+                        logError('[onBoosterUpdate][boost] embed send failed:', err);
+                    }
+                });
             }
         }
 
@@ -241,7 +249,7 @@ module.exports = new Event({
                     botMember.roles.highest.comparePositionTo(role) > 0 &&
                     newMember.roles.cache.has(role.id)
                 ) {
-                    await newMember.roles.remove(role, 'Unboost — Remove Booster Autorole').catch(() => null);
+                    await newMember.roles.remove(role, 'Unboost — Remove Booster Autorole').catch(err => logError('[onBoosterUpdate][unboost] autorole remove failed:', err));
                 }
             }
 
@@ -277,7 +285,7 @@ module.exports = new Event({
                         messageColor:   cfg.unboostCardMsgColor,
                         fontFamily:     cfg.unboostCardFont,
                     });
-                    unboostCard = new AttachmentBuilder(buf, { name: 'unboost-card.png' });
+                    unboostCard = new AttachmentBuilder(Buffer.from(buf), { name: 'unboost-card.png' });
                 } catch (err) { logError('[onBoosterUpdate][unboost] Card generation failed:', err); }
             }
 
@@ -286,7 +294,7 @@ module.exports = new Event({
                 const payload = {};
                 if (text) { payload.content = text; payload.allowedMentions = { users: [newMember.id] }; }
                 if (unboostCard) payload.files = [unboostCard];
-                if (payload.content || payload.files) await channel.send(payload).catch(() => null);
+                if (payload.content || payload.files) await channel.send(payload).catch(e => logError('[onBoosterUpdate][unboost] plain send failed:', e));
             } else {
                 const embed = new EmbedBuilder()
                     .setColor(cfg.unboostColor)
@@ -305,7 +313,15 @@ module.exports = new Event({
                 if (unboostCard) embed.setImage('attachment://unboost-card.png');
                 const payload = { embeds: [embed] };
                 if (unboostCard) payload.files = [unboostCard];
-                await channel.send(payload).catch(() => null);
+                await channel.send(payload).catch(async (err) => {
+                    if (unboostCard) {
+                        logError('[onBoosterUpdate][unboost] embed+card send failed (retrying without card):', err);
+                        if (embed.data.image) delete embed.data.image;
+                        await channel.send({ embeds: [embed] }).catch(e => logError('[onBoosterUpdate][unboost] embed send failed:', e));
+                    } else {
+                        logError('[onBoosterUpdate][unboost] embed send failed:', err);
+                    }
+                });
             }
         }
     })

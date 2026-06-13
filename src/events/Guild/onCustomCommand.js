@@ -1,6 +1,7 @@
 const Event        = require('../../structure/Event');
 const { EmbedBuilder } = require('discord.js');
 const cache        = require('../../utils/GuildCache');
+const { logError } = require('../../utils/logError');
 
 module.exports = new Event({
     event: 'messageCreate',
@@ -102,7 +103,7 @@ module.exports = new Event({
                     const ri = rp(res.plainImageURL);
                     try { new URL(ri); if (isDirectImageUrl(ri)) sendOpts.files = [{ attachment: ri }]; } catch {}
                 }
-                await message.channel.send(sendOpts).catch(() => null);
+                await message.channel.send(sendOpts).catch(err => logError('[onCustomCommand] send failed:', err));
             } else {
                 const text     = (cmd.response && cmd.response.text) || '';
                 const plainImg = (cmd.response && cmd.response.plainImageURL) || '';
@@ -114,7 +115,7 @@ module.exports = new Event({
                     const ri = replacePlaceholders(plainImg, message);
                     try { new URL(ri); if (isDirectImageUrl(ri)) sendOpts.files = [{ attachment: ri }]; } catch {}
                 }
-                await message.channel.send(sendOpts).catch(() => null);
+                await message.channel.send(sendOpts).catch(err => logError('[onCustomCommand] send failed:', err));
             }
             break;
         }
