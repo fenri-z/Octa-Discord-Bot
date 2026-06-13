@@ -735,6 +735,10 @@ class YouTubeNotifier {
         const customMsg = fill(ytCh[cfg.msg]).trim();
         const description = customMsg || defaultDescs[type];
 
+        const footerTexts = this._baseUrl
+            ? { video: 'YouTube Video', short: 'YouTube Short', live: 'YouTube Live' }
+            : { video: '📹 YouTube Video', short: '🎬 YouTube Short', live: '🔴 YouTube Live' };
+
         const embed = new EmbedBuilder()
             .setColor(colors[type])
             .setTitle(titles[type])
@@ -748,6 +752,11 @@ class YouTubeNotifier {
             { name: '🔗 Link',    value: `[Click Me ▶](${data.url})`, inline: false },
         );
         if (data.thumbnail) embed.setImage(data.thumbnail);
+
+        const footerOpts = { text: footerTexts[type] };
+        if (this._baseUrl) footerOpts.iconURL = `${this._baseUrl}/img/youtube.png`;
+        embed.setFooter(footerOpts);
+        embed.setTimestamp();
 
         await discordCh.send({ embeds: [embed] }).catch(err =>
             warn(`[YouTube] Failed to send notification: ${err.message}`)

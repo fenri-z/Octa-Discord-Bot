@@ -1494,6 +1494,53 @@ function mbDeleteTemplate(db, guildId, name) {
         db.modifyList(`pesan-list-${guildId}`, list => list.filter(n => n !== name));
     });
 }
+function mbBuildEmbed(data) {
+    const { EmbedBuilder } = require('discord.js');
+    const embed = new EmbedBuilder();
+    const colorHex = data.color && /^#?[0-9A-Fa-f]{6}$/.test(data.color.trim())
+        ? (data.color.startsWith('#') ? data.color : `#${data.color}`) : '#5865F2';
+    embed.setColor(colorHex);
+    if (data.title) {
+        try { embed.setTitle(data.title.slice(0, 256)); } catch {}
+        if (data.titleUrl) try { embed.setURL(data.titleUrl); } catch {}
+    }
+    if (data.description) try { embed.setDescription(data.description.slice(0, 4096)); } catch {}
+    if (data.footer) {
+        const fo = { text: data.footer.slice(0, 2048) };
+        if (data.footerIcon) try { new URL(data.footerIcon); fo.iconURL = data.footerIcon; } catch {}
+        embed.setFooter(fo);
+    }
+    if (data.image)       try { embed.setImage(data.image); } catch {}
+    if (data.thumbnail)   try { embed.setThumbnail(data.thumbnail); } catch {}
+    if (data.authorName) {
+        const ao = { name: data.authorName.slice(0, 256) };
+        if (data.authorIcon) try { new URL(data.authorIcon); ao.iconURL = data.authorIcon; } catch {}
+        if (data.authorUrl)  try { new URL(data.authorUrl);  ao.url     = data.authorUrl;  } catch {}
+        try { embed.setAuthor(ao); } catch {}
+    }
+    if (Array.isArray(data.fields) && data.fields.length) {
+        const validFields = data.fields.filter(f => f.name?.trim() || f.value?.trim()).slice(0, 25);
+        if (validFields.length) try { embed.addFields(validFields.map(f => ({ name: f.name || '​', value: f.value || '​', inline: !!f.inline }))); } catch {}
+    }
+    if (data.timestamp) embed.setTimestamp();
+    return embed;
+}
+function mbBuildSendOpts(data) {
+    const type = data.messageType || 'embed';
+    const hasEmbed = type === 'embed' || type === 'both';
+    const hasText  = type === 'plain' || type === 'both';
+    const opts = {};
+
+    opts.content = (hasText && data.plainText) ? data.plainText.slice(0, 2000) : null;
+
+    // Send plainImage as a real file attachment (no URL text shown in Discord)
+    if (hasText && data.plainImage && /^https?:\/\/.+/i.test(data.plainImage)) {
+        try { new URL(data.plainImage); opts.files = [{ attachment: data.plainImage }]; } catch {}
+    }
+
+    opts.embeds = hasEmbed ? [mbBuildEmbed(data)] : [];
+    return opts;
+}
 
 // GET /api/guild/:guildId/message-builder/:name — ambil satu template
 router.get('/guild/:guildId/message-builder/:name', requireLogin, requireManageGuild, (req, res) => {
@@ -1510,8 +1557,8 @@ router.post('/guild/:guildId/message-builder', requireLogin, requireManageGuild,
     const db      = req.discordClient?.database;
     const client  = req.discordClient;
     const guildId = req.params.guildId;
-    const { kategori, title, description, footer, authorName, authorIcon, image, thumbnail, color,
-            messageType, plainText } = req.body;
+    const { channelId, title, description, footer, footerIcon, authorName, authorIcon, authorUrl,
+            titleUrl, image, thumbnail, color, timestamp, messageType, plainText, plainImage, fields } = req.body;
     const name    = (req.body.name || '').trim().toLowerCase();
 
     if (!name || !/^[a-zA-Z0-9_-]{1,32}$/.test(name)) {
@@ -1519,70 +1566,63 @@ router.post('/guild/:guildId/message-builder', requireLogin, requireManageGuild,
     }
 
     const existing  = mbGetTemplate(db, guildId, name);
+    if (!existing) {
+        const currentList = mbGetList(db, guildId);
+        if (currentList.length >= 20)
+            return res.json({ success: false, message: 'Template limit reached (20/20). Delete an existing template first.' });
+    }
     const now       = Date.now();
-    const validType = messageType === 'plain' ? 'plain' : 'embed';
+    const validType = ['plain','embed','both'].includes(messageType) ? messageType : 'embed';
     const data      = {
-        kategori:    kategori    || 'biasa',
+        channelId:   channelId   || '',
         messageType: validType,
-        plainText:   validType === 'plain' ? (plainText || '').trim() : (existing?.plainText || ''),
+        plainText:   (plainText  || '').trim(),
         title:       title       || '',
         description: description || '',
         footer:      footer      || '',
         authorName:  authorName  || '',
         authorIcon:  authorIcon  || '',
+        authorUrl:   authorUrl   || '',
+        titleUrl:    titleUrl    || '',
         image:       image       || '',
         thumbnail:   thumbnail   || '',
+        plainImage:  plainImage  || '',
+        footerIcon:  footerIcon  || '',
         color:       color       || '#5865F2',
+        timestamp:   !!timestamp,
+        fields:      Array.isArray(fields) ? fields.slice(0, 25).map(f => ({ name: String(f.name || '').slice(0, 256), value: String(f.value || '').slice(0, 1024), inline: !!f.inline })) : [],
         createdAt:   existing?.createdAt || now,
         updatedAt:   now,
     };
     mbSaveTemplate(db, guildId, name, data);
 
-    // Jika kategori unik dan sudah pernah dikirim, edit pesan Discord-nya
-    const isUnik = data.kategori === 'unik' || existing?.kategori === 'unik';
-    if (isUnik) {
-        const sentRaw = db?.get(`pesan-unik-sent-${guildId}-${name}`);
-        if (sentRaw) {
-            let sent;
-            try { sent = JSON.parse(sentRaw); } catch {
-                return res.json({ success: true, message: `Template saved, but unique message data is corrupted.` });
+    // Jika sudah pernah dikirim, edit pesan Discord-nya
+    const sentRaw = db?.get(`pesan-unik-sent-${guildId}-${name}`);
+    if (sentRaw) {
+        let sent;
+        try { sent = JSON.parse(sentRaw); } catch {
+            return res.json({ success: true, message: `Template saved, but sent message data is corrupted.` });
+        }
+
+        try {
+            const guild = client?.guilds.cache.get(guildId);
+            if (!guild) throw new Error('Guild not found in bot cache.');
+
+            const channel = await guild.channels.fetch(sent.channelId);
+            if (!channel) throw new Error('Channel not found.');
+            const msg = await channel.messages.fetch(sent.messageId);
+            if (!msg) throw new Error('Message not found.');
+
+            await msg.edit({ ...mbBuildSendOpts(data), attachments: [] });
+            return res.json({ success: true, message: `Template "${name}" saved and Discord message successfully updated! ✅` });
+
+        } catch (err) {
+            if (err.code === 10008) {
+                db?.delete(`pesan-unik-sent-${guildId}-${name}`);
+                return res.json({ success: true, message: `Template saved, but the Discord message was deleted. Resend it via the Send button.` });
             }
-
-            try {
-                const guild = client?.guilds.cache.get(guildId);
-                if (!guild) throw new Error('Guild not found in bot cache.');
-
-                const channel = await guild.channels.fetch(sent.channelId);
-                if (!channel) throw new Error('Channel not found.');
-                const msg = await channel.messages.fetch(sent.messageId);
-                if (!msg) throw new Error('Message not found.');
-
-                if (validType === 'plain') {
-                    await msg.edit({ content: (data.plainText || '').slice(0, 2000), embeds: [] });
-                } else {
-                    const { EmbedBuilder } = require('discord.js');
-                    const embed = new EmbedBuilder();
-                    const colorHex = data.color && /^#?[0-9A-Fa-f]{6}$/.test(data.color.trim())
-                        ? (data.color.startsWith('#') ? data.color : `#${data.color}`) : '#5865F2';
-                    embed.setColor(colorHex);
-                    if (data.title)       embed.setTitle(data.title.slice(0, 256));
-                    if (data.description) embed.setDescription(data.description.slice(0, 4096));
-                    if (data.footer)      embed.setFooter({ text: data.footer.slice(0, 2048) });
-                    if (data.image)       embed.setImage(data.image);
-                    if (data.thumbnail)   embed.setThumbnail(data.thumbnail);
-                    if (data.authorName)  embed.setAuthor({ name: data.authorName.slice(0, 256), iconURL: data.authorIcon || undefined });
-                    await msg.edit({ embeds: [embed], content: null });
-                }
-                return res.json({ success: true, message: `Template "${name}" saved and Discord message successfully updated! ✅` });
-
-            } catch (err) {
-                if (err.code === 10008) {
-                    db?.delete(`pesan-unik-sent-${guildId}-${name}`);
-                    return res.json({ success: true, message: `Template saved, but the Discord message was deleted. Resend it via the Send button.` });
-                }
-                logError('[message-builder/edit-unik]', err);
-                return res.json({ success: true, message: `Template saved, but failed to edit Discord message: ${err.message}` });
-            }
+            logError('[message-builder/edit-sent]', err);
+            return res.json({ success: true, message: `Template saved, but failed to edit Discord message: ${err.message}` });
         }
     }
 
@@ -1631,9 +1671,22 @@ router.delete('/guild/:guildId/message-builder/:name', requireLogin, requireMana
         logError('[message-builder/delete] failed to delete panel message:', err);
     }
 
+    // Hapus pesan Discord yang dikirim via Send button (jika ada)
+    const sentUnikRaw = db?.get(`pesan-unik-sent-${guildId}-${name}`);
+    if (sentUnikRaw) {
+        try {
+            const sentUnik = JSON.parse(sentUnikRaw);
+            const guild = client?.guilds.cache.get(guildId);
+            const channel = await guild?.channels.fetch(sentUnik.channelId).catch(() => null);
+            if (channel) {
+                const msg = await channel.messages.fetch(sentUnik.messageId).catch(() => null);
+                if (msg) await msg.delete().catch(() => null);
+            }
+        } catch { /* pesan sudah dihapus manual, lanjut */ }
+        db?.delete(`pesan-unik-sent-${guildId}-${name}`);
+    }
+
     mbDeleteTemplate(db, guildId, name);
-    // Hapus data sent-unik jika ada
-    db?.delete(`pesan-unik-sent-${guildId}-${name}`);
     res.json({ success: true, message: `Template "${name}" deleted successfully.` });
 });
 
@@ -1642,59 +1695,48 @@ router.post('/guild/:guildId/message-builder/:name/send', requireLogin, requireM
     const db       = req.discordClient?.database;
     const client   = req.discordClient;
     const { guildId } = req.params;
-    const name = req.params.name.trim().toLowerCase(); // tambahkan ini
-    const { channelId }     = req.body;
+    const name = req.params.name.trim().toLowerCase();
 
     const template = mbGetTemplate(db, guildId, name);
     if (!template) return res.json({ success: false, message: 'Template not found.' });
 
-    const isPlain = template.messageType === 'plain';
-    if (isPlain) {
-        if (!template.plainText?.trim()) return res.json({ success: false, message: 'Plain text template is still empty.' });
-    } else {
-        if (!template.title && !template.description) return res.json({ success: false, message: 'Template is still empty.' });
-    }
+    const channelId = template.channelId;
+    if (!channelId) return res.json({ success: false, message: 'No channel set for this template. Edit the template and select a target channel.' });
+
+    const mtype = template.messageType || 'embed';
+    const hasEmbed = mtype === 'embed' || mtype === 'both';
+    const hasText  = mtype === 'plain' || mtype === 'both';
+    if (hasText  && !template.plainText?.trim() && !hasEmbed)
+        return res.json({ success: false, message: 'Plain text template is still empty.' });
+    if (hasEmbed && !template.title && !template.description && !hasText)
+        return res.json({ success: false, message: 'Template is still empty.' });
 
     const guild   = client?.guilds.cache.get(guildId);
-    const channel = guild?.channels.cache.get(channelId);
-    if (!channel) return res.json({ success: false, message: 'Channel not found.' });
+    if (!guild) return res.json({ success: false, message: 'Guild not found in bot cache.' });
 
-    // Cek jika unik dan sudah pernah dikirim
-    if (template.kategori === 'unik') {
-        const raw  = db?.get(`pesan-unik-sent-${guildId}-${name}`);
-        const sent = raw ? JSON.parse(raw) : null;
+    // Cek apakah sudah pernah dikirim
+    const sentRaw = db?.get(`pesan-unik-sent-${guildId}-${name}`);
+    if (sentRaw) {
+        let sent;
+        try { sent = JSON.parse(sentRaw); } catch { db?.delete(`pesan-unik-sent-${guildId}-${name}`); }
         if (sent) {
             try {
-                const ch = guild.channels.cache.get(sent.channelId);
-                if (ch) await ch.messages.fetch(sent.messageId);
-                return res.json({ success: false, message: `Unique template "${name}" has already been sent. Use /message edit to update it.` });
-            } catch { db?.delete(`pesan-unik-sent-${guildId}-${name}`); }
+                const ch = guild.channels.cache.get(sent.channelId) ?? await guild.channels.fetch(sent.channelId).catch(() => null);
+                if (ch) {
+                    await ch.messages.fetch(sent.messageId);
+                    return res.json({ success: false, message: `Template "${name}" has already been sent. Edit and save the template to update the message automatically.` });
+                }
+            } catch { /* message deleted — allow resend */ }
+            db?.delete(`pesan-unik-sent-${guildId}-${name}`);
         }
     }
 
+    const channel = guild.channels.cache.get(channelId) ?? await guild.channels.fetch(channelId).catch(() => null);
+    if (!channel) return res.json({ success: false, message: 'Target channel not found. It may have been deleted.' });
+
     try {
-        let sent;
-        if (isPlain) {
-            sent = await channel.send({ content: template.plainText.slice(0, 2000) });
-        } else {
-            const { EmbedBuilder } = require('discord.js');
-            const embed = new EmbedBuilder();
-            const colorHex = template.color && /^#?[0-9A-Fa-f]{6}$/.test(template.color.trim())
-                ? (template.color.startsWith('#') ? template.color : `#${template.color}`) : '#5865F2';
-            embed.setColor(colorHex);
-            if (template.title)       embed.setTitle(template.title.slice(0, 256));
-            if (template.description) embed.setDescription(template.description.slice(0, 4096));
-            if (template.footer)      embed.setFooter({ text: template.footer.slice(0, 2048) });
-            if (template.image)       embed.setImage(template.image);
-            if (template.thumbnail)   embed.setThumbnail(template.thumbnail);
-            if (template.authorName)  embed.setAuthor({ name: template.authorName.slice(0, 256), iconURL: template.authorIcon || undefined });
-            sent = await channel.send({ embeds: [embed] });
-        }
-
-        if (template.kategori === 'unik') {
-            db?.set(`pesan-unik-sent-${guildId}-${name}`, JSON.stringify({ messageId: sent.id, channelId: channel.id }));
-        }
-
+        const sent = await channel.send(mbBuildSendOpts(template));
+        db?.set(`pesan-unik-sent-${guildId}-${name}`, JSON.stringify({ messageId: sent.id, channelId: channel.id }));
         res.json({ success: true, message: `Successfully sent to #${channel.name}!` });
     } catch (err) {
         logError('[message-builder/send]', err);
@@ -3178,8 +3220,8 @@ router.post('/guild/:guildId/custom-commands', requireLogin, requireManageGuild,
         enabled:      c.enabled !== false,
     }));
 
-    if (clean.length > 100)
-        return res.status(400).json({ success: false, message: 'Maximum 100 custom commands per server.' });
+    if (clean.length > 10)
+        return res.status(400).json({ success: false, message: 'Maximum 10 custom commands per server.' });
 
     db.set(`customcmd-list-${guildId}`, JSON.stringify(clean));
     guildCache.del(`customcmd-list-${guildId}`);

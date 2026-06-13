@@ -3,7 +3,6 @@ const DiscordBot = require("../../client/DiscordBot");
 const Component  = require("../../structure/Component");
 const { getLang, getStrings } = require('../../utils/BotLang');
 
-const KATEGORI = { UNIK: 'unik', BIASA: 'biasa' };
 
 function buildEmbed(data) {
     const { EmbedBuilder } = require('discord.js');
@@ -49,10 +48,10 @@ module.exports = new Component({
 
         let pending;
         try { pending = JSON.parse(rawPending); } catch {
-            pending = { nama: rawPending, kategori: KATEGORI.BIASA, mode: 'buat' };
+            pending = { nama: rawPending, mode: 'buat' };
         }
 
-        const { nama, kategori = KATEGORI.BIASA, mode = 'buat' } = pending;
+        const { nama, mode = 'buat' } = pending;
 
         const rawExisting = client.database.get(`pesan-${guildId}-${nama}`);
         let existing = null;
@@ -68,7 +67,6 @@ module.exports = new Component({
             try { plainText = interaction.fields.getTextInputValue('message-field-plaintext').trim(); } catch {}
             const tmpl = {
                 ...(existing || {}),
-                kategori,
                 messageType: 'plain',
                 plainText,
                 updatedAt:   now,
@@ -105,7 +103,7 @@ module.exports = new Component({
             title:       isPlainMode ? (existing?.title || '') : title,
             description: isPlainMode ? (existing?.description || '') : description,
             footer:      isPlainMode ? (existing?.footer || '') : footer,
-            kategori,
+            channelId:  existing?.channelId  || '',
             color:      existing?.color      || '#5865F2',
             image:      existing?.image      || '',
             thumbnail:  existing?.thumbnail  || '',
@@ -187,30 +185,26 @@ module.exports = new Component({
         }
 
         // ── CREATE MODE: show confirmation ─────────────────────────────────
-        const isEmpty  = !tmpl.title && !tmpl.description;
-        const isUnik   = kategori === KATEGORI.UNIK;
-        const badgeKat = isUnik ? '🔒 Unique' : '📄 Regular';
+        const isEmpty = !tmpl.title && !tmpl.description;
 
         const embed = new EmbedBuilder()
             .setColor(isNew ? '#57F287' : '#FEE75C')
-            .setTitle(isNew
-                ? `${s.msg_modal_created(nama)} [${badgeKat}]`
-                : `${s.msg_modal_updated(nama)} [${badgeKat}]`)
+            .setTitle(isNew ? s.msg_modal_created(nama) : s.msg_modal_updated(nama))
             .setDescription(
                 isEmpty
                     ? '⚠️ Title and description are both empty. Fill at least one so the embed can be sent.'
-                    : isUnik
-                        ? '🔒 Unique message: can only be sent **once**, then use `/message edit` to update its content.'
-                        : '📄 Regular message: can be sent multiple times. Cannot be edited/deleted via command after sending.'
+                    : tmpl.channelId
+                        ? `✅ Template saved. Use \`/message send ${nama}\` to post it to <#${tmpl.channelId}>.`
+                        : '📢 Template saved. Set a target channel in the dashboard, then use `/message send` to post it.'
             )
             .addFields(
                 { name: '👁️ Preview',         value: `\`/message preview ${nama}\``,       inline: true },
                 { name: '🎨 Set Color',        value: `\`/message set-color ${nama}\``,     inline: true },
                 { name: '🖼️ Add Image',        value: `\`/message set-image ${nama}\``,     inline: true },
                 { name: '📌 Add Thumbnail',    value: `\`/message set-thumbnail ${nama}\``, inline: true },
-                { name: '✍️ Add Author',        value: `\`/message set-author ${nama}\``,   inline: true },
+                { name: '✍️ Add Author',       value: `\`/message set-author ${nama}\``,    inline: true },
                 { name: '📤 Send',             value: `\`/message send ${nama}\``,          inline: true },
-                ...(isUnik ? [{ name: '✏️ Edit Message', value: `\`/message edit ${nama}\``, inline: true }] : []),
+                { name: '✏️ Edit Message',     value: `\`/message edit ${nama}\``,          inline: true },
             )
             .setFooter({ text: `Total templates: ${list.length} · Use /message list to view all.` })
             .setTimestamp();

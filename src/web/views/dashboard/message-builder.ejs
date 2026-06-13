@@ -12,8 +12,33 @@
             <p><%= t('message_builder.page_desc') %></p>
         </div>
 
-        <!-- ── How to Use ──────────────────────────────────────────────────────────── -->
-        <div class="settings-card" style="margin-bottom:1.5rem;--guide-accent:#5865F2;">
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon" style="color:#5865F2;"><i data-lucide="layout-template"></i></div>
+                <div class="stat-info">
+                    <div class="stat-value"><%= templates.length %></div>
+                    <div class="stat-label"><%= t('message_builder.total_templates') %></div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="color:#57F287;"><i data-lucide="hash"></i></div>
+                <div class="stat-info">
+                    <div class="stat-value"><%= templates.filter(tmpl => tmpl.channelId).length %></div>
+                    <div class="stat-label"><%= t('message_builder.with_channel') %></div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="color:<%= templates.length >= 20 ? '#ed4245' : '#FEE75C' %>;"><i data-lucide="layers"></i></div>
+                <div class="stat-info">
+                    <div class="stat-value" style="<%= templates.length >= 20 ? 'color:#ed4245;' : '' %>"><%= templates.length %>/20</div>
+                    <div class="stat-label"><%= t('message_builder.slots_used') %></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- How to Use -->
+        <div class="settings-card" style="margin-bottom:1.5rem;">
             <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.25rem;">
                 <i data-lucide="book-open" style="color:#5865F2;width:18px;height:18px;flex-shrink:0;"></i>
                 <h2 style="margin:0;font-size:1rem;font-weight:600;"><%= t('message_builder.how_to_use') %></h2>
@@ -35,281 +60,320 @@
                     <div class="guide-desc"><%- t('message_builder.step3_desc') %></div>
                 </div>
             </div>
-            <div class="guide-tip">💡 <%- t('message_builder.tip') %></div>
+            <div class="guide-tip"><i data-lucide="lightbulb" style="width:14px;height:14px;vertical-align:-.15em;margin-right:.3rem;color:#FEE75C;"></i> <%- t('message_builder.tip') %></div>
         </div>
 
-        <!-- ── Toolbar: buat baru + search ── -->
-        <div class="mb-toolbar">
-            <button class="btn btn-primary" onclick="openCreateModal()">＋ <%= t('message_builder.new_template_btn') %></button>
-            <input type="text" class="input mb-search" data-flt-ignore placeholder="🔍 <%= t('message_builder.search_placeholder') %>" oninput="filterTemplates(this.value)">
-        </div>
-
-        <!-- ── Page layout: list kiri, preview kanan ── -->
-        <div class="mb-page-layout">
-
-            <!-- Kiri: daftar template -->
-            <div class="mb-list-col">
-                <div class="mb-grid" id="mbGrid">
-                    <% if (templates.length === 0) { %>
-                        <div class="empty-state" id="emptyState">
-                            <p style="font-size:2rem;margin-bottom:.5rem">✉️</p>
-                            <p><%= t('message_builder.no_templates') %></p>
-                        </div>
-                    <% } else { %>
-                        <% templates.forEach(function(tmpl) { %>
-                        <div class="mb-card" data-name="<%= tmpl.name %>">
-                            <div class="mb-card-pill" style="background:<%= tmpl.color || '#5865F2' %>"></div>
-                            <div class="mb-card-body">
-                                <div class="mb-card-header">
-                                    <span class="mb-card-name"><%= tmpl.name %></span>
-                                    <span class="mb-badge <%= tmpl.kategori === 'unik' ? 'mb-badge-unik' : 'mb-badge-biasa' %>">
-                                        <%= tmpl.kategori === 'unik' ? t('message_builder.badge_unique') : t('message_builder.badge_regular') %>
-                                    </span>
-                                    <span class="mb-badge mb-badge-type">
-                                        <%= tmpl.messageType === 'plain' ? t('message_builder.badge_text') : 'Embed' %>
-                                    </span>
-                                </div>
-                                <div class="mb-card-title">
-                                    <% if (tmpl.messageType === 'plain') { %>
-                                        <span style="color:var(--text-muted);font-style:italic;"><%= tmpl.plainText ? tmpl.plainText.slice(0, 60) + (tmpl.plainText.length > 60 ? '…' : '') : t('message_builder.empty_text') %></span>
-                                    <% } else { %>
-                                        <%= tmpl.title || '(no title)' %>
-                                    <% } %>
-                                </div>
-                                <div class="mb-card-desc"><%= tmpl.description ? tmpl.description.slice(0, 80) + (tmpl.description.length > 80 ? '…' : '') : (tmpl.messageType === 'unik' ? '📌 Unique' : '📋 Regular') %></div>
-                            </div>
-                            <div class="mb-card-actions">
-                                <button class="btn btn-outline btn-sm" onclick="openEditModal('<%= tmpl.name %>')"><i data-lucide="pencil"></i> Edit</button>
-                                <button class="btn btn-outline btn-sm" onclick="openSendModal('<%= tmpl.name %>')"><i data-lucide="send"></i> <%= t('message_builder.send_btn') %></button>
-                                <button class="btn btn-sm mb-btn-delete" onclick="deleteTemplate('<%= tmpl.name %>')"><i data-lucide="trash-2"></i></button>
-                            </div>
-                        </div>
-                        <% }) %>
-                    <% } %>
+        <!-- Form card -->
+        <div class="settings-card" id="mbFormCard">
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;margin-bottom:.9rem;">
+                <div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;">
+                    <h2 id="mbFormTitle" style="margin:0;"><%= t('message_builder.modal_new_title') %></h2>
                 </div>
+                <button type="button" id="mbCancelEdit" class="btn btn-sm" style="display:none;" onclick="cancelEdit()">
+                    <i data-lucide="x" style="width:13px;height:13px;"></i> <%= t('message_builder.cancel_edit') %>
+                </button>
             </div>
 
-            <!-- Kanan: preview panel -->
-            <div class="mb-preview-panel" id="mbPreviewPanel">
-                <div class="mb-preview-panel-header">
-                    <span id="mbPreviewPanelName" class="mb-preview-panel-title"><%= t('common.preview') %></span>
-                    <button class="mb-preview-panel-close" onclick="closePreviewPanel()">✕</button>
-                </div>
-                <div class="mb-preview-panel-body">
-                    <div id="mbPreviewPanelPlaceholder" class="mb-preview-placeholder">
-                        <div style="font-size:1.75rem">👆</div>
-                        <div>Klik template untuk melihat preview</div>
-                    </div>
-                    <div id="mbPreviewPanelContent" style="display:none;">
-                        <div class="dc-window">
-                            <div class="dc-channel-bar">
-                                <span class="dc-channel-hash">#</span>
-                                <span>preview-channel</span>
-                            </div>
-                            <div class="dc-messages">
-                                <div class="dc-message">
-                                    <img class="dc-avatar"
-                                         src="<%- botUser ? botUser.avatarUrl : 'https://cdn.discordapp.com/embed/avatars/0.png' %>"
-                                         alt="avatar" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
-                                    <div class="dc-msg-body">
-                                        <span class="dc-username"
-                                              style="color:<%- botUser ? botUser.roleColor : '#ffffff' %>">
-                                            <%= botUser ? botUser.username : 'Bot' %>
-                                        </span>
-                                        <span class="dc-timestamp">Today at 12:00 PM</span>
-                                        <div id="mbPanelPreviewPlain" class="dc-plain-msg" style="display:none;"></div>
-                                        <div class="dc-embed" id="mbPanelPreviewEmbed" style="display:none;">
-                                            <div class="dc-embed-pill" id="mbPanelPreviewPill"></div>
-                                            <div class="dc-embed-content">
-                                                <div class="dc-embed-author" id="mbPanelPreviewAuthor"></div>
-                                                <div class="dc-embed-title" id="mbPanelPreviewTitle"></div>
-                                                <div class="dc-embed-desc" id="mbPanelPreviewDesc"></div>
-                                                <img class="dc-embed-image" id="mbPanelPreviewImage" src="" alt="" style="display:none;">
-                                                <div class="dc-embed-footer" id="mbPanelPreviewFooter"></div>
-                                            </div>
-                                            <img class="dc-embed-thumb" id="mbPanelPreviewThumb" src="" alt="" style="display:none;">
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <input type="hidden" id="editOriginalName">
 
-        </div><!-- /mb-page-layout -->
-    </div>
-    <%- include('../partials/dash-footer') %>
-    </main>
-</div>
-
-<!-- Backdrop mobile preview -->
-<div class="mb-preview-backdrop" id="mbPreviewBackdrop" onclick="closePreviewPanel()"></div>
-
-<%- include('../partials/bottom-nav') %>
-
-<!-- ══════════════════════════════════════════════
-     MODAL: Buat / Edit Template
-══════════════════════════════════════════════ -->
-<div class="mb-modal-backdrop" id="editBackdrop" onclick="closeEditModal()"></div>
-<div class="mb-modal" id="editModal">
-    <div class="mb-modal-header">
-        <h2 id="editModalTitle"><%= t('message_builder.modal_new_title') %></h2>
-        <button class="mb-modal-close" onclick="closeEditModal()">✕</button>
-    </div>
-    <div class="mb-modal-body">
-        <div class="mb-editor-layout">
-            <!-- Form -->
-            <div class="mb-editor-form">
-                <input type="hidden" id="editOriginalName">
-
-                <div class="form-group">
+            <div class="mb-top-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:.75rem;">
+                <div class="form-group" style="margin:0;">
                     <label class="label"><%= t('message_builder.field_name') %></label>
-                    <input type="text" id="editName" class="input" placeholder="contoh: pengumuman-rutin" maxlength="32">
+                    <input type="text" id="editName" class="input" data-flt-ignore
+                           placeholder="e.g. announcement" maxlength="32" oninput="onFormInput()">
                     <div class="hint"><%- t('message_builder.field_name_hint') %></div>
                 </div>
-
-                <div class="form-group">
-                    <label class="label"><%= t('message_builder.field_category') %></label>
-                    <select id="editKategori" class="select">
-                        <option value="biasa"><%= t('message_builder.category_regular') %></option>
-                        <option value="unik"><%= t('message_builder.category_unique') %></option>
+                <div class="form-group" style="margin:0;">
+                    <label class="label"><%= t('message_builder.field_channel') %></label>
+                    <select id="editChannelId" class="select" data-flt-ignore onchange="onFormInput()">
+                        <option value="">— <%= t('message_builder.no_channel') %> —</option>
+                        <% channels.forEach(ch => { %>
+                            <option value="<%= ch.id %>">#<%= ch.name %></option>
+                        <% }) %>
                     </select>
                 </div>
-
-                <div class="form-group">
-                    <label class="label"><%= t('message_builder.field_type') %></label>
-                    <div style="display:flex;gap:.75rem;">
-                        <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;">
-                            <input type="radio" name="editMessageType" id="mbTypeEmbed" value="embed" checked>
-                            <span>Embed</span>
-                        </label>
-                        <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;">
-                            <input type="radio" name="editMessageType" id="mbTypePlain" value="plain">
-                            <span><%= t('message_builder.type_plain') %></span>
-                        </label>
-                    </div>
-                </div>
-
-                <!-- ── Panel Teks Biasa ── -->
-                <div id="mbPlainPanel" style="display:none;">
-                    <div class="form-group">
-                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.35rem;">
-                            <label class="label" style="margin:0;"><%= t('message_builder.field_plain_text') %></label>
-                            <div class="ph-picker-anchor mention-anchor">
-                                <button type="button" class="ph-toggle-btn" onclick="togglePicker('mbPlainMentionPicker',event)">@ Mention</button>
-                                <div class="ph-dropdown mention-dd" id="mbPlainMentionPicker" style="display:none;"></div>
-                            </div>
-                        </div>
-                        <textarea id="editPlainText" class="textarea" rows="5"
-                                  placeholder="Write your message here..."
-                                  oninput="updatePreview()"></textarea>
-                    </div>
-                </div>
-
-                <!-- ── Panel Embed ── -->
-                <div id="mbEmbedPanel">
-
-                <div class="form-group">
-                    <label class="label"><%= t('message_builder.field_embed_title') %></label>
-                    <input type="text" id="editTitle" class="input" placeholder="Judul embed..." maxlength="256" oninput="updatePreview()">
-                </div>
-
-                <div class="form-group">
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.35rem;">
-                        <label class="label" style="margin:0;"><%= t('message_builder.field_description') %></label>
-                        <div class="ph-picker-anchor mention-anchor">
-                            <button type="button" class="ph-toggle-btn" onclick="togglePicker('mbEmbedMentionPicker',event)">@ Mention</button>
-                            <div class="ph-dropdown mention-dd" id="mbEmbedMentionPicker" style="display:none;"></div>
-                        </div>
-                    </div>
-                    <textarea id="editDescription" class="textarea" rows="4" placeholder="Isi konten embed... Mendukung markdown Discord." oninput="updatePreview()"></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label class="label">Footer</label>
-                    <input type="text" id="editFooter" class="input" placeholder="Footer text..." maxlength="2048" oninput="updatePreview()">
-                </div>
-
-                <div class="form-group">
-                    <label class="label">Author</label>
-                    <input type="text" id="editAuthorName" class="input" placeholder="Nama author (opsional)..." maxlength="256" oninput="updatePreview()">
-                </div>
-
-                <div class="form-group">
-                    <label class="label"><%= t('message_builder.field_author_icon') %></label>
-                    <input type="text" id="editAuthorIcon" class="input" placeholder="https://... (opsional)" oninput="updatePreview()">
-                </div>
-
-                <div class="form-group">
-                    <label class="label"><%= t('message_builder.field_image') %></label>
-                    <input type="text" id="editImage" class="input" placeholder="https://..." oninput="updatePreview()">
-                </div>
-
-                <div class="form-group">
-                    <label class="label"><%= t('message_builder.field_thumbnail') %></label>
-                    <input type="text" id="editThumbnail" class="input" placeholder="https://..." oninput="updatePreview()">
-                </div>
-
-                <div class="form-group">
-                    <label class="label"><%= t('message_builder.field_color') %></label>
-                    <div style="display:flex;gap:.75rem;align-items:center;">
-                        <input type="color" id="editColorPicker" value="#5865F2"
-                               style="width:44px;height:36px;border:none;border-radius:6px;cursor:pointer;padding:0;background:none;"
-                               oninput="syncHex('editColor','editColorPicker');updatePreview()">
-                        <input type="text" id="editColor" class="input" style="max-width:130px;"
-                               placeholder="#5865F2" maxlength="7" value="#5865F2"
-                               oninput="syncPicker('editColor','editColorPicker');updatePreview()">
-                    </div>
-                </div>
-
-                </div><!-- /mbEmbedPanel -->
             </div>
 
-            <!-- Preview -->
-            <div class="mb-editor-preview">
-                <div class="preview-label"><%= t('common.preview') %></div>
-                <div class="dc-window">
-                    <div class="dc-channel-bar">
-                        <span class="dc-channel-hash">#</span>
-                        <span>preview-channel</span>
-                    </div>
-                    <div class="dc-messages" id="mbPreviewMessages">
-                        <div class="dc-message">
-                            <img class="dc-avatar" id="mbBotAvatar"
-                                 src="<%- botUser ? botUser.avatarUrl : 'https://cdn.discordapp.com/embed/avatars/0.png' %>"
-                                 alt="avatar" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
-                            <div class="dc-msg-body">
-                                <span class="dc-username" id="mbBotUsername"
-                                      style="color:<%- botUser ? botUser.roleColor : '#ffffff' %>">
-                                    <%= botUser ? botUser.username : 'Bot' %>
-                                </span>
-                                <span class="dc-timestamp">Today at 12:00 PM</span>
-                                <!-- Plain text preview -->
-                                <div id="mbPreviewPlain" class="dc-plain-msg" style="display:none;"></div>
-                                <!-- Embed preview -->
-                                <div class="dc-embed" id="mbPreviewEmbed">
-                                    <div class="dc-embed-pill" id="mbPreviewPill"></div>
-                                    <div class="dc-embed-content">
-                                        <div class="dc-embed-author" id="mbPreviewAuthor"></div>
-                                        <div class="dc-embed-title" id="mbPreviewTitle"></div>
-                                        <div class="dc-embed-desc" id="mbPreviewDesc"></div>
-                                        <img class="dc-embed-image" id="mbPreviewImage" src="" alt="" style="display:none;max-width:100%;border-radius:4px;margin-top:.5rem;">
-                                        <div class="dc-embed-footer" id="mbPreviewFooter"></div>
-                                    </div>
-                                    <img class="dc-embed-thumb" id="mbPreviewThumb" src="" alt="" style="display:none;">
+            <div class="cc-form-preview-row">
+                <!-- Left: form inputs -->
+                <div class="cc-form-inputs">
+
+                    <!-- Text Message section -->
+                    <div class="mb-section">
+                        <div class="mb-section-head">
+                            <span class="mb-section-title" style="display:flex;align-items:center;gap:.4rem;">
+                                <i data-lucide="message-square" style="width:13px;height:13px;color:var(--accent);flex-shrink:0;"></i>
+                                <%= t('message_builder.section_text_message') %>
+                            </span>
+                            <div class="ph-btn-group">
+                                <div class="ph-picker-anchor">
+                                    <button type="button" class="ph-toggle-btn" onclick="togglePicker('mbPlainPhPicker',event)">{…} Placeholder</button>
+                                    <div class="ph-dropdown" id="mbPlainPhPicker" style="display:none;"></div>
+                                </div>
+                                <div class="ph-picker-anchor mention-anchor">
+                                    <button type="button" class="ph-toggle-btn" onclick="togglePicker('mbPlainMentionPicker',event)">@ Mention</button>
+                                    <div class="ph-dropdown mention-dd" id="mbPlainMentionPicker" style="display:none;"></div>
                                 </div>
                             </div>
                         </div>
+                        <div class="mb-section-body">
+                            <textarea id="editPlainText" class="textarea mb-auto-resize" data-flt-ignore rows="3"
+                                      placeholder="<%= t('message_builder.ph_plain_text') %>" maxlength="2000"
+                                      oninput="mbResizeArea(this);mbUpdateCount('editPlainText','plainTextCount');onFormInput()"></textarea>
+                            <div class="mb-char-count" id="plainTextCount">0 / 2000</div>
+                            <textarea id="editPlainImage" class="input input-sm mb-url-area" data-flt-ignore rows="1"
+                                      placeholder="<%= t('message_builder.ph_plain_image') %>"
+                                      oninput="mbResizeArea(this);mbWarnUrl(this,true);onFormInput()" onblur="mbWarnUrl(this,true,event)"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Embed Builder section -->
+                    <div class="mb-section">
+                        <div class="mb-section-head">
+                            <span class="mb-section-title" style="display:flex;align-items:center;gap:.4rem;">
+                                <i data-lucide="layers" style="width:13px;height:13px;color:var(--accent);flex-shrink:0;"></i>
+                                <%= t('message_builder.section_embed_builder') %>
+                            </span>
+                            <div style="display:flex;align-items:center;gap:.45rem;">
+                                <span style="font-size:.75rem;color:var(--text-muted);"><%= t('message_builder.label_accent') %></span>
+                                <input type="color" id="editColorPicker" value="#5865F2" class="mb-color-pk" data-flt-ignore
+                                       oninput="syncHex('editColor','editColorPicker');onFormInput()">
+                                <input type="hidden" id="editColor" value="#5865F2">
+                            </div>
+                        </div>
+                        <div class="mb-section-body" style="padding:0;">
+                            <div class="ee-body" style="border:none;border-radius:0;">
+
+                                <!-- AUTHOR -->
+                                <div class="ee-section">
+                                    <div class="ee-sec-label"><%= t('message_builder.label_author') %></div>
+                                    <div class="form-group" style="margin-bottom:.5rem;">
+                                        <input type="text" id="editAuthorName" class="input" data-flt-ignore
+                                               style="display:block;width:100%;align-self:flex-start;"
+                                               placeholder="<%= t('message_builder.ph_author_name') %>" maxlength="256" oninput="onFormInput()">
+                                    </div>
+                                    <div class="mb-url-pair" style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;">
+                                        <textarea id="editAuthorUrl" class="input input-sm mb-url-area" data-flt-ignore rows="1"
+                                               placeholder="<%= t('message_builder.ph_author_url') %>" oninput="mbResizeArea(this);mbWarnUrl(this,false);onFormInput()" onblur="mbWarnUrl(this,false,event)"></textarea>
+                                        <textarea id="editAuthorIcon" class="input input-sm mb-url-area" data-flt-ignore rows="1"
+                                               placeholder="<%= t('message_builder.ph_author_icon') %>" oninput="mbResizeArea(this);mbWarnUrl(this,true);onFormInput()" onblur="mbWarnUrl(this,true,event)"></textarea>
+                                    </div>
+                                </div>
+
+                                <div class="ee-sep"></div>
+
+                                <!-- TITLE -->
+                                <div class="ee-section">
+                                    <div class="ee-sec-label"><%= t('message_builder.label_title') %></div>
+                                    <div class="form-group" style="margin-bottom:.5rem;">
+                                        <input type="text" id="editTitle" class="input ee-title-input" data-flt-ignore
+                                               placeholder="<%= t('message_builder.ph_embed_title') %>" maxlength="256" oninput="onFormInput()">
+                                    </div>
+                                    <textarea id="editTitleUrl" class="input input-sm mb-url-area" data-flt-ignore rows="1"
+                                           placeholder="<%= t('message_builder.ph_title_url') %>" oninput="mbResizeArea(this);mbWarnUrl(this,false);onFormInput()" onblur="mbWarnUrl(this,false,event)"></textarea>
+                                </div>
+
+                                <div class="ee-sep"></div>
+
+                                <!-- DESCRIPTION -->
+                                <div class="ee-section">
+                                    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.3rem;margin-bottom:.45rem;">
+                                        <div class="ee-sec-label" style="margin:0;"><%= t('message_builder.label_description') %></div>
+                                        <div class="ph-btn-group">
+                                            <div class="ph-picker-anchor">
+                                                <button type="button" class="ph-toggle-btn cc-ph-dark-btn" onclick="togglePicker('mbDescPhPicker',event)">{…} Placeholder</button>
+                                                <div class="ph-dropdown" id="mbDescPhPicker" style="display:none;"></div>
+                                            </div>
+                                            <div class="ph-picker-anchor mention-anchor">
+                                                <button type="button" class="ph-toggle-btn cc-ph-dark-btn" onclick="togglePicker('mbEmbedMentionPicker',event)">@ Mention</button>
+                                                <div class="ph-dropdown mention-dd" id="mbEmbedMentionPicker" style="display:none;"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <textarea id="editDescription" class="textarea mb-auto-resize" data-flt-ignore rows="4"
+                                              placeholder="<%= t('message_builder.ph_description') %>" maxlength="4096"
+                                              oninput="mbResizeArea(this);mbUpdateCount('editDescription','descCount');onFormInput()"></textarea>
+                                    <div class="mb-char-count" id="descCount">0 / 4096</div>
+                                </div>
+
+                                <div class="ee-sep"></div>
+
+                                <!-- MEDIA -->
+                                <div class="ee-section">
+                                    <div class="ee-sec-label"><%= t('message_builder.label_media') %></div>
+                                    <div class="form-group" style="margin-bottom:.5rem;">
+                                        <label class="label"><%= t('message_builder.label_thumbnail') %></label>
+                                        <textarea id="editThumbnail" class="input input-sm mb-url-area" data-flt-ignore rows="1"
+                                               placeholder="https://..." oninput="mbResizeArea(this);mbWarnUrl(this,true);onFormInput()" onblur="mbWarnUrl(this,true,event)"></textarea>
+                                    </div>
+                                    <div>
+                                        <label class="label"><%= t('message_builder.label_image') %></label>
+                                        <textarea id="editImage" class="input input-sm mb-url-area" data-flt-ignore rows="1"
+                                               placeholder="https://..." oninput="mbResizeArea(this);mbWarnUrl(this,true);onFormInput()" onblur="mbWarnUrl(this,true,event)"></textarea>
+                                    </div>
+                                </div>
+
+                                <div class="ee-sep"></div>
+
+                                <!-- FIELDS -->
+                                <div class="ee-section">
+                                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem;">
+                                        <div class="ee-sec-label" style="margin:0;"><%= t('message_builder.label_fields') %> <span id="mbFieldCount" style="font-weight:400;text-transform:none;letter-spacing:0;">(0 / 25)</span></div>
+                                        <button type="button" class="btn btn-outline btn-sm" onclick="addMbField()">
+                                            <i data-lucide="plus" style="width:13px;height:13px;"></i> <%= t('message_builder.btn_add_field') %>
+                                        </button>
+                                    </div>
+                                    <div id="mbFieldsList"></div>
+                                </div>
+
+                                <div class="ee-sep"></div>
+
+                                <!-- FOOTER -->
+                                <div class="ee-section">
+                                    <div class="ee-sec-label"><%= t('message_builder.label_footer') %></div>
+                                    <div style="margin-bottom:.5rem;">
+                                        <input type="text" id="editFooter" class="input input-sm" data-flt-ignore
+                                               style="display:block;width:100%;"
+                                               placeholder="<%= t('message_builder.ph_footer_text') %>" maxlength="2048"
+                                               oninput="onFormInput()">
+                                    </div>
+                                    <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;">
+                                        <textarea id="editFooterIcon" class="input input-sm mb-url-area" data-flt-ignore rows="1"
+                                               style="flex:1;min-width:120px;"
+                                               placeholder="<%= t('message_builder.ph_footer_icon') %>"
+                                               oninput="mbResizeArea(this);mbWarnUrl(this,true);onFormInput()" onblur="mbWarnUrl(this,true,event)"></textarea>
+                                        <label class="toggle-label" style="gap:.5rem;cursor:pointer;flex-shrink:0;">
+                                            <input type="checkbox" id="editTimestamp" class="toggle-input" data-flt-ignore
+                                                   onchange="onFormInput()">
+                                            <span class="toggle-slider"></span>
+                                            <span class="label" style="margin:0;white-space:nowrap;"><%= t('message_builder.label_timestamp') %></span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                            </div><!-- /ee-body -->
+                        </div><!-- /mb-section-body -->
+                    </div><!-- /embed section -->
+
+                </div><!-- /cc-form-inputs -->
+
+                <!-- Right: Discord preview -->
+                <div class="cc-preview-panel">
+                    <div class="cc-preview-label" onclick="toggleMbPreview()" style="cursor:pointer;user-select:none;" title="Toggle preview">
+                        <i id="mbPreviewEyeIcon" data-lucide="eye" style="width:13px;height:13px;flex-shrink:0;"></i> PREVIEW
+                    </div>
+                    <div class="cc-discord-preview">
+                        <div id="mbPreviewChannel" class="cc-dp-channel">
+                            <span style="opacity:.5;font-weight:700;font-size:.85rem;flex-shrink:0;">#</span>preview
+                        </div>
+                        <div class="cc-dp-msg">
+                            <div class="cc-dp-ava">
+                                <img src="<%- botUser ? botUser.avatarUrl : 'https://cdn.discordapp.com/embed/avatars/0.png' %>"
+                                     alt="" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+                            </div>
+                            <div class="cc-dp-right">
+                                <div class="cc-dp-name">
+                                    <%- botUser ? botUser.username : 'Bot' %>
+                                    <span class="cc-dp-app-badge">
+                                        <svg width="9" height="9" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                            <path d="M1.5 6L4.5 9L10.5 3" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg>
+                                        APP
+                                    </span>
+                                    <span class="cc-dp-time">Today at 12:00</span>
+                                </div>
+                                <div id="mbPreviewPlain" class="cc-dp-text" style="display:none;"></div>
+                                <div id="mbPreviewPlainImageWrap" class="cc-dp-plain-image" style="display:none;">
+                                    <img id="mbPreviewPlainImage" src="" alt="" onerror="this.closest('.cc-dp-plain-image').style.display='none'">
+                                </div>
+                                <div id="mbPreviewEmbed" class="cc-dp-embed" style="display:none;">
+                                    <div id="mbPreviewPill" class="cc-dp-embed-bar" style="background:#5865F2;"></div>
+                                    <div class="cc-dp-embed-body">
+                                        <div class="cc-dp-embed-main">
+                                            <div class="cc-dp-embed-content">
+                                                <div id="mbPreviewAuthor" class="cc-dp-embed-author" style="display:none;"></div>
+                                                <div id="mbPreviewTitle"  class="cc-dp-embed-title"  style="display:none;"></div>
+                                                <div id="mbPreviewDesc"   class="cc-dp-embed-desc"   style="display:none;"></div>
+                                                <div id="mbPreviewFields" class="cc-dp-embed-fields"  style="display:none;"></div>
+                                            </div>
+                                            <div id="mbPreviewThumb" class="cc-dp-embed-thumb" style="display:none;">
+                                                <img id="mbPreviewThumbImg" src="" alt="">
+                                            </div>
+                                        </div>
+                                        <div id="mbPreviewImage" class="cc-dp-embed-image" style="display:none;">
+                                            <img id="mbPreviewImageImg" src="" alt="">
+                                        </div>
+                                        <div id="mbPreviewFooter" class="cc-dp-embed-footer" style="display:none;"></div>
+                                    </div>
+                                </div>
+                                <div id="mbPreviewEmpty" class="cc-dp-empty">Fill in fields above to see preview</div>
+                            </div>
+                        </div>
+                    </div>
+                </div><!-- /cc-preview-panel -->
+
+            </div><!-- /cc-form-preview-row -->
+
+            <div id="mbFormMsg" class="form-message" style="margin-top:.5rem;"></div>
+        </div><!-- /mbFormCard -->
+
+        <!-- Template list -->
+        <div class="settings-card">
+            <h2><%= t('message_builder.list_title') %> (<span id="mbTmplCount"><%= templates.length %></span>/20)</h2>
+            <div id="mbList">
+                <% if (!templates.length) { %>
+                <div style="text-align:center;padding:2.5rem 1rem 2rem;">
+                    <i data-lucide="inbox" style="width:44px;height:44px;color:var(--text-muted);opacity:.35;display:block;margin:0 auto .85rem;"></i>
+                    <div style="font-size:.9rem;font-weight:600;color:var(--text-muted);margin-bottom:.3rem;"><%= t('message_builder.no_templates') %></div>
+                    <div style="font-size:.8rem;color:var(--text-muted);opacity:.7;"><%- t('message_builder.no_templates_hint') %></div>
+                </div>
+                <% } %>
+                <% templates.forEach(function(tmpl) { %>
+                <% var tmplChannel = tmpl.channelId ? channels.find(function(c){ return c.id === tmpl.channelId; }) : null; %>
+                <div class="mb-row" data-name="<%= tmpl.name %>" data-channel-id="<%= tmpl.channelId || '' %>">
+                    <div class="mb-row-left">
+                        <span class="mb-row-pill" style="background:<%= tmpl.color || '#5865F2' %>"></span>
+                        <code class="mb-row-name"><%= tmpl.name %></code>
+                        <% if (tmplChannel) { %>
+                        <span class="mb-badge mb-badge-unik" style="font-size:.72rem;">#<%= tmplChannel.name %></span>
+                        <% } %>
+                        <span class="mb-badge mb-badge-type">
+                            <%= tmpl.messageType === 'plain' ? t('message_builder.badge_text') : tmpl.messageType === 'both' ? t('message_builder.badge_both') : 'Embed' %>
+                        </span>
+                        <% if (tmpl.isSent) { %>
+                        <span class="mb-badge" style="background:rgba(87,242,135,.15);color:#57f287;border:1px solid rgba(87,242,135,.3);"><%= t('message_builder.badge_live') %></span>
+                        <% } %>
+                        <% if (tmpl.title) { %>
+                        <span class="mb-row-preview"><%= tmpl.title.slice(0, 40) %></span>
+                        <% } else if (tmpl.plainText) { %>
+                        <span class="mb-row-preview" style="font-style:italic;"><%= tmpl.plainText.slice(0, 40) %></span>
+                        <% } %>
+                    </div>
+                    <div class="mb-row-right">
+                        <button class="btn btn-sm" onclick="editTemplate('<%= tmpl.name %>')" title="Edit">
+                            <i data-lucide="pencil" style="width:13px;height:13px;"></i>
+                        </button>
+                        <% if (!tmpl.isSent) { %>
+                        <button class="btn btn-sm" onclick="openSendModal('<%= tmpl.name %>')" title="Send">
+                            <i data-lucide="send" style="width:13px;height:13px;"></i>
+                        </button>
+                        <% } %>
+                        <button class="btn btn-danger btn-sm" onclick="deleteTemplate('<%= tmpl.name %>')" title="Delete">
+                            <i data-lucide="trash-2" style="width:13px;height:13px;"></i>
+                        </button>
                     </div>
                 </div>
+                <% }) %>
             </div>
+            <div id="mbListMsg" class="form-message" style="margin-top:.75rem;"></div>
         </div>
-    </div>
-    <div class="mb-modal-footer">
-        <div id="editMsg" class="form-message"></div>
-    </div>
-</div>
+
+    </div><!-- /dash-content-wide -->
+    <%- include('../partials/dash-footer') %>
+    </main>
+</div><!-- /dash-layout -->
+
+<%- include('../partials/bottom-nav') %>
 
 <!-- ══════════════════════════════════════════════
      MODAL: Send to Channel
@@ -317,22 +381,14 @@
 <div class="mb-modal-backdrop" id="sendBackdrop" onclick="closeSendModal()"></div>
 <div class="mb-modal mb-modal-sm" id="sendModal" data-flt-ignore>
     <div class="mb-modal-header">
-        <h2><i data-lucide="send"></i> <%= t('message_builder.send_modal_title') %></h2>
+        <h2 style="display:flex;align-items:center;gap:.5rem;"><i data-lucide="send" style="width:16px;height:16px;"></i> <%= t('message_builder.send_modal_title') %></h2>
         <button class="mb-modal-close" onclick="closeSendModal()">✕</button>
     </div>
     <div class="mb-modal-body">
-        <p style="margin-bottom:1rem;color:var(--text-muted);font-size:.9rem;">
-            <%= t('message_builder.send_to_channel_pre') %> <strong id="sendTemplateName"></strong> <%= t('message_builder.send_to_channel_post') %>
+        <p style="color:var(--text-muted);font-size:.9rem;margin:0;">
+            <%- t('message_builder.send_modal_desc').replace('{{name}}', '<span id="sendTemplateName"></span>').replace('{{channel}}', '<span id="sendChannelName"></span>') %>
         </p>
-        <div class="form-group">
-            <label class="label"><%= t('common.channel') %></label>
-            <select id="sendChannel" class="select">
-                <option value=""><%= t('common.select_channel') %></option>
-                <% channels.forEach(ch => { %>
-                    <option value="<%= ch.id %>">#<%= ch.name %></option>
-                <% }) %>
-            </select>
-        </div>
+        <p style="color:var(--text-muted);font-size:.8rem;margin-top:.5rem;opacity:.7;"><%= t('message_builder.send_modal_note') %></p>
     </div>
     <div class="mb-modal-footer">
         <div id="sendMsg" class="form-message"></div>
@@ -344,388 +400,352 @@
 </div>
 
 <style>
-/* ── Toolbar ── */
-.mb-toolbar {
-    display: flex; gap: .75rem; align-items: center;
-    margin-bottom: 1.25rem; flex-wrap: wrap;
-}
-.mb-search { flex: 1; min-width: 180px; max-width: 320px; }
+/* ── Stats ── */
+.stats-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; margin-bottom:1.5rem; }
+@media(max-width:600px){ .stats-grid { grid-template-columns:1fr 1fr; } }
 
-/* ── Grid ── */
-.mb-grid { display: flex; flex-direction: column; gap: .75rem; }
-
-/* ── Card ── */
-.mb-card {
-    display: flex; align-items: stretch;
-    background: var(--bg2); border: 1px solid var(--border);
-    border-radius: var(--radius); overflow: hidden;
-    transition: border-color .15s;
-}
-.mb-card:hover { border-color: var(--accent); }
-.mb-card-pill { width: 4px; flex-shrink: 0; }
-.mb-card-body { flex: 1; padding: .9rem 1rem; min-width: 0; }
-.mb-card-header { display: flex; align-items: center; gap: .6rem; margin-bottom: .35rem; flex-wrap: wrap; }
-.mb-card-name { font-weight: 600; font-size: .95rem; }
-.mb-badge { font-size: .72rem; padding: .2rem .5rem; border-radius: 999px; white-space: nowrap; }
-.mb-badge-unik  { background: rgba(88,101,242,.2); color: var(--accent); }
-.mb-badge-biasa { background: var(--bg3); color: var(--text-muted); }
-.mb-card-title { font-size: .85rem; color: var(--text); margin-bottom: .2rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.mb-card-desc  { font-size: .78rem; color: var(--text-muted); overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
-.mb-card-actions {
-    display: flex; flex-direction: column; gap: .4rem;
-    padding: .75rem; justify-content: center; flex-shrink: 0;
-}
-.mb-btn-delete {
-    background: transparent; border: 1.5px solid var(--border);
-    color: var(--red); border-radius: var(--radius);
-    cursor: pointer; transition: all .15s;
-    -webkit-tap-highlight-color: transparent;
-    min-height: 36px; padding: .35rem .8rem; font-size: .82rem;
-}
-.mb-btn-delete:hover { background: rgba(237,66,69,.1); border-color: var(--red); }
-
-@media (max-width: 500px) {
-    .mb-card { flex-direction: column; }
-    .mb-card-pill { width: 100%; height: 4px; }
-    .mb-card-actions { flex-direction: row; flex-wrap: wrap; padding: .6rem .9rem .9rem; }
+/* ── Slot badge ── */
+.mb-slot-badge {
+    font-size:.72rem; padding:.2rem .6rem; border-radius:999px;
+    background:rgba(88,101,242,.15); color:var(--accent);
+    font-weight:600; white-space:nowrap;
 }
 
-/* ── Modal backdrop ── */
-.mb-modal-backdrop {
-    display: none; position: fixed; inset: 0;
-    background: rgba(0,0,0,.6); z-index: 400;
-    opacity: 0; transition: opacity .2s;
-    pointer-events: none;
+/* ── Form + Preview layout (shared with custom-commands) ── */
+.cc-form-preview-row {
+    display:flex; gap:1.25rem; align-items:flex-start; margin-top:.25rem;
 }
-.mb-modal-backdrop.open { display: block; opacity: 1; pointer-events: auto; }
+.cc-form-inputs { flex:1; min-width:0; }
+.cc-preview-panel { width:420px; flex-shrink:0; position:sticky; top:calc(var(--navbar-h, 64px) + 1.5rem); }
 
-/* ── Modal ── */
-.mb-modal {
-    display: none; position: fixed;
-    top: 50%; left: 50%; transform: translate(-50%, -50%) scale(.96);
-    width: min(96vw, 960px); max-height: 90vh;
-    background: var(--bg2); border: 1px solid var(--border);
-    border-radius: 12px; z-index: 401;
-    flex-direction: column;
-    box-shadow: 0 16px 48px rgba(0,0,0,.6);
-    transition: transform .2s, opacity .2s;
-    opacity: 0;
+.cc-preview-label {
+    font-size:.68rem; font-weight:700; color:var(--text-muted);
+    text-transform:uppercase; letter-spacing:.1em;
+    display:flex; align-items:center; gap:.35rem;
+    margin-bottom:.55rem;
 }
-.mb-modal.open {
-    display: flex; transform: translate(-50%, -50%) scale(1); opacity: 1;
-}
-.mb-modal-sm { width: min(96vw, 420px); }
-
-.mb-modal-header {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 1rem 1.25rem; border-bottom: 1px solid var(--border);
-    flex-shrink: 0;
-}
-.mb-modal-header h2 { font-size: 1.05rem; font-weight: 600; }
-.mb-modal-close {
-    background: none; border: none; color: var(--text-muted);
-    font-size: 1.1rem; cursor: pointer; padding: .25rem .4rem;
-    border-radius: 6px; transition: background .15s;
-    -webkit-tap-highlight-color: transparent;
-}
-.mb-modal-close:hover { background: var(--bg3); color: var(--text); }
-
-.mb-modal-body { padding: 1.25rem; overflow-y: auto; flex: 1; }
-.mb-modal-footer {
-    padding: 1rem 1.25rem; border-top: 1px solid var(--border);
-    flex-shrink: 0;
+.cc-preview-label:hover { color:var(--text); }
+.cc-preview-hidden .cc-discord-preview {
+    opacity:0; pointer-events:none;
+    transform:scaleY(0.92);
+    max-height:0; overflow:hidden; margin:0; border:none;
 }
 
-/* ── Editor layout: 2 kolom ── */
-.mb-editor-layout {
-    display: grid;
-    grid-template-columns: 1.1fr 0.9fr;
-    gap: 1.5rem; align-items: start;
+/* ── Discord preview container ── */
+.cc-discord-preview {
+    background:var(--bg2); border-radius:10px;
+    overflow:hidden; user-select:none;
+    border:1px solid var(--border);
+    transition:opacity .2s, transform .2s;
+    transform-origin:top center;
+    max-width:100%;
 }
-@media (max-width: 700px) {
-    .mb-editor-layout { grid-template-columns: 1fr; }
+.cc-dp-channel {
+    background:var(--bg3); border-bottom:1px solid var(--border);
+    padding:.45rem .8rem;
+    font-size:.75rem; color:var(--text-muted);
+    display:flex; align-items:center; gap:.4rem;
 }
-.mb-editor-preview { position: sticky; top: 0; }
+.cc-dp-channel svg { opacity:.5; flex-shrink:0; }
+.cc-dp-msg { display:flex; gap:.75rem; padding:.85rem .85rem .9rem; }
+.cc-dp-ava { width:36px; height:36px; border-radius:50%; flex-shrink:0; overflow:hidden; background:#5865F2; }
+.cc-dp-ava img { width:100%; height:100%; object-fit:cover; display:block; }
+.cc-dp-right { min-width:0; flex:1; }
+.cc-dp-name {
+    display:flex; align-items:center; gap:.35rem; flex-wrap:wrap;
+    font-size:.875rem; font-weight:700; color:var(--text);
+    margin-bottom:.25rem; line-height:1.2;
+}
+.cc-dp-app-badge {
+    display:inline-flex; align-items:center; gap:.2rem;
+    font-size:.58rem; font-weight:700; padding:.12rem .28rem;
+    border-radius:3px; background:#5865F2; color:#fff;
+    letter-spacing:.03em; text-transform:uppercase;
+    line-height:1; flex-shrink:0;
+}
+.cc-dp-app-badge svg { flex-shrink:0; }
+.cc-dp-time { font-size:.72rem; font-weight:400; color:var(--text-muted); }
+.cc-dp-text {
+    font-size:.875rem; color:var(--text);
+    line-height:1.5; word-break:break-all; overflow-wrap:anywhere;
+    white-space:pre-wrap; margin-bottom:.2rem;
+}
+.cc-dp-plain-image { margin-top:.35rem; border-radius:4px; overflow:hidden; max-width:400px; max-height:300px; }
+.cc-dp-plain-image img { width:100%; display:block; object-fit:cover; max-height:300px; }
+.cc-dp-embed { display:flex; border-radius:0 4px 4px 0; background:var(--bg3); margin-top:.35rem; overflow:hidden; max-width:100%; }
+.cc-dp-embed-bar { width:4px; flex-shrink:0; }
+.cc-dp-embed-body { padding:.55rem .75rem; min-width:0; flex:1; }
+.cc-dp-embed-main { display:flex; gap:.75rem; align-items:flex-start; }
+.cc-dp-embed-content { flex:1; min-width:0; }
+.cc-dp-embed-author { display:flex; align-items:center; gap:.4rem; font-size:.78rem; font-weight:700; color:var(--text); margin-bottom:.3rem; overflow:hidden; }
+.cc-dp-author-icon { width:18px; height:18px; border-radius:50%; object-fit:cover; flex-shrink:0; }
+.cc-dp-text-wrap { min-width:0; flex:1; word-break:break-all; overflow-wrap:anywhere; }
+.cc-dp-embed-title { font-size:.875rem; font-weight:700; color:var(--text); margin-bottom:.2rem; word-break:break-all; overflow-wrap:anywhere; line-height:1.4; }
+.cc-dp-embed-desc { font-size:.8rem; color:var(--text-muted); line-height:1.55; word-break:break-all; overflow-wrap:anywhere; white-space:pre-wrap; }
+.cc-dp-embed-thumb { flex-shrink:0; width:80px; height:80px; border-radius:4px; overflow:hidden; margin-top:.1rem; }
+.cc-dp-embed-thumb img { width:100%; height:100%; object-fit:cover; display:block; }
+.cc-dp-embed-image { margin-top:.5rem; border-radius:4px; overflow:hidden; }
+.cc-dp-embed-image img { width:100%; display:block; height:auto; }
+.cc-dp-embed-footer { display:flex; align-items:center; gap:.35rem; flex-wrap:wrap; font-size:.72rem; color:var(--text-muted); margin-top:.5rem; }
+.cc-dp-footer-icon { width:16px; height:16px; border-radius:50%; object-fit:cover; }
+.cc-dp-footer-sep  { opacity:.5; }
+.cc-dp-empty { font-size:.78rem; color:var(--text-muted); padding:.2rem 0; font-style:italic; opacity:.6; }
 
-/* ── DC embed author ── */
-.dc-embed-author {
-    font-size: .78rem; color: #dbdee1; font-weight: 600;
-    margin-bottom: .25rem;
+/* ── Template list row ── */
+.mb-row {
+    display:flex; align-items:center; justify-content:space-between;
+    gap:.75rem; padding:.6rem .75rem;
+    background:var(--bg3); border:1px solid var(--border);
+    border-radius:8px; margin-bottom:.4rem; flex-wrap:wrap;
 }
-.dc-embed-author:empty { display: none; }
-.dc-embed-image { display: none; }
+.mb-row-left  { display:flex; align-items:center; gap:.5rem; flex-wrap:wrap; min-width:0; }
+.mb-row-right { display:flex; align-items:center; gap:.4rem; flex-shrink:0; }
+.mb-row-pill  { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+.mb-row-name  { font-size:.875rem; }
+.mb-row-preview { font-size:.8rem; color:var(--text-muted); max-width:220px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
-/* ── Plain text message ── */
-.dc-plain-msg {
-    margin-top: .35rem; font-size: .875rem; color: #dbdee1;
-    line-height: 1.5; word-break: break-word; max-width: 432px;
+/* ── Badges ── */
+.mb-badge { font-size:.72rem; padding:.2rem .5rem; border-radius:999px; white-space:nowrap; }
+.mb-badge-unik  { background:rgba(88,101,242,.2); color:var(--accent); }
+.mb-badge-biasa { background:var(--bg3); color:var(--text-muted); border:1px solid var(--border); }
+.mb-badge-type  { background:rgba(87,242,135,.12); color:#57f287; }
+
+/* ── mb-section (Text Message / Embed Builder wrappers) ── */
+.mb-section {
+    border:1px solid var(--border); border-radius:var(--radius);
+    overflow:visible; margin-bottom:.85rem;
 }
+.mb-section-head {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:.45rem .85rem; background:var(--bg3);
+    border-bottom:1px solid var(--border);
+    border-radius:var(--radius) var(--radius) 0 0;
+}
+.mb-section-title { font-size:.8rem; font-weight:600; color:var(--text); display:flex; align-items:center; gap:.4rem; }
+.mb-section-body  { padding:.85rem; display:flex; flex-direction:column; gap:.7rem; }
+
+/* ── Embed builder inner sections ── */
+.ee-body     { border:1px solid var(--border); border-radius:10px; overflow:visible; }
+.ee-section  { padding:.85rem 1rem; }
+.ee-sep      { height:1px; background:var(--border); }
+.ee-sec-label { font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--text-muted); margin-bottom:.5rem; }
+.ee-title-input { font-weight:600 !important; }
+.input-sm   { font-size:.85rem !important; padding:.35rem .65rem !important; }
+
+/* ── Color picker ── */
+.mb-color-pk { width:30px; height:30px; padding:2px; border-radius:6px; border:1px solid var(--border); background:none; cursor:pointer; }
+
+/* ── Dark mention button ── */
+.cc-ph-dark-btn { font-size:.68rem; padding:2px 8px; background:rgba(255,255,255,.05); color:rgba(255,255,255,.35); border-color:rgba(255,255,255,.1); }
+.cc-ph-dark-btn:hover { background:rgba(255,255,255,.12); color:rgba(255,255,255,.75); border-color:rgba(255,255,255,.2); }
+.cc-ph-dark-btn.active { background:rgba(88,101,242,.2); border-color:rgba(88,101,242,.4); color:#c0c7ff; }
+[data-theme="light"] .cc-ph-dark-btn { background:rgba(0,0,0,.04); color:var(--text-muted); border-color:var(--border); }
+[data-theme="light"] .cc-ph-dark-btn:hover { background:rgba(0,0,0,.08); color:var(--text); }
 
 /* ── Spoiler ── */
 .dc-spoiler {
-    background: #202225; border-radius: 2px; color: transparent;
-    cursor: pointer; transition: color .1s, background .1s; user-select: none;
+    background:var(--text-muted); border-radius:2px; color:transparent;
+    cursor:pointer; transition:color .1s,background .1s; user-select:none; padding:0 2px;
 }
-.dc-spoiler.shown { color: #dbdee1; background: rgba(32,34,37,.5); }
+.dc-spoiler.shown { color:var(--text); background:rgba(0,0,0,.25); }
 
-/* ── Type badge ── */
-.mb-badge-type { background: rgba(87,242,135,.12); color: #57f287; }
+/* ── Inline code in preview ── */
+.mb-inline-code {
+    background:rgba(0,0,0,.18); color:var(--text);
+    padding:1px 5px; border-radius:3px; font-size:.85em;
+    font-family:'Consolas',monospace;
+}
+[data-theme="light"] .mb-inline-code { background:rgba(0,0,0,.07); }
+.mb-code-block {
+    display:block; background:var(--bg3); border-radius:4px;
+    padding:.4rem .75rem; font-family:'Consolas',monospace;
+    font-size:.82em; white-space:pre; overflow-x:auto;
+    color:var(--text); margin:.2rem 0;
+}
+[data-theme="light"] .mb-code-block { background:rgba(0,0,0,.05); }
 
-/* ── Discord Window Preview ── */
-.dc-window {
-    background: #313338;
-    border-radius: 8px;
-    overflow: hidden;
-    font-family: 'gg sans', 'Noto Sans', sans-serif;
+/* ── URL textarea & char counter ── */
+.mb-url-area {
+    resize:none; overflow:hidden; min-height:34px; line-height:1.45;
+    word-break:break-all; font-family:inherit; font-size:.85rem;
+    padding:.4rem .6rem; box-sizing:border-box; width:100%;
 }
-.dc-channel-bar {
-    background: #2b2d31;
-    padding: .5rem .75rem;
-    font-size: .82rem;
-    color: #80848e;
-    display: flex; align-items: center; gap: .3rem;
-    border-bottom: 1px solid #1e1f22;
+.mb-auto-resize { resize:none !important; overflow:hidden !important; }
+.mb-char-count {
+    text-align:right; font-size:.72rem; color:var(--text-muted);
+    margin-top:.18rem; transition:color .2s; user-select:none;
 }
-.dc-channel-hash { font-weight: 700; font-size: .95rem; }
-.dc-messages { padding: .75rem 1rem; }
-.dc-message { display: flex; gap: .75rem; align-items: flex-start; }
-.dc-avatar {
-    width: 36px; height: 36px;
-    border-radius: 50%; flex-shrink: 0;
-    object-fit: cover;
-}
-.dc-msg-body { flex: 1; min-width: 0; }
-.dc-username {
-    font-weight: 600; font-size: .875rem; color: #fff;
-    margin-right: .4rem;
-}
-.dc-timestamp { font-size: .72rem; color: #80848e; }
+.mb-char-count.warn   { color:#f0b232; }
+.mb-char-count.danger { color:#ed4245; font-weight:600; }
 
-/* ── Discord Embed ── */
-.dc-embed {
-    display: flex;
-    background: #2b2d31;
-    border-radius: 4px;
-    margin-top: .35rem;
-    overflow: hidden;
-    max-width: 432px;
-}
-.dc-embed-pill {
-    width: 4px;
-    flex-shrink: 0;
-    background: #5865F2;
-    border-radius: 4px 0 0 4px;
-}
-.dc-embed-content {
-    flex: 1;
-    padding: .5rem .75rem .5rem .75rem;
-    min-width: 0;
-}
-.dc-embed-title {
-    font-size: .875rem;
-    font-weight: 600;
-    color: #fff;
-    margin-bottom: .2rem;
-}
-.dc-embed-title:empty { display: none; }
-.dc-embed-desc {
-    font-size: .825rem;
-    color: #dbdee1;
-    line-height: 1.4;
-    white-space: pre-wrap;
-    word-break: break-word;
-}
-.dc-embed-desc:empty { display: none; }
-.dc-embed-footer {
-    font-size: .72rem;
-    color: #80848e;
-    margin-top: .4rem;
-}
-.dc-embed-footer:empty { display: none; }
+/* ── Embed fields (preview) ── */
+.cc-dp-embed-fields { display:grid; grid-template-columns:repeat(3,1fr); gap:.35rem .65rem; margin-top:.35rem; }
+.cc-dp-field { }
+.cc-dp-field-block { grid-column:1/-1; }
+.cc-dp-field-name { font-size:.78rem; font-weight:700; color:var(--text); margin-bottom:.1rem; word-break:break-all; overflow-wrap:anywhere; }
+.cc-dp-field-val  { font-size:.77rem; color:var(--text-muted); word-break:break-all; overflow-wrap:anywhere; white-space:pre-wrap; }
 
-/* ── Thumbnail (pojok kanan, kecil) ── */
-.dc-embed-thumb {
-    width: 72px;
-    height: 72px;
-    object-fit: cover;
-    border-radius: 4px;
-    margin: .5rem .5rem .5rem 0;
-    flex-shrink: 0;
-    align-self: flex-start;
-    display: none;
+/* ── Embed field rows (form) ── */
+.cc-field-row { display:flex; gap:.6rem; align-items:flex-start; background:var(--bg3); border:1px solid var(--border); border-radius:8px; padding:.65rem .75rem; margin-bottom:.45rem; }
+.cc-field-inputs { flex:1; min-width:0; display:flex; flex-direction:column; gap:.4rem; }
+.cc-field-num { font-size:.73rem; color:var(--text-muted); font-weight:600; }
+.cc-field-del { flex-shrink:0; align-self:flex-start; }
+.cc-field-inline-row { display:flex; align-items:center; gap:.5rem; margin-top:.15rem; }
+.cc-field-inline-row label { font-size:.8rem; color:var(--text-muted); cursor:pointer; display:flex; align-items:center; gap:.3rem; }
+.ee-body .cc-field-row { background:var(--bg2,rgba(255,255,255,.02)); }
+.ee-body .cc-field-inline-row input[type="checkbox"] { accent-color:#5865F2; }
+
+/* ── URL warning ── */
+.mb-url-warn {
+    border-color: rgba(237,66,69,.55) !important;
+    background: rgba(237,66,69,.05) !important;
 }
 
-/* ── Large image (di bawah konten) ── */
-.dc-embed-image {
-    display: none;
-    max-width: 100%;
-    border-radius: 4px;
-    margin-top: .5rem;
+/* ── Send modal ── */
+.mb-modal-backdrop {
+    display:none; position:fixed; inset:0;
+    background:rgba(0,0,0,.6); z-index:400;
+    opacity:0; transition:opacity .2s;
+    pointer-events:none;
 }
+.mb-modal-backdrop.open { display:block; opacity:1; pointer-events:auto; }
+.mb-modal {
+    display:none; position:fixed;
+    top:50%; left:50%; transform:translate(-50%,-50%) scale(.96);
+    width:min(96vw,420px); max-height:90vh;
+    background:var(--bg2); border:1px solid var(--border);
+    border-radius:12px; z-index:401;
+    flex-direction:column;
+    box-shadow:0 16px 48px rgba(0,0,0,.6);
+    transition:transform .2s, opacity .2s;
+    opacity:0;
+}
+.mb-modal.open { display:flex; transform:translate(-50%,-50%) scale(1); opacity:1; }
+.mb-modal-header {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:1rem 1.25rem; border-bottom:1px solid var(--border); flex-shrink:0;
+}
+.mb-modal-header h2 { font-size:1.05rem; font-weight:600; }
+.mb-modal-close {
+    background:none; border:none; color:var(--text-muted);
+    font-size:1.1rem; cursor:pointer; padding:.25rem .4rem;
+    border-radius:6px; transition:background .15s;
+}
+.mb-modal-close:hover { background:var(--bg3); color:var(--text); }
+.mb-modal-body   { padding:1.25rem; overflow-y:auto; flex:1; }
+.mb-modal-footer { padding:1rem 1.25rem; border-top:1px solid var(--border); flex-shrink:0; }
 
-/* ══════════════════════════════════════
-   PREVIEW PANEL
-══════════════════════════════════════ */
-
-/* ── Page layout: 2 kolom ── */
-.mb-page-layout {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 480px;
-    gap: 1.5rem;
-    align-items: start;
+/* ── Responsive ── */
+@media (max-width:900px) {
+    .cc-form-preview-row { flex-direction:column; }
+    .cc-preview-panel { width:100%; position:static; max-width:100%; overflow-x:hidden; }
 }
-.mb-list-col { min-width: 0; }
-
-/* ── Panel kanan (PC: sticky) ── */
-.mb-preview-panel {
-    position: sticky;
-    top: 1rem;
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    overflow: hidden;
-    max-height: calc(100vh - 5rem);
-    display: flex;
-    flex-direction: column;
+@media (max-width:640px) {
+    .mb-top-grid  { grid-template-columns:1fr !important; }
+    .mb-url-pair  { grid-template-columns:1fr !important; }
+    .mb-section-head { flex-wrap:wrap; gap:.4rem; }
+    .ph-btn-group { flex-wrap:wrap; }
+    .mb-row-preview { max-width:160px; }
 }
-.mb-preview-panel-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: .7rem 1rem;
-    border-bottom: 1px solid var(--border);
-    flex-shrink: 0;
+@media (max-width:500px) {
+    .mb-row { flex-direction:column; align-items:flex-start; }
+    .mb-row-right { width:100%; justify-content:flex-end; }
+    .mb-row-preview { max-width:none; }
+    .settings-card { padding:1rem; }
+    .stats-grid { grid-template-columns:1fr 1fr; }
 }
-.mb-preview-panel-title {
-    font-size: .85rem;
-    font-weight: 600;
-    color: var(--text-muted);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-.mb-preview-panel-close {
-    display: none;
-    background: none; border: none; color: var(--text-muted);
-    cursor: pointer; font-size: 1rem; padding: .2rem .4rem;
-    border-radius: 6px; transition: background .15s; flex-shrink: 0;
-    -webkit-tap-highlight-color: transparent;
-}
-.mb-preview-panel-close:hover { background: var(--bg3); color: var(--text); }
-.mb-preview-panel-body {
-    overflow-y: auto;
-    flex: 1;
-    padding: .75rem;
-}
-
-/* ── Placeholder ── */
-.mb-preview-placeholder {
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    gap: .6rem; padding: 2.5rem 1rem;
-    color: var(--text-muted); font-size: .85rem;
-    text-align: center; min-height: 200px;
-}
-
-/* ── Card selected state ── */
-.mb-card.selected { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
-.mb-card-body { cursor: pointer; }
-
-/* ── Mobile/tablet: bottom sheet ── */
-@media (max-width: 1100px) {
-    .mb-page-layout { grid-template-columns: 1fr; }
-
-    /* Panel = satu container scroll tunggal, max 70vh */
-    .mb-preview-panel {
-        position: fixed;
-        bottom: 0; left: 0; right: 0;
-        border-radius: 16px 16px 0 0;
-        border-bottom: none;
-        height: auto;
-        max-height: 70vh;
-        overflow-y: auto;   /* panel yg scroll, bukan body */
-        overflow-x: hidden;
-        display: block;
-        transform: translateY(110%);
-        visibility: hidden;
-        transition: transform .3s cubic-bezier(.4,0,.2,1), visibility 0s .3s;
-        z-index: 350;
+@media (max-width:640px) {
+    .cc-dp-embed-footer { flex-wrap:nowrap; overflow:hidden; }
+    .cc-dp-embed-footer .cc-dp-text-wrap,
+    .cc-dp-embed-author .cc-dp-text-wrap {
+        overflow:hidden;
+        text-overflow:ellipsis;
+        white-space:nowrap;
+        flex:1 1 0;
+        min-width:0;
     }
-    .mb-preview-panel.open {
-        transform: translateY(0);
-        visibility: visible;
-        transition: transform .3s cubic-bezier(.4,0,.2,1), visibility 0s 0s;
-        box-shadow: 0 -12px 40px rgba(0,0,0,.7);
-    }
-
-    /* Header sticky agar tidak ikut scroll */
-    .mb-preview-panel-header {
-        position: sticky;
-        top: 0;
-        z-index: 1;
-        background: var(--bg2);
-        border-bottom: 1px solid var(--border);
-        padding-top: 1.1rem; /* ruang untuk drag handle */
-    }
-    /* Drag handle */
-    .mb-preview-panel-header::before {
-        content: '';
-        position: absolute;
-        top: .45rem; left: 50%;
-        transform: translateX(-50%);
-        width: 36px; height: 4px;
-        background: var(--border);
-        border-radius: 99px;
-    }
-
-    /* Body bebas, tidak perlu overflow/max-height sendiri */
-    .mb-preview-panel-body {
-        overflow: visible;
-        max-height: none;
-        flex: none;
-        display: block;
-        padding: .75rem;
-        padding-bottom: max(env(safe-area-inset-bottom, 0px), 1.5rem);
-    }
-
-    .mb-preview-panel-close { display: block; }
-
-    .mb-preview-backdrop {
-        position: fixed; inset: 0;
-        background: rgba(0,0,0,.72); z-index: 349;
-        opacity: 0; pointer-events: none;
-        transition: opacity .25s;
-    }
-    .mb-preview-backdrop.open { opacity: 1; pointer-events: auto; }
 }
-@media (min-width: 1101px) {
-    .mb-preview-backdrop { display: none !important; }
+@media (max-width:420px) {
+    .stats-grid { grid-template-columns:1fr; }
+    .mb-section-head { padding:.4rem .65rem; }
+    .mb-section-body { padding:.65rem; }
+    .ee-section { padding:.65rem .75rem; }
+    .ph-toggle-btn { font-size:.68rem; padding:2px 7px; }
+    .mb-char-count { font-size:.68rem; }
+    .stat-card { padding:.75rem 1rem; }
 }
 </style>
 
 <script>
 const GUILD_ID = '<%= guild.id %>';
-const CHANNELS = <%- JSON.stringify(Object.fromEntries(channels.map(c => [c.id, c.name]))) %>;
+const CHANNELS = <%- JSON.stringify(Object.fromEntries(channels.map(c => [c.id, { name: c.name, type: c.type }]))) %>;
 const ROLES    = <%- JSON.stringify(Object.fromEntries((locals.roles||[]).map(r=>[r.id,{name:r.name,color:r.color}]))) %>;
+const MB_SAMPLE = {
+    user_username:  <%- JSON.stringify(loginUser.username || 'User') %>,
+    user_id:        <%- JSON.stringify(loginUser.id || '0') %>,
+    user_avatar:    <%- JSON.stringify(loginUser.avatarUrl || '') %>,
+    server_name:    <%- JSON.stringify(guild.name || 'Server') %>,
+    server_id:      <%- JSON.stringify(guild.id) %>,
+    server_members: <%- JSON.stringify(String(guild.memberCount || guild.approximateMemberCount || 0)) %>,
+    server_icon:    <%- JSON.stringify((typeof guild.iconURL === 'function' ? guild.iconURL({ size: 128 }) : '') || '') %>,
+};
+const MB_LIMIT = 20;
+let mbEmbedFields = [];
 
-const I18N_MB_NEW_TITLE    = '<%= t("message_builder.modal_new_title") %>';
-const I18N_MB_CONFIRM_DEL  = '<%= t("message_builder.confirm_delete") %>';
-const I18N_MB_ERR_EMPTY    = '<%= t("message_builder.err_name_empty") %>';
-const I18N_MB_ERR_INVALID  = '<%= t("message_builder.err_name_invalid") %>';
-const I18N_MB_ERR_NO_CH    = '<%= t("message_builder.err_no_channel") %>';
-const I18N_MB_NO_TEMPLATES = '<%= t("message_builder.no_templates") %>';
+const I18N_MB_NEW_TITLE   = '<%= t("message_builder.modal_new_title") %>';
+const I18N_MB_CONFIRM_DEL = <%- JSON.stringify(t("message_builder.confirm_delete")) %>;
+const I18N_MB_ERR_EMPTY   = '<%= t("message_builder.err_name_empty") %>';
+const I18N_MB_ERR_INVALID = '<%= t("message_builder.err_name_invalid") %>';
+const I18N_MB_ERR_NO_CH   = '<%= t("message_builder.err_no_channel") %>';
+const I18N_MB_ERR_LIMIT   = 'Template limit reached (20/20). Delete an existing template first.';
+const I18N_MB_NO_TEMPLATES      = '<%= t("message_builder.no_templates") %>';
+const I18N_MB_NO_TEMPLATES_HINT = '<%- t("message_builder.no_templates_hint") %>';
 
-let _sendingName = '';
+const MB_PLACEHOLDERS = [
+    { group: 'USER', items: [
+        ['{user.mention}',   'Mention user'],
+        ['{user.username}',  'Username'],
+        ['{user.id}',        'User ID'],
+        ['{user.avatar}',    'Avatar URL'],
+    ]},
+    { group: 'SERVER', items: [
+        ['{server.name}',    'Server name'],
+        ['{server.id}',      'Server ID'],
+        ['{server.members}', 'Member count'],
+        ['{server.icon}',    'Server icon URL'],
+    ]},
+];
 
-// ── Filter ────────────────────────────────────────────────────────────────
-function filterTemplates(q) {
-    q = q.toLowerCase();
-    document.querySelectorAll('.mb-card').forEach(card => {
-        card.style.display = card.dataset.name.includes(q) ? '' : 'none';
+function buildMbPhPicker(pickerId, targetId) {
+    const el = document.getElementById(pickerId);
+    if (!el) return;
+    let html = '';
+    MB_PLACEHOLDERS.forEach(({ group, items }, gi) => {
+        if (gi > 0) html += `<div style="grid-column:1/-1;height:1px;background:rgba(255,255,255,.1);margin:.2rem 0;"></div>`;
+        html += `<div class="ph-group-label" style="grid-column:1/-1;">${group}</div>`;
+        items.forEach(([ph, desc]) => {
+            html += `<button type="button" class="ph-item" onclick="insertMbPlaceholder('${targetId}','${ph}')"><code>${ph}</code><span>${desc}</span></button>`;
+        });
     });
+    el.innerHTML = html;
+}
+function insertMbPlaceholder(targetId, text) {
+    const el = document.getElementById(targetId);
+    if (!el) return;
+    const start = el.selectionStart ?? el.value.length;
+    const end   = el.selectionEnd   ?? el.value.length;
+    el.value = el.value.slice(0, start) + text + el.value.slice(end);
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+    document.querySelectorAll('.ph-dropdown').forEach(d => d.style.display = 'none');
+    document.querySelectorAll('.ph-toggle-btn').forEach(b => b.classList.remove('active'));
 }
 
-// ── Sync color picker ─────────────────────────────────────────────────────
+let _sendingName = '';
+let _sendingChannelId = '';
+let _editingName = null;
+let _savedTemplateData = null;
+
+// ── Color picker sync ─────────────────────────────────────────────────────
 function syncHex(inputId, pickerId) {
     document.getElementById(inputId).value = document.getElementById(pickerId).value;
 }
@@ -734,276 +754,227 @@ function syncPicker(inputId, pickerId) {
     if (/^#[0-9A-Fa-f]{6}$/.test(val)) document.getElementById(pickerId).value = val;
 }
 
-// ── Markdown Discord → HTML ───────────────────────────────────────────────
-function mdToHtml(text) {
-    if (!text) return '';
-    function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-    function inline(s) {
-        const codeStore = [];
-        s = s.replace(/`(.+?)`/g, (_, code) => {
-            const i = codeStore.length;
-            codeStore.push('<code style="background:#2b2d31;padding:1px 5px;border-radius:3px;font-size:.85em;font-family:\'Consolas\',monospace;">' + code + '</code>');
-            return '\x01C' + i + '\x01';
-        });
-        s = s
-            .replace(/\[([^\]]+)\]\(\s*(https?:\/\/[^\s)]+)\s*\)/g,'<a href="$2" target="_blank" rel="noopener noreferrer" style="color:#00b0f4;text-decoration:none;">$1</a>')
-            .replace(/\*\*\*(.+?)\*\*\*/g,'<strong><em>$1</em></strong>')
-            .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
-            .replace(/\*(.+?)\*/g,'<em>$1</em>')
-            .replace(/__(.+?)__/g,'<u>$1</u>')
-            .replace(/~~(.+?)~~/g,'<s>$1</s>')
-            .replace(/\|\|(.+?)\|\|/g,'<span class="dc-spoiler" onclick="this.classList.toggle(\'shown\')">$1</span>')
-            .replace(/(href="[^"]*")|((https?:\/\/[^\s<>"']+))/g,(m,h,_,url)=>{
-                if(h) return m;
-                const c=url.replace(/[.,;:!?)\]>]+$/,'');
-                return '<a href="'+c+'" target="_blank" rel="noopener noreferrer" style="color:#00b0f4;text-decoration:underline;">'+c+'</a>';
-            });
-        return s.replace(/\x01C(\d+)\x01/g,(_,i)=>codeStore[+i]);
+// ── Form input handler ────────────────────────────────────────────────────
+// ── Form snapshot for accurate dirty tracking ─────────────────────────────
+// All MB fields have data-flt-ignore so the float bar's native isClean()
+// can't see them. We maintain our own baseline snapshot instead.
+let _mbBaselineSnap = null;
+function _mbFormSnap() {
+    const ids = [
+        'editName','editChannelId','editColor',
+        'editPlainText','editPlainImage',
+        'editTitle','editTitleUrl','editDescription',
+        'editFooter','editFooterIcon',
+        'editAuthorName','editAuthorUrl','editAuthorIcon',
+        'editImage','editThumbnail',
+    ];
+    const parts = ids.map(id => { const el = document.getElementById(id); return el ? el.value : ''; });
+    const ts = document.getElementById('editTimestamp');
+    parts.push(ts ? (ts.checked ? '1' : '0') : '0');
+    parts.push(mbEmbedFields.map(f => `${f.name}\x01${f.value}\x01${f.inline}`).join('\x02'));
+    return parts.join('\x00');
+}
+function _mbCaptureBaseline() { _mbBaselineSnap = _mbFormSnap(); }
+
+function onFormInput() {
+    updatePreview();
+    if (_mbBaselineSnap !== null && _mbFormSnap() === _mbBaselineSnap) {
+        window._floatClean?.();
+    } else {
+        window._floatDirty?.();
     }
-    const lines=text.split('\n'), out=[];
-    let inCode=false, codeBuf=[];
-    for(let i=0;i<lines.length;i++){
-        const raw=lines[i];
-        if(!inCode && /^```/.test(raw)){ inCode=true; codeBuf=[]; continue; }
-        if(inCode){
-            if(/^```\s*$/.test(raw.trim())){
-                inCode=false;
-                out.push('<div style="display:block;background:#1e1f22;border-radius:4px;padding:.4rem .75rem;font-family:\'Consolas\',monospace;font-size:.82em;white-space:pre;overflow-x:auto;color:#dbdee1;">'+esc(codeBuf.join('\n'))+'</div>');
-            } else { codeBuf.push(raw); }
-            continue;
-        }
-        let m;
-        if((m=raw.match(/^>>> (.*)$/))){ const rest=[m[1],...lines.slice(i+1)].join('\n'); out.push('<div style="display:block;border-left:4px solid #4e5058;padding:.1em .75em;margin:.1em 0;color:#dbdee1;">'+inline(esc(rest))+'</div>'); break; }
-        if((m=raw.match(/^> (.+)$/))){ out.push('<div style="display:block;border-left:4px solid #4e5058;padding:.1em .75em;margin:.05em 0;color:#dbdee1;">'+inline(esc(m[1]))+'</div>'); continue; }
-        if((m=raw.match(/^### (.+)$/))){ out.push('<div style="display:block;font-size:1.05em;font-weight:700;margin:.3em 0 .1em;">'+inline(esc(m[1]))+'</div>'); continue; }
-        if((m=raw.match(/^## (.+)$/))){ out.push('<div style="display:block;font-size:1.25em;font-weight:700;margin:.3em 0 .2em;">'+inline(esc(m[1]))+'</div>'); continue; }
-        if((m=raw.match(/^# (.+)$/))){ out.push('<div style="display:block;font-size:1.5em;font-weight:700;margin:.3em 0 .2em;">'+inline(esc(m[1]))+'</div>'); continue; }
-        if((m=raw.match(/^-# (.+)$/))){ out.push('<div style="display:block;font-size:.75em;color:#80848e;margin:.05em 0;">'+inline(esc(m[1]))+'</div>'); continue; }
-        out.push(inline(esc(raw)));
-    }
-    if(inCode&&codeBuf.length) out.push('<div style="display:block;background:#1e1f22;border-radius:4px;padding:.4rem .75rem;font-family:\'Consolas\',monospace;font-size:.82em;white-space:pre;color:#dbdee1;">'+esc(codeBuf.join('\n'))+'</div>');
-    let result='';
-    for(let j=0;j<out.length;j++){
-        const isBlock=out[j].startsWith('<div');
-        const prevBlock=j>0&&out[j-1].startsWith('<div');
-        if(j>0&&!isBlock&&!prevBlock) result+='<br>';
-        result+=out[j];
-    }
-    return result;
 }
 
-// ── Mention resolution ────────────────────────────────────────────────────
-const memberCache={}, roleCache={}, channelCache={};
-function mentionBadge(color,text,bg){bg=bg||color+'26';return '<span style="color:'+color+';background:'+bg+';border-radius:3px;padding:0 2px;font-weight:600;">'+text+'</span>';}
+// ── Toggle preview (eye icon) ─────────────────────────────────────────────
+function toggleMbPreview() {
+    const panel = document.querySelector('.cc-preview-panel');
+    const icon  = document.getElementById('mbPreviewEyeIcon');
+    panel.classList.toggle('cc-preview-hidden');
+    const hidden = panel.classList.contains('cc-preview-hidden');
+    icon.setAttribute('data-lucide', hidden ? 'eye-off' : 'eye');
+    if (window.lucide) lucide.createIcons();
+}
 
-async function resolveMentionId(id){
-    if(memberCache[id]!==undefined) return;
-    memberCache[id]='fetching';
-    try{
-        const r=await fetch('/api/guild/'+GUILD_ID+'/members/search?q='+encodeURIComponent(id));
-        const d=await r.json();
-        memberCache[id]=(d.success&&d.members&&d.members.length>0&&d.members[0].display)?d.members[0].display:null;
-    }catch(e){memberCache[id]=null;}
+// ── URL validation ────────────────────────────────────────────────────────
+function mbIsHttpUrl(url) {
+    if (!url) return true;
+    try { const u = new URL(url); return u.protocol === 'http:' || u.protocol === 'https:'; } catch { return false; }
+}
+function mbWarnUrl(el, requireImg, event) {
+    const rel = event?.relatedTarget;
+    if (rel && (rel.id === 'flt-reset' || rel.closest?.('#flt-bar'))) return;
+    const url = el.value.trim();
+    let bad = false, tip = '';
+    if (url) {
+        if (!mbIsHttpUrl(url))    { bad = true; tip = '⚠ URL must start with https://'; }
+        else if (requireImg && !isHttpImg(url)) { bad = true; tip = '⚠ Must be a direct image link (.png .jpg .gif .webp)'; }
+    }
+    el.classList.toggle('mb-url-warn', bad);
+    el.title = bad ? tip : '';
+}
+function mbClearUrlWarns() {
+    document.querySelectorAll('.mb-url-warn').forEach(el => { el.classList.remove('mb-url-warn'); el.title = ''; });
+}
+
+// ── Restore form from template data object (for reliable reset) ──────────
+function _restoreFromData(t) {
+    if (!t) return;
+    const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
+    set('editPlainText',   t.plainText   || '');
+    set('editPlainImage',  t.plainImage  || '');
+    set('editTitle',       t.title       || '');
+    set('editTitleUrl',    t.titleUrl    || '');
+    set('editDescription', t.description || '');
+    set('editFooter',      t.footer      || '');
+    set('editFooterIcon',  t.footerIcon  || '');
+    set('editAuthorName',  t.authorName  || '');
+    set('editAuthorIcon',  t.authorIcon  || '');
+    set('editAuthorUrl',   t.authorUrl   || '');
+    set('editImage',       t.image       || '');
+    set('editThumbnail',   t.thumbnail   || '');
+    const color = t.color || '#5865F2';
+    set('editColor', color); set('editColorPicker', color);
+    set('editChannelId', t.channelId || '');
+    const ts = document.getElementById('editTimestamp'); if (ts) ts.checked = !!t.timestamp;
+    document.getElementById('editName').disabled = true;
+    document.getElementById('editChannelId').disabled = true;
+    mbEmbedFields = Array.isArray(t.fields) ? t.fields.map(f => ({ name: f.name || '', value: f.value || '', inline: !!f.inline })) : [];
+    renderMbFields(); mbClearUrlWarns();
+    mbResizeAll();
+    mbUpdateCount('editPlainText', 'plainTextCount');
+    mbUpdateCount('editDescription', 'descCount');
     updatePreview();
 }
-async function resolveRoleId(id){
-    if(roleCache[id]!==undefined) return;
-    roleCache[id]='fetching';
-    try{
-        const r=await fetch('/api/guild/'+GUILD_ID+'/roles/'+id);
-        const d=await r.json();
-        roleCache[id]=(d.success&&d.role&&d.role.name)?{name:d.role.name,color:d.role.color}:null;
-    }catch(e){roleCache[id]=null;}
-    updatePreview();
-}
-async function resolveChannelId(id){
-    if(channelCache[id]!==undefined) return;
-    channelCache[id]='fetching';
-    try{
-        const r=await fetch('/api/guild/'+GUILD_ID+'/channels/'+id);
-        const d=await r.json();
-        channelCache[id]=(d.success&&d.channel&&d.channel.name)?{name:d.channel.name}:null;
-    }catch(e){channelCache[id]=null;}
-    updatePreview();
-}
 
-function resolveHtmlMentions(html){
-    if(!html) return '';
-    return html
-        .replace(/&lt;@&amp;(\d+)&gt;/g,(_,id)=>{
-            const s=ROLES[id]; if(s) return mentionBadge(s.color,'@'+s.name);
-            const c=roleCache[id]; if(c===undefined) resolveRoleId(id);
-            return c&&c!=='fetching'?mentionBadge(c.color,'@'+c.name):mentionBadge('#99aab5',c===null?'@unknown-role':'@...');
-        })
-        .replace(/&lt;@!?(\d+)&gt;/g,(_,id)=>{
-            const c=memberCache[id]; if(c===undefined) resolveMentionId(id);
-            const label=c&&c!=='fetching'?'@'+c:c===null?'@unknown-user':'@...';
-            return mentionBadge('#7289da',label,'rgba(88,101,242,.15)');
-        })
-        .replace(/&lt;#(\d+)&gt;/g,(_,id)=>{
-            if(CHANNELS[id]) return mentionBadge('#7289da','#'+CHANNELS[id],'rgba(88,101,242,.15)');
-            const c=channelCache[id]; if(c===undefined) resolveChannelId(id);
-            return c&&c!=='fetching'?mentionBadge('#7289da','#'+c.name,'rgba(88,101,242,.15)'):mentionBadge('#7289da',c===null?'#unknown-channel':'#...','rgba(88,101,242,.15)');
-        })
-        .replace(/@everyone\b/g, () => mentionBadge('#7289da','@everyone','rgba(88,101,242,.15)'))
-        .replace(/@here\b/g,     () => mentionBadge('#7289da','@here',    'rgba(88,101,242,.15)'));
+// ── Clear form ────────────────────────────────────────────────────────────
+function clearForm() {
+    ['editOriginalName','editName','editPlainText','editPlainImage','editTitle',
+     'editTitleUrl','editDescription','editFooter','editFooterIcon',
+     'editAuthorName','editAuthorIcon','editAuthorUrl','editImage','editThumbnail'
+    ].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+    document.getElementById('editChannelId').value = '';
+    document.getElementById('editColor').value = '#5865F2';
+    document.getElementById('editColorPicker').value = '#5865F2';
+    document.getElementById('editTimestamp').checked = false;
+    document.getElementById('editName').disabled = false;
+    mbEmbedFields = [];
+    renderMbFields();
+    mbClearUrlWarns();
+    mbResizeAll();
+    mbUpdateCount('editPlainText', 'plainTextCount');
+    mbUpdateCount('editDescription', 'descCount');
 }
 
-// ── Toggle tipe panel ─────────────────────────────────────────────────────
-function toggleMbTypePanel() {
-    const isPlain = document.getElementById('mbTypePlain').checked;
-    document.getElementById('mbPlainPanel').style.display = isPlain ? 'block' : 'none';
-    document.getElementById('mbEmbedPanel').style.display = isPlain ? 'none'  : 'block';
-    updatePreview();
-}
-document.querySelectorAll('input[name="editMessageType"]').forEach(el =>
-    el.addEventListener('change', toggleMbTypePanel)
-);
-
-// ── Preview ───────────────────────────────────────────────────────────────
-function updatePreview() {
-    const isPlain = document.getElementById('mbTypePlain').checked;
-    const plainEl = document.getElementById('mbPreviewPlain');
-    const embedEl = document.getElementById('mbPreviewEmbed');
-    const msgsEl  = document.getElementById('mbPreviewMessages');
-
-    if (isPlain) {
-        const text = document.getElementById('editPlainText').value;
-        const html = resolveHtmlMentions(mdToHtml(text));
-        plainEl.style.display = 'block';
-        embedEl.style.display = 'none';
-        if (html.trim()) {
-            plainEl.innerHTML = html;
-            if (msgsEl) msgsEl.style.display = 'block';
-        } else {
-            plainEl.innerHTML = '';
-            if (msgsEl) msgsEl.style.display = 'none';
-        }
-        return;
-    }
-
-    // Embed mode
-    plainEl.style.display = 'none';
-    embedEl.style.display = 'flex';
-
-    const color  = document.getElementById('editColor').value || '#5865F2';
-    const title  = document.getElementById('editTitle').value;
-    const desc   = document.getElementById('editDescription').value;
-    const footer = document.getElementById('editFooter').value;
-    const author = document.getElementById('editAuthorName').value;
-    const image  = document.getElementById('editImage').value.trim();
-    const thumb  = document.getElementById('editThumbnail').value.trim();
-
-    const hasContent = title.trim() || desc.trim() || author.trim();
-    if (msgsEl) msgsEl.style.display = hasContent ? 'block' : 'none';
-    if (!hasContent) return;
-
-    document.getElementById('mbPreviewPill').style.background = color;
-    document.getElementById('mbPreviewTitle').innerHTML  = resolveHtmlMentions(mdToHtml(title));
-    document.getElementById('mbPreviewDesc').innerHTML   = resolveHtmlMentions(mdToHtml(desc));
-    document.getElementById('mbPreviewFooter').innerHTML = footer ? resolveHtmlMentions(mdToHtml(footer)) : '';
-    document.getElementById('mbPreviewAuthor').textContent = author;
-
-    const imgEl = document.getElementById('mbPreviewImage');
-    if (image && /^https?:\/\/.+/.test(image)) { imgEl.src=image; imgEl.style.display='block'; }
-    else { imgEl.style.display='none'; }
-
-    const thumbEl = document.getElementById('mbPreviewThumb');
-    if (thumb && /^https?:\/\/.+/.test(thumb)) { thumbEl.src=thumb; thumbEl.style.display='block'; }
-    else { thumbEl.style.display='none'; }
-}
-
-// ── Buka modal buat baru ──────────────────────────────────────────────────
-function openCreateModal() {
-    document.getElementById('editModalTitle').textContent = I18N_MB_NEW_TITLE;
-    document.getElementById('editOriginalName').value = '';
-    document.getElementById('editName').value         = '';
-    document.getElementById('editName').disabled      = false;
-    document.getElementById('editKategori').value     = 'biasa';
-    document.getElementById('mbTypeEmbed').checked    = true;
-    document.getElementById('editPlainText').value    = '';
-    document.getElementById('editTitle').value        = '';
-    document.getElementById('editDescription').value  = '';
-    document.getElementById('editFooter').value       = '';
-    document.getElementById('editAuthorName').value   = '';
-    document.getElementById('editAuthorIcon').value   = '';
-    document.getElementById('editImage').value        = '';
-    document.getElementById('editThumbnail').value    = '';
-    document.getElementById('editColor').value        = '#5865F2';
-    document.getElementById('editColorPicker').value  = '#5865F2';
-    document.getElementById('editMsg').textContent    = '';
-    toggleMbTypePanel();
-    openModal('editBackdrop', 'editModal');
-    window._floatSave  = async () => saveTemplate();
-    window._floatReset = () => { window._floatCapture?.(); };
-    setTimeout(() => window._floatCapture?.(), 80);
-}
-
-// ── Buka modal edit ───────────────────────────────────────────────────────
-async function openEditModal(name) {
+// ── Edit template (fill form) ─────────────────────────────────────────────
+async function editTemplate(name, markDirty = true) {
     const res  = await fetch(`/api/guild/${GUILD_ID}/message-builder/${encodeURIComponent(name)}`);
     const data = await res.json();
-    if (!data.success) return alert('Gagal memuat template: ' + data.message);
+    if (!data.success) return alert('Failed to load template: ' + data.message);
     const t = data.template;
 
-    document.getElementById('editModalTitle').textContent = `Edit: ${name}`;
+    _editingName = name;
+    _savedTemplateData = t;
     document.getElementById('editOriginalName').value = name;
-    document.getElementById('editName').value         = name;
-    document.getElementById('editName').disabled      = true;
-    document.getElementById('editKategori').value     = t.kategori || 'biasa';
+    document.getElementById('editName').value = name;
+    _restoreFromData(t);
+    _mbCaptureBaseline();
 
-    const isPlain = t.messageType === 'plain';
-    document.getElementById(isPlain ? 'mbTypePlain' : 'mbTypeEmbed').checked = true;
-    document.getElementById('editPlainText').value   = t.plainText    || '';
-    document.getElementById('editTitle').value       = t.title        || '';
-    document.getElementById('editDescription').value = t.description  || '';
-    document.getElementById('editFooter').value      = t.footer       || '';
-    document.getElementById('editAuthorName').value  = t.authorName   || '';
-    document.getElementById('editAuthorIcon').value  = t.authorIcon   || '';
-    document.getElementById('editImage').value       = t.image        || '';
-    document.getElementById('editThumbnail').value   = t.thumbnail    || '';
-    const color = t.color || '#5865F2';
-    document.getElementById('editColor').value       = color;
-    document.getElementById('editColorPicker').value = color;
-    document.getElementById('editMsg').textContent   = '';
-    toggleMbTypePanel();
-    openModal('editBackdrop', 'editModal');
-    window._floatSave  = async () => saveTemplate();
-    window._floatReset = () => { window._floatCapture?.(); };
-    setTimeout(() => window._floatCapture?.(), 80);
+    document.getElementById('mbFormTitle').textContent = `Edit: ${name}`;
+    document.getElementById('mbCancelEdit').style.display = '';
+    document.getElementById('mbFormMsg').textContent = '';
+
+    if (markDirty) {
+        window._floatDirty?.();
+        document.getElementById('mbFormCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+        setTimeout(() => window._floatCapture?.(), 50);
+    }
+    if (window.lucide) lucide.createIcons();
 }
 
-function closeEditModal() {
-    closeModal('editBackdrop', 'editModal');
+// ── Cancel edit ───────────────────────────────────────────────────────────
+function cancelEdit() {
+    _editingName = null;
+    _savedTemplateData = null;
+    clearForm();
+    document.getElementById('editName').disabled = false;
+    document.getElementById('editChannelId').disabled = false;
+    document.getElementById('mbFormTitle').textContent = I18N_MB_NEW_TITLE;
+    document.getElementById('mbCancelEdit').style.display = 'none';
+    document.getElementById('mbFormMsg').textContent = '';
+    updatePreview();
+    _mbCaptureBaseline();
     window._floatClean?.();
-    window._floatSave  = undefined;
-    window._floatReset = undefined;
 }
 
-// ── Simpan template ───────────────────────────────────────────────────────
+// ── Save template ─────────────────────────────────────────────────────────
 async function saveTemplate() {
     const originalName = document.getElementById('editOriginalName').value;
-    const isEdit       = !!originalName;
-    const name         = isEdit ? originalName : document.getElementById('editName').value.trim();
-    const msg          = document.getElementById('editMsg');
+    const isEdit = !!originalName;
+    const name   = isEdit ? originalName : document.getElementById('editName').value.trim();
+    const msg    = document.getElementById('mbFormMsg');
 
+    if (!isEdit) {
+        const curCount = document.querySelectorAll('.mb-row').length;
+        if (curCount >= MB_LIMIT) { showMsg(msg, I18N_MB_ERR_LIMIT, 'error'); throw new Error(); }
+    }
     if (!name) { showMsg(msg, I18N_MB_ERR_EMPTY, 'error'); throw new Error(); }
     if (!/^[a-zA-Z0-9_-]{1,32}$/.test(name)) { showMsg(msg, I18N_MB_ERR_INVALID, 'error'); throw new Error(); }
 
-    const isPlain    = document.getElementById('mbTypePlain').checked;
+    const channelId = document.getElementById('editChannelId').value;
+    if (!channelId) { showMsg(msg, I18N_MB_ERR_NO_CH, 'error'); throw new Error(); }
+
+    const plainText  = document.getElementById('editPlainText').value.trim();
+    const plainImage = document.getElementById('editPlainImage').value.trim();
+    const title      = document.getElementById('editTitle').value.trim();
+    const desc       = document.getElementById('editDescription').value.trim();
+    const authorName = document.getElementById('editAuthorName').value.trim();
+    const footer     = document.getElementById('editFooter').value.trim();
+    const image      = document.getElementById('editImage').value.trim();
+    const thumb      = document.getElementById('editThumbnail').value.trim();
+
+    const hasPlain = !!(plainText || plainImage);
+    const hasEmbed = !!(title || desc || authorName || footer || image || thumb || mbEmbedFields.some(f => f.name.trim() || f.value.trim()));
+    const messageType = (hasPlain && hasEmbed) ? 'both' : hasPlain ? 'plain' : 'embed';
+
+    // Validate URL fields before saving
+    const _urlFields = [
+        { id: 'editPlainImage',  label: 'Image URL (text)',      img: true  },
+        { id: 'editAuthorUrl',   label: 'Author URL',            img: false },
+        { id: 'editAuthorIcon',  label: 'Author icon URL',       img: true  },
+        { id: 'editTitleUrl',    label: 'Title URL',             img: false },
+        { id: 'editFooterIcon',  label: 'Footer icon URL',       img: true  },
+        { id: 'editImage',       label: 'Embed image URL',       img: true  },
+        { id: 'editThumbnail',   label: 'Thumbnail URL',         img: true  },
+    ];
+    for (const f of _urlFields) {
+        const val = document.getElementById(f.id)?.value.trim();
+        if (!val) continue;
+        if (!mbIsHttpUrl(val)) {
+            showMsg(msg, `❌ ${f.label}: must start with https://`, 'error');
+            document.getElementById(f.id)?.classList.add('mb-url-warn');
+            throw new Error();
+        }
+        if (f.img && !isHttpImg(val)) {
+            showMsg(msg, `❌ ${f.label}: must be a direct image link (.png .jpg .gif .webp)`, 'error');
+            document.getElementById(f.id)?.classList.add('mb-url-warn');
+            throw new Error();
+        }
+    }
+
     const payload = {
-        name,
-        kategori:    document.getElementById('editKategori').value,
-        messageType: isPlain ? 'plain' : 'embed',
-        plainText:   document.getElementById('editPlainText').value.trim(),
-        title:       document.getElementById('editTitle').value.trim(),
-        description: document.getElementById('editDescription').value.trim(),
-        footer:      document.getElementById('editFooter').value.trim(),
-        authorName:  document.getElementById('editAuthorName').value.trim(),
-        authorIcon:  document.getElementById('editAuthorIcon').value.trim(),
-        image:       document.getElementById('editImage').value.trim(),
-        thumbnail:   document.getElementById('editThumbnail').value.trim(),
-        color:       document.getElementById('editColor').value.trim() || '#5865F2',
+        name, channelId,
+        messageType, plainText, plainImage, title,
+        description: desc, footer,
+        footerIcon: document.getElementById('editFooterIcon').value.trim(),
+        authorName,
+        authorIcon: document.getElementById('editAuthorIcon').value.trim(),
+        authorUrl:  document.getElementById('editAuthorUrl').value.trim(),
+        titleUrl:   document.getElementById('editTitleUrl').value.trim(),
+        image, thumbnail: thumb,
+        color:     document.getElementById('editColor').value.trim() || '#5865F2',
+        timestamp: document.getElementById('editTimestamp').checked,
+        fields:    mbEmbedFields.filter(f => f.name.trim() || f.value.trim()),
     };
 
     const res  = await fetch(`/api/guild/${GUILD_ID}/message-builder`, {
@@ -1014,138 +985,67 @@ async function saveTemplate() {
     if (!data.success) { showMsg(msg, data.message, 'error'); throw new Error(data.message); }
 
     showMsg(msg, data.message, 'success');
-    setTimeout(() => { closeEditModal(); location.reload(); }, 800);
+    setTimeout(() => location.reload(), 800);
 }
 
-// ── Hapus template ────────────────────────────────────────────────────────
+// ── Delete template ───────────────────────────────────────────────────────
 async function deleteTemplate(name) {
     if (!confirm(I18N_MB_CONFIRM_DEL.replace('{{name}}', name))) return;
     const res  = await fetch(`/api/guild/${GUILD_ID}/message-builder/${encodeURIComponent(name)}`, { method: 'DELETE' });
     const data = await res.json();
     if (!data.success) return alert('Failed: ' + data.message);
-    const card = document.querySelector(`.mb-card[data-name="${name}"]`);
-    if (card) card.remove();
-    if (!document.querySelector('.mb-card')) {
-        document.getElementById('mbGrid').innerHTML = `<div class="empty-state"><p style="font-size:2rem;margin-bottom:.5rem">✉️</p><p>${I18N_MB_NO_TEMPLATES}</p></div>`;
+    const row = document.querySelector(`.mb-row[data-name="${name}"]`);
+    if (row) row.remove();
+    const list    = document.getElementById('mbList');
+    const count   = document.querySelectorAll('.mb-row').length;
+    const countEl = document.getElementById('mbTmplCount');
+    if (countEl) countEl.textContent = count;
+    const badge   = document.getElementById('mbSlotBadge');
+    if (badge) { badge.textContent = `${count}/20 slots`; badge.style.cssText = count >= 20 ? 'background:rgba(237,66,69,.18);color:#ed4245;' : ''; }
+    if (!count) {
+        list.innerHTML = `<div style="text-align:center;padding:2.5rem 1rem 2rem;"><i data-lucide="inbox" style="width:44px;height:44px;color:var(--text-muted);opacity:.35;display:block;margin:0 auto .85rem;"></i><div style="font-size:.9rem;font-weight:600;color:var(--text-muted);margin-bottom:.3rem;">${I18N_MB_NO_TEMPLATES}</div><div style="font-size:.8rem;color:var(--text-muted);opacity:.7;">${I18N_MB_NO_TEMPLATES_HINT}</div></div>`;
+        const inboxIcon = list.querySelector('[data-lucide="inbox"]');
+        if (inboxIcon && window.lucide) lucide.createIcons({ nodes: [inboxIcon] });
     }
+    if (_editingName === name) cancelEdit();
 }
 
-// ── Buka modal kirim ──────────────────────────────────────────────────────
+// ── Send modal ────────────────────────────────────────────────────────────
 function openSendModal(name) {
+    const row = document.querySelector(`.mb-row[data-name="${name}"]`);
+    const channelId = row?.dataset.channelId || '';
+    if (!channelId) {
+        showMsg(document.getElementById('mbListMsg'), I18N_MB_ERR_NO_CH, 'error');
+        return;
+    }
     _sendingName = name;
+    _sendingChannelId = channelId;
+    const channelName = CHANNELS[channelId]?.name || channelId;
     document.getElementById('sendTemplateName').textContent = `"${name}"`;
-    document.getElementById('sendChannel').value = '';
+    document.getElementById('sendChannelName').textContent  = `#${channelName}`;
     document.getElementById('sendMsg').textContent = '';
-    openModal('sendBackdrop', 'sendModal');
+    document.getElementById('sendBackdrop').classList.add('open');
+    document.getElementById('sendModal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+    if (window.lucide) lucide.createIcons();
 }
-function closeSendModal() { closeModal('sendBackdrop', 'sendModal'); }
-
+function closeSendModal() {
+    document.getElementById('sendBackdrop').classList.remove('open');
+    document.getElementById('sendModal').classList.remove('open');
+    document.body.style.overflow = '';
+}
 async function sendTemplate() {
-    const channelId = document.getElementById('sendChannel').value;
-    const msg       = document.getElementById('sendMsg');
-    if (!channelId) return showMsg(msg, I18N_MB_ERR_NO_CH, 'error');
-
-    const res  = await fetch(`/api/guild/${GUILD_ID}/message-builder/${encodeURIComponent(_sendingName)}/send`, {
+    const msg = document.getElementById('sendMsg');
+    const res = await fetch(`/api/guild/${GUILD_ID}/message-builder/${encodeURIComponent(_sendingName)}/send`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ channelId })
+        body: JSON.stringify({})
     });
     const data = await res.json();
     showMsg(msg, data.message, data.success ? 'success' : 'error');
     if (data.success) setTimeout(closeSendModal, 1200);
 }
 
-// ── Preview panel ─────────────────────────────────────────────────────────
-let _selectedCard = null;
-
-// Klik di dalam card (tapi bukan tombol aksi) → tampilkan preview
-document.getElementById('mbGrid').addEventListener('click', e => {
-    if (e.target.closest('.mb-card-actions')) return;
-    const card = e.target.closest('.mb-card');
-    if (card) selectCard(card.dataset.name);
-});
-
-async function selectCard(name) {
-    // Klik kartu yang sama → toggle tutup
-    if (_selectedCard === name) { closePreviewPanel(); return; }
-
-    // Deselect kartu sebelumnya
-    if (_selectedCard) {
-        document.querySelector(`.mb-card[data-name="${_selectedCard}"]`)?.classList.remove('selected');
-    }
-    _selectedCard = name;
-    document.querySelector(`.mb-card[data-name="${name}"]`)?.classList.add('selected');
-
-    // Fetch data template
-    const res  = await fetch(`/api/guild/${GUILD_ID}/message-builder/${encodeURIComponent(name)}`);
-    const data = await res.json();
-    if (!data.success) return;
-
-    renderPreviewPanel(data.template, name);
-
-    // Tampilkan panel
-    const nameEl = document.getElementById('mbPreviewPanelName');
-    if (nameEl) nameEl.textContent = name;
-    document.getElementById('mbPreviewPanelPlaceholder').style.display = 'none';
-    document.getElementById('mbPreviewPanelContent').style.display = '';
-    document.getElementById('mbPreviewPanel').classList.add('open');
-    document.getElementById('mbPreviewBackdrop').classList.add('open');
-}
-
-function renderPreviewPanel(t, name) {
-    const isPlain = t.messageType === 'plain';
-    const plainEl = document.getElementById('mbPanelPreviewPlain');
-    const embedEl = document.getElementById('mbPanelPreviewEmbed');
-
-    if (isPlain) {
-        plainEl.style.display = 'block';
-        embedEl.style.display = 'none';
-        plainEl.innerHTML = resolveHtmlMentions(mdToHtml(t.plainText || ''));
-    } else {
-        plainEl.style.display = 'none';
-        embedEl.style.display = 'flex';
-
-        const color = t.color || '#5865F2';
-        document.getElementById('mbPanelPreviewPill').style.background   = color;
-        document.getElementById('mbPanelPreviewTitle').innerHTML          = resolveHtmlMentions(mdToHtml(t.title || ''));
-        document.getElementById('mbPanelPreviewDesc').innerHTML           = resolveHtmlMentions(mdToHtml(t.description || ''));
-        document.getElementById('mbPanelPreviewFooter').innerHTML         = t.footer ? resolveHtmlMentions(mdToHtml(t.footer)) : '';
-        document.getElementById('mbPanelPreviewAuthor').textContent       = t.authorName || '';
-
-        const imgEl = document.getElementById('mbPanelPreviewImage');
-        if (t.image && /^https?:\/\//.test(t.image)) { imgEl.src = t.image; imgEl.style.display = 'block'; }
-        else imgEl.style.display = 'none';
-
-        const thumbEl = document.getElementById('mbPanelPreviewThumb');
-        if (t.thumbnail && /^https?:\/\//.test(t.thumbnail)) { thumbEl.src = t.thumbnail; thumbEl.style.display = 'block'; }
-        else thumbEl.style.display = 'none';
-    }
-}
-
-function closePreviewPanel() {
-    document.getElementById('mbPreviewPanel').classList.remove('open');
-    document.getElementById('mbPreviewBackdrop').classList.remove('open');
-    if (_selectedCard) {
-        document.querySelector(`.mb-card[data-name="${_selectedCard}"]`)?.classList.remove('selected');
-        _selectedCard = null;
-    }
-    document.getElementById('mbPreviewPanelPlaceholder').style.display = '';
-    document.getElementById('mbPreviewPanelContent').style.display = 'none';
-    const nameEl = document.getElementById('mbPreviewPanelName');
-    if (nameEl) nameEl.textContent = 'Preview';
-}
-
-// ── Modal helpers ─────────────────────────────────────────────────────────
-function openModal(backdropId, modalId) {
-    document.getElementById(backdropId).classList.add('open');
-    document.getElementById(modalId).classList.add('open');
-    document.body.style.overflow = 'hidden';
-}
-function closeModal(backdropId, modalId) {
-    document.getElementById(backdropId).classList.remove('open');
-    document.getElementById(modalId).classList.remove('open');
-    document.body.style.overflow = '';
-}
-
+// ── Utility ───────────────────────────────────────────────────────────────
 function showMsg(el, text, type) {
     el.textContent = text;
     el.className   = `form-message msg-${type}`;
@@ -1164,6 +1064,289 @@ document.addEventListener('click', () => {
     document.querySelectorAll('.ph-dropdown').forEach(d => d.style.display = 'none');
     document.querySelectorAll('.ph-toggle-btn').forEach(b => b.classList.remove('active'));
 });
+
+// ── Preview: Discord markdown + placeholders + mentions ───────────────────
+function mbMentionBadge(color, text, bg) {
+    bg = bg || color + '26';
+    return `<span style="color:${color};background:${bg};border-radius:3px;padding:0 3px;font-weight:600;">${text}</span>`;
+}
+function mbChannelBadge(name) {
+    return `<span style="color:#7289da;background:rgba(88,101,242,.15);border-radius:3px;padding:0 3px;font-weight:600;">#${name}</span>`;
+}
+function mbSubtle(t) {
+    return `<span style="color:#5d9ef3;font-style:italic;font-size:.85em;">${t}</span>`;
+}
+function mbApplyInlineMd(s) {
+    const saved = [];
+    s = s.replace(/`([^`\n]+)`/g, (_, c) => {
+        saved.push(`<code class="mb-inline-code">${c}</code>`);
+        return '\x00' + (saved.length - 1) + '\x00';
+    });
+    s = s.replace(/\|\|(.+?)\|\|/g, '<span class="dc-spoiler" onclick="this.classList.toggle(\'shown\')">$1</span>');
+    s = s.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
+    s = s.replace(/___(.+?)___/g, '<strong><em>$1</em></strong>');
+    s = s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    s = s.replace(/__(.+?)__/g, '<u>$1</u>');
+    s = s.replace(/\*([^*\n]+)\*/g, '<em>$1</em>');
+    s = s.replace(/(?<!\w)_([^_\n]+)_(?!\w)/g, '<em>$1</em>');
+    s = s.replace(/~~(.+?)~~/g, '<s>$1</s>');
+    s = s.replace(/\[([^\]]+)\]\(https?:\/\/[^)]*\)/g, '<span style="color:#00aff4;text-decoration:underline;cursor:default;">$1</span>');
+    s = s.replace(/https?:\/\/[^\s<>"'\x00)]+/g, url => {
+        const clean = url.replace(/[.,;:!?\]>]+$/, '');
+        return `<span style="color:#00aff4;text-decoration:underline;cursor:default;">${clean}</span>`;
+    });
+    return s.replace(/\x00(\d+)\x00/g, (_, i) => saved[+i]);
+}
+function mbApplyMd(s) {
+    const lines = s.split('\n'), out = [];
+    let inCb = false, cbLines = [];
+    for (const line of lines) {
+        if (/^```/.test(line)) {
+            if (!inCb) { inCb = true; cbLines = []; }
+            else { out.push('<span class="mb-code-block">' + cbLines.join('\n') + '</span>'); inCb = false; }
+            continue;
+        }
+        if (inCb) { cbLines.push(line); continue; }
+        let m;
+        if ((m = line.match(/^### (.*)/)))        { out.push('<strong style="font-size:1em;">'    + mbApplyInlineMd(m[1]) + '</strong>'); continue; }
+        if ((m = line.match(/^## (.*)/)))         { out.push('<strong style="font-size:1.17em;">' + mbApplyInlineMd(m[1]) + '</strong>'); continue; }
+        if ((m = line.match(/^# (.*)/)))          { out.push('<strong style="font-size:1.5em;">'  + mbApplyInlineMd(m[1]) + '</strong>'); continue; }
+        if ((m = line.match(/^-# (.*)/)))         { out.push('<span style="font-size:.78em;color:var(--text-muted);">' + mbApplyInlineMd(m[1]) + '</span>'); continue; }
+        if ((m = line.match(/^&gt;(?: (.*))?$/))) { out.push('<div style="border-left:3px solid rgba(128,128,128,.5);padding:.1rem .5rem;margin:.1rem 0;opacity:.9;display:inline-block;min-width:calc(100% - .5rem);">' + mbApplyInlineMd(m[1] || '') + '</div>'); continue; }
+        out.push(mbApplyInlineMd(line));
+    }
+    if (inCb && cbLines.length) out.push('<span class="mb-code-block">' + cbLines.join('\n') + '</span>');
+    return out.join('<br>');
+}
+function mbResolvePreview(text, richMentions = false) {
+    if (!text) return '';
+    let s = escHtml(text);
+    s = s
+        .replace(/\{user\.mention\}/g,   mbMentionBadge('#7289da', '@' + escHtml(MB_SAMPLE.user_username), 'rgba(88,101,242,.15)'))
+        .replace(/\{user\.username\}/g,  escHtml(MB_SAMPLE.user_username))
+        .replace(/\{user\.id\}/g,        escHtml(MB_SAMPLE.user_id))
+        .replace(/\{user\.avatar\}/g,    mbSubtle(escHtml(MB_SAMPLE.user_avatar || '[avatar url]')))
+        .replace(/\{server\.name\}/g,    escHtml(MB_SAMPLE.server_name))
+        .replace(/\{server\.id\}/g,      escHtml(MB_SAMPLE.server_id))
+        .replace(/\{server\.members\}/g, escHtml(MB_SAMPLE.server_members))
+        .replace(/\{server\.icon\}/g,    mbSubtle(escHtml(MB_SAMPLE.server_icon || '[icon url]')));
+    if (richMentions) {
+        s = s
+            .replace(/&lt;@&amp;(\d+)&gt;/g, (_, id) => {
+                const r = ROLES[id];
+                if (!r) return mbMentionBadge('#99aab5', '@Unknown Role');
+                const col = r.color && r.color !== '#000000' ? r.color : null;
+                return col
+                    ? `<span style="color:${col};background:${col}22;border-radius:3px;padding:0 3px;font-weight:600;">@${escHtml(r.name)}</span>`
+                    : mbMentionBadge('#99aab5', '@' + escHtml(r.name));
+            })
+            .replace(/&lt;@!?(\d+)&gt;/g, () => mbMentionBadge('#7289da', '@user', 'rgba(88,101,242,.15)'))
+            .replace(/&lt;#(\d+)&gt;/g, (_, id) => {
+                const name = CHANNELS[id]?.name;
+                return mbChannelBadge(name ? escHtml(name) : id);
+            })
+            .replace(/@everyone\b/g, () => mbMentionBadge('#7289da', '@everyone', 'rgba(88,101,242,.15)'))
+            .replace(/@here\b/g,     () => mbMentionBadge('#7289da', '@here',     'rgba(88,101,242,.15)'));
+    }
+    return mbApplyMd(s);
+}
+function mbResolveMentions(text) {
+    if (!text) return '';
+    let s = escHtml(text);
+    return s
+        .replace(/&lt;@&amp;(\d+)&gt;/g, (_, id) => {
+            const r = ROLES[id];
+            return '@' + (r ? escHtml(r.name) : 'Unknown Role');
+        })
+        .replace(/&lt;@!?(\d+)&gt;/g, () => '@user')
+        .replace(/&lt;#(\d+)&gt;/g, (_, id) => {
+            const name = CHANNELS[id]?.name;
+            return '#' + (name ? escHtml(name) : id);
+        });
+}
+
+// ── Preview ───────────────────────────────────────────────────────────────
+function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function isHttpImg(url) { return url && /^https?:\/\/.+\.(png|jpe?g|gif|webp|bmp|avif)(?:[?#]|$)/i.test(url); }
+
+function mbResizeArea(el) {
+    if (!el) return;
+    el.style.height = '1px';
+    const h = el.scrollHeight;
+    el.style.height = h + 'px';
+}
+function mbResizeAll() {
+    requestAnimationFrame(() => {
+        document.querySelectorAll('.mb-url-area, .mb-auto-resize').forEach(mbResizeArea);
+    });
+}
+function mbUpdateCount(taId, countId) {
+    const ta = document.getElementById(taId);
+    const ct = document.getElementById(countId);
+    if (!ta || !ct) return;
+    const len = ta.value.length;
+    const max = parseInt(ta.getAttribute('maxlength')) || 0;
+    ct.textContent = len + ' / ' + max;
+    ct.className = 'mb-char-count' + (len >= max ? ' danger' : len >= max * 0.9 ? ' warn' : '');
+}
+
+function mbUpdatePreviewChannel() {
+    const el = document.getElementById('mbPreviewChannel');
+    if (!el) return;
+    const sel = document.getElementById('editChannelId');
+    const id  = sel?.value;
+    const ch  = id ? CHANNELS[id] : null;
+    el.innerHTML = `<span style="opacity:.5;font-weight:700;font-size:.85rem;flex-shrink:0;">#</span>${ch ? escHtml(ch.name) : 'preview'}`;
+}
+
+function updatePreview() {
+    mbUpdatePreviewChannel();
+    const plainText  = document.getElementById('editPlainText').value;
+    const plainImage = document.getElementById('editPlainImage').value.trim();
+    const title      = document.getElementById('editTitle').value.trim();
+    const titleUrl   = document.getElementById('editTitleUrl').value.trim();
+    const desc       = document.getElementById('editDescription').value.trim();
+    const footer     = document.getElementById('editFooter').value.trim();
+    const footerIcon = document.getElementById('editFooterIcon').value.trim();
+    const author     = document.getElementById('editAuthorName').value.trim();
+    const authorIcon = document.getElementById('editAuthorIcon').value.trim();
+    const authorUrl  = document.getElementById('editAuthorUrl').value.trim();
+    const color      = document.getElementById('editColor').value || '#5865F2';
+    const image      = document.getElementById('editImage').value.trim();
+    const thumb      = document.getElementById('editThumbnail').value.trim();
+    const ts         = document.getElementById('editTimestamp').checked;
+
+    const activeFields = mbEmbedFields.filter(f => f.name.trim() || f.value.trim());
+    const hasPlain = !!(plainText.trim() || plainImage);
+    const hasEmbed = !!(title || desc || author || footer || image || thumb || activeFields.length);
+
+    // Plain text
+    const plainEl = document.getElementById('mbPreviewPlain');
+    if (plainText.trim()) { plainEl.innerHTML = mbResolvePreview(plainText, true); plainEl.style.display = ''; }
+    else { plainEl.style.display = 'none'; }
+
+    // Plain image
+    const plainImgWrap = document.getElementById('mbPreviewPlainImageWrap');
+    const plainImgEl   = document.getElementById('mbPreviewPlainImage');
+    if (isHttpImg(plainImage)) { plainImgEl.src = plainImage; plainImgWrap.style.display = ''; }
+    else { plainImgWrap.style.display = 'none'; }
+
+    // Embed
+    const embedEl = document.getElementById('mbPreviewEmbed');
+    if (hasEmbed) {
+        document.getElementById('mbPreviewPill').style.background = color;
+        embedEl.style.display = '';
+
+        // Author
+        const dpAuthor = document.getElementById('mbPreviewAuthor');
+        dpAuthor.style.display = author ? '' : 'none';
+        if (author) {
+            const aIconOk = isHttpImg(authorIcon);
+            const innerHtml = authorUrl
+                ? `<span style="cursor:pointer;text-decoration:underline;text-underline-offset:2px;text-decoration-color:rgba(128,128,128,.5);">${mbResolveMentions(author)}</span>`
+                : mbResolveMentions(author);
+            dpAuthor.innerHTML = (aIconOk ? `<img class="cc-dp-author-icon" src="${escHtml(authorIcon)}" onerror="this.style.display='none'" alt=""> ` : '') +
+                `<span class="cc-dp-text-wrap">${innerHtml}</span>`;
+        }
+
+        // Title
+        const dpTitle = document.getElementById('mbPreviewTitle');
+        dpTitle.style.display = title ? '' : 'none';
+        if (title) {
+            const titleHtml = mbApplyInlineMd(mbResolveMentions(title));
+            dpTitle.innerHTML = titleUrl
+                ? `<span style="color:#5d9ef3;text-decoration:underline;text-underline-offset:2px;cursor:pointer;">${titleHtml}</span>`
+                : titleHtml;
+        }
+
+        // Description
+        const dpDesc = document.getElementById('mbPreviewDesc');
+        dpDesc.style.display = desc ? '' : 'none';
+        if (desc) dpDesc.innerHTML = mbResolvePreview(desc, true);
+
+        // Fields
+        const dpFields = document.getElementById('mbPreviewFields');
+        if (activeFields.length) {
+            dpFields.style.display = '';
+            dpFields.innerHTML = activeFields.map(f =>
+                `<div class="cc-dp-field${f.inline ? '' : ' cc-dp-field-block'}">
+                    <div class="cc-dp-field-name">${mbResolvePreview(f.name || '​')}</div>
+                    <div class="cc-dp-field-val">${mbResolvePreview(f.value || '​', true)}</div>
+                </div>`
+            ).join('');
+        } else { dpFields.style.display = 'none'; }
+
+        // Thumbnail
+        const dpThumb  = document.getElementById('mbPreviewThumb');
+        const thumbImg = document.getElementById('mbPreviewThumbImg');
+        if (thumb && /^https?:\/\//.test(thumb)) { thumbImg.src = thumb; dpThumb.style.display = ''; }
+        else { dpThumb.style.display = 'none'; }
+
+        // Image
+        const dpImage  = document.getElementById('mbPreviewImage');
+        const imageImg = document.getElementById('mbPreviewImageImg');
+        if (image && /^https?:\/\//.test(image)) { imageImg.src = image; dpImage.style.display = ''; }
+        else { dpImage.style.display = 'none'; }
+
+        // Footer
+        const dpFooter = document.getElementById('mbPreviewFooter');
+        if (footer || ts) {
+            dpFooter.style.display = '';
+            const _d = new Date();
+            const now = 'Today at ' + _d.toLocaleString('en-US', { hour:'numeric', minute:'2-digit', hour12:true });
+            const fIconOk = isHttpImg(footerIcon);
+            dpFooter.innerHTML =
+                (fIconOk ? `<img class="cc-dp-footer-icon" src="${escHtml(footerIcon)}" onerror="this.style.display='none'" alt=""> ` : '') +
+                (footer ? `<span class="cc-dp-text-wrap">${mbResolveMentions(footer)}</span>` : '') +
+                (footer && ts ? '<span class="cc-dp-footer-sep" style="flex-shrink:0;"> • </span>' : '') +
+                (ts ? `<span style="flex-shrink:0;">${now}</span>` : '');
+        } else { dpFooter.style.display = 'none'; }
+
+    } else { embedEl.style.display = 'none'; }
+
+    document.getElementById('mbPreviewEmpty').style.display = (hasPlain || hasEmbed) ? 'none' : '';
+}
+
+// ── Embed fields ──────────────────────────────────────────────────────────
+function addMbField() {
+    if (mbEmbedFields.length >= 25) return;
+    mbEmbedFields.push({ name: '', value: '', inline: false });
+    renderMbFields();
+    onFormInput();
+}
+function removeMbField(idx) {
+    mbEmbedFields.splice(idx, 1);
+    renderMbFields();
+    onFormInput();
+}
+function renderMbFields() {
+    const container = document.getElementById('mbFieldsList');
+    const countEl   = document.getElementById('mbFieldCount');
+    if (countEl) countEl.textContent = `(${mbEmbedFields.length} / 25)`;
+    if (!mbEmbedFields.length) { container.innerHTML = ''; return; }
+    container.innerHTML = mbEmbedFields.map((f, i) => `
+        <div class="cc-field-row" data-fi="${i}">
+            <div class="cc-field-inputs">
+                <div class="cc-field-num">Field #${i + 1}</div>
+                <input type="text" class="input" placeholder="Field name…" maxlength="256" value="${escHtml(f.name)}"
+                    oninput="mbEmbedFields[${i}].name=this.value;onFormInput()">
+                <textarea class="input" placeholder="Field value…" maxlength="1024" rows="2" style="resize:vertical;"
+                    oninput="mbEmbedFields[${i}].value=this.value;onFormInput()">${escHtml(f.value)}</textarea>
+                <div class="cc-field-inline-row">
+                    <label>
+                        <input type="checkbox" ${f.inline ? 'checked' : ''} onchange="mbEmbedFields[${i}].inline=this.checked;onFormInput()">
+                        Inline
+                    </label>
+                </div>
+            </div>
+            <button type="button" class="btn btn-danger btn-sm cc-field-del" onclick="removeMbField(${i})">
+                <i data-lucide="trash-2" style="width:13px;height:13px;"></i>
+            </button>
+        </div>`).join('');
+    if (window.lucide) lucide.createIcons();
+}
+
+// ── Mention dropdowns ─────────────────────────────────────────────────────
 function _buildMentionDd(dd, getTarget) {
     function item(html, mention) {
         const b = document.createElement('button');
@@ -1202,11 +1385,33 @@ function _buildMentionDd(dd, getTarget) {
     const cKeys = Object.keys(CHANNELS);
     if (cKeys.length) {
         dd.appendChild(hdr('Channels'));
-        cKeys.forEach(id => { const name = CHANNELS[id]; dd.appendChild(item(`<span>#${name}</span>`, `<#${id}>`)); });
+        cKeys.forEach(id => { const name = CHANNELS[id]?.name || id; dd.appendChild(item(`<span>#${name}</span>`, `<#${id}>`)); });
     }
 }
-_buildMentionDd(document.getElementById('mbPlainMentionPicker'), () => document.getElementById('editPlainText'));
-_buildMentionDd(document.getElementById('mbEmbedMentionPicker'), () => document.getElementById('editDescription'));
+buildMbPhPicker('mbPlainPhPicker', 'editPlainText');
+buildMbPhPicker('mbDescPhPicker',  'editDescription');
+_buildMentionDd(document.getElementById('mbPlainMentionPicker'),  () => document.getElementById('editPlainText'));
+_buildMentionDd(document.getElementById('mbEmbedMentionPicker'),  () => document.getElementById('editDescription'));
+
+// ── Float bar ─────────────────────────────────────────────────────────────
+window._floatSave = async () => saveTemplate();
+window._floatReset = () => {
+    if (_editingName && _savedTemplateData) {
+        document.getElementById('editOriginalName').value = _editingName;
+        document.getElementById('editName').value = _editingName;
+        _restoreFromData(_savedTemplateData);
+        _mbCaptureBaseline();
+        window._floatClean?.();
+        setTimeout(() => window._floatCapture?.(), 50);
+    } else {
+        cancelEdit();
+    }
+};
+setTimeout(() => { window._floatCapture?.(); _mbCaptureBaseline(); }, 80);
+
+// Resize all auto-resize textareas on load and on window resize
+window.addEventListener('resize', mbResizeAll);
+requestAnimationFrame(mbResizeAll);
 </script>
 
 <%- include('../partials/footer') %>

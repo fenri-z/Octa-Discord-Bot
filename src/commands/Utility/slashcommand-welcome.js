@@ -235,7 +235,7 @@ module.exports = new ApplicationCommand({
             if (isPlain) {
                 const plainInput = new TextInputBuilder()
                     .setCustomId('plainText')
-                    .setLabel('Message Content: {member} {server} {count} {tag}')
+                    .setLabel('Content: {member} {server} {count} {tag}')
                     .setStyle(TextInputStyle.Paragraph)
                     .setMaxLength(2000)
                     .setValue(cfg.plainText.slice(0, 2000))
@@ -526,7 +526,8 @@ module.exports = new ApplicationCommand({
                         messageColor:   cfg.cardMsgColor,
                         fontFamily:     cfg.cardFont,
                     });
-                    cardAttachment = new AttachmentBuilder(cardBuf, { name: 'welcome-card.png' });
+                    if (Buffer.isBuffer(cardBuf) && cardBuf.length > 0)
+                        cardAttachment = new AttachmentBuilder(cardBuf, { name: 'welcome-card.png' });
                 } catch (err) {
                     console.error('[preview] Welcome card generation failed:', err.message);
                 }

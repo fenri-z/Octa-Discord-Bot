@@ -10,11 +10,6 @@ const { getLang, getStrings } = require('../../utils/BotLang');
 const { resolveChannel } = require('../../utils/resolveGuildOption');
 const { checkBotPermissions } = require('../../utils/checkBotPermissions');
 
-const KATEGORI = {
-    UNIK:  'unik',
-    BIASA: 'biasa',
-};
-
 function isValidName(name) {
     return /^[a-zA-Z0-9_-]{1,32}$/.test(name);
 }
@@ -54,17 +49,17 @@ function deleteTemplate(client, guildId, name) {
     removeFromList(client, guildId, name);
 }
 
-function getSentUnik(client, guildId, name) {
+function getSent(client, guildId, name) {
     const raw = client.database.get(`pesan-unik-sent-${guildId}-${name}`);
     if (!raw || typeof raw !== 'string') return null;
     try { return JSON.parse(raw); } catch { return null; }
 }
 
-function saveSentUnik(client, guildId, name, messageId, channelId) {
+function saveSent(client, guildId, name, messageId, channelId) {
     client.database.set(`pesan-unik-sent-${guildId}-${name}`, JSON.stringify({ messageId, channelId }));
 }
 
-function deleteSentUnik(client, guildId, name) {
+function deleteSent(client, guildId, name) {
     client.database.delete(`pesan-unik-sent-${guildId}-${name}`);
 }
 
@@ -86,10 +81,6 @@ function buildEmbed(data) {
     return embed;
 }
 
-function badgeCategory(category) {
-    return category === KATEGORI.UNIK ? '🔒 Unique' : '📄 Regular';
-}
-
 module.exports = new ApplicationCommand({
     command: {
         name: 'message',
@@ -107,15 +98,6 @@ module.exports = new ApplicationCommand({
                         name: 'name',
                         description: 'Template name (letters, numbers, - and _, max. 32 characters)',
                         type: 3, required: true, max_length: 32, autocomplete: true
-                    },
-                    {
-                        name: 'category',
-                        description: 'Template category: unique (send once, editable) or regular (send multiple times)',
-                        type: 3, required: false,
-                        choices: [
-                            { name: '🔒 Unique — send once, editable', value: KATEGORI.UNIK  },
-                            { name: '📄 Regular — send multiple times', value: KATEGORI.BIASA },
-                        ]
                     }
                 ]
             },
@@ -214,21 +196,20 @@ module.exports = new ApplicationCommand({
             // ── Send ─────────────────────────────────────────────────────
             {
                 name: 'send',
-                description: 'Send a template to the selected channel.',
+                description: 'Send a template to its configured channel.',
                 type: 1,
                 options: [
-                    { name: 'name',    description: 'Template name', type: 3, required: true, max_length: 32, autocomplete: true },
-                    { name: 'channel', description: 'Target channel (mention #channel or ID)', type: 3, required: true, autocomplete: true }
+                    { name: 'name', description: 'Template name', type: 3, required: true, max_length: 32, autocomplete: true }
                 ]
             },
 
-            // ── Edit (unique templates only) ─────────────────────────────
+            // ── Edit sent message ────────────────────────────────────────
             {
                 name: 'edit',
-                description: 'Edit the content of a sent unique message using the latest template.',
+                description: 'Edit the already-sent Discord message using the latest template content.',
                 type: 1,
                 options: [
-                    { name: 'name', description: 'Unique template name', type: 3, required: true, max_length: 32, autocomplete: true }
+                    { name: 'name', description: 'Template name', type: 3, required: true, max_length: 32, autocomplete: true }
                 ]
             },
 
@@ -278,7 +259,6 @@ module.exports = new ApplicationCommand({
         // ── CREATE ────────────────────────────────────────────────────────
         if (sub === 'create') {
             const name     = interaction.options.getString('name').trim().toLowerCase();
-            const catInput = interaction.options.getString('category');
             const existing = getTemplate(client, guildId, name);
 
             if (!isValidName(name)) {
@@ -288,25 +268,11 @@ module.exports = new ApplicationCommand({
                 });
             }
 
-            const category = catInput
-                ? catInput
-                : (existing?.kategori ?? KATEGORI.BIASA);
-
-            if (existing?.kategori === KATEGORI.UNIK && catInput === KATEGORI.BIASA) {
-                const sent = getSentUnik(client, guildId, name);
-                if (sent) {
-                    return interaction.reply({
-                        content: s.unique_sent_locked(name),
-                        flags: MessageFlags.Ephemeral
-                    });
-                }
-            }
-
-            client.database.set(`pesan-pending-${guildId}-${userId}`, JSON.stringify({ nama: name, kategori: category }));
+            client.database.set(`pesan-pending-${guildId}-${userId}`, JSON.stringify({ nama: name }));
 
             await interaction.showModal({
                 custom_id: `message-modal:${name}:buat`,
-                title: `[${category.toUpperCase()}] ${name}`.slice(0, 45),
+                title: `${name}`.slice(0, 45),
                 components: [
                     {
                         type: 1,
@@ -408,7 +374,7 @@ module.exports = new ApplicationCommand({
         // ── TYPE ──────────────────────────────────────────────────────────
         if (sub === 'type') {
             const name = interaction.options.getString('name').trim().toLowerCase();
-            const type = interaction.options.getString('type'); // 'embed' | 'plain'
+            const type = interaction.options.getString('type');
             const tmpl = getTemplate(client, guildId, name);
             if (!tmpl) return interaction.reply({ content: s.not_found(name), flags: MessageFlags.Ephemeral });
 
@@ -422,8 +388,7 @@ module.exports = new ApplicationCommand({
                 });
             }
 
-            // plain → open modal for text input
-            client.database.set(`pesan-pending-${guildId}-${userId}`, JSON.stringify({ nama: name, kategori: tmpl.kategori ?? KATEGORI.BIASA, mode: 'tipe' }));
+            client.database.set(`pesan-pending-${guildId}-${userId}`, JSON.stringify({ nama: name, mode: 'tipe' }));
             await interaction.showModal({
                 custom_id: `message-modal:${name}:tipe`,
                 title: `[PLAIN] Text Content: ${name}`.slice(0, 45),
@@ -453,7 +418,7 @@ module.exports = new ApplicationCommand({
                 if (!plainText) return interaction.reply({ content: s.preview_empty_plain(name), flags: MessageFlags.Ephemeral });
                 const previewEmbed = new EmbedBuilder()
                     .setColor('#5865F2')
-                    .setAuthor({ name: `👁️ Preview [💬 Plain] [${badgeCategory(tmpl.kategori)}]: ${name}` })
+                    .setAuthor({ name: `👁️ Preview [💬 Plain]: ${name}` })
                     .setDescription(`\`\`\`\n${plainText.slice(0, 4000)}\`\`\``)
                     .setFooter({ text: 'This message will appear as plain text in Discord (no embed box)' });
                 return interaction.reply({ embeds: [previewEmbed], flags: MessageFlags.Ephemeral });
@@ -461,7 +426,7 @@ module.exports = new ApplicationCommand({
 
             if (!tmpl.title && !tmpl.description) return interaction.reply({ content: s.preview_empty(name), flags: MessageFlags.Ephemeral });
             const embed = buildEmbed(tmpl);
-            embed.setAuthor({ name: `👁️ Preview [🖼️ Embed] [${badgeCategory(tmpl.kategori)}]: ${name}` });
+            embed.setAuthor({ name: `👁️ Preview [🖼️ Embed]: ${name}` });
             return interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
         }
 
@@ -477,20 +442,23 @@ module.exports = new ApplicationCommand({
                 ? (tmpl.plainText ? tmpl.plainText.slice(0, 80) + (tmpl.plainText.length > 80 ? '…' : '') : '`(empty)`')
                 : (tmpl.description ? tmpl.description.slice(0, 80) + (tmpl.description.length > 80 ? '…' : '') : '`(empty)`');
 
-            const sentInfo = tmpl.kategori === KATEGORI.UNIK
+            const channelInfo = tmpl.channelId
                 ? (() => {
-                    const sent = getSentUnik(client, guildId, name);
-                    return sent
-                        ? `✅ Sent — [View message](https://discord.com/channels/${guildId}/${sent.channelId}/${sent.messageId})`
-                        : '⏳ Not yet sent';
+                    const ch = interaction.guild.channels.cache.get(tmpl.channelId);
+                    return ch ? `<#${tmpl.channelId}>` : `\`${tmpl.channelId}\` *(deleted)*`;
                 })()
-                : null;
+                : '`(not set)`';
+
+            const sentData = getSent(client, guildId, name);
+            const sentInfo = sentData
+                ? `✅ Sent — [View message](https://discord.com/channels/${guildId}/${sentData.channelId}/${sentData.messageId})`
+                : '⏳ Not yet sent';
 
             const embed = new EmbedBuilder()
                 .setColor(colorHex)
                 .setTitle(`📋 Template Info: ${name}`)
                 .addFields(
-                    { name: '🏷️ Category', value: badgeCategory(tmpl.kategori ?? KATEGORI.BIASA), inline: true },
+                    { name: '📢 Channel',  value: channelInfo, inline: true },
                     { name: '📨 Type',     value: isPlain ? '💬 Plain Text' : '🖼️ Embed', inline: true },
                     { name: '📌 Title',    value: isPlain ? '`(not applicable)`' : (tmpl.title || '`(empty)`'), inline: true },
                     ...(!isPlain ? [
@@ -501,7 +469,7 @@ module.exports = new ApplicationCommand({
                     ] : []),
                     { name: isPlain ? '💬 Content' : '📝 Description', value: desc, inline: false },
                     ...(!isPlain ? [{ name: '🔻 Footer', value: tmpl.footer || '`(empty)`', inline: true }] : []),
-                    ...(sentInfo ? [{ name: '📨 Send Status', value: sentInfo, inline: false }] : []),
+                    { name: '📨 Send Status', value: sentInfo, inline: false },
                 )
                 .setFooter({ text: `Created: ${new Date(tmpl.createdAt).toLocaleString('en-US')} · Edited: ${new Date(tmpl.updatedAt).toLocaleString('en-US')}` })
                 .setTimestamp();
@@ -514,9 +482,7 @@ module.exports = new ApplicationCommand({
             const list = getList(client, guildId);
             if (list.length === 0) return interaction.reply({ content: s.no_templates, flags: MessageFlags.Ephemeral });
 
-            const uniqueList  = [];
-            const regularList = [];
-
+            const entries = [];
             for (const templateName of list) {
                 const tmpl      = getTemplate(client, guildId, templateName);
                 const isPlainL  = tmpl?.messageType === 'plain';
@@ -524,37 +490,33 @@ module.exports = new ApplicationCommand({
                     ? (tmpl?.plainText?.slice(0, 40) || '*(empty)*')
                     : (tmpl?.title || tmpl?.description?.slice(0, 40) || '*(empty)*');
                 const typeBadge = isPlainL ? '💬' : '🖼️';
-                const entry     = `${typeBadge} **${templateName}** — ${preview}`;
-                if ((tmpl?.kategori ?? KATEGORI.BIASA) === KATEGORI.UNIK) {
-                    const sent = getSentUnik(client, guildId, templateName);
-                    uniqueList.push(`${entry} ${sent ? '📨' : '⏳'}`);
-                } else {
-                    regularList.push(entry);
-                }
+                const sentData  = getSent(client, guildId, templateName);
+                const statusBadge = sentData ? '📨' : (tmpl?.channelId ? '⏳' : '—');
+                entries.push(`${typeBadge} **${templateName}** — ${preview} ${statusBadge}`);
             }
 
             const embed = new EmbedBuilder()
                 .setColor('#5865F2')
                 .setTitle(`📚 Message Templates (${list.length})`)
-                .setFooter({ text: '📨 = sent · ⏳ = not sent · /message preview <name> to preview' })
+                .setDescription(entries.map((e, i) => `\`${String(i+1).padStart(2,'0')}.\` ${e}`).join('\n'))
+                .setFooter({ text: '📨 = sent · ⏳ = has channel, not sent · — = no channel set' })
                 .setTimestamp();
-
-            if (uniqueList.length > 0)  embed.addFields({ name: `🔒 Unique (${uniqueList.length})`,   value: uniqueList.map((e, i)  => `\`${String(i+1).padStart(2,'0')}.\` ${e}`).join('\n') });
-            if (regularList.length > 0) embed.addFields({ name: `📄 Regular (${regularList.length})`, value: regularList.map((e, i) => `\`${String(i+1).padStart(2,'0')}.\` ${e}`).join('\n') });
 
             return interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
         }
 
         // ── SEND ──────────────────────────────────────────────────────────
         if (sub === 'send') {
-            const name          = interaction.options.getString('name').trim().toLowerCase();
-            const chInput       = interaction.options.getString('channel');
-            const targetChannel = resolveChannel(interaction.guild, chInput);
-
-            if (!targetChannel) return interaction.reply({ content: s.send_channel_nf, flags: MessageFlags.Ephemeral });
-
+            const name = interaction.options.getString('name').trim().toLowerCase();
             const tmpl = getTemplate(client, guildId, name);
             if (!tmpl) return interaction.reply({ content: s.not_found(name), flags: MessageFlags.Ephemeral });
+
+            if (!tmpl.channelId) {
+                return interaction.reply({
+                    content: `❌ Template \`${name}\` has no target channel set. Edit it in the dashboard and select a channel first.`,
+                    flags: MessageFlags.Ephemeral
+                });
+            }
 
             const isPlainType = tmpl.messageType === 'plain';
             if (isPlainType) {
@@ -563,34 +525,28 @@ module.exports = new ApplicationCommand({
                 if (!tmpl.title && !tmpl.description) return interaction.reply({ content: s.send_empty(name), flags: MessageFlags.Ephemeral });
             }
 
-            const category = tmpl.kategori ?? KATEGORI.BIASA;
+            // Check if already sent
+            const existingSent = getSent(client, guildId, name);
+            if (existingSent) {
+                const sentChannel = interaction.guild.channels.cache.get(existingSent.channelId)
+                    ?? await interaction.guild.channels.fetch(existingSent.channelId).catch(() => null);
 
-            if (category === KATEGORI.UNIK) {
-                const sent = getSentUnik(client, guildId, name);
-                if (sent) {
-                    const sentChannel = interaction.guild.channels.cache.get(sent.channelId)
-                        ?? await interaction.guild.channels.fetch(sent.channelId).catch(() => null);
-
-                    let messageStillExists = false;
-                    if (sentChannel) {
-                        try {
-                            await sentChannel.messages.fetch(sent.messageId);
-                            messageStillExists = true;
-                        } catch {
-                            messageStillExists = false;
-                        }
-                    }
-
-                    if (!messageStillExists) {
-                        deleteSentUnik(client, guildId, name);
-                    } else {
+                if (sentChannel) {
+                    try {
+                        await sentChannel.messages.fetch(existingSent.messageId);
                         return interaction.reply({
-                            content: s.already_sent(name, guildId, sent.channelId, sent.messageId),
+                            content: s.already_sent(name, guildId, existingSent.channelId, existingSent.messageId),
                             flags: MessageFlags.Ephemeral
                         });
-                    }
+                    } catch { /* message deleted — allow resend */ }
                 }
+                deleteSent(client, guildId, name);
             }
+
+            const targetChannel = interaction.guild.channels.cache.get(tmpl.channelId)
+                ?? await interaction.guild.channels.fetch(tmpl.channelId).catch(() => null);
+
+            if (!targetChannel) return interaction.reply({ content: `❌ Target channel not found. It may have been deleted.`, flags: MessageFlags.Ephemeral });
 
             const permsNeeded = [PermissionFlagsBits.SendMessages];
             if (!isPlainType) permsNeeded.push(PermissionFlagsBits.EmbedLinks);
@@ -605,9 +561,7 @@ module.exports = new ApplicationCommand({
                 sent = await targetChannel.send({ embeds: [embed] });
             }
 
-            if (category === KATEGORI.UNIK) {
-                saveSentUnik(client, guildId, name, sent.id, targetChannel.id);
-            }
+            saveSent(client, guildId, name, sent.id, targetChannel.id);
 
             return interaction.reply({
                 content: s.sent_success(name, targetChannel.id, sent.url),
@@ -615,21 +569,14 @@ module.exports = new ApplicationCommand({
             });
         }
 
-        // ── EDIT (unique messages only) ───────────────────────────────────
+        // ── EDIT (update sent message) ───────────────────────────────────
         if (sub === 'edit') {
             const name = interaction.options.getString('name').trim().toLowerCase();
             const tmpl = getTemplate(client, guildId, name);
 
             if (!tmpl) return interaction.reply({ content: s.not_found(name), flags: MessageFlags.Ephemeral });
 
-            if ((tmpl.kategori ?? KATEGORI.BIASA) !== KATEGORI.UNIK) {
-                return interaction.reply({
-                    content: s.edit_not_unique(name),
-                    flags: MessageFlags.Ephemeral
-                });
-            }
-
-            const sentData = getSentUnik(client, guildId, name);
+            const sentData = getSent(client, guildId, name);
             if (!sentData) {
                 return interaction.reply({
                     content: s.edit_not_sent(name),
@@ -641,7 +588,7 @@ module.exports = new ApplicationCommand({
                 ?? await interaction.guild.channels.fetch(sentData.channelId).catch(() => null);
 
             if (!targetChannel) {
-                deleteSentUnik(client, guildId, name);
+                deleteSent(client, guildId, name);
                 return interaction.reply({
                     content: s.edit_channel_gone(name),
                     flags: MessageFlags.Ephemeral
@@ -651,7 +598,7 @@ module.exports = new ApplicationCommand({
             try {
                 await targetChannel.messages.fetch(sentData.messageId);
             } catch {
-                deleteSentUnik(client, guildId, name);
+                deleteSent(client, guildId, name);
                 return interaction.reply({
                     content: s.edit_msg_gone(name),
                     flags: MessageFlags.Ephemeral
@@ -660,7 +607,7 @@ module.exports = new ApplicationCommand({
 
             client.database.set(
                 `pesan-pending-${guildId}-${userId}`,
-                JSON.stringify({ nama: name, kategori: KATEGORI.UNIK, mode: 'edit' })
+                JSON.stringify({ nama: name, mode: 'edit' })
             );
 
             if (tmpl.messageType === 'plain') {
@@ -682,7 +629,7 @@ module.exports = new ApplicationCommand({
             } else {
                 await interaction.showModal({
                     custom_id: `message-modal:${name}:edit`,
-                    title: `[EDIT UNIQUE] ${name}`.slice(0, 45),
+                    title: `[EDIT] ${name}`.slice(0, 45),
                     components: [
                         {
                             type: 1,
@@ -728,7 +675,7 @@ module.exports = new ApplicationCommand({
 
             saveTemplate(client, guildId, target, {
                 ...tmpl,
-                kategori:  KATEGORI.BIASA,
+                channelId: tmpl.channelId || '',
                 createdAt: Date.now(),
                 updatedAt: Date.now()
             });
@@ -745,7 +692,7 @@ module.exports = new ApplicationCommand({
             if (!tmpl) return interaction.reply({ content: s.delete_not_found(name), flags: MessageFlags.Ephemeral });
 
             deleteTemplate(client, guildId, name);
-            deleteSentUnik(client, guildId, name);
+            deleteSent(client, guildId, name);
 
             let deletedPanels = [];
             try {

@@ -219,7 +219,7 @@ module.exports = new ApplicationCommand({
                 modal.addComponents(new ActionRowBuilder().addComponents(
                     new TextInputBuilder()
                         .setCustomId('plainText')
-                        .setLabel('Message Content: {member} {server} {count} {tag}')
+                        .setLabel('Content: {member} {server} {count} {tag}')
                         .setStyle(TextInputStyle.Paragraph)
                         .setMaxLength(2000)
                         .setValue(cfg.plainText.slice(0, 2000))
@@ -230,7 +230,7 @@ module.exports = new ApplicationCommand({
                     new ActionRowBuilder().addComponents(
                         new TextInputBuilder()
                             .setCustomId('title')
-                            .setLabel('Title: {username} {tag} {server} (not a mention)')
+                            .setLabel('Title: {username} {tag} {server} (no ping)')
                             .setStyle(TextInputStyle.Short)
                             .setMaxLength(256)
                             .setValue(cfg.title.slice(0, 256))
@@ -239,7 +239,7 @@ module.exports = new ApplicationCommand({
                     new ActionRowBuilder().addComponents(
                         new TextInputBuilder()
                             .setCustomId('description')
-                            .setLabel('Description: {member}=mention {username} {server}')
+                            .setLabel('Desc: {member}=mention {username} {server}')
                             .setStyle(TextInputStyle.Paragraph)
                             .setMaxLength(1024)
                             .setValue(cfg.description.slice(0, 1024))
@@ -450,7 +450,8 @@ module.exports = new ApplicationCommand({
                         messageColor:   cfg.cardMsgColor,
                         fontFamily:     cfg.cardFont,
                     });
-                    cardAttachment = new AttachmentBuilder(cardBuf, { name: 'goodbye-card.png' });
+                    if (Buffer.isBuffer(cardBuf) && cardBuf.length > 0)
+                        cardAttachment = new AttachmentBuilder(cardBuf, { name: 'goodbye-card.png' });
                 } catch (err) {
                     console.error('[goodbye preview] Card generation failed:', err.message);
                 }

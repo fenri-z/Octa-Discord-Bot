@@ -712,7 +712,7 @@ router.get('/:guildId/message-builder', requireLogin, requireManageGuild, async 
 
         const channels = [...guild.channels.cache.values()]
             .filter(c => c.type === 0 || c.type === 5 || c.type === 10 || c.type === 11 || c.type === 12)
-            .map(c => ({ id: c.id, name: c.name }))
+            .map(c => ({ id: c.id, name: c.name, type: c.type }))
             .sort((a, b) => a.name.localeCompare(b.name));
 
         const roles = [...guild.roles.cache.values()]
@@ -730,7 +730,10 @@ router.get('/:guildId/message-builder', requireLogin, requireManageGuild, async 
         const templates = templateNames.map(name => {
             try {
                 const raw = db?.get(`pesan-${guildId}-${name}`);
-                return raw ? { name, ...JSON.parse(raw) } : null;
+                if (!raw) return null;
+                const tmpl = { name, ...JSON.parse(raw) };
+                tmpl.isSent = !!db?.get(`pesan-unik-sent-${guildId}-${name}`);
+                return tmpl;
             } catch { return null; }
         }).filter(Boolean);
 
@@ -739,6 +742,7 @@ router.get('/:guildId/message-builder', requireLogin, requireManageGuild, async 
         let loginMember = null;
         loginMember = await _getMember(guild, u.id);
         const loginUser = {
+            id:          u.id,
             username:    u.username || 'User',
             displayName: loginMember?.displayName || u.username || 'User',
             avatarUrl:   u.avatar
