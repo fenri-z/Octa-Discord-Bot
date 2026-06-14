@@ -344,15 +344,23 @@
                                 <img id="previewCardInPlain" style="display:none;width:100%;max-width:440px;border-radius:8px;margin-top:.4rem;" alt="">
                                 <div class="dc-embed" id="previewEmbed">
                                     <div class="dc-embed-pill" id="previewPill"></div>
-                                    <div class="dc-embed-content">
-                                        <div class="dc-embed-title" id="previewTitle"></div>
-                                        <div class="dc-embed-desc" id="previewDesc"></div>
-                                        <div class="dc-embed-fields" id="previewFields"></div>
+                                    <div class="dc-embed-body">
+                                        <div class="dc-embed-main">
+                                            <div class="dc-embed-content">
+                                                <div class="dc-embed-title" id="previewTitle"></div>
+                                                <div class="dc-embed-desc" id="previewDesc"></div>
+                                                <div class="dc-embed-fields" id="previewFields"></div>
+                                            </div>
+                                            <div class="dc-embed-thumb" id="previewThumb" style="display:none;">
+                                                <img id="previewThumbImg"
+                                                     src="<%- loginUser ? loginUser.avatarUrl : 'https://cdn.discordapp.com/embed/avatars/0.png' %>"
+                                                     alt="thumb" style="width:100%;height:100%;object-fit:cover;display:block;"
+                                                     onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+                                            </div>
+                                        </div>
                                         <img id="previewCardInEmbed" style="display:none;width:100%;border-radius:4px;margin-top:.4rem;" alt="">
                                         <div class="dc-embed-footer" id="previewFooter"></div>
                                     </div>
-                                    <img class="dc-embed-thumb" id="previewThumb"
-                                         src="<%- loginUser ? loginUser.avatarUrl : 'https://cdn.discordapp.com/embed/avatars/0.png' %>" alt="thumb">
                                 </div>
                             </div>
                         </div>

@@ -361,17 +361,23 @@
                                 <!-- Embed preview -->
                                 <div class="dc-embed" id="boostPreviewEmbed">
                                     <div class="dc-embed-pill" id="boostPreviewPill" style="background:#FF73FA;"></div>
-                                    <div class="dc-embed-content">
-                                        <div class="dc-embed-title" id="boostPreviewTitle"></div>
-                                        <div class="dc-embed-desc"  id="boostPreviewDesc"></div>
-                                        <div class="dc-embed-fields" id="boostPreviewFields"></div>
-                                        <!-- Card menyatu di dalam embed -->
+                                    <div class="dc-embed-body">
+                                        <div class="dc-embed-main">
+                                            <div class="dc-embed-content">
+                                                <div class="dc-embed-title" id="boostPreviewTitle"></div>
+                                                <div class="dc-embed-desc"  id="boostPreviewDesc"></div>
+                                                <div class="dc-embed-fields" id="boostPreviewFields"></div>
+                                            </div>
+                                            <div class="dc-embed-thumb" id="boostPreviewThumb" style="display:none;">
+                                                <img id="boostPreviewThumbImg"
+                                                     src="<%- loginUser ? loginUser.avatarUrl : 'https://cdn.discordapp.com/embed/avatars/0.png' %>"
+                                                     alt="thumb" style="width:100%;height:100%;object-fit:cover;display:block;"
+                                                     onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+                                            </div>
+                                        </div>
                                         <img id="boostCardInEmbed" style="display:none;width:100%;border-radius:4px;margin-top:.4rem;" alt="">
                                         <div class="dc-embed-footer" id="boostPreviewFooter"></div>
                                     </div>
-                                    <img class="dc-embed-thumb" id="boostPreviewThumb"
-                                         src="<%- loginUser ? loginUser.avatarUrl : 'https://cdn.discordapp.com/embed/avatars/0.png' %>"
-                                         alt="thumb">
                                 </div>
                             </div>
                         </div>
@@ -673,17 +679,23 @@
                                 <!-- Embed preview -->
                                 <div class="dc-embed" id="unboostPreviewEmbed">
                                     <div class="dc-embed-pill" id="unboostPreviewPill" style="background:#ED4245;"></div>
-                                    <div class="dc-embed-content">
-                                        <div class="dc-embed-title" id="unboostPreviewTitle"></div>
-                                        <div class="dc-embed-desc"  id="unboostPreviewDesc"></div>
-                                        <div class="dc-embed-fields" id="unboostPreviewFields"></div>
-                                        <!-- Card menyatu di dalam embed -->
+                                    <div class="dc-embed-body">
+                                        <div class="dc-embed-main">
+                                            <div class="dc-embed-content">
+                                                <div class="dc-embed-title" id="unboostPreviewTitle"></div>
+                                                <div class="dc-embed-desc"  id="unboostPreviewDesc"></div>
+                                                <div class="dc-embed-fields" id="unboostPreviewFields"></div>
+                                            </div>
+                                            <div class="dc-embed-thumb" id="unboostPreviewThumb" style="display:none;">
+                                                <img id="unboostPreviewThumbImg"
+                                                     src="<%- loginUser ? loginUser.avatarUrl : 'https://cdn.discordapp.com/embed/avatars/0.png' %>"
+                                                     alt="thumb" style="width:100%;height:100%;object-fit:cover;display:block;"
+                                                     onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+                                            </div>
+                                        </div>
                                         <img id="unboostCardInEmbed" style="display:none;width:100%;border-radius:4px;margin-top:.4rem;" alt="">
                                         <div class="dc-embed-footer" id="unboostPreviewFooter"></div>
                                     </div>
-                                    <img class="dc-embed-thumb" id="unboostPreviewThumb"
-                                         src="<%- loginUser ? loginUser.avatarUrl : 'https://cdn.discordapp.com/embed/avatars/0.png' %>"
-                                         alt="thumb">
                                 </div>
                             </div>
                         </div>
