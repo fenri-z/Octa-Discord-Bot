@@ -1,4 +1,4 @@
-<%- include('../partials/head') %>
+﻿<%- include('../partials/head') %>
 <%- include('../partials/navbar') %>
 
 <div class="dash-layout">
@@ -258,59 +258,59 @@
                 </div><!-- /cc-form-inputs -->
 
                 <!-- Right: Discord preview -->
-                <div class="cc-preview-panel">
-                    <div class="cc-preview-label" onclick="toggleMbPreview()" style="cursor:pointer;user-select:none;" title="Toggle preview">
+                <div class="preview-panel">
+                    <div class="preview-label" onclick="toggleMbPreview()" style="cursor:pointer;user-select:none;" title="Toggle preview">
                         <i id="mbPreviewEyeIcon" data-lucide="eye" style="width:13px;height:13px;flex-shrink:0;"></i> PREVIEW
                     </div>
-                    <div class="cc-discord-preview">
-                        <div id="mbPreviewChannel" class="cc-dp-channel">
+                    <div class="dc-window">
+                        <div id="mbPreviewChannel" class="dc-channel-bar">
                             <span style="opacity:.5;font-weight:700;font-size:.85rem;flex-shrink:0;">#</span>preview
                         </div>
-                        <div class="cc-dp-msg">
-                            <div class="cc-dp-ava">
+                        <div class="dc-message">
+                            <div class="dc-avatar">
                                 <img src="<%- botUser ? botUser.avatarUrl : 'https://cdn.discordapp.com/embed/avatars/0.png' %>"
                                      alt="" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
                             </div>
-                            <div class="cc-dp-right">
-                                <div class="cc-dp-name">
+                            <div class="dc-msg-body">
+                                <div class="dc-username-row">
                                     <%- botUser ? botUser.username : 'Bot' %>
-                                    <span class="cc-dp-app-badge">
+                                    <span class="dc-app-badge">
                                         <svg width="9" height="9" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                                             <path d="M1.5 6L4.5 9L10.5 3" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                         </svg>
                                         APP
                                     </span>
-                                    <span class="cc-dp-time">Today at 12:00</span>
+                                    <span class="dc-timestamp">Today at 12:00</span>
                                 </div>
-                                <div id="mbPreviewPlain" class="cc-dp-text" style="display:none;"></div>
-                                <div id="mbPreviewPlainImageWrap" class="cc-dp-plain-image" style="display:none;">
-                                    <img id="mbPreviewPlainImage" src="" alt="" onerror="this.closest('.cc-dp-plain-image').style.display='none'">
+                                <div id="mbPreviewPlain" class="dc-plain-msg" style="display:none;"></div>
+                                <div id="mbPreviewPlainImageWrap" class="dc-plain-image" style="display:none;">
+                                    <img id="mbPreviewPlainImage" src="" alt="" onerror="this.closest('.dc-plain-image').style.display='none'">
                                 </div>
-                                <div id="mbPreviewEmbed" class="cc-dp-embed" style="display:none;">
-                                    <div id="mbPreviewPill" class="cc-dp-embed-bar" style="background:#5865F2;"></div>
-                                    <div class="cc-dp-embed-body">
-                                        <div class="cc-dp-embed-main">
-                                            <div class="cc-dp-embed-content">
-                                                <div id="mbPreviewAuthor" class="cc-dp-embed-author" style="display:none;"></div>
-                                                <div id="mbPreviewTitle"  class="cc-dp-embed-title"  style="display:none;"></div>
-                                                <div id="mbPreviewDesc"   class="cc-dp-embed-desc"   style="display:none;"></div>
-                                                <div id="mbPreviewFields" class="cc-dp-embed-fields"  style="display:none;"></div>
+                                <div id="mbPreviewEmbed" class="dc-embed" style="display:none;">
+                                    <div id="mbPreviewPill" class="dc-embed-pill" style="background:#5865F2;"></div>
+                                    <div class="dc-embed-body">
+                                        <div class="dc-embed-main">
+                                            <div class="dc-embed-content">
+                                                <div id="mbPreviewAuthor" class="dc-embed-author" style="display:none;"></div>
+                                                <div id="mbPreviewTitle"  class="dc-embed-title"  style="display:none;"></div>
+                                                <div id="mbPreviewDesc"   class="dc-embed-desc"   style="display:none;"></div>
+                                                <div id="mbPreviewFields" class="dc-embed-fields"  style="display:none;"></div>
                                             </div>
-                                            <div id="mbPreviewThumb" class="cc-dp-embed-thumb" style="display:none;">
+                                            <div id="mbPreviewThumb" class="dc-embed-thumb" style="display:none;">
                                                 <img id="mbPreviewThumbImg" src="" alt="">
                                             </div>
                                         </div>
-                                        <div id="mbPreviewImage" class="cc-dp-embed-image" style="display:none;">
+                                        <div id="mbPreviewImage" class="dc-embed-image" style="display:none;">
                                             <img id="mbPreviewImageImg" src="" alt="">
                                         </div>
-                                        <div id="mbPreviewFooter" class="cc-dp-embed-footer" style="display:none;"></div>
+                                        <div id="mbPreviewFooter" class="dc-embed-footer" style="display:none;"></div>
                                     </div>
                                 </div>
-                                <div id="mbPreviewEmpty" class="cc-dp-empty">Fill in fields above to see preview</div>
+                                <div id="mbPreviewEmpty" class="dc-embed-empty">Fill in fields above to see preview</div>
                             </div>
                         </div>
                     </div>
-                </div><!-- /cc-preview-panel -->
+                </div><!-- /preview-panel -->
 
             </div><!-- /cc-form-preview-row -->
 
@@ -685,10 +685,10 @@ function onFormInput() {
 
 // ── Toggle preview (eye icon) ─────────────────────────────────────────────
 function toggleMbPreview() {
-    const panel = document.querySelector('.cc-preview-panel');
+    const panel = document.querySelector('.preview-panel');
     const icon  = document.getElementById('mbPreviewEyeIcon');
-    panel.classList.toggle('cc-preview-hidden');
-    const hidden = panel.classList.contains('cc-preview-hidden');
+    panel.classList.toggle('dc-preview-hidden');
+    const hidden = panel.classList.contains('dc-preview-hidden');
     icon.setAttribute('data-lucide', hidden ? 'eye-off' : 'eye');
     if (window.lucide) lucide.createIcons();
 }
@@ -882,8 +882,8 @@ async function saveTemplate() {
     const data = await res.json();
     if (!data.success) { showMsg(msg, data.message, 'error'); throw new Error(data.message); }
 
-    showMsg(msg, data.message, 'success');
-    setTimeout(() => location.reload(), 800);
+    queueToast(data.message, 'success');
+    location.reload();
 }
 
 // ── Delete template ───────────────────────────────────────────────────────
@@ -1143,8 +1143,8 @@ function updatePreview() {
             const innerHtml = authorUrl
                 ? `<span style="cursor:pointer;text-decoration:underline;text-underline-offset:2px;text-decoration-color:rgba(128,128,128,.5);">${mbResolveMentions(author)}</span>`
                 : mbResolveMentions(author);
-            dpAuthor.innerHTML = (aIconOk ? `<img class="cc-dp-author-icon" src="${escHtml(authorIcon)}" onerror="this.style.display='none'" alt=""> ` : '') +
-                `<span class="cc-dp-text-wrap">${innerHtml}</span>`;
+            dpAuthor.innerHTML = (aIconOk ? `<img class="dc-author-icon" src="${escHtml(authorIcon)}" onerror="this.style.display='none'" alt=""> ` : '') +
+                `<span class="dc-text-wrap">${innerHtml}</span>`;
         }
 
         // Title
@@ -1167,9 +1167,9 @@ function updatePreview() {
         if (activeFields.length) {
             dpFields.style.display = '';
             dpFields.innerHTML = activeFields.map(f =>
-                `<div class="cc-dp-field${f.inline ? '' : ' cc-dp-field-block'}">
-                    <div class="cc-dp-field-name">${mbResolvePreview(f.name || '​')}</div>
-                    <div class="cc-dp-field-val">${mbResolvePreview(f.value || '​', true)}</div>
+                `<div class="dc-embed-field${f.inline ? '' : ' dc-field-block'}">
+                    <div class="dc-field-name">${mbResolvePreview(f.name || '​')}</div>
+                    <div class="dc-field-value">${mbResolvePreview(f.value || '​', true)}</div>
                 </div>`
             ).join('');
         } else { dpFields.style.display = 'none'; }
@@ -1194,9 +1194,9 @@ function updatePreview() {
             const now = 'Today at ' + _d.toLocaleString('en-US', { hour:'numeric', minute:'2-digit', hour12:true });
             const fIconOk = isHttpImg(footerIcon);
             dpFooter.innerHTML =
-                (fIconOk ? `<img class="cc-dp-footer-icon" src="${escHtml(footerIcon)}" onerror="this.style.display='none'" alt=""> ` : '') +
-                (footer ? `<span class="cc-dp-text-wrap">${mbResolveMentions(footer)}</span>` : '') +
-                (footer && ts ? '<span class="cc-dp-footer-sep" style="flex-shrink:0;"> • </span>' : '') +
+                (fIconOk ? `<img class="dc-footer-icon" src="${escHtml(footerIcon)}" onerror="this.style.display='none'" alt=""> ` : '') +
+                (footer ? `<span class="dc-text-wrap">${mbResolveMentions(footer)}</span>` : '') +
+                (footer && ts ? '<span class="dc-footer-sep" style="flex-shrink:0;"> • </span>' : '') +
                 (ts ? `<span style="flex-shrink:0;">${now}</span>` : '');
         } else { dpFooter.style.display = 'none'; }
 

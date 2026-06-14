@@ -346,8 +346,8 @@ async function clearLogs() {
         const r = await fetch('/dev-console/logs/clear', { method: 'POST' });
         const d = await r.json();
         if (d.success) {
-            showMsg(null, _lt.cleared, 'success');
-            setTimeout(() => location.reload(), 800);
+            queueToast(_lt.cleared, 'success');
+            location.reload();
         }
     } catch {
         showMsg(null, _lt.error, 'error');

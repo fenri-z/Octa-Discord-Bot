@@ -429,8 +429,8 @@ async function createGiveaway() {
         throw err;
     }
     if (data.success) {
-        showMsg(msgEl, data.message, 'success');
-        setTimeout(() => location.reload(), 1500);
+        queueToast(data.message, 'success');
+        location.reload();
     } else {
         showMsg(msgEl, data.message, 'error');
         throw new Error(data.message);
@@ -446,8 +446,8 @@ async function endGiveaway(id) {
     showMsg(msgEl, 'Mengakhiri giveaway...', 'info');
     const r    = await fetch(`/api/guild/${GUILD_ID}/giveaway/${id}/end`, { method: 'POST' });
     const data = await r.json();
-    showMsg(msgEl, data.message, data.success ? 'success' : 'error');
-    if (data.success) setTimeout(() => location.reload(), 1500);
+    if (data.success) { queueToast(data.message, 'success'); location.reload(); }
+    else showMsg(msgEl, data.message, 'error');
 }
 
 // ── Reroll ────────────────────────────────────────────────────────────────────
@@ -481,8 +481,8 @@ async function cancelGiveaway(id) {
     const msgEl = document.getElementById(`gwMsg-${id}`);
     const r     = await fetch(`/api/guild/${GUILD_ID}/giveaway/${id}`, { method: 'DELETE' });
     const data  = await r.json();
-    showMsg(msgEl, data.message, data.success ? 'success' : 'error');
-    if (data.success) setTimeout(() => location.reload(), 1200);
+    if (data.success) { queueToast(data.message, 'success'); location.reload(); }
+    else showMsg(msgEl, data.message, 'error');
 }
 
 // ── Helper ────────────────────────────────────────────────────────────────────

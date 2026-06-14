@@ -72,6 +72,22 @@
                 <div class="hint"><%= t('ticket.category_hint') %></div>
             </div>
 
+            <div class="form-group" id="panelSendChannelGroup">
+                <label class="label"><%= t('ticket.send_channel_label') %></label>
+                <select id="panelSendChannel" class="select">
+                    <option value=""><%= t('common.select_channel') %></option>
+                    <% channels.forEach(c => { %>
+                        <option value="<%= c.id %>" <%= ticketData.panelChannelId === c.id ? 'selected' : '' %>>#<%= c.name %></option>
+                    <% }) %>
+                </select>
+                <% if (ticketData.panelSent) { %>
+                <div class="hint" style="margin-top:.4rem;">
+                    <%= t('ticket.panel_sent') %> <a href="https://discord.com/channels/<%= guild.id %>/<%= ticketData.panelChannelId %>/<%= ticketData.panelMsgId %>" target="_blank" style="color:var(--accent);"><%= t('ticket.panel_sent_view') %></a>.
+                    <%- t('ticket.panel_sent_hint') %>
+                </div>
+                <% } %>
+            </div>
+
             <div class="form-group">
                 <label class="label"><%= t('ticket.log_label') %></label>
                 <select id="ticketLogChannel" class="select">
@@ -165,13 +181,19 @@
             <!-- Preview Discord -->
             <div class="preview-label" style="margin-top:1.25rem;"><%= t('common.preview') %></div>
             <div class="dc-window">
-                <div class="dc-channel-bar"><span class="dc-channel-hash">#</span><span>ticket-panel</span></div>
+                <div class="dc-channel-bar">
+                    <span class="dc-channel-hash">#</span>
+                    <span id="tkPreviewChannel">ticket-panel</span>
+                </div>
                 <div class="dc-messages">
                     <div class="dc-message">
                         <img class="dc-avatar" src="<%- locals.botNavAvatar || 'https://cdn.discordapp.com/embed/avatars/0.png' %>" alt="bot" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
                         <div class="dc-msg-body">
-                            <span class="dc-username" style="color:<%- locals.botNavColor||'#fff' %>"><%- locals.botNavName||'Bot' %></span>
-                            <span class="dc-timestamp">Today at 12:00 PM</span>
+                            <div class="dc-username-row">
+                                <span style="color:<%- locals.botNavColor||'var(--text)' %>"><%- locals.botNavName||'Bot' %></span>
+                                <span class="dc-app-badge">APP</span>
+                                <span class="dc-timestamp">Today at 12:00 PM</span>
+                            </div>
                             <div class="dc-embed" id="tkPreviewEmbed">
                                 <div class="dc-embed-pill" id="tkPreviewPill" style="background:<%= ticketData.embedColor||'#5865F2' %>;"></div>
                                 <div class="dc-embed-content">
@@ -179,30 +201,12 @@
                                     <div class="dc-embed-desc" id="tkPreviewDesc"><%= ticketData.embedDesc || t('ticket.embed_desc_default') %></div>
                                 </div>
                             </div>
-                            <!-- Preview tombol -->
                             <div style="margin-top:.4rem;">
                                 <span class="tk-btn-preview" id="tkPreviewBtn"><%= ticketData.btnLabel || t('ticket.btn_label_default') %></span>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-
-            <!-- Select send channel -->
-            <div class="form-group" style="margin-top:1rem;" id="panelSendChannelGroup">
-                <label class="label"><%= t('ticket.send_channel_label') %></label>
-                <select id="panelSendChannel" class="select">
-                    <option value=""><%= t('common.select_channel') %></option>
-                    <% channels.forEach(c => { %>
-                        <option value="<%= c.id %>" <%= ticketData.panelChannelId === c.id ? 'selected' : '' %>>#<%= c.name %></option>
-                    <% }) %>
-                </select>
-                <% if (ticketData.panelSent) { %>
-                <div class="hint" style="margin-top:.4rem;">
-                    <%= t('ticket.panel_sent') %> <a href="https://discord.com/channels/<%= guild.id %>/<%= ticketData.panelChannelId %>/<%= ticketData.panelMsgId %>" target="_blank" style="color:var(--accent);"><%= t('ticket.panel_sent_view') %></a>.
-                    <%- t('ticket.panel_sent_hint') %>
-                </div>
-                <% } %>
             </div>
 
             <div style="display:flex;gap:.75rem;margin-top:1rem;flex-wrap:wrap;">
@@ -253,25 +257,6 @@
 </div>
 
 <style>
-/* ── Discord preview ── */
-.dc-window { background:#36393f; border-radius:8px; overflow:hidden; margin-top:.5rem; }
-.dc-channel-bar { background:#2f3136; padding:.45rem .75rem; font-size:.78rem; color:#8e9297; display:flex; align-items:center; gap:.4rem; }
-.dc-channel-hash { font-weight:700; }
-.dc-messages { padding:.75rem; }
-.dc-message { display:flex; gap:.75rem; }
-.dc-avatar { width:40px; height:40px; border-radius:50%; flex-shrink:0; object-fit:cover; }
-.dc-msg-body { flex:1; min-width:0; }
-.dc-username { color:#fff; font-weight:600; font-size:.875rem; margin-right:.4rem; }
-.dc-timestamp { color:#72767d; font-size:.72rem; }
-.dc-embed {
-    margin-top:.35rem; background:#2f3136; border-radius:4px;
-    display:flex; max-width:432px; overflow:hidden;
-}
-.dc-embed-pill { width:4px; flex-shrink:0; border-radius:4px 0 0 4px; }
-.dc-embed-content { padding:.6rem .75rem; flex:1; min-width:0; }
-.dc-embed-title { color:#fff; font-weight:600; font-size:.9rem; margin-bottom:.2rem; }
-.dc-embed-desc { color:#dcddde; font-size:.83rem; line-height:1.4; word-break:break-word; }
-
 /* ── Dashboard layout ── */
 .tk-layout {
     display: grid;
@@ -377,7 +362,13 @@ function updateTicketPreview() {
     document.getElementById('tkPreviewDesc').innerHTML    = desc ? _tkResolveMentions(_tkMdToHtml(desc)) : _tkEsc(I18N_TK_DESC_DEF);
     document.getElementById('tkPreviewPill').style.background = color;
     document.getElementById('tkPreviewBtn').textContent   = btn;
+
+    const sel = document.getElementById('panelSendChannel');
+    const chName = sel?.options[sel.selectedIndex]?.text?.replace(/^#/, '') || 'ticket-panel';
+    document.getElementById('tkPreviewChannel').textContent = chName;
 }
+
+document.getElementById('panelSendChannel').addEventListener('change', updateTicketPreview);
 
 // ── Staff roles ───────────────────────────────────────────────────────────────
 async function addStaffRole() {
@@ -479,10 +470,8 @@ async function sendPanel() {
         body: JSON.stringify({ channelId })
     });
     const data = await res.json();
-    if (data.success) showMsg(msg, I18N_TK_SENT_OK, 'success');
-    else              showMsg(msg, data.message, 'error');
-
-    if (data.success) setTimeout(() => location.reload(), 1200);
+    if (data.success) { queueToast(I18N_TK_SENT_OK, 'success'); location.reload(); }
+    else showMsg(msg, data.message, 'error');
 }
 
 window._floatSave = async function () {

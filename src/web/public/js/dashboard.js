@@ -47,3 +47,19 @@ window.showMsg = function (el, text, type) {
         setTimeout(() => toast.remove(), 350);
     });
 };
+
+// Queue toast untuk ditampilkan setelah location.reload()
+window.queueToast = function(text, type) {
+    try { sessionStorage.setItem('_pendingToast', JSON.stringify({ text: String(text), type: type || 'success' })); } catch(e) {}
+};
+
+// Tampilkan pending toast dari reload sebelumnya
+(function() {
+    try {
+        const qt = sessionStorage.getItem('_pendingToast');
+        if (!qt) return;
+        sessionStorage.removeItem('_pendingToast');
+        const { text, type } = JSON.parse(qt);
+        if (text) setTimeout(() => showMsg(null, text, type || 'success'), 80);
+    } catch(e) {}
+})();

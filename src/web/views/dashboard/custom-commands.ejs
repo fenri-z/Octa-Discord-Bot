@@ -1,4 +1,4 @@
-<%- include('../partials/head') %>
+﻿<%- include('../partials/head') %>
 <%- include('../partials/navbar') %>
 
 <div class="dash-layout">
@@ -261,56 +261,56 @@
                 </div>
 
                 <!-- Right: Discord-style preview -->
-                <div class="cc-preview-panel">
-                    <div class="cc-preview-label" onclick="toggleCcPreview()" style="cursor:pointer;user-select:none;" title="Toggle preview">
+                <div class="preview-panel">
+                    <div class="preview-label" onclick="toggleCcPreview()" style="cursor:pointer;user-select:none;" title="Toggle preview">
                         <i id="ccPreviewEyeIcon" data-lucide="eye" style="width:13px;height:13px;flex-shrink:0;"></i> PREVIEW
                     </div>
-                    <div class="cc-discord-preview">
-                        <div class="cc-dp-channel">
+                    <div class="dc-window">
+                        <div class="dc-channel-bar">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                             preview
                         </div>
-                        <div class="cc-dp-msg">
-                            <div class="cc-dp-ava">
+                        <div class="dc-message">
+                            <div class="dc-avatar">
                                 <img src="<%- locals.botNavAvatar || 'https://cdn.discordapp.com/embed/avatars/0.png' %>"
                                      alt="" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
                             </div>
-                            <div class="cc-dp-right">
-                                <div class="cc-dp-name">
+                            <div class="dc-msg-body">
+                                <div class="dc-username-row">
                                     <%- locals.botNavName || 'Bot' %>
-                                    <span class="cc-dp-app-badge">
+                                    <span class="dc-app-badge">
                                         <svg width="9" height="9" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                                             <path d="M1.5 6L4.5 9L10.5 3" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                         </svg>
                                         APP
                                     </span>
-                                    <span class="cc-dp-time">Today at 12:00</span>
+                                    <span class="dc-timestamp">Today at 12:00</span>
                                 </div>
-                                <div id="ccDpText" class="cc-dp-text" style="display:none;"></div>
-                                <div id="ccDpPlainImage" class="cc-dp-plain-image" style="display:none;">
-                                    <img id="ccDpPlainImg" src="" alt="" onerror="this.closest('.cc-dp-plain-image').style.display='none'">
+                                <div id="ccDpText" class="dc-plain-msg" style="display:none;"></div>
+                                <div id="ccDpPlainImage" class="dc-plain-image" style="display:none;">
+                                    <img id="ccDpPlainImg" src="" alt="" onerror="this.closest('.dc-plain-image').style.display='none'">
                                 </div>
-                                <div id="ccDpEmbed" class="cc-dp-embed" style="display:none;">
-                                    <div id="ccDpEmbedBar" class="cc-dp-embed-bar" style="background:#5865F2;"></div>
-                                    <div class="cc-dp-embed-body">
-                                        <div class="cc-dp-embed-main">
-                                            <div class="cc-dp-embed-content">
-                                                <div id="ccDpEmbedAuthor" class="cc-dp-embed-author" style="display:none;"></div>
-                                                <div id="ccDpEmbedTitle"  class="cc-dp-embed-title"  style="display:none;"></div>
-                                                <div id="ccDpEmbedDesc"   class="cc-dp-embed-desc"   style="display:none;"></div>
-                                                <div id="ccDpEmbedFields" class="cc-dp-embed-fields" style="display:none;"></div>
+                                <div id="ccDpEmbed" class="dc-embed" style="display:none;">
+                                    <div id="ccDpEmbedBar" class="dc-embed-pill" style="background:#5865F2;"></div>
+                                    <div class="dc-embed-body">
+                                        <div class="dc-embed-main">
+                                            <div class="dc-embed-content">
+                                                <div id="ccDpEmbedAuthor" class="dc-embed-author" style="display:none;"></div>
+                                                <div id="ccDpEmbedTitle"  class="dc-embed-title"  style="display:none;"></div>
+                                                <div id="ccDpEmbedDesc"   class="dc-embed-desc"   style="display:none;"></div>
+                                                <div id="ccDpEmbedFields" class="dc-embed-fields" style="display:none;"></div>
                                             </div>
-                                            <div id="ccDpEmbedThumb" class="cc-dp-embed-thumb" style="display:none;">
+                                            <div id="ccDpEmbedThumb" class="dc-embed-thumb" style="display:none;">
                                                 <img id="ccDpThumbImg" src="" alt="">
                                             </div>
                                         </div>
-                                        <div id="ccDpEmbedImage" class="cc-dp-embed-image" style="display:none;">
+                                        <div id="ccDpEmbedImage" class="dc-embed-image" style="display:none;">
                                             <img id="ccDpImageImg" src="" alt="">
                                         </div>
-                                        <div id="ccDpEmbedFooter" class="cc-dp-embed-footer" style="display:none;"></div>
+                                        <div id="ccDpEmbedFooter" class="dc-embed-footer" style="display:none;"></div>
                                     </div>
                                 </div>
-                                <div id="ccDpEmpty" class="cc-dp-empty">Type a response to see the preview...</div>
+                                <div id="ccDpEmpty" class="dc-embed-empty">Type a response to see the preview...</div>
                             </div>
                         </div>
                     </div>
@@ -383,7 +383,7 @@
 }
 
 /* ── Preview panel width override (lebih lebar dari default 420px) ── */
-.cc-preview-panel { width: 460px; }
+.preview-panel { width: 460px; }
 
 /* Discord markdown in preview */
 .cc-inline-code {
@@ -633,7 +633,7 @@ function updatePreview() {
                 ? `<span style="cursor:pointer;text-decoration:underline;text-underline-offset:2px;text-decoration-color:rgba(255,255,255,.35);">${authorResolved}</span>`
                 : authorResolved;
             const aIconOk = aIcon && isDirectImageUrl(aIcon);
-            dpAuthor.innerHTML = (aIconOk ? `<img class="cc-dp-author-icon" src="${escHtml(resolveSampleUrl(aIcon) || aIcon)}" onerror="this.style.display='none'" alt=""> ` : '') + `<span class="cc-dp-text-wrap">${authorText}</span>`;
+            dpAuthor.innerHTML = (aIconOk ? `<img class="dc-author-icon" src="${escHtml(resolveSampleUrl(aIcon) || aIcon)}" onerror="this.style.display='none'" alt=""> ` : '') + `<span class="dc-text-wrap">${authorText}</span>`;
         }
 
         // Title
@@ -658,9 +658,9 @@ function updatePreview() {
         if (activeFields.length) {
             dpFields.style.display = '';
             dpFields.innerHTML = activeFields.map(f =>
-                `<div class="cc-dp-field${f.inline ? '' : ' cc-dp-field-block'}">
-                    <div class="cc-dp-field-name">${resolveCcPreview(f.name || '​')}</div>
-                    <div class="cc-dp-field-val">${resolveCcPreview(f.value || '​')}</div>
+                `<div class="dc-embed-field${f.inline ? '' : ' dc-field-block'}">
+                    <div class="dc-field-name">${resolveCcPreview(f.name || '​')}</div>
+                    <div class="dc-field-value">${resolveCcPreview(f.value || '​')}</div>
                 </div>`
             ).join('');
         } else { dpFields.style.display = 'none'; }
@@ -690,9 +690,9 @@ function updatePreview() {
             const _d = new Date();
             const now = 'Today at ' + _d.toLocaleString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
             dpFooter.innerHTML =
-                (fIcon && isDirectImageUrl(fIcon) ? `<img class="cc-dp-footer-icon" src="${escHtml(resolveSampleUrl(fIcon) || fIcon)}" onerror="this.style.display='none'" alt=""> ` : '') +
-                (footer ? `<span class="cc-dp-text-wrap">${resolveCcPreview(footer)}</span>` : '') +
-                (footer && ts ? '<span class="cc-dp-footer-sep" style="flex-shrink:0;"> • </span>' : '') +
+                (fIcon && isDirectImageUrl(fIcon) ? `<img class="dc-footer-icon" src="${escHtml(resolveSampleUrl(fIcon) || fIcon)}" onerror="this.style.display='none'" alt=""> ` : '') +
+                (footer ? `<span class="dc-text-wrap">${resolveCcPreview(footer)}</span>` : '') +
+                (footer && ts ? '<span class="dc-footer-sep" style="flex-shrink:0;"> • </span>' : '') +
                 (ts ? `<span style="flex-shrink:0;">${now}</span>` : '');
         } else { dpFooter.style.display = 'none'; }
     }
@@ -1176,9 +1176,9 @@ function resolveCcPreview(text, richMentions = false) {
 
 /* ── Preview toggle ─────────────────────────────────────────────── */
 function toggleCcPreview() {
-    const panel = document.querySelector('.cc-preview-panel');
+    const panel = document.querySelector('.preview-panel');
     const icon  = document.getElementById('ccPreviewEyeIcon');
-    const hidden = panel.classList.toggle('cc-preview-hidden');
+    const hidden = panel.classList.toggle('dc-preview-hidden');
     icon.setAttribute('data-lucide', hidden ? 'eye-off' : 'eye');
     if (window.lucide) lucide.createIcons({ nodes: [icon] });
 }

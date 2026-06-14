@@ -1,4 +1,4 @@
-<%- include('../partials/head') %>
+﻿<%- include('../partials/head') %>
 <%- include('../partials/navbar') %>
 <style>
 /* ── Layout 2 kolom ──────────────────────────────────────────────────────── */
@@ -358,61 +358,61 @@
                 <!-- Kanan: preview Discord -->
                 <div class="kk-preview-col">
                     <div class="preview-label">Preview</div>
-                    <div class="cc-discord-preview">
-                        <div class="cc-dp-channel">
+                    <div class="dc-window">
+                        <div class="dc-channel-bar">
                             <span style="opacity:.5;font-weight:700;font-size:.85rem;flex-shrink:0;">#</span>
                             <span id="kkPrevCh-<%= cardKey %>"><%= ((locals.channels||[]).find(c=>c.id===acc.channelId)||{}).name || 'select-channel' %></span>
                         </div>
-                        <div class="cc-dp-msg">
-                            <div class="cc-dp-ava">
+                        <div class="dc-message">
+                            <div class="dc-avatar">
                                 <img src="<%= locals.botNavAvatar || 'https://cdn.discordapp.com/embed/avatars/0.png' %>"
                                      alt="bot" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
                             </div>
-                            <div class="cc-dp-right">
-                                <div class="cc-dp-name">
+                            <div class="dc-msg-body">
+                                <div class="dc-username-row">
                                     <%= locals.botNavName || 'Bot' %>
-                                    <span class="cc-dp-app-badge">
+                                    <span class="dc-app-badge">
                                         <svg width="9" height="9" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M1.5 6L4.5 9L10.5 3" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                                         APP
                                     </span>
-                                    <span class="cc-dp-time">Today at 12:00 PM</span>
+                                    <span class="dc-timestamp">Today at 12:00 PM</span>
                                 </div>
-                                <div class="cc-dp-embed" id="kkPrev-<%= cardKey %>">
-                                    <div class="cc-dp-embed-bar" style="background:#53FC18;"></div>
-                                    <div class="cc-dp-embed-body">
-                                        <div class="cc-dp-embed-main">
-                                            <div class="cc-dp-embed-content">
-                                                <div class="cc-dp-embed-title">🔴 <%= acc.displayName||acc.slug %> is Live Now!</div>
-                                                <div class="cc-dp-embed-desc" id="kkPrevDesc-<%= cardKey %>" style="margin-top:.15rem;margin-bottom:.35rem;"></div>
+                                <div class="dc-embed" id="kkPrev-<%= cardKey %>">
+                                    <div class="dc-embed-pill" style="background:#53FC18;"></div>
+                                    <div class="dc-embed-body">
+                                        <div class="dc-embed-main">
+                                            <div class="dc-embed-content">
+                                                <div class="dc-embed-title">🔴 <%= acc.displayName||acc.slug %> is Live Now!</div>
+                                                <div class="dc-embed-desc" id="kkPrevDesc-<%= cardKey %>" style="margin-top:.15rem;margin-bottom:.35rem;"></div>
                                                 <div style="margin-top:.35rem;">
                                                     <div style="margin-bottom:.3rem;">
-                                                        <div class="cc-dp-field-name">🎙️ Stream Title</div>
-                                                        <div class="cc-dp-field-val">[TEST] Example stream title</div>
+                                                        <div class="dc-field-name">🎙️ Stream Title</div>
+                                                        <div class="dc-field-value">[TEST] Example stream title</div>
                                                     </div>
                                                     <div style="margin-bottom:.3rem;">
-                                                        <div class="cc-dp-field-name">🎮 Category</div>
-                                                        <div class="cc-dp-field-val">Just Chatting</div>
+                                                        <div class="dc-field-name">🎮 Category</div>
+                                                        <div class="dc-field-value">Just Chatting</div>
                                                     </div>
                                                     <div>
-                                                        <div class="cc-dp-field-name">🔗 Link</div>
-                                                        <div class="cc-dp-field-val">Click Me ▶</div>
+                                                        <div class="dc-field-name">🔗 Link</div>
+                                                        <div class="dc-field-value">Click Me ▶</div>
                                                     </div>
                                                 </div>
                                             </div>
                                             <% if (acc.thumbnail) { %>
-                                            <div class="cc-dp-embed-thumb">
+                                            <div class="dc-embed-thumb">
                                                 <img src="<%= acc.thumbnail %>" referrerpolicy="no-referrer"
-                                                     alt="" onerror="this.closest('.cc-dp-embed-thumb').style.display='none'">
+                                                     alt="" onerror="this.closest('.dc-embed-thumb').style.display='none'">
                                             </div>
                                             <% } %>
                                         </div>
                                         <div style="border-radius:4px;overflow:hidden;background:rgba(83,252,24,.06);aspect-ratio:16/9;max-width:100%;margin-top:.5rem;display:flex;align-items:center;justify-content:center;">
                                             <svg viewBox="0 0 24 24" fill="#53FC18" style="width:32px;height:32px;opacity:.25;"><path d="M2.664 0v24h5.227v-8.01l2.557-2.503 5.186 10.513H21l-7.527-14.6L20.188 3.54h-5.753L8.083 9.872 7.89 9.68V0z"/></svg>
                                         </div>
-                                        <div class="cc-dp-embed-footer">
+                                        <div class="dc-embed-footer">
                                             <svg viewBox="0 0 24 24" fill="#53FC18" style="width:12px;height:12px;flex-shrink:0;"><path d="M2.664 0v24h5.227v-8.01l2.557-2.503 5.186 10.513H21l-7.527-14.6L20.188 3.54h-5.753L8.083 9.872 7.89 9.68V0z"/></svg>
                                             <span>Kick LIVE</span>
-                                            <span class="cc-dp-footer-sep"> • </span>
+                                            <span class="dc-footer-sep"> • </span>
                                             <span>Today at 12:00 PM</span>
                                         </div>
                                     </div>
@@ -516,7 +516,7 @@ async function addKickStreamer() {
         body: JSON.stringify(_kkLookupData),
     });
     const data = await r.json();
-    if (data.success) location.reload();
+    if (data.success) { queueToast(data.message, 'success'); location.reload(); }
     else alert(data.message);
 }
 
@@ -571,7 +571,7 @@ async function removeKickStreamer(slug, name) {
     if (!confirm(I18N_KK_CONFIRM_DEL.replace('{{name}}', name))) return;
     const r    = await fetch(`/api/guild/${GUILD_ID}/kick/accounts/${encodeURIComponent(slug)}`, { method: 'DELETE' });
     const data = await r.json();
-    if (data.success) location.reload();
+    if (data.success) { queueToast(data.message, 'success'); location.reload(); }
     else alert(data.message);
 }
 

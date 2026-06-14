@@ -258,9 +258,9 @@ async function doSetup(guildId) {
         body: JSON.stringify({ categoryName })
     });
     const data = await res.json();
-    showMsg(msg, data.message, data.success ? 'success' : 'error');
     if (btn) { btn.disabled = false; btn.innerHTML = '<i data-lucide="plus-circle"></i> Create Stats Channels'; if(window.lucide) lucide.createIcons(); }
-    if (data.success) setTimeout(() => location.reload(), 1500);
+    if (data.success) { queueToast(data.message, 'success'); location.reload(); }
+    else showMsg(msg, data.message, 'error');
 }
 
 // ── Reset ────────────────────────────────────────────────────────────
@@ -284,11 +284,11 @@ async function confirmReset() {
         headers: { 'Content-Type': 'application/json' }
     });
     const data = await res.json();
-    showMsg(msg, data.message, data.success ? 'success' : 'error');
     btn.disabled = false;
     btn.innerHTML = '<i data-lucide="trash-2"></i> Yes, Delete All';
     if (window.lucide) lucide.createIcons();
-    if (data.success) setTimeout(() => { closeResetModal(); location.reload(); }, 1500);
+    if (data.success) { closeResetModal(); queueToast(data.message, 'success'); location.reload(); }
+    else showMsg(msg, data.message, 'error');
 }
 
 function showMsg(el, text, type) {

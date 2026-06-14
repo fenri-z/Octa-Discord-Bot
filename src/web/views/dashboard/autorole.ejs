@@ -1,4 +1,4 @@
-<%- include('../partials/head') %>
+﻿<%- include('../partials/head') %>
 <%- include('../partials/navbar') %>
 
 <div class="dash-layout">
@@ -422,44 +422,44 @@
                     <!-- ── Preview kanan ── -->
                     <div class="mb-editor-preview">
                         <div class="preview-label">Preview</div>
-                        <div class="cc-discord-preview">
-                            <div id="apPreviewChannel" class="cc-dp-channel">
+                        <div class="dc-window">
+                            <div id="apPreviewChannel" class="dc-channel-bar">
                                 <span style="opacity:.5;font-weight:700;font-size:.85rem;flex-shrink:0;">#</span>preview
                             </div>
-                            <div class="cc-dp-msg">
-                                <div class="cc-dp-ava">
+                            <div class="dc-message">
+                                <div class="dc-avatar">
                                     <img src="<%- locals.botNavAvatar || 'https://cdn.discordapp.com/embed/avatars/0.png' %>"
                                          alt="" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
                                 </div>
-                                <div class="cc-dp-right">
-                                    <div class="cc-dp-name">
+                                <div class="dc-msg-body">
+                                    <div class="dc-username-row">
                                         <%- locals.botNavName || 'Bot' %>
-                                        <span class="cc-dp-app-badge"><svg width="9" height="9" viewBox="0 0 12 12" fill="none"><path d="M1.5 6L4.5 9L10.5 3" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> APP</span>
-                                        <span class="cc-dp-time">Today at 12:00</span>
+                                        <span class="dc-app-badge"><svg width="9" height="9" viewBox="0 0 12 12" fill="none"><path d="M1.5 6L4.5 9L10.5 3" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> APP</span>
+                                        <span class="dc-timestamp">Today at 12:00</span>
                                     </div>
-                                    <div id="apModalPreviewPlain" class="cc-dp-text" style="display:none;"></div>
-                                    <div id="apModalPreviewEmbed" class="cc-dp-embed" style="display:none;">
-                                        <div id="apModalPreviewPill" class="cc-dp-embed-bar" style="background:#5865F2;"></div>
-                                        <div class="cc-dp-embed-body">
-                                            <div class="cc-dp-embed-main">
-                                                <div class="cc-dp-embed-content">
-                                                    <div id="apModalPreviewAuthor" class="cc-dp-embed-author" style="display:none;"></div>
-                                                    <div id="apModalPreviewTitle"  class="cc-dp-embed-title"  style="display:none;"></div>
-                                                    <div id="apModalPreviewDesc"   class="cc-dp-embed-desc"   style="display:none;"></div>
-                                                    <div id="apModalPreviewFields" class="cc-dp-embed-fields" style="display:none;"></div>
+                                    <div id="apModalPreviewPlain" class="dc-plain-msg" style="display:none;"></div>
+                                    <div id="apModalPreviewEmbed" class="dc-embed" style="display:none;">
+                                        <div id="apModalPreviewPill" class="dc-embed-pill" style="background:#5865F2;"></div>
+                                        <div class="dc-embed-body">
+                                            <div class="dc-embed-main">
+                                                <div class="dc-embed-content">
+                                                    <div id="apModalPreviewAuthor" class="dc-embed-author" style="display:none;"></div>
+                                                    <div id="apModalPreviewTitle"  class="dc-embed-title"  style="display:none;"></div>
+                                                    <div id="apModalPreviewDesc"   class="dc-embed-desc"   style="display:none;"></div>
+                                                    <div id="apModalPreviewFields" class="dc-embed-fields" style="display:none;"></div>
                                                 </div>
-                                                <div id="apModalPreviewThumb" class="cc-dp-embed-thumb" style="display:none;">
+                                                <div id="apModalPreviewThumb" class="dc-embed-thumb" style="display:none;">
                                                     <img id="apModalPreviewThumbImg" src="" alt="">
                                                 </div>
                                             </div>
-                                            <div id="apModalPreviewImage" class="cc-dp-embed-image" style="display:none;">
+                                            <div id="apModalPreviewImage" class="dc-embed-image" style="display:none;">
                                                 <img id="apModalPreviewImageImg" src="" alt="">
                                             </div>
-                                            <div id="apModalPreviewFooter" class="cc-dp-embed-footer" style="display:none;"></div>
+                                            <div id="apModalPreviewFooter" class="dc-embed-footer" style="display:none;"></div>
                                         </div>
                                     </div>
                                     <div id="apModalPreviewBtns" style="display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.5rem;"></div>
-                                    <div id="apModalPreviewEmpty" class="cc-dp-empty">Fill in the form to see preview</div>
+                                    <div id="apModalPreviewEmpty" class="dc-embed-empty">Fill in the form to see preview</div>
                                 </div>
                             </div>
                         </div>
@@ -492,60 +492,24 @@
                     </div>
                 <% } else { %>
                     <% panels.forEach(p => { %>
+                    <% const sentP = sentPanels[p.name]; %>
                     <div class="ar-panel-card" data-name="<%= p.name %>" data-channel-id="<%= p.channelId || '' %>">
-                        <div class="ar-panel-header">
-                            <span class="ar-panel-name"><i data-lucide="circle-dot" style="width:13px;height:13px;vertical-align:middle;margin-right:.25rem;"></i><%= p.name %></span>
-                            <span class="ar-panel-mode <%= p.mode === 'single' ? 'mode-single' : 'mode-multi' %>">
-                                <%= p.mode === 'single' ? 'Single' : 'Multi' %>
-                            </span>
-                            <% const sentP = sentPanels[p.name]; %>
-                            <% if (!sentP && p.channelId) { %>
-                            <span class="mb-badge" style="background:rgba(88,101,242,.15);color:#7289da;border:1px solid rgba(88,101,242,.3);font-size:.72rem;">#<%= channels.find(c => c.id === p.channelId)?.name || p.channelId %></span>
-                            <% } %>
-                            <span class="ar-panel-status <%= sentP ? 'status-sent' : 'status-unsent' %>">
-                                <%= sentP ? t('autorole.status_sent') : t('autorole.status_unsent') %>
-                            </span>
+                        <div class="ar-panel-row-left">
+                            <span class="ar-panel-name"><i data-lucide="circle-dot" style="width:13px;height:13px;"></i><%= p.name %></span>
+                            <span class="ar-panel-mode <%= p.mode === 'single' ? 'mode-single' : 'mode-multi' %>"><%= p.mode === 'single' ? 'Single' : 'Multi' %></span>
+                            <span class="ar-panel-status <%= sentP ? 'status-sent' : 'status-unsent' %>"><%= sentP ? t('autorole.status_sent') : t('autorole.status_unsent') %></span>
                         </div>
-
-                        <%
-                          const isPlainPanel = p.messageType === 'plain';
-                          const embedColor   = p.embedColor || '#5865F2';
-                          let previewText = '';
-                          if (isPlainPanel) {
-                              previewText = p.plainText
-                                  ? p.plainText.slice(0, 80) + (p.plainText.length > 80 ? '…' : '')
-                                  : t('autorole.text_empty');
-                          } else {
-                              previewText = p.embedTitle || (p.embedDescription
-                                  ? p.embedDescription.slice(0, 60) + (p.embedDescription.length > 60 ? '…' : '')
-                                  : '');
-                          }
-                        %>
-                        <% if (previewText) { %>
-                        <div class="ar-panel-embed-preview" style="border-left:3px solid <%= isPlainPanel ? '#8e9297' : embedColor %>;">
-                            <span class="ar-panel-embed-text" style="<%= isPlainPanel ? 'color:var(--text-muted);font-style:italic;' : '' %>"><%= previewText %></span>
-                            <% if (isPlainPanel) { %><span style="font-size:.7rem;color:var(--text-muted);margin-left:.4rem;"> — <%= t('common.plain_text') %></span><% } %>
-                        </div>
-                        <% } %>
-
-                        <div class="ar-panel-buttons-preview">
+                        <div class="ar-panel-row-chips">
                             <% if (p.buttons && p.buttons.length > 0) { %>
-                                <% p.buttons.forEach(btn => { %>
-                                    <span class="ar-btn-chip ar-btn-<%= btn.styleKey || '1' %>">
-                                        <%= btn.label %>
-                                        <span class="ar-btn-role">@<%= roles.find(r => r.id === btn.roleId)?.name || btn.roleId %></span>
-                                    </span>
-                                <% }) %>
+                                <% p.buttons.forEach(btn => { %><span class="ar-btn-chip ar-btn-<%= btn.styleKey || '1' %>"><%= btn.label %><span class="ar-btn-role">@<%= roles.find(r => r.id === btn.roleId)?.name || btn.roleId %></span></span><% }) %>
                             <% } else { %>
                                 <span style="color:var(--text-muted);font-size:.8rem"><%= t('autorole.no_buttons_yet') %></span>
                             <% } %>
                         </div>
-                        <div class="ar-panel-actions">
+                        <div class="ar-panel-row-right">
                             <button class="btn btn-outline btn-sm" onclick="openEditPanel('<%= p.name %>', <%= sentP ? 'true' : 'false' %>)"><i data-lucide="pencil" style="width:13px;height:13px;vertical-align:middle;margin-right:.25rem;"></i><%= t('autorole.edit_panel_btn') %></button>
                             <% if (sentP) { %>
-                                <a class="btn btn-outline btn-sm"
-                                   href="https://discord.com/channels/<%= guild.id %>/<%= sentP.channelId %>/<%= sentP.messageId %>"
-                                   target="_blank"><i data-lucide="external-link" style="width:13px;height:13px;vertical-align:middle;margin-right:.2rem;"></i> View</a>
+                                <a class="btn btn-outline btn-sm" href="https://discord.com/channels/<%= guild.id %>/<%= sentP.channelId %>/<%= sentP.messageId %>" target="_blank"><i data-lucide="external-link" style="width:13px;height:13px;vertical-align:middle;margin-right:.2rem;"></i> View</a>
                             <% } else { %>
                                 <button class="btn btn-outline btn-sm" onclick="openSendPanel('<%= p.name %>')"><i data-lucide="send" style="width:13px;height:13px;vertical-align:middle;margin-right:.2rem;"></i> Send</button>
                             <% } %>
@@ -798,44 +762,44 @@
                     <!-- ── Preview kanan ── -->
                     <div class="mb-editor-preview">
                         <div class="preview-label">Preview</div>
-                        <div class="cc-discord-preview">
-                            <div id="rpPreviewChannel" class="cc-dp-channel">
+                        <div class="dc-window">
+                            <div id="rpPreviewChannel" class="dc-channel-bar">
                                 <span style="opacity:.5;font-weight:700;font-size:.85rem;flex-shrink:0;">#</span>preview
                             </div>
-                            <div class="cc-dp-msg">
-                                <div class="cc-dp-ava">
+                            <div class="dc-message">
+                                <div class="dc-avatar">
                                     <img src="<%- locals.botNavAvatar || 'https://cdn.discordapp.com/embed/avatars/0.png' %>"
                                          alt="" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
                                 </div>
-                                <div class="cc-dp-right">
-                                    <div class="cc-dp-name">
+                                <div class="dc-msg-body">
+                                    <div class="dc-username-row">
                                         <%- locals.botNavName || 'Bot' %>
-                                        <span class="cc-dp-app-badge"><svg width="9" height="9" viewBox="0 0 12 12" fill="none"><path d="M1.5 6L4.5 9L10.5 3" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> APP</span>
-                                        <span class="cc-dp-time">Today at 12:00</span>
+                                        <span class="dc-app-badge"><svg width="9" height="9" viewBox="0 0 12 12" fill="none"><path d="M1.5 6L4.5 9L10.5 3" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> APP</span>
+                                        <span class="dc-timestamp">Today at 12:00</span>
                                     </div>
-                                    <div id="rpModalPreviewPlain" class="cc-dp-text" style="display:none;"></div>
-                                    <div id="rpModalPreviewEmbed" class="cc-dp-embed" style="display:none;">
-                                        <div id="rpModalPreviewPill" class="cc-dp-embed-bar" style="background:#5865F2;"></div>
-                                        <div class="cc-dp-embed-body">
-                                            <div class="cc-dp-embed-main">
-                                                <div class="cc-dp-embed-content">
-                                                    <div id="rpModalPreviewAuthor" class="cc-dp-embed-author" style="display:none;"></div>
-                                                    <div id="rpModalPreviewTitle"  class="cc-dp-embed-title"  style="display:none;"></div>
-                                                    <div id="rpModalPreviewDesc"   class="cc-dp-embed-desc"   style="display:none;"></div>
-                                                    <div id="rpModalPreviewFields" class="cc-dp-embed-fields" style="display:none;"></div>
+                                    <div id="rpModalPreviewPlain" class="dc-plain-msg" style="display:none;"></div>
+                                    <div id="rpModalPreviewEmbed" class="dc-embed" style="display:none;">
+                                        <div id="rpModalPreviewPill" class="dc-embed-pill" style="background:#5865F2;"></div>
+                                        <div class="dc-embed-body">
+                                            <div class="dc-embed-main">
+                                                <div class="dc-embed-content">
+                                                    <div id="rpModalPreviewAuthor" class="dc-embed-author" style="display:none;"></div>
+                                                    <div id="rpModalPreviewTitle"  class="dc-embed-title"  style="display:none;"></div>
+                                                    <div id="rpModalPreviewDesc"   class="dc-embed-desc"   style="display:none;"></div>
+                                                    <div id="rpModalPreviewFields" class="dc-embed-fields" style="display:none;"></div>
                                                 </div>
-                                                <div id="rpModalPreviewThumb" class="cc-dp-embed-thumb" style="display:none;">
+                                                <div id="rpModalPreviewThumb" class="dc-embed-thumb" style="display:none;">
                                                     <img id="rpModalPreviewThumbImg" src="" alt="">
                                                 </div>
                                             </div>
-                                            <div id="rpModalPreviewImage" class="cc-dp-embed-image" style="display:none;">
+                                            <div id="rpModalPreviewImage" class="dc-embed-image" style="display:none;">
                                                 <img id="rpModalPreviewImageImg" src="" alt="">
                                             </div>
-                                            <div id="rpModalPreviewFooter" class="cc-dp-embed-footer" style="display:none;"></div>
+                                            <div id="rpModalPreviewFooter" class="dc-embed-footer" style="display:none;"></div>
                                         </div>
                                     </div>
                                     <div id="reactPanelPreviewReacts" style="display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.5rem;"></div>
-                                    <div id="rpModalPreviewEmpty" class="cc-dp-empty">Fill in the form to see preview</div>
+                                    <div id="rpModalPreviewEmpty" class="dc-embed-empty">Fill in the form to see preview</div>
                                 </div>
                             </div>
                         </div>
@@ -867,62 +831,24 @@
                     </div>
                 <% } else { %>
                     <% reactPanels.forEach(p => { %>
+                    <% const sentRP = sentReactPanels[p.name]; %>
                     <div class="ar-panel-card" data-name="<%= p.name %>" data-type="reaction" data-channel-id="<%= p.channelId || '' %>">
-                        <div class="ar-panel-header">
-                            <span class="ar-panel-name"><i data-lucide="smile" style="width:13px;height:13px;vertical-align:middle;margin-right:.25rem;"></i><%= p.name %></span>
-                            <span class="ar-panel-mode <%= p.mode === 'single' ? 'mode-single' : 'mode-multi' %>">
-                                <%= p.mode === 'single' ? 'Single' : 'Multi' %>
-                            </span>
-                            <% const sentRP = sentReactPanels[p.name]; %>
-                            <% if (!sentRP && p.channelId) { %>
-                            <span class="mb-badge" style="background:rgba(88,101,242,.15);color:#7289da;border:1px solid rgba(88,101,242,.3);font-size:.72rem;">#<%= channels.find(c => c.id === p.channelId)?.name || p.channelId %></span>
-                            <% } %>
-                            <span class="ar-panel-status <%= sentRP ? 'status-sent' : 'status-unsent' %>">
-                                <%= sentRP ? t('autorole.status_sent') : t('autorole.status_unsent') %>
-                            </span>
+                        <div class="ar-panel-row-left">
+                            <span class="ar-panel-name"><i data-lucide="smile" style="width:13px;height:13px;"></i><%= p.name %></span>
+                            <span class="ar-panel-mode <%= p.mode === 'single' ? 'mode-single' : 'mode-multi' %>"><%= p.mode === 'single' ? 'Single' : 'Multi' %></span>
+                            <span class="ar-panel-status <%= sentRP ? 'status-sent' : 'status-unsent' %>"><%= sentRP ? t('autorole.status_sent') : t('autorole.status_unsent') %></span>
                         </div>
-
-                        <%
-                          const isPlainRP = p.messageType === 'plain';
-                          const embedColorRP = p.embedColor || '#5865F2';
-                          let previewTextRP = '';
-                          if (isPlainRP) {
-                              previewTextRP = p.plainText
-                                  ? p.plainText.slice(0, 80) + (p.plainText.length > 80 ? '…' : '')
-                                  : t('autorole.text_empty');
-                          } else {
-                              previewTextRP = p.embedTitle || (p.embedDescription
-                                  ? p.embedDescription.slice(0, 60) + (p.embedDescription.length > 60 ? '…' : '')
-                                  : '');
-                          }
-                        %>
-                        <% if (previewTextRP) { %>
-                        <div class="ar-panel-embed-preview" style="border-left:3px solid <%= isPlainRP ? '#8e9297' : embedColorRP %>;">
-                            <span class="ar-panel-embed-text" style="<%= isPlainRP ? 'color:var(--text-muted);font-style:italic;' : '' %>"><%= previewTextRP %></span>
-                            <% if (isPlainRP) { %><span style="font-size:.7rem;color:var(--text-muted);margin-left:.4rem;"> — <%= t('common.plain_text') %></span><% } %>
-                        </div>
-                        <% } %>
-
-                        <!-- Reaction emoji chips -->
-                        <div class="ar-panel-buttons-preview">
+                        <div class="ar-panel-row-chips">
                             <% if (p.reactions && p.reactions.length > 0) { %>
-                                <% p.reactions.forEach(react => { %>
-                                    <span class="ar-react-chip">
-                                        <%= react.emoji.includes(':') ? '' : react.emoji %>
-                                        <% if (react.emoji.includes(':')) { %><span class="ar-react-custom">:<%= react.emoji.split(':')[0] %>:</span><% } %>
-                                        <span class="ar-btn-role">@<%= roles.find(r => r.id === react.roleId)?.name || react.roleId %></span>
-                                    </span>
-                                <% }) %>
+                                <% p.reactions.forEach(react => { %><span class="ar-react-chip"><%= react.emoji.includes(':') ? '' : react.emoji %><% if (react.emoji.includes(':')) { %><span class="ar-react-custom">:<%= react.emoji.split(':')[0] %>:</span><% } %><span class="ar-btn-role">@<%= roles.find(r => r.id === react.roleId)?.name || react.roleId %></span></span><% }) %>
                             <% } else { %>
                                 <span style="color:var(--text-muted);font-size:.8rem"><%= t('autorole.no_reactions_yet') %></span>
                             <% } %>
                         </div>
-                        <div class="ar-panel-actions">
+                        <div class="ar-panel-row-right">
                             <button class="btn btn-outline btn-sm" onclick="openEditReactPanel('<%= p.name %>', <%= sentRP ? 'true' : 'false' %>)"><i data-lucide="pencil" style="width:13px;height:13px;vertical-align:middle;margin-right:.25rem;"></i><%= t('autorole.edit_panel_btn') %></button>
                             <% if (sentRP) { %>
-                                <a class="btn btn-outline btn-sm"
-                                   href="https://discord.com/channels/<%= guild.id %>/<%= sentRP.channelId %>/<%= sentRP.messageId %>"
-                                   target="_blank"><%= t('autorole.view_btn') %></a>
+                                <a class="btn btn-outline btn-sm" href="https://discord.com/channels/<%= guild.id %>/<%= sentRP.channelId %>/<%= sentRP.messageId %>" target="_blank"><i data-lucide="external-link" style="width:13px;height:13px;vertical-align:middle;margin-right:.2rem;"></i><%= t('autorole.view_btn') %></a>
                             <% } else { %>
                                 <button class="btn btn-outline btn-sm" onclick="openSendReactPanel('<%= p.name %>')"><i data-lucide="send" style="width:13px;height:13px;vertical-align:middle;margin-right:.2rem;"></i> Send</button>
                             <% } %>
@@ -1079,46 +1005,45 @@
 .section-desc { color:var(--text-muted); font-size:.875rem; margin-bottom:1.25rem; }
 .hint-inline { font-size:.78rem; color:var(--text-muted); font-weight:400; }
 
-/* ── Panel card ── */
+/* ── Panel card (compact row) ── */
 .ar-panel-card {
-    background:var(--bg2); border:1px solid var(--border);
-    border-radius:var(--radius); padding:1rem 1.1rem;
-    margin-bottom:.75rem; transition:border-color .15s;
+    display:flex; align-items:center; gap:.6rem; flex-wrap:wrap;
+    background:var(--bg3); border:1px solid var(--border);
+    border-radius:8px; padding:.55rem .75rem;
+    margin-bottom:.4rem; transition:border-color .15s;
 }
 .ar-panel-card:hover { border-color:var(--accent); }
-.ar-panel-header { display:flex; align-items:center; gap:.6rem; flex-wrap:wrap; margin-bottom:.5rem; }
-.ar-panel-name { font-weight:600; font-size:.95rem; }
+.ar-panel-row-left  { display:flex; align-items:center; gap:.45rem; flex-wrap:wrap; flex-shrink:0; }
+.ar-panel-row-chips { display:flex; align-items:center; gap:.35rem; flex-wrap:wrap; flex:1; min-width:0; }
+.ar-panel-row-right { display:flex; align-items:center; gap:.4rem; flex-shrink:0; margin-left:auto; }
+.ar-panel-name { font-weight:600; font-size:.875rem; display:flex; align-items:center; gap:.3rem; }
 .ar-panel-mode, .ar-panel-status {
-    font-size:.72rem; padding:.2rem .5rem; border-radius:999px; white-space:nowrap;
+    font-size:.72rem; padding:2px 8px; border-radius:12px; white-space:nowrap;
 }
 .mode-single { background:rgba(254,231,92,.15); color:#FEE75C; }
 .mode-multi  { background:rgba(87,242,135,.15); color:#57F287; }
 .status-sent   { background:rgba(87,242,135,.15); color:#57F287; }
-.status-unsent { background:var(--bg3); color:var(--text-muted); }
-
-/* Embed preview strip on card */
-.ar-panel-embed-preview {
-    padding:.35rem .6rem; margin-bottom:.6rem;
-    background:var(--bg3); border-radius:4px;
-}
-.ar-panel-embed-text { font-size:.82rem; color:var(--text); }
-
-.ar-panel-buttons-preview { display:flex; flex-wrap:wrap; gap:.4rem; margin-bottom:.75rem; min-height:1.5rem; }
+.status-unsent { background:var(--bg2); color:var(--text-muted); border:1px solid var(--border); }
 .ar-btn-chip {
-    font-size:.75rem; padding:.2rem .55rem; border-radius:6px;
-    display:flex; align-items:center; gap:.35rem;
+    font-size:.75rem; padding:2px 8px; border-radius:6px;
+    display:inline-flex; align-items:center; gap:.3rem; white-space:nowrap;
 }
 .ar-btn-chip .ar-btn-role { opacity:.65; font-size:.7rem; }
 /* ButtonStyle: 1=Primary(blue), 2=Secondary(grey), 3=Success(green), 4=Danger(red) */
 .ar-btn-1 { background:rgba(88,101,242,.25); color:#7289da; }
 .ar-btn-3 { background:rgba(87,242,135,.2);  color:#57F287; }
 .ar-btn-4 { background:rgba(237,66,69,.2);   color:#ED4245; }
-.ar-btn-2 { background:var(--bg3); color:var(--text-muted); }
-.ar-panel-actions { display:flex; gap:.5rem; flex-wrap:wrap; }
+.ar-btn-2 { background:var(--bg2); color:var(--text-muted); }
+.ar-react-chip {
+    font-size:.75rem; padding:2px 8px; border-radius:6px;
+    background:var(--bg2); border:1px solid var(--border);
+    display:inline-flex; align-items:center; gap:.3rem; white-space:nowrap;
+}
+.ar-react-chip .ar-btn-role { opacity:.65; font-size:.7rem; }
 .ar-btn-delete {
     background:transparent; border:1.5px solid var(--border);
     color:var(--red); border-radius:var(--radius); cursor:pointer;
-    transition:all .15s; min-height:32px; padding:.25rem .6rem; font-size:.82rem;
+    transition:all .15s; min-height:30px; padding:.2rem .5rem;
 }
 .ar-btn-delete:hover { background:rgba(237,66,69,.1); border-color:var(--red); }
 
@@ -1809,7 +1734,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (pendingReact) { sessionStorage.removeItem('_openSendReactPanel'); setTimeout(() => openSendReactPanel(pendingReact), 150); }
 });
 
-function _reloadKeepHash() { location.reload(); }
+function _reloadKeepHash(msg, type) { if (msg) queueToast(msg, type || 'success'); location.reload(); }
 
 // ── Helper modal ─────────────────────────────────────────────────────────────
 function openModal(bid, mid)  {
@@ -1957,9 +1882,9 @@ function updatePanelPreview() {
         if (fieldsEl) {
             if (apEmbedFields.length) {
                 fieldsEl.innerHTML = apEmbedFields.filter(f => f.name || f.value).map(f =>
-                    `<div class="cc-dp-embed-field${f.inline ? ' inline' : ''}">
-                        <div class="cc-dp-embed-field-name">${escHtml(f.name)}</div>
-                        <div class="cc-dp-embed-field-value">${resolveHtmlMentions(mdToHtml(f.value))}</div>
+                    `<div class="dc-embed-field${f.inline ? ' inline' : ''}">
+                        <div class="dc-embed-field-name">${escHtml(f.name)}</div>
+                        <div class="dc-embed-field-value">${resolveHtmlMentions(mdToHtml(f.value))}</div>
                     </div>`
                 ).join('');
                 fieldsEl.style.display = '';
@@ -2329,13 +2254,8 @@ function updatePanelPreviewBtns() {
     const styleClass = { 1: 'ar-btn-1', 2: 'ar-btn-2', 3: 'ar-btn-3', 4: 'ar-btn-4' };
     container.innerHTML = _inlineBtns
         .filter(b => b.label)
-        .map(b => {
-            const roleName = ALL_ROLES.find(r => r.id === b.roleId)?.name || '';
-            return `<span class="ar-btn-chip ${styleClass[b.style] || 'ar-btn-1'}">
-                ${b.label}
-                ${roleName ? `<span class="ar-btn-role">@${roleName}</span>` : ''}
-            </span>`;
-        }).join('');
+        .map(b => `<span class="ar-btn-chip ${styleClass[b.style] || 'ar-btn-1'}">${b.label}</span>`)
+        .join('');
 }
 
 async function deletePanel(name) {
@@ -2348,7 +2268,7 @@ async function deletePanel(name) {
     if (!confirm(msg)) return;
     const res  = await fetch(`/api/guild/${GUILD_ID}/autorole-button/${encodeURIComponent(name)}`, { method: 'DELETE' });
     const data = await res.json();
-    if (data.success) _reloadKeepHash();
+    if (data.success) _reloadKeepHash(data.message, 'success');
     else alert(data.message);
 }
 
@@ -2626,9 +2546,9 @@ function updateReactPanelPreview() {
         if (fieldsEl) {
             if (rpEmbedFields.length) {
                 fieldsEl.innerHTML = rpEmbedFields.filter(f => f.name || f.value).map(f =>
-                    `<div class="cc-dp-embed-field${f.inline ? ' inline' : ''}">
-                        <div class="cc-dp-embed-field-name">${escHtml(f.name)}</div>
-                        <div class="cc-dp-embed-field-value">${resolveHtmlMentions(mdToHtml(f.value))}</div>
+                    `<div class="dc-embed-field${f.inline ? ' inline' : ''}">
+                        <div class="dc-embed-field-name">${escHtml(f.name)}</div>
+                        <div class="dc-embed-field-value">${resolveHtmlMentions(mdToHtml(f.value))}</div>
                     </div>`
                 ).join('');
                 fieldsEl.style.display = '';
@@ -3124,8 +3044,7 @@ function updateReactPanelPreviewReacts() {
         .map(r => {
             const isCustom = r.emoji.includes(':');
             const display  = isCustom ? `<span style="font-size:.75rem;color:var(--text-muted)">:${r.emoji.split(':')[0]}:</span>` : r.emoji;
-            const roleName = ALL_ROLES.find(role => role.id === r.roleId)?.name || '';
-            return `<span class="ar-react-chip">${display}${roleName ? `<span class="ar-btn-role">@${roleName}</span>` : ''}</span>`;
+            return `<span class="ar-react-chip">${display}</span>`;
         }).join('');
 }
 
@@ -3138,7 +3057,7 @@ async function deleteReactPanel(name) {
     if (!confirm(msg)) return;
     const res  = await fetch(`/api/guild/${GUILD_ID}/autorole-reaction/${encodeURIComponent(name)}`, { method: 'DELETE' });
     const data = await res.json();
-    if (data.success) _reloadKeepHash();
+    if (data.success) _reloadKeepHash(data.message, 'success');
     else alert(data.message);
 }
 

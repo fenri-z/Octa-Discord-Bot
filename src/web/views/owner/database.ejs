@@ -527,8 +527,8 @@ async function addEntry() {
         const d = await r.json();
         if (!d.success) { showMsg(null, d.message, 'error'); return; }
 
-        showMsg(null, _dbt.saved, 'success');
-        setTimeout(() => location.reload(), 500);
+        queueToast(_dbt.saved, 'success');
+        location.reload();
     } catch {
         showMsg(null, _dbt.error, 'error');
     } finally {

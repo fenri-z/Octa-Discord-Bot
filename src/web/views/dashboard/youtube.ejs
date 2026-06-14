@@ -1,4 +1,4 @@
-<%- include('../partials/head') %>
+﻿<%- include('../partials/head') %>
 <%- include('../partials/navbar') %>
 <style>
 /* ── YouTube Notifications — Preview ────────────────────────────────────── */
@@ -191,8 +191,8 @@
     .yt-form-col .textarea { min-height: 70px; }
 
     /* Preview: lebih kompak di mobile kecil */
-    .cc-discord-preview { font-size: 12px; }
-    .cc-dp-msg { padding: .6rem; }
+    .dc-window { font-size: 12px; }
+    .dc-message { padding: .6rem; }
 }
 </style>
 
@@ -401,50 +401,50 @@
                 <!-- Preview -->
                 <div class="yt-preview-col">
                     <div class="preview-label"><%= t('common.preview') %></div>
-                    <div class="cc-discord-preview" id="ytPrev-<%= ytCh.id %>-video">
-                        <div class="cc-dp-channel">
+                    <div class="dc-window" id="ytPrev-<%= ytCh.id %>-video">
+                        <div class="dc-channel-bar">
                             <span style="opacity:.5;font-weight:700;font-size:.85rem;flex-shrink:0;">#</span>
                             <span class="yt-prev-ch-name"><%= _ytChName(ytCh.videoChannelId) %></span>
                         </div>
-                        <div class="cc-dp-msg">
-                            <div class="cc-dp-ava">
+                        <div class="dc-message">
+                            <div class="dc-avatar">
                                 <img src="<%= locals.botNavAvatar || 'https://cdn.discordapp.com/embed/avatars/0.png' %>" alt="" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
                             </div>
-                            <div class="cc-dp-right">
-                                <div class="cc-dp-name">
+                            <div class="dc-msg-body">
+                                <div class="dc-username-row">
                                     <%= locals.botNavName || 'Bot' %>
-                                    <span class="cc-dp-app-badge">
+                                    <span class="dc-app-badge">
                                         <svg width="9" height="9" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M1.5 6L4.5 9L10.5 3" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                                         APP
                                     </span>
-                                    <span class="cc-dp-time">Today at 12:00 PM</span>
+                                    <span class="dc-timestamp">Today at 12:00 PM</span>
                                 </div>
-                                <div class="cc-dp-embed">
-                                    <div class="cc-dp-embed-bar yt-prev-pill" style="background:#FF0000;"></div>
-                                    <div class="cc-dp-embed-body">
-                                        <div class="cc-dp-embed-main">
-                                            <div class="cc-dp-embed-content">
-                                                <div class="cc-dp-embed-title">
+                                <div class="dc-embed">
+                                    <div class="dc-embed-pill yt-prev-pill" style="background:#FF0000;"></div>
+                                    <div class="dc-embed-body">
+                                        <div class="dc-embed-main">
+                                            <div class="dc-embed-content">
+                                                <div class="dc-embed-title">
                                                     <a href="<%= _ytMockUrl %>" onclick="return false;" style="color:#00b0f4;text-decoration:none;">📹 <%= ytCh.name %> — New Video!</a>
                                                 </div>
-                                                <div class="yt-prev-msg yt-prev-desc cc-dp-embed-desc">
+                                                <div class="yt-prev-msg yt-prev-desc dc-embed-desc">
                                                     <%- _md(`Hey, **${ytCh.name}** just uploaded a new video on YouTube!\nDon't miss it, watch now! 🎉`) %>
                                                 </div>
-                                                <div class="yt-prev-msg cc-dp-embed-desc" style="display:none;"></div>
+                                                <div class="yt-prev-msg dc-embed-desc" style="display:none;"></div>
                                                 <div style="margin-top:.35rem;">
                                                     <div style="margin-bottom:.3rem;">
-                                                        <div class="cc-dp-field-name">🎬 Video Title</div>
-                                                        <div class="cc-dp-field-val"><a href="<%= _ytMockUrl %>" onclick="return false;" style="color:#00b0f4;text-decoration:none;">Example Video Title That Will Appear</a></div>
+                                                        <div class="dc-field-name">🎬 Video Title</div>
+                                                        <div class="dc-field-value"><a href="<%= _ytMockUrl %>" onclick="return false;" style="color:#00b0f4;text-decoration:none;">Example Video Title That Will Appear</a></div>
                                                     </div>
                                                     <div>
-                                                        <div class="cc-dp-field-name">🔗 Link</div>
-                                                        <div class="cc-dp-field-val"><a href="<%= _ytMockUrl %>" onclick="return false;" style="color:#00b0f4;text-decoration:none;">Click Me ▶</a></div>
+                                                        <div class="dc-field-name">🔗 Link</div>
+                                                        <div class="dc-field-value"><a href="<%= _ytMockUrl %>" onclick="return false;" style="color:#00b0f4;text-decoration:none;">Click Me ▶</a></div>
                                                     </div>
                                                 </div>
                                             </div>
                                             <% if (ytCh.thumbnail) { %>
-                                            <div class="cc-dp-embed-thumb">
-                                                <img src="<%= ytCh.thumbnail %>" referrerpolicy="no-referrer" alt="" onerror="this.closest('.cc-dp-embed-thumb').style.display='none'">
+                                            <div class="dc-embed-thumb">
+                                                <img src="<%= ytCh.thumbnail %>" referrerpolicy="no-referrer" alt="" onerror="this.closest('.dc-embed-thumb').style.display='none'">
                                             </div>
                                             <% } %>
                                         </div>
@@ -453,10 +453,10 @@
                                                 <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M8 5v14l11-7z"/></svg>
                                             </div>
                                         </div>
-                                        <div class="cc-dp-embed-footer">
+                                        <div class="dc-embed-footer">
                                             <svg viewBox="0 0 24 24" fill="#FF0000" style="width:12px;height:12px;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
                                             <span>YouTube Video</span>
-                                            <span class="cc-dp-footer-sep"> • </span>
+                                            <span class="dc-footer-sep"> • </span>
                                             <span>Today at 12:00 PM</span>
                                         </div>
                                     </div>
@@ -510,50 +510,50 @@
                 </div>
                 <div class="yt-preview-col">
                     <div class="preview-label"><%= t('common.preview') %></div>
-                    <div class="cc-discord-preview" id="ytPrev-<%= ytCh.id %>-short">
-                        <div class="cc-dp-channel">
+                    <div class="dc-window" id="ytPrev-<%= ytCh.id %>-short">
+                        <div class="dc-channel-bar">
                             <span style="opacity:.5;font-weight:700;font-size:.85rem;flex-shrink:0;">#</span>
                             <span class="yt-prev-ch-name"><%= _ytChName(ytCh.shortChannelId) %></span>
                         </div>
-                        <div class="cc-dp-msg">
-                            <div class="cc-dp-ava">
+                        <div class="dc-message">
+                            <div class="dc-avatar">
                                 <img src="<%= locals.botNavAvatar || 'https://cdn.discordapp.com/embed/avatars/0.png' %>" alt="" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
                             </div>
-                            <div class="cc-dp-right">
-                                <div class="cc-dp-name">
+                            <div class="dc-msg-body">
+                                <div class="dc-username-row">
                                     <%= locals.botNavName || 'Bot' %>
-                                    <span class="cc-dp-app-badge">
+                                    <span class="dc-app-badge">
                                         <svg width="9" height="9" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M1.5 6L4.5 9L10.5 3" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                                         APP
                                     </span>
-                                    <span class="cc-dp-time">Today at 12:00 PM</span>
+                                    <span class="dc-timestamp">Today at 12:00 PM</span>
                                 </div>
-                                <div class="cc-dp-embed">
-                                    <div class="cc-dp-embed-bar yt-prev-pill" style="background:#FF6B35;"></div>
-                                    <div class="cc-dp-embed-body">
-                                        <div class="cc-dp-embed-main">
-                                            <div class="cc-dp-embed-content">
-                                                <div class="cc-dp-embed-title">
+                                <div class="dc-embed">
+                                    <div class="dc-embed-pill yt-prev-pill" style="background:#FF6B35;"></div>
+                                    <div class="dc-embed-body">
+                                        <div class="dc-embed-main">
+                                            <div class="dc-embed-content">
+                                                <div class="dc-embed-title">
                                                     <a href="<%= _ytMockUrl %>" onclick="return false;" style="color:#00b0f4;text-decoration:none;">🎬 <%= ytCh.name %> — New Short!</a>
                                                 </div>
-                                                <div class="yt-prev-msg yt-prev-desc cc-dp-embed-desc">
+                                                <div class="yt-prev-msg yt-prev-desc dc-embed-desc">
                                                     <%- _md(`**${ytCh.name}** just posted a new Short!\nCheck out their quick video, don't miss out! ⚡`) %>
                                                 </div>
-                                                <div class="yt-prev-msg cc-dp-embed-desc" style="display:none;"></div>
+                                                <div class="yt-prev-msg dc-embed-desc" style="display:none;"></div>
                                                 <div style="margin-top:.35rem;">
                                                     <div style="margin-bottom:.3rem;">
-                                                        <div class="cc-dp-field-name">🎬 Short Title</div>
-                                                        <div class="cc-dp-field-val"><a href="<%= _ytMockUrl %>" onclick="return false;" style="color:#00b0f4;text-decoration:none;">Example Short Title #shorts</a></div>
+                                                        <div class="dc-field-name">🎬 Short Title</div>
+                                                        <div class="dc-field-value"><a href="<%= _ytMockUrl %>" onclick="return false;" style="color:#00b0f4;text-decoration:none;">Example Short Title #shorts</a></div>
                                                     </div>
                                                     <div>
-                                                        <div class="cc-dp-field-name">🔗 Link</div>
-                                                        <div class="cc-dp-field-val"><a href="<%= _ytMockUrl %>" onclick="return false;" style="color:#00b0f4;text-decoration:none;">Click Me ▶</a></div>
+                                                        <div class="dc-field-name">🔗 Link</div>
+                                                        <div class="dc-field-value"><a href="<%= _ytMockUrl %>" onclick="return false;" style="color:#00b0f4;text-decoration:none;">Click Me ▶</a></div>
                                                     </div>
                                                 </div>
                                             </div>
                                             <% if (ytCh.thumbnail) { %>
-                                            <div class="cc-dp-embed-thumb">
-                                                <img src="<%= ytCh.thumbnail %>" referrerpolicy="no-referrer" alt="" onerror="this.closest('.cc-dp-embed-thumb').style.display='none'">
+                                            <div class="dc-embed-thumb">
+                                                <img src="<%= ytCh.thumbnail %>" referrerpolicy="no-referrer" alt="" onerror="this.closest('.dc-embed-thumb').style.display='none'">
                                             </div>
                                             <% } %>
                                         </div>
@@ -562,10 +562,10 @@
                                                 <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M8 5v14l11-7z"/></svg>
                                             </div>
                                         </div>
-                                        <div class="cc-dp-embed-footer">
+                                        <div class="dc-embed-footer">
                                             <svg viewBox="0 0 24 24" fill="#FF0000" style="width:12px;height:12px;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
                                             <span>YouTube Short</span>
-                                            <span class="cc-dp-footer-sep"> • </span>
+                                            <span class="dc-footer-sep"> • </span>
                                             <span>Today at 12:00 PM</span>
                                         </div>
                                     </div>
@@ -619,50 +619,50 @@
                 </div>
                 <div class="yt-preview-col">
                     <div class="preview-label"><%= t('common.preview') %></div>
-                    <div class="cc-discord-preview" id="ytPrev-<%= ytCh.id %>-live">
-                        <div class="cc-dp-channel">
+                    <div class="dc-window" id="ytPrev-<%= ytCh.id %>-live">
+                        <div class="dc-channel-bar">
                             <span style="opacity:.5;font-weight:700;font-size:.85rem;flex-shrink:0;">#</span>
                             <span class="yt-prev-ch-name"><%= _ytChName(ytCh.liveChannelId) %></span>
                         </div>
-                        <div class="cc-dp-msg">
-                            <div class="cc-dp-ava">
+                        <div class="dc-message">
+                            <div class="dc-avatar">
                                 <img src="<%= locals.botNavAvatar || 'https://cdn.discordapp.com/embed/avatars/0.png' %>" alt="" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
                             </div>
-                            <div class="cc-dp-right">
-                                <div class="cc-dp-name">
+                            <div class="dc-msg-body">
+                                <div class="dc-username-row">
                                     <%= locals.botNavName || 'Bot' %>
-                                    <span class="cc-dp-app-badge">
+                                    <span class="dc-app-badge">
                                         <svg width="9" height="9" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M1.5 6L4.5 9L10.5 3" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                                         APP
                                     </span>
-                                    <span class="cc-dp-time">Today at 12:00 PM</span>
+                                    <span class="dc-timestamp">Today at 12:00 PM</span>
                                 </div>
-                                <div class="cc-dp-embed">
-                                    <div class="cc-dp-embed-bar yt-prev-pill" style="background:#CC0000;"></div>
-                                    <div class="cc-dp-embed-body">
-                                        <div class="cc-dp-embed-main">
-                                            <div class="cc-dp-embed-content">
-                                                <div class="cc-dp-embed-title">
+                                <div class="dc-embed">
+                                    <div class="dc-embed-pill yt-prev-pill" style="background:#CC0000;"></div>
+                                    <div class="dc-embed-body">
+                                        <div class="dc-embed-main">
+                                            <div class="dc-embed-content">
+                                                <div class="dc-embed-title">
                                                     <a href="<%= _ytMockUrl %>" onclick="return false;" style="color:#00b0f4;text-decoration:none;">🔴 <%= ytCh.name %> is Live Right Now!</a>
                                                 </div>
-                                                <div class="yt-prev-msg yt-prev-desc cc-dp-embed-desc">
+                                                <div class="yt-prev-msg yt-prev-desc dc-embed-desc">
                                                     <%- _md(`Hey, **${ytCh.name}** is **LIVE** on YouTube right now!\nCome join and watch the stream~ 🎉`) %>
                                                 </div>
-                                                <div class="yt-prev-msg cc-dp-embed-desc" style="display:none;"></div>
+                                                <div class="yt-prev-msg dc-embed-desc" style="display:none;"></div>
                                                 <div style="margin-top:.35rem;">
                                                     <div style="margin-bottom:.3rem;">
-                                                        <div class="cc-dp-field-name">🎙️ Stream Title</div>
-                                                        <div class="cc-dp-field-val"><a href="<%= _ytMockUrl %>" onclick="return false;" style="color:#00b0f4;text-decoration:none;">Live Stream Title Example</a></div>
+                                                        <div class="dc-field-name">🎙️ Stream Title</div>
+                                                        <div class="dc-field-value"><a href="<%= _ytMockUrl %>" onclick="return false;" style="color:#00b0f4;text-decoration:none;">Live Stream Title Example</a></div>
                                                     </div>
                                                     <div>
-                                                        <div class="cc-dp-field-name">🔗 Link</div>
-                                                        <div class="cc-dp-field-val"><a href="<%= _ytMockUrl %>" onclick="return false;" style="color:#00b0f4;text-decoration:none;">Click Me ▶</a></div>
+                                                        <div class="dc-field-name">🔗 Link</div>
+                                                        <div class="dc-field-value"><a href="<%= _ytMockUrl %>" onclick="return false;" style="color:#00b0f4;text-decoration:none;">Click Me ▶</a></div>
                                                     </div>
                                                 </div>
                                             </div>
                                             <% if (ytCh.thumbnail) { %>
-                                            <div class="cc-dp-embed-thumb">
-                                                <img src="<%= ytCh.thumbnail %>" referrerpolicy="no-referrer" alt="" onerror="this.closest('.cc-dp-embed-thumb').style.display='none'">
+                                            <div class="dc-embed-thumb">
+                                                <img src="<%= ytCh.thumbnail %>" referrerpolicy="no-referrer" alt="" onerror="this.closest('.dc-embed-thumb').style.display='none'">
                                             </div>
                                             <% } %>
                                         </div>
@@ -671,10 +671,10 @@
                                                 <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M8 5v14l11-7z"/></svg>
                                             </div>
                                         </div>
-                                        <div class="cc-dp-embed-footer">
+                                        <div class="dc-embed-footer">
                                             <svg viewBox="0 0 24 24" fill="#FF0000" style="width:12px;height:12px;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
                                             <span>YouTube Live</span>
-                                            <span class="cc-dp-footer-sep"> • </span>
+                                            <span class="dc-footer-sep"> • </span>
                                             <span>Today at 12:00 PM</span>
                                         </div>
                                     </div>
@@ -757,8 +757,8 @@ async function addYtChannel() {
         });
         const data = await r.json();
         if (data.success) {
-            showMsg(null, data.message, 'success');
-            setTimeout(() => location.reload(), 900);
+            queueToast(data.message, 'success');
+            location.reload();
         } else {
             showMsg(null, data.message, 'error');
         }
@@ -950,12 +950,12 @@ async function deleteYtChannel(chId, chName) {
         const r    = await fetch(`/api/guild/${GUILD_ID}/youtube/channels/${chId}`, { method: 'DELETE' });
         const data = await r.json();
         if (data.success) {
-            showMsg(null, data.message, 'success');
             const card = document.getElementById(`ytCard-${chId}`);
             if (card) card.remove();
             const stat = document.getElementById('statChannels');
             if (stat) stat.textContent = Math.max(0, parseInt(stat.textContent) - 1);
-            if (!document.querySelector('.yt-channel-card')) setTimeout(() => location.reload(), 900);
+            if (!document.querySelector('.yt-channel-card')) { queueToast(data.message, 'success'); location.reload(); }
+            else showMsg(null, data.message, 'success');
         } else {
             showMsg(null, data.message, 'error');
         }
