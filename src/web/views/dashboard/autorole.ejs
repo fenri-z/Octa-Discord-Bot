@@ -220,15 +220,270 @@
                 <input type="text" class="input mb-search" data-flt-ignore placeholder="<%= t('autorole.search_panel_ph') %>" oninput="filterPanels(this.value)">
             </div>
 
-            <!-- Layout 2 kolom: list kiri + preview kanan -->
-            <div class="ap-page-layout">
-            <div class="ap-list-col">
+            <!-- Inline form card -->
+            <div class="settings-card" id="panelFormCard" style="display:none;margin-bottom:1.5rem;" data-flt-ignore>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+                    <h2 id="panelModalTitle" style="margin:0;font-size:1.05rem;font-weight:600;"></h2>
+                    <button class="mb-modal-close" onclick="closePanelModal()">✕</button>
+                </div>
+                <input type="hidden" id="panelOriginalName">
+                <input type="hidden" id="panelIsSent" value="0">
+
+                <div class="mb-editor-layout">
+                    <!-- ── Form kiri ── -->
+                    <div class="mb-editor-form">
+
+                        <div class="form-group">
+                            <label class="label"><%= t('autorole.panel_name_label') %></label>
+                            <input type="text" id="panelName" class="input" placeholder="e.g.: choose-role" maxlength="32">
+                            <div class="hint"><%- t('autorole.panel_name_hint') %></div>
+                        </div>
+
+                        <div class="form-group" id="panelChannelGroup" style="display:none;">
+                            <label class="label">Channel <span style="font-size:.75rem;color:var(--text-muted);font-weight:400;">(optional — select to send after saving)</span></label>
+                            <select id="panelSendPreviewChannel" class="select" data-flt-ignore onchange="updatePanelPreviewChannel()">
+                                <option value="">— Select channel —</option>
+                                <% channels.forEach(c => { %>
+                                    <option value="<%= c.id %>">#<%= c.name %></option>
+                                <% }) %>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="label"><%= t('autorole.mode_label') %></label>
+                            <select id="panelMode" class="select">
+                                <option value="multi"><%= t('autorole.mode_multi') %></option>
+                                <option value="single"><%= t('autorole.mode_single') %></option>
+                            </select>
+                        </div>
+
+                        <!-- Plain text panel -->
+                        <div id="panelPlainPanel">
+                            <div class="mb-section">
+                                <div class="mb-section-head">
+                                    <span class="mb-section-title"><i data-lucide="message-square" style="width:14px;height:14px;vertical-align:middle;margin-right:.3rem;"></i> <%= t('common.plain_text_message') %></span>
+                                    <div class="ph-btn-group">
+                                        <div class="ph-picker-anchor">
+                                            <button type="button" class="ph-toggle-btn" onclick="togglePicker('panelPlainPhPicker',event)">{…} Placeholder</button>
+                                            <div class="ph-dropdown" id="panelPlainPhPicker" style="display:none;"></div>
+                                        </div>
+                                        <div class="ph-picker-anchor mention-anchor">
+                                            <button type="button" class="ph-toggle-btn" onclick="togglePicker('panelPlainMentionPicker',event)">@ Mention</button>
+                                            <div class="ph-dropdown mention-dd" id="panelPlainMentionPicker" style="display:none;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mb-section-body">
+                                    <textarea id="panelPlainText" class="textarea mb-auto-resize" rows="5"
+                                              placeholder="<%= t('autorole.plain_text_ph') %>"
+                                              oninput="apResizeArea(this);updatePanelPreview()"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Embed panel -->
+                        <div id="panelEmbedPanel">
+                        <div class="mb-section">
+                            <div class="mb-section-head">
+                                <span class="mb-section-title"><i data-lucide="layers" style="width:14px;height:14px;vertical-align:middle;margin-right:.3rem;"></i> Embed Builder</span>
+                                <div style="display:flex;align-items:center;gap:.45rem;">
+                                    <span style="font-size:.75rem;color:var(--text-muted);"><%= t('message_builder.label_accent') %></span>
+                                    <input type="color" id="panelColorPicker" value="#5865F2" class="mb-color-pk"
+                                           oninput="document.getElementById('panelEmbedColor').value=this.value;updatePanelPreview()">
+                                    <input type="hidden" id="panelEmbedColor" value="#5865F2">
+                                </div>
+                            </div>
+                            <div class="mb-section-body" style="padding:0;">
+                                <div class="ee-body" style="border:none;border-radius:0;">
+
+                                    <div class="ee-section">
+                                        <div class="ee-sec-label"><%= t('message_builder.label_author') %></div>
+                                        <div class="form-group" style="margin-bottom:.5rem;">
+                                            <input type="text" id="panelEmbedAuthorName" class="input"
+                                                   placeholder="<%= t('message_builder.ph_author_name') %>" maxlength="256" oninput="updatePanelPreview()">
+                                        </div>
+                                        <div class="mb-url-pair">
+                                            <textarea id="panelEmbedAuthorUrl" class="input input-sm mb-url-area" rows="1"
+                                                   placeholder="<%= t('message_builder.ph_author_url') %>" oninput="apResizeArea(this);updatePanelPreview()"></textarea>
+                                            <textarea id="panelEmbedAuthorIcon" class="input input-sm mb-url-area" rows="1"
+                                                   placeholder="<%= t('message_builder.ph_author_icon') %>" oninput="apResizeArea(this);updatePanelPreview()"></textarea>
+                                        </div>
+                                    </div>
+
+                                    <div class="ee-sep"></div>
+
+                                    <div class="ee-section">
+                                        <div class="ee-sec-label"><%= t('message_builder.label_title') %></div>
+                                        <div class="form-group" style="margin-bottom:.5rem;">
+                                            <input type="text" id="panelEmbedTitle" class="input ee-title-input"
+                                                   placeholder="<%= t('message_builder.ph_embed_title') %>"
+                                                   maxlength="256" oninput="updatePanelPreview()">
+                                        </div>
+                                        <textarea id="panelEmbedTitleUrl" class="input input-sm mb-url-area" rows="1"
+                                               placeholder="<%= t('message_builder.ph_title_url') %>" oninput="apResizeArea(this);updatePanelPreview()"></textarea>
+                                    </div>
+
+                                    <div class="ee-sep"></div>
+
+                                    <div class="ee-section">
+                                        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.3rem;margin-bottom:.45rem;">
+                                            <div class="ee-sec-label" style="margin:0;"><%= t('message_builder.label_description') %></div>
+                                            <div class="ph-btn-group">
+                                                <div class="ph-picker-anchor">
+                                                    <button type="button" class="ph-toggle-btn cc-ph-dark-btn" onclick="togglePicker('panelDescPhPicker',event)">{…} Placeholder</button>
+                                                    <div class="ph-dropdown" id="panelDescPhPicker" style="display:none;"></div>
+                                                </div>
+                                                <div class="ph-picker-anchor mention-anchor">
+                                                    <button type="button" class="ph-toggle-btn cc-ph-dark-btn" onclick="togglePicker('panelEmbedMentionPicker',event)">@ Mention</button>
+                                                    <div class="ph-dropdown mention-dd" id="panelEmbedMentionPicker" style="display:none;"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <textarea id="panelEmbedDescription" class="textarea mb-auto-resize" rows="4"
+                                                  placeholder="<%= t('message_builder.ph_description') %>" maxlength="4000"
+                                                  oninput="apResizeArea(this);updatePanelPreview()"></textarea>
+                                    </div>
+
+                                    <div class="ee-sep"></div>
+
+                                    <div class="ee-section">
+                                        <div class="ee-sec-label"><%= t('message_builder.label_media') %></div>
+                                        <div class="form-group" style="margin-bottom:.5rem;">
+                                            <label class="label"><%= t('message_builder.label_thumbnail') %></label>
+                                            <textarea id="panelEmbedThumbnail" class="input input-sm mb-url-area" rows="1"
+                                                   placeholder="https://..." oninput="apResizeArea(this);updatePanelPreview()"></textarea>
+                                        </div>
+                                        <div>
+                                            <label class="label"><%= t('message_builder.label_image') %></label>
+                                            <textarea id="panelEmbedImage" class="input input-sm mb-url-area" rows="1"
+                                                   placeholder="https://..." oninput="apResizeArea(this);updatePanelPreview()"></textarea>
+                                        </div>
+                                    </div>
+
+                                    <div class="ee-sep"></div>
+
+                                    <div class="ee-section">
+                                        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem;">
+                                            <div class="ee-sec-label" style="margin:0;"><%= t('message_builder.label_fields') %> <span id="apFieldCount" style="font-weight:400;text-transform:none;letter-spacing:0;">(0 / 25)</span></div>
+                                            <button type="button" class="btn btn-outline btn-sm" onclick="addApField()">＋ <%= t('message_builder.btn_add_field') %></button>
+                                        </div>
+                                        <div id="apFieldsList"></div>
+                                    </div>
+
+                                    <div class="ee-sep"></div>
+
+                                    <div class="ee-section">
+                                        <div class="ee-sec-label"><%= t('message_builder.label_footer') %></div>
+                                        <div style="margin-bottom:.5rem;">
+                                            <input type="text" id="panelEmbedFooter" class="input input-sm"
+                                                   style="display:block;width:100%;"
+                                                   placeholder="<%= t('message_builder.ph_footer_text') %>" maxlength="2048"
+                                                   oninput="updatePanelPreview()">
+                                        </div>
+                                        <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;">
+                                            <textarea id="panelEmbedFooterIcon" class="input input-sm mb-url-area" rows="1"
+                                                   style="flex:1;min-width:120px;"
+                                                   placeholder="<%= t('message_builder.ph_footer_icon') %>"
+                                                   oninput="apResizeArea(this);updatePanelPreview()"></textarea>
+                                            <label class="toggle-label" style="gap:.5rem;cursor:pointer;flex-shrink:0;">
+                                                <input type="checkbox" id="panelEmbedTimestamp" class="toggle-input"
+                                                       onchange="updatePanelPreview()">
+                                                <span class="toggle-slider"></span>
+                                                <span class="label" style="margin:0;white-space:nowrap;"><%= t('message_builder.label_timestamp') %></span>
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                        </div><!-- /panelEmbedPanel -->
+
+                        <!-- ── Section Tombol (hanya tampil saat buat panel baru) ── -->
+                        <div id="panelInlineButtons" style="display:none;margin-top:1.25rem;">
+                            <div class="ar-divider"></div>
+                            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem;flex-wrap:wrap;gap:.5rem;">
+                                <div style="display:flex;align-items:center;gap:.5rem;">
+                                    <span style="font-size:.8rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;display:flex;align-items:center;gap:.3rem;"><i data-lucide="circle-dot" style="width:13px;height:13px;"></i> Role Buttons</span>
+                                    <span id="inlineBtnCounter" style="font-size:.72rem;padding:.15rem .45rem;border-radius:999px;background:var(--bg2);border:1px solid var(--border);color:var(--text-muted);">0/25</span>
+                                </div>
+                                <button type="button" class="btn btn-primary btn-sm" onclick="addInlineBtnRow()" style="gap:.3rem;">
+                                    <span style="font-size:1rem;line-height:1;">＋</span> Add Button
+                                </button>
+                            </div>
+                            <div id="inlineBtnTable" data-flt-ignore></div>
+                            <p id="inlineBtnEmpty" style="color:var(--text-muted);font-size:.85rem;padding:.4rem 0;">
+                                <%- t('autorole.no_inline_buttons_hint') %>
+                            </p>
+                        </div>
+
+                    </div>
+
+                    <!-- ── Preview kanan ── -->
+                    <div class="mb-editor-preview">
+                        <div class="preview-label">Preview</div>
+                        <div class="cc-discord-preview">
+                            <div id="apPreviewChannel" class="cc-dp-channel">
+                                <span style="opacity:.5;font-weight:700;font-size:.85rem;flex-shrink:0;">#</span>preview
+                            </div>
+                            <div class="cc-dp-msg">
+                                <div class="cc-dp-ava">
+                                    <img src="<%- locals.botNavAvatar || 'https://cdn.discordapp.com/embed/avatars/0.png' %>"
+                                         alt="" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+                                </div>
+                                <div class="cc-dp-right">
+                                    <div class="cc-dp-name">
+                                        <%- locals.botNavName || 'Bot' %>
+                                        <span class="cc-dp-app-badge"><svg width="9" height="9" viewBox="0 0 12 12" fill="none"><path d="M1.5 6L4.5 9L10.5 3" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> APP</span>
+                                        <span class="cc-dp-time">Today at 12:00</span>
+                                    </div>
+                                    <div id="apModalPreviewPlain" class="cc-dp-text" style="display:none;"></div>
+                                    <div id="apModalPreviewEmbed" class="cc-dp-embed" style="display:none;">
+                                        <div id="apModalPreviewPill" class="cc-dp-embed-bar" style="background:#5865F2;"></div>
+                                        <div class="cc-dp-embed-body">
+                                            <div class="cc-dp-embed-main">
+                                                <div class="cc-dp-embed-content">
+                                                    <div id="apModalPreviewAuthor" class="cc-dp-embed-author" style="display:none;"></div>
+                                                    <div id="apModalPreviewTitle"  class="cc-dp-embed-title"  style="display:none;"></div>
+                                                    <div id="apModalPreviewDesc"   class="cc-dp-embed-desc"   style="display:none;"></div>
+                                                    <div id="apModalPreviewFields" class="cc-dp-embed-fields" style="display:none;"></div>
+                                                </div>
+                                                <div id="apModalPreviewThumb" class="cc-dp-embed-thumb" style="display:none;">
+                                                    <img id="apModalPreviewThumbImg" src="" alt="">
+                                                </div>
+                                            </div>
+                                            <div id="apModalPreviewImage" class="cc-dp-embed-image" style="display:none;">
+                                                <img id="apModalPreviewImageImg" src="" alt="">
+                                            </div>
+                                            <div id="apModalPreviewFooter" class="cc-dp-embed-footer" style="display:none;"></div>
+                                        </div>
+                                    </div>
+                                    <div id="apModalPreviewBtns" style="display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.5rem;"></div>
+                                    <div id="apModalPreviewEmpty" class="cc-dp-empty">Fill in the form to see preview</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="panelPreviewHint" style="margin-top:.75rem;font-size:.78rem;color:var(--text-muted);display:none;"></div>
+                    </div>
+                </div>
+
+                <div id="panelMsg" class="form-message" style="margin-top:.75rem;"></div>
+                <div id="panelFooterForm" style="display:flex;gap:.5rem;align-items:center;margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border);">
+                    <button id="panelBtnReset" class="btn btn-outline" onclick="resetPanelToOriginal()" style="display:none;margin-right:auto;" title="Discard changes and reload original data">
+                        <i data-lucide="rotate-ccw" style="width:13px;height:13px;vertical-align:middle;margin-right:.3rem;"></i><%= t('common.reset') %>
+                    </button>
+                    <span style="flex:1;"></span>
+                    <button class="btn btn-outline" onclick="closePanelModal()"><%= t('common.cancel') %></button>
+                    <button class="btn btn-outline" onclick="savePanel()"><i data-lucide="save" style="width:14px;height:14px;vertical-align:middle;margin-right:.3rem;"></i><%= t('common.save') %></button>
+                    <button id="panelBtnSend" class="btn btn-primary" onclick="saveAndSendPanel()" style="display:none;"><i data-lucide="send" style="width:14px;height:14px;vertical-align:middle;margin-right:.3rem;"></i>Send</button>
+                </div>
+            </div>
 
             <!-- Grid panel -->
             <div id="panelGrid">
                 <% if (panels.length === 0) { %>
                     <div class="empty-state" id="emptyPanels">
-                        <p style="font-size:2rem;margin-bottom:.5rem">🔘</p>
+                        <p style="margin-bottom:.5rem"><i data-lucide="circle-dot" style="width:2rem;height:2rem;color:var(--text-muted);"></i></p>
                         <p><%- t('autorole.btn_no_panels') %></p>
                         <p style="color:var(--text-muted);font-size:.85rem;margin-top:.5rem">
                             <%= t('autorole.discord_cmd_hint') %>
@@ -237,13 +492,16 @@
                     </div>
                 <% } else { %>
                     <% panels.forEach(p => { %>
-                    <div class="ar-panel-card" data-name="<%= p.name %>">
+                    <div class="ar-panel-card" data-name="<%= p.name %>" data-channel-id="<%= p.channelId || '' %>">
                         <div class="ar-panel-header">
-                            <span class="ar-panel-name">🔘 <%= p.name %></span>
+                            <span class="ar-panel-name"><i data-lucide="circle-dot" style="width:13px;height:13px;vertical-align:middle;margin-right:.25rem;"></i><%= p.name %></span>
                             <span class="ar-panel-mode <%= p.mode === 'single' ? 'mode-single' : 'mode-multi' %>">
-                                <%= p.mode === 'single' ? '🔘 Single' : '☑️ Multi' %>
+                                <%= p.mode === 'single' ? 'Single' : 'Multi' %>
                             </span>
                             <% const sentP = sentPanels[p.name]; %>
+                            <% if (!sentP && p.channelId) { %>
+                            <span class="mb-badge" style="background:rgba(88,101,242,.15);color:#7289da;border:1px solid rgba(88,101,242,.3);font-size:.72rem;">#<%= channels.find(c => c.id === p.channelId)?.name || p.channelId %></span>
+                            <% } %>
                             <span class="ar-panel-status <%= sentP ? 'status-sent' : 'status-unsent' %>">
                                 <%= sentP ? t('autorole.status_sent') : t('autorole.status_unsent') %>
                             </span>
@@ -283,13 +541,13 @@
                             <% } %>
                         </div>
                         <div class="ar-panel-actions">
-                            <button class="btn btn-outline btn-sm" onclick="openEditPanel('<%= p.name %>')"><%= t('autorole.edit_panel_btn') %></button>
+                            <button class="btn btn-outline btn-sm" onclick="openEditPanel('<%= p.name %>', <%= sentP ? 'true' : 'false' %>)"><i data-lucide="pencil" style="width:13px;height:13px;vertical-align:middle;margin-right:.25rem;"></i><%= t('autorole.edit_panel_btn') %></button>
                             <% if (sentP) { %>
                                 <a class="btn btn-outline btn-sm"
                                    href="https://discord.com/channels/<%= guild.id %>/<%= sentP.channelId %>/<%= sentP.messageId %>"
-                                   target="_blank">🔗 View</a>
+                                   target="_blank"><i data-lucide="external-link" style="width:13px;height:13px;vertical-align:middle;margin-right:.2rem;"></i> View</a>
                             <% } else { %>
-                                <button class="btn btn-outline btn-sm" onclick="openSendPanel('<%= p.name %>')">📨 Send</button>
+                                <button class="btn btn-outline btn-sm" onclick="openSendPanel('<%= p.name %>')"><i data-lucide="send" style="width:13px;height:13px;vertical-align:middle;margin-right:.2rem;"></i> Send</button>
                             <% } %>
                             <button class="btn btn-sm ar-btn-delete" onclick="deletePanel('<%= p.name %>')"><i data-lucide="trash-2"></i></button>
                         </div>
@@ -297,54 +555,6 @@
                     <% }) %>
                 <% } %>
             </div><!-- /panelGrid -->
-            </div><!-- /ap-list-col -->
-
-            <!-- Preview panel kanan -->
-            <div class="ap-preview-panel" id="apPreviewPanel">
-                <div class="ap-preview-header">
-                    <span class="ap-preview-title" id="apPreviewTitle">Preview</span>
-                    <button class="ap-preview-close" onclick="closePreviewPanel()">✕</button>
-                </div>
-                <div class="ap-preview-body">
-                    <div id="apPreviewPlaceholder" class="ap-preview-placeholder">
-                        <div style="font-size:1.75rem">👆</div>
-                        <div><%= t('autorole.click_panel_preview') %></div>
-                    </div>
-                    <div id="apPreviewContent" style="display:none;">
-                        <div class="dc-window">
-                            <div class="dc-channel-bar">
-                                <span class="dc-channel-hash">#</span>
-                                <span>preview-channel</span>
-                            </div>
-                            <div class="dc-messages">
-                                <div class="dc-message">
-                                    <img class="dc-avatar"
-                                         src="<%- locals.botNavAvatar || 'https://cdn.discordapp.com/embed/avatars/0.png' %>"
-                                         alt="avatar" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
-                                    <div class="dc-msg-body">
-                                        <span class="dc-username"><%- locals.botNavName || 'Bot' %></span>
-                                        <span class="dc-timestamp">Today at 12:00 PM</span>
-                                        <div id="apPanelPreviewPlain" class="dc-plain-msg" style="display:none;"></div>
-                                        <div class="dc-embed" id="apPanelPreviewEmbed" style="display:none;">
-                                            <div class="dc-embed-pill" id="apPanelPreviewPill"></div>
-                                            <div class="dc-embed-content">
-                                                <div class="dc-embed-title"  id="apPanelPreviewTitle"></div>
-                                                <div class="dc-embed-desc"   id="apPanelPreviewDesc"></div>
-                                                <img id="apPanelPreviewImage" src="" alt="" style="display:none;max-width:100%;border-radius:4px;margin-top:.5rem;">
-                                                <div class="dc-embed-footer" id="apPanelPreviewFooter"></div>
-                                            </div>
-                                            <img class="dc-embed-thumb" id="apPanelPreviewThumb" src="" alt="" style="display:none;">
-                                        </div>
-                                        <div id="apPanelPreviewBtns" style="display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.5rem;"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            </div><!-- /ap-page-layout -->
         </div><!-- /tab-button -->
 
         <!-- ══════════════════════════════════════
@@ -384,15 +594,271 @@
                 <input type="text" class="input mb-search" data-flt-ignore placeholder="<%= t('autorole.search_panel_ph') %>" oninput="filterReactPanels(this.value)">
             </div>
 
-            <!-- Layout 2 kolom: list kiri + preview kanan -->
-            <div class="ap-page-layout">
-            <div class="ap-list-col">
+            <!-- Inline form card (reaction) -->
+            <div class="settings-card" id="reactPanelFormCard" style="display:none;margin-bottom:1.5rem;" data-flt-ignore>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+                    <h2 id="reactPanelModalTitle" style="margin:0;font-size:1.05rem;font-weight:600;"></h2>
+                    <button class="mb-modal-close" onclick="closeReactPanelModal()">✕</button>
+                </div>
+                <input type="hidden" id="reactPanelOriginalName">
+
+                <div class="mb-editor-layout">
+                    <!-- ── Form kiri ── -->
+                    <div class="mb-editor-form">
+
+                        <div class="form-group">
+                            <label class="label"><%= t('autorole.panel_name_label') %></label>
+                            <input type="text" id="reactPanelName" class="input" placeholder="e.g.: choose-role" maxlength="32">
+                            <div class="hint"><%- t('autorole.panel_name_hint') %></div>
+                        </div>
+
+                        <div class="form-group" id="reactPanelChannelGroup" style="display:none;">
+                            <label class="label">Channel <span style="font-size:.75rem;color:var(--text-muted);font-weight:400;">(optional — select to send after saving)</span></label>
+                            <select id="reactSendPreviewChannel" class="select" data-flt-ignore onchange="updateReactPanelPreviewChannel()">
+                                <option value="">— Select channel —</option>
+                                <% channels.forEach(c => { %>
+                                    <option value="<%= c.id %>">#<%= c.name %></option>
+                                <% }) %>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="label"><%= t('autorole.mode_label') %></label>
+                            <select id="reactPanelMode" class="select">
+                                <option value="multi"><%= t('autorole.mode_multi') %></option>
+                                <option value="single"><%= t('autorole.mode_single') %></option>
+                            </select>
+                        </div>
+
+                        <div id="reactPanelPlainPanel">
+                            <div class="mb-section">
+                                <div class="mb-section-head">
+                                    <span class="mb-section-title"><i data-lucide="message-square" style="width:14px;height:14px;vertical-align:middle;margin-right:.3rem;"></i> <%= t('common.plain_text_message') %></span>
+                                    <div class="ph-btn-group">
+                                        <div class="ph-picker-anchor">
+                                            <button type="button" class="ph-toggle-btn" onclick="togglePicker('reactPlainPhPicker',event)">{…} Placeholder</button>
+                                            <div class="ph-dropdown" id="reactPlainPhPicker" style="display:none;"></div>
+                                        </div>
+                                        <div class="ph-picker-anchor mention-anchor">
+                                            <button type="button" class="ph-toggle-btn" onclick="togglePicker('reactPlainMentionPicker',event)">@ Mention</button>
+                                            <div class="ph-dropdown mention-dd" id="reactPlainMentionPicker" style="display:none;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mb-section-body">
+                                    <textarea id="reactPanelPlainText" class="textarea mb-auto-resize" rows="5"
+                                              placeholder="<%= t('autorole.plain_text_ph') %>"
+                                              oninput="apResizeArea(this);updateReactPanelPreview()"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="reactPanelEmbedPanel">
+                        <div class="mb-section">
+                            <div class="mb-section-head">
+                                <span class="mb-section-title"><i data-lucide="layers" style="width:14px;height:14px;vertical-align:middle;margin-right:.3rem;"></i> Embed Builder</span>
+                                <div style="display:flex;align-items:center;gap:.45rem;">
+                                    <span style="font-size:.75rem;color:var(--text-muted);"><%= t('message_builder.label_accent') %></span>
+                                    <input type="color" id="reactPanelColorPicker" value="#5865F2" class="mb-color-pk"
+                                           oninput="document.getElementById('reactPanelEmbedColor').value=this.value;updateReactPanelPreview()">
+                                    <input type="hidden" id="reactPanelEmbedColor" value="#5865F2">
+                                </div>
+                            </div>
+                            <div class="mb-section-body" style="padding:0;">
+                                <div class="ee-body" style="border:none;border-radius:0;">
+
+                                    <div class="ee-section">
+                                        <div class="ee-sec-label"><%= t('message_builder.label_author') %></div>
+                                        <div class="form-group" style="margin-bottom:.5rem;">
+                                            <input type="text" id="reactPanelEmbedAuthorName" class="input"
+                                                   placeholder="<%= t('message_builder.ph_author_name') %>" maxlength="256" oninput="updateReactPanelPreview()">
+                                        </div>
+                                        <div class="mb-url-pair">
+                                            <textarea id="reactPanelEmbedAuthorUrl" class="input input-sm mb-url-area" rows="1"
+                                                   placeholder="<%= t('message_builder.ph_author_url') %>" oninput="apResizeArea(this);updateReactPanelPreview()"></textarea>
+                                            <textarea id="reactPanelEmbedAuthorIcon" class="input input-sm mb-url-area" rows="1"
+                                                   placeholder="<%= t('message_builder.ph_author_icon') %>" oninput="apResizeArea(this);updateReactPanelPreview()"></textarea>
+                                        </div>
+                                    </div>
+
+                                    <div class="ee-sep"></div>
+
+                                    <div class="ee-section">
+                                        <div class="ee-sec-label"><%= t('message_builder.label_title') %></div>
+                                        <div class="form-group" style="margin-bottom:.5rem;">
+                                            <input type="text" id="reactPanelEmbedTitle" class="input ee-title-input"
+                                                   placeholder="<%= t('message_builder.ph_embed_title') %>"
+                                                   maxlength="256" oninput="updateReactPanelPreview()">
+                                        </div>
+                                        <textarea id="reactPanelEmbedTitleUrl" class="input input-sm mb-url-area" rows="1"
+                                               placeholder="<%= t('message_builder.ph_title_url') %>" oninput="apResizeArea(this);updateReactPanelPreview()"></textarea>
+                                    </div>
+
+                                    <div class="ee-sep"></div>
+
+                                    <div class="ee-section">
+                                        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.3rem;margin-bottom:.45rem;">
+                                            <div class="ee-sec-label" style="margin:0;"><%= t('message_builder.label_description') %></div>
+                                            <div class="ph-btn-group">
+                                                <div class="ph-picker-anchor">
+                                                    <button type="button" class="ph-toggle-btn cc-ph-dark-btn" onclick="togglePicker('reactDescPhPicker',event)">{…} Placeholder</button>
+                                                    <div class="ph-dropdown" id="reactDescPhPicker" style="display:none;"></div>
+                                                </div>
+                                                <div class="ph-picker-anchor mention-anchor">
+                                                    <button type="button" class="ph-toggle-btn cc-ph-dark-btn" onclick="togglePicker('reactEmbedMentionPicker',event)">@ Mention</button>
+                                                    <div class="ph-dropdown mention-dd" id="reactEmbedMentionPicker" style="display:none;"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <textarea id="reactPanelEmbedDescription" class="textarea mb-auto-resize" rows="4"
+                                                  placeholder="<%= t('message_builder.ph_description') %>" maxlength="4000"
+                                                  oninput="apResizeArea(this);updateReactPanelPreview()"></textarea>
+                                    </div>
+
+                                    <div class="ee-sep"></div>
+
+                                    <div class="ee-section">
+                                        <div class="ee-sec-label"><%= t('message_builder.label_media') %></div>
+                                        <div class="form-group" style="margin-bottom:.5rem;">
+                                            <label class="label"><%= t('message_builder.label_thumbnail') %></label>
+                                            <textarea id="reactPanelEmbedThumbnail" class="input input-sm mb-url-area" rows="1"
+                                                   placeholder="https://..." oninput="apResizeArea(this);updateReactPanelPreview()"></textarea>
+                                        </div>
+                                        <div>
+                                            <label class="label"><%= t('message_builder.label_image') %></label>
+                                            <textarea id="reactPanelEmbedImage" class="input input-sm mb-url-area" rows="1"
+                                                   placeholder="https://..." oninput="apResizeArea(this);updateReactPanelPreview()"></textarea>
+                                        </div>
+                                    </div>
+
+                                    <div class="ee-sep"></div>
+
+                                    <div class="ee-section">
+                                        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem;">
+                                            <div class="ee-sec-label" style="margin:0;"><%= t('message_builder.label_fields') %> <span id="rpFieldCount" style="font-weight:400;text-transform:none;letter-spacing:0;">(0 / 25)</span></div>
+                                            <button type="button" class="btn btn-outline btn-sm" onclick="addRpField()">＋ <%= t('message_builder.btn_add_field') %></button>
+                                        </div>
+                                        <div id="rpFieldsList"></div>
+                                    </div>
+
+                                    <div class="ee-sep"></div>
+
+                                    <div class="ee-section">
+                                        <div class="ee-sec-label"><%= t('message_builder.label_footer') %></div>
+                                        <div style="margin-bottom:.5rem;">
+                                            <input type="text" id="reactPanelEmbedFooter" class="input input-sm"
+                                                   style="display:block;width:100%;"
+                                                   placeholder="<%= t('message_builder.ph_footer_text') %>" maxlength="2048"
+                                                   oninput="updateReactPanelPreview()">
+                                        </div>
+                                        <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;">
+                                            <textarea id="reactPanelEmbedFooterIcon" class="input input-sm mb-url-area" rows="1"
+                                                   style="flex:1;min-width:120px;"
+                                                   placeholder="<%= t('message_builder.ph_footer_icon') %>"
+                                                   oninput="apResizeArea(this);updateReactPanelPreview()"></textarea>
+                                            <label class="toggle-label" style="gap:.5rem;cursor:pointer;flex-shrink:0;">
+                                                <input type="checkbox" id="reactPanelEmbedTimestamp" class="toggle-input"
+                                                       onchange="updateReactPanelPreview()">
+                                                <span class="toggle-slider"></span>
+                                                <span class="label" style="margin:0;white-space:nowrap;"><%= t('message_builder.label_timestamp') %></span>
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                        </div><!-- /reactPanelEmbedPanel -->
+
+                        <!-- ── Section Reactions ── -->
+                        <div id="reactPanelInlineReactions" style="display:none;margin-top:1.25rem;">
+                            <div class="ar-divider"></div>
+                            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem;flex-wrap:wrap;gap:.5rem;">
+                                <div style="display:flex;align-items:center;gap:.5rem;">
+                                    <span style="font-size:.8rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;display:flex;align-items:center;gap:.3rem;"><i data-lucide="smile" style="width:13px;height:13px;"></i> Emoji Reactions</span>
+                                    <span id="inlineReactCounter" style="font-size:.72rem;padding:.15rem .45rem;border-radius:999px;background:var(--bg2);border:1px solid var(--border);color:var(--text-muted);">0/20</span>
+                                </div>
+                                <button type="button" class="btn btn-primary btn-sm" onclick="addInlineReactRow()" style="gap:.3rem;">
+                                    <span style="font-size:1rem;line-height:1;">＋</span> Add Reaction
+                                </button>
+                            </div>
+                            <div id="inlineReactTable" data-flt-ignore></div>
+                            <div id="inlineReactEmpty" style="text-align:center;padding:1.5rem 1rem;color:var(--text-muted);border:2px dashed var(--border);border-radius:10px;margin:.5rem 0;">
+                                <div style="margin-bottom:.4rem;"><i data-lucide="smile" style="width:2rem;height:2rem;color:var(--text-muted);"></i></div>
+                                <div style="font-size:.85rem;"><%- t('autorole.no_inline_react_hint') %></div>
+                            </div>
+                            <div style="margin-top:.75rem;padding:.6rem .75rem;background:rgba(88,101,242,.08);border-radius:8px;border:1px solid rgba(88,101,242,.2);font-size:.78rem;color:var(--text-muted);line-height:1.6;">
+                                💡 <strong style="color:var(--text);">Tips:</strong>
+                                <%- t('autorole.react_tips_body') %>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- ── Preview kanan ── -->
+                    <div class="mb-editor-preview">
+                        <div class="preview-label">Preview</div>
+                        <div class="cc-discord-preview">
+                            <div id="rpPreviewChannel" class="cc-dp-channel">
+                                <span style="opacity:.5;font-weight:700;font-size:.85rem;flex-shrink:0;">#</span>preview
+                            </div>
+                            <div class="cc-dp-msg">
+                                <div class="cc-dp-ava">
+                                    <img src="<%- locals.botNavAvatar || 'https://cdn.discordapp.com/embed/avatars/0.png' %>"
+                                         alt="" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+                                </div>
+                                <div class="cc-dp-right">
+                                    <div class="cc-dp-name">
+                                        <%- locals.botNavName || 'Bot' %>
+                                        <span class="cc-dp-app-badge"><svg width="9" height="9" viewBox="0 0 12 12" fill="none"><path d="M1.5 6L4.5 9L10.5 3" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> APP</span>
+                                        <span class="cc-dp-time">Today at 12:00</span>
+                                    </div>
+                                    <div id="rpModalPreviewPlain" class="cc-dp-text" style="display:none;"></div>
+                                    <div id="rpModalPreviewEmbed" class="cc-dp-embed" style="display:none;">
+                                        <div id="rpModalPreviewPill" class="cc-dp-embed-bar" style="background:#5865F2;"></div>
+                                        <div class="cc-dp-embed-body">
+                                            <div class="cc-dp-embed-main">
+                                                <div class="cc-dp-embed-content">
+                                                    <div id="rpModalPreviewAuthor" class="cc-dp-embed-author" style="display:none;"></div>
+                                                    <div id="rpModalPreviewTitle"  class="cc-dp-embed-title"  style="display:none;"></div>
+                                                    <div id="rpModalPreviewDesc"   class="cc-dp-embed-desc"   style="display:none;"></div>
+                                                    <div id="rpModalPreviewFields" class="cc-dp-embed-fields" style="display:none;"></div>
+                                                </div>
+                                                <div id="rpModalPreviewThumb" class="cc-dp-embed-thumb" style="display:none;">
+                                                    <img id="rpModalPreviewThumbImg" src="" alt="">
+                                                </div>
+                                            </div>
+                                            <div id="rpModalPreviewImage" class="cc-dp-embed-image" style="display:none;">
+                                                <img id="rpModalPreviewImageImg" src="" alt="">
+                                            </div>
+                                            <div id="rpModalPreviewFooter" class="cc-dp-embed-footer" style="display:none;"></div>
+                                        </div>
+                                    </div>
+                                    <div id="reactPanelPreviewReacts" style="display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.5rem;"></div>
+                                    <div id="rpModalPreviewEmpty" class="cc-dp-empty">Fill in the form to see preview</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="reactPanelMsg" class="form-message" style="margin-top:.75rem;"></div>
+                <div id="reactPanelFooterForm" style="display:flex;gap:.5rem;align-items:center;margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border);">
+                    <button id="reactPanelBtnReset" class="btn btn-outline" onclick="resetReactPanelToOriginal()" style="display:none;" title="Discard changes and reload original data">
+                        <i data-lucide="rotate-ccw" style="width:13px;height:13px;vertical-align:middle;margin-right:.3rem;"></i><%= t('common.reset') %>
+                    </button>
+                    <span style="flex:1;"></span>
+                    <button class="btn btn-outline" onclick="closeReactPanelModal()"><%= t('common.cancel') %></button>
+                    <button class="btn btn-outline" onclick="saveReactPanel()"><i data-lucide="save" style="width:14px;height:14px;vertical-align:middle;margin-right:.3rem;"></i><%= t('common.save') %></button>
+                    <button id="reactPanelBtnSend" class="btn btn-primary" onclick="saveAndSendReactPanel()" style="display:none;"><i data-lucide="send" style="width:14px;height:14px;vertical-align:middle;margin-right:.3rem;"></i>Send</button>
+                </div>
+            </div>
 
             <!-- Grid panel reaction -->
             <div id="reactPanelGrid">
                 <% if (reactPanels.length === 0) { %>
                     <div class="empty-state" id="emptyReactPanels">
-                        <p style="font-size:2rem;margin-bottom:.5rem">✨</p>
+                        <p style="margin-bottom:.5rem"><i data-lucide="smile" style="width:2rem;height:2rem;color:var(--text-muted);"></i></p>
                         <p><%- t('autorole.react_no_panels') %></p>
                         <p style="color:var(--text-muted);font-size:.85rem;margin-top:.5rem">
                             <%= t('autorole.discord_cmd_hint') %>
@@ -401,13 +867,16 @@
                     </div>
                 <% } else { %>
                     <% reactPanels.forEach(p => { %>
-                    <div class="ar-panel-card" data-name="<%= p.name %>" data-type="reaction">
+                    <div class="ar-panel-card" data-name="<%= p.name %>" data-type="reaction" data-channel-id="<%= p.channelId || '' %>">
                         <div class="ar-panel-header">
-                            <span class="ar-panel-name">✨ <%= p.name %></span>
+                            <span class="ar-panel-name"><i data-lucide="smile" style="width:13px;height:13px;vertical-align:middle;margin-right:.25rem;"></i><%= p.name %></span>
                             <span class="ar-panel-mode <%= p.mode === 'single' ? 'mode-single' : 'mode-multi' %>">
-                                <%= p.mode === 'single' ? '🔘 Single' : '☑️ Multi' %>
+                                <%= p.mode === 'single' ? 'Single' : 'Multi' %>
                             </span>
                             <% const sentRP = sentReactPanels[p.name]; %>
+                            <% if (!sentRP && p.channelId) { %>
+                            <span class="mb-badge" style="background:rgba(88,101,242,.15);color:#7289da;border:1px solid rgba(88,101,242,.3);font-size:.72rem;">#<%= channels.find(c => c.id === p.channelId)?.name || p.channelId %></span>
+                            <% } %>
                             <span class="ar-panel-status <%= sentRP ? 'status-sent' : 'status-unsent' %>">
                                 <%= sentRP ? t('autorole.status_sent') : t('autorole.status_unsent') %>
                             </span>
@@ -449,13 +918,13 @@
                             <% } %>
                         </div>
                         <div class="ar-panel-actions">
-                            <button class="btn btn-outline btn-sm" onclick="openEditReactPanel('<%= p.name %>')"><%= t('autorole.edit_panel_btn') %></button>
+                            <button class="btn btn-outline btn-sm" onclick="openEditReactPanel('<%= p.name %>', <%= sentRP ? 'true' : 'false' %>)"><i data-lucide="pencil" style="width:13px;height:13px;vertical-align:middle;margin-right:.25rem;"></i><%= t('autorole.edit_panel_btn') %></button>
                             <% if (sentRP) { %>
                                 <a class="btn btn-outline btn-sm"
                                    href="https://discord.com/channels/<%= guild.id %>/<%= sentRP.channelId %>/<%= sentRP.messageId %>"
                                    target="_blank"><%= t('autorole.view_btn') %></a>
                             <% } else { %>
-                                <button class="btn btn-outline btn-sm" onclick="openSendReactPanel('<%= p.name %>')">📨 Send</button>
+                                <button class="btn btn-outline btn-sm" onclick="openSendReactPanel('<%= p.name %>')"><i data-lucide="send" style="width:13px;height:13px;vertical-align:middle;margin-right:.2rem;"></i> Send</button>
                             <% } %>
                             <button class="btn btn-sm ar-btn-delete" onclick="deleteReactPanel('<%= p.name %>')"><i data-lucide="trash-2"></i></button>
                         </div>
@@ -463,281 +932,13 @@
                     <% }) %>
                 <% } %>
             </div><!-- /reactPanelGrid -->
-            </div><!-- /ap-list-col -->
-
-            <!-- Preview panel kanan -->
-            <div class="ap-preview-panel" id="apReactPreviewPanel">
-                <div class="ap-preview-header">
-                    <span class="ap-preview-title" id="apReactPreviewTitle">Preview</span>
-                    <button class="ap-preview-close" onclick="closeReactPreviewPanel()">✕</button>
-                </div>
-                <div class="ap-preview-body">
-                    <div id="apReactPreviewPlaceholder" class="ap-preview-placeholder">
-                        <div style="font-size:1.75rem">✨</div>
-                        <div><%= t('autorole.click_panel_preview') %></div>
-                    </div>
-                    <div id="apReactPreviewContent" style="display:none;">
-                        <div class="dc-window">
-                            <div class="dc-channel-bar">
-                                <span class="dc-channel-hash">#</span>
-                                <span>preview-channel</span>
-                            </div>
-                            <div class="dc-messages">
-                                <div class="dc-message">
-                                    <img class="dc-avatar"
-                                         src="<%- locals.botNavAvatar || 'https://cdn.discordapp.com/embed/avatars/0.png' %>"
-                                         alt="avatar" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
-                                    <div class="dc-msg-body">
-                                        <span class="dc-username"><%- locals.botNavName || 'Bot' %></span>
-                                        <span class="dc-timestamp">Today at 12:00 PM</span>
-                                        <div id="apReactPanelPreviewPlain" class="dc-plain-msg" style="display:none;"></div>
-                                        <div class="dc-embed" id="apReactPanelPreviewEmbed" style="display:none;">
-                                            <div class="dc-embed-pill" id="apReactPanelPreviewPill"></div>
-                                            <div class="dc-embed-content">
-                                                <div class="dc-embed-title"  id="apReactPanelPreviewTitle"></div>
-                                                <div class="dc-embed-desc"   id="apReactPanelPreviewDesc"></div>
-                                                <img id="apReactPanelPreviewImage" src="" alt="" style="display:none;max-width:100%;border-radius:4px;margin-top:.5rem;">
-                                                <div class="dc-embed-footer" id="apReactPanelPreviewFooter"></div>
-                                            </div>
-                                            <img class="dc-embed-thumb" id="apReactPanelPreviewThumb" src="" alt="" style="display:none;">
-                                        </div>
-                                        <!-- Preview reactions -->
-                                        <div id="apReactPanelPreviewReacts" style="display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.5rem;"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            </div><!-- /ap-page-layout -->
         </div><!-- /tab-reaction -->
     </div>
     <%- include('../partials/dash-footer') %>
     </main>
 </div>
 
-<!-- Backdrop mobile preview panel (button) -->
-<div class="ap-preview-backdrop" id="apPreviewBackdrop" onclick="closePreviewPanel()"></div>
-<!-- Backdrop mobile preview panel (reaction) -->
-<div class="ap-preview-backdrop" id="apReactPreviewBackdrop" onclick="closeReactPreviewPanel()"></div>
-
 <%- include('../partials/bottom-nav') %>
-
-<!-- ══════════════════════════════════════
-     MODAL: Buat / Edit Panel
-     (Sinkron dengan modal Discord: title, description, footer + color picker)
-══════════════════════════════════════ -->
-<div class="mb-modal-backdrop" id="panelBackdrop" onclick="closePanelModal()"></div>
-<div class="mb-modal mb-modal-full" id="panelModal">
-    <div class="mb-modal-header">
-        <h2 id="panelModalTitle">New Panel</h2>
-        <button class="mb-modal-close" onclick="closePanelModal()">✕</button>
-    </div>
-    <div class="mb-modal-body">
-        <input type="hidden" id="panelOriginalName">
-        <input type="hidden" id="panelIsSent" value="0">
-
-        <div class="mb-editor-layout">
-            <!-- ── Form kiri ── -->
-            <div class="mb-editor-form">
-
-                <div class="form-group">
-                    <label class="label"><%= t('autorole.panel_name_label') %></label>
-                    <input type="text" id="panelName" class="input" placeholder="e.g.: choose-role" maxlength="32">
-                    <div class="hint"><%- t('autorole.panel_name_hint') %></div>
-                </div>
-
-                <div class="form-group" id="panelChannelGroup">
-                    <label class="label"><%= t('autorole.send_to_channel') %></label>
-                    <select id="panelSendChannelInline" class="select">
-                        <option value="">— Select channel —</option>
-                        <% channels.forEach(c => { %>
-                            <option value="<%= c.id %>">#<%= c.name %></option>
-                        <% }) %>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label class="label"><%= t('autorole.mode_label') %></label>
-                    <select id="panelMode" class="select">
-                        <option value="multi"><%= t('autorole.mode_multi') %></option>
-                        <option value="single"><%= t('autorole.mode_single') %></option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label class="label"><%= t('common.message_type') %></label>
-                    <div style="display:flex;gap:.75rem;">
-                        <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;">
-                            <input type="radio" name="panelMessageType" id="panelTypeEmbed" value="embed" checked>
-                            <span><%= t('common.embed') %></span>
-                        </label>
-                        <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;">
-                            <input type="radio" name="panelMessageType" id="panelTypePlain" value="plain">
-                            <span><%= t('common.plain_text') %></span>
-                        </label>
-                    </div>
-                </div>
-
-                <!-- Plain text panel -->
-                <div id="panelPlainPanel" style="display:none;">
-                    <div class="form-group">
-                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.35rem;">
-                            <label class="label" style="margin:0;"><%= t('common.plain_text_message') %></label>
-                            <div class="ph-picker-anchor mention-anchor">
-                                <button type="button" class="ph-toggle-btn" onclick="togglePicker('panelPlainMentionPicker',event)">@ Mention</button>
-                                <div class="ph-dropdown mention-dd" id="panelPlainMentionPicker" style="display:none;"></div>
-                            </div>
-                        </div>
-                        <textarea id="panelPlainText" class="textarea" rows="5"
-                                  placeholder="<%= t('autorole.plain_text_ph') %>"
-                                  oninput="updatePanelPreview()"></textarea>
-                    </div>
-                </div>
-
-                <!-- Embed panel -->
-                <div id="panelEmbedPanel">
-                <div class="ar-divider"></div>
-                <div style="font-size:.8rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:.75rem;"><%= t('autorole.embed_display') %></div>
-
-                <div class="form-group">
-                    <label class="label"><%= t('autorole.embed_title_label') %></label>
-                    <input type="text" id="panelEmbedTitle" class="input" placeholder="Example: Choose Your Role"
-                           maxlength="256" oninput="updatePanelPreview()">
-                </div>
-
-                <div class="form-group">
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.35rem;">
-                        <label class="label" style="margin:0;"><%= t('autorole.embed_desc_label') %></label>
-                        <div class="ph-picker-anchor mention-anchor">
-                            <button type="button" class="ph-toggle-btn" onclick="togglePicker('panelEmbedMentionPicker',event)">@ Mention</button>
-                            <div class="ph-dropdown mention-dd" id="panelEmbedMentionPicker" style="display:none;"></div>
-                        </div>
-                    </div>
-                    <textarea id="panelEmbedDescription" class="textarea" rows="4"
-                              placeholder="Describe the buttons here..." maxlength="4000"
-                              oninput="updatePanelPreview()"></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label class="label"><%= t('common.footer_label') %></label>
-                    <input type="text" id="panelEmbedFooter" class="input" placeholder="<%= t('autorole.footer_ph') %>"
-                           maxlength="2048" oninput="updatePanelPreview()">
-                </div>
-
-                <div class="form-group">
-                    <label class="label"><%= t('autorole.image_url_label') %> <span class="hint-inline">(<%= t('autorole.image_url_hint') %>)</span></label>
-                    <input type="text" id="panelEmbedImage" class="input" placeholder="https://... (type - to remove)"
-                           oninput="updatePanelPreview()">
-                </div>
-
-                <div class="form-group">
-                    <label class="label"><%= t('autorole.thumbnail_url_label') %> <span class="hint-inline">(<%= t('autorole.thumbnail_url_hint') %>)</span></label>
-                    <input type="text" id="panelEmbedThumbnail" class="input" placeholder="https://... (type - to remove)"
-                           oninput="updatePanelPreview()">
-                </div>
-
-                <div class="form-group">
-                    <label class="label"><%= t('common.embed_color') %></label>
-                    <div style="display:flex;gap:.75rem;align-items:center;">
-                        <input type="color" id="panelColorPicker" value="#5865F2"
-                               style="width:44px;height:36px;border:none;border-radius:6px;cursor:pointer;padding:0;background:none;"
-                               oninput="syncPicker('panelEmbedColor','panelColorPicker');updatePanelPreview()">
-                        <input type="text" id="panelEmbedColor" class="input" style="max-width:130px;"
-                               placeholder="#5865F2" maxlength="7" value="#5865F2"
-                               oninput="syncHex('panelEmbedColor','panelColorPicker');updatePanelPreview()">
-                    </div>
-                </div>
-
-                </div><!-- /panelEmbedPanel -->
-
-            </div>
-
-            <!-- ── Preview kanan ── -->
-            <div class="mb-editor-preview">
-                <div class="preview-label">Preview</div>
-                <div class="dc-window">
-                    <div class="dc-channel-bar">
-                        <span class="dc-channel-hash">#</span>
-                        <span>preview-channel</span>
-                    </div>
-                    <div class="dc-messages">
-                        <div class="dc-message">
-                            <img class="dc-avatar" src="<%- locals.botNavAvatar || 'https://cdn.discordapp.com/embed/avatars/0.png' %>" alt="avatar" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
-                            <div class="dc-msg-body">
-                                <span class="dc-username" style="color:<%- locals.botNavColor || '#ffffff' %>"><%- locals.botNavName || 'Bot' %></span>
-                                <span class="dc-timestamp">Today at 12:00 PM</span>
-                                <!-- Plain text preview -->
-                                <div id="panelPreviewPlain" class="dc-plain-msg" style="display:none;"></div>
-                                <div class="dc-embed" id="panelPreviewEmbed">
-                                    <div class="dc-embed-pill" id="panelPreviewPill"></div>
-                                    <div class="dc-embed-content">
-                                        <div class="dc-embed-title"  id="panelPreviewTitle"></div>
-                                        <div class="dc-embed-desc"   id="panelPreviewDesc"></div>
-                                        <img class="dc-embed-image"  id="panelPreviewImage" src="" alt=""
-                                             style="display:none;max-width:100%;border-radius:4px;margin-top:.5rem;">
-                                        <div class="dc-embed-footer" id="panelPreviewFooter"></div>
-                                    </div>
-                                    <img class="dc-embed-thumb" id="panelPreviewThumb" src="" alt="" style="display:none;">
-                                </div>
-                                <!-- Preview tombol dummy -->
-                                <div id="panelPreviewBtns" style="display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.5rem;"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div id="panelPreviewHint" style="margin-top:.75rem;font-size:.78rem;color:var(--text-muted);">
-                    <%- t('autorole.btn_save_hint') %>
-                </div>
-            </div>
-        </div>
-
-        <!-- ── Section Tombol (hanya tampil saat buat panel baru) ── -->
-        <div id="panelInlineButtons" style="display:none;margin-top:1.25rem;">
-            <div class="ar-divider"></div>
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem;flex-wrap:wrap;gap:.5rem;">
-                <div style="display:flex;align-items:center;gap:.5rem;">
-                    <span style="font-size:.8rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;">🔘 Role Buttons</span>
-                    <span id="inlineBtnCounter" style="font-size:.72rem;padding:.15rem .45rem;border-radius:999px;background:var(--bg2);border:1px solid var(--border);color:var(--text-muted);">0/25</span>
-                </div>
-                <button type="button" class="btn btn-primary btn-sm" onclick="addInlineBtnRow()" style="gap:.3rem;">
-                    <span style="font-size:1rem;line-height:1;">＋</span> Add Button
-                </button>
-            </div>
-            <div id="inlineBtnTable" data-flt-ignore></div>
-            <p id="inlineBtnEmpty" style="color:var(--text-muted);font-size:.85rem;padding:.4rem 0;">
-                <%- t('autorole.no_inline_buttons_hint') %>
-            </p>
-        </div>
-
-        <div id="panelMsg" class="form-message" style="margin-top:.75rem;"></div>
-    </div>
-    <div class="mb-modal-footer">
-        <!-- State 1: Form aktif -->
-        <div id="panelFooterForm" style="display:none;"></div>
-        <!-- State 2: Setelah simpan berhasil, panel belum terkirim -->
-        <div id="panelFooterSend" style="display:none;">
-            <div style="display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;justify-content:space-between;">
-                <div style="display:flex;gap:.6rem;align-items:center;flex:1;min-width:200px;">
-                    <span style="font-size:.85rem;white-space:nowrap;">📨 Send to:</span>
-                    <select id="panelSendChannel" class="select" style="flex:1;">
-                        <option value="">— Select channel —</option>
-                        <% channels.forEach(c => { %>
-                            <option value="<%= c.id %>">#<%= c.name %></option>
-                        <% }) %>
-                    </select>
-                </div>
-                <div style="display:flex;gap:.6rem;">
-                    <button class="btn btn-outline" onclick="closePanelModal()">Skip</button>
-                    <button class="btn btn-primary" onclick="sendAfterSave()">📨 Send</button>
-                </div>
-            </div>
-            <div id="panelSendMsg" class="form-message" style="margin-top:.5rem;"></div>
-        </div>
-    </div>
-</div>
 
 <!-- ══════════════════════════════════════
      MODAL: Kelola Tombol (Bulk Editor)
@@ -817,22 +1018,14 @@
 <div class="mb-modal-backdrop" id="sendPanelBackdrop" onclick="closeSendPanel()"></div>
 <div class="mb-modal mb-modal-sm" id="sendPanelModal" data-flt-ignore>
     <div class="mb-modal-header">
-        <h2>📨 Send Panel</h2>
+        <h2><i data-lucide="send" style="width:16px;height:16px;vertical-align:middle;margin-right:.4rem;"></i>Send Panel</h2>
         <button class="mb-modal-close" onclick="closeSendPanel()">✕</button>
     </div>
     <div class="mb-modal-body">
-        <p style="margin-bottom:1rem;color:var(--text-muted);font-size:.9rem;">
-            Send panel <strong id="sendPanelName"></strong> to channel:
+        <p style="color:var(--text-muted);font-size:.9rem;margin:0;">
+            Send <strong id="sendPanelName"></strong> to <strong id="sendPanelChannelName"></strong>?
         </p>
-        <select id="sendPanelChannel" class="select">
-            <option value="">— Select channel —</option>
-            <% channels.forEach(c => { %>
-                <option value="<%= c.id %>">#<%= c.name %></option>
-            <% }) %>
-        </select>
-        <div class="hint" style="margin-top:.5rem;">
-            <%- t('autorole.send_btn_once_hint') %>
-        </div>
+        <p style="color:var(--text-muted);font-size:.8rem;margin-top:.5rem;opacity:.7;"><%- t('autorole.send_btn_once_hint') %></p>
         <div id="sendPanelMsg" class="form-message" style="margin-top:.75rem;"></div>
     </div>
     <div class="mb-modal-footer">
@@ -844,233 +1037,19 @@
 </div>
 
 <!-- ══════════════════════════════════════
-     MODAL: Buat / Edit Panel Reaction
-══════════════════════════════════════ -->
-<div class="mb-modal-backdrop" id="reactPanelBackdrop" onclick="closeReactPanelModal()"></div>
-<div class="mb-modal mb-modal-full" id="reactPanelModal">
-    <div class="mb-modal-header">
-        <h2 id="reactPanelModalTitle">New Reaction Panel</h2>
-        <button class="mb-modal-close" onclick="closeReactPanelModal()">✕</button>
-    </div>
-    <div class="mb-modal-body">
-        <input type="hidden" id="reactPanelOriginalName">
-
-        <div class="mb-editor-layout">
-            <!-- ── Form kiri ── -->
-            <div class="mb-editor-form">
-
-                <div class="form-group">
-                    <label class="label"><%= t('autorole.panel_name_label') %></label>
-                    <input type="text" id="reactPanelName" class="input" placeholder="e.g.: choose-role" maxlength="32">
-                    <div class="hint"><%- t('autorole.panel_name_hint') %></div>
-                </div>
-
-                <div class="form-group" id="reactPanelChannelGroup">
-                    <label class="label"><%= t('autorole.send_to_channel') %></label>
-                    <select id="reactPanelSendChannelInline" class="select">
-                        <option value="">— Select channel —</option>
-                        <% channels.forEach(c => { %>
-                            <option value="<%= c.id %>">#<%= c.name %></option>
-                        <% }) %>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label class="label"><%= t('autorole.mode_label') %></label>
-                    <select id="reactPanelMode" class="select">
-                        <option value="multi"><%= t('autorole.mode_multi') %></option>
-                        <option value="single"><%= t('autorole.mode_single') %></option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label class="label"><%= t('common.message_type') %></label>
-                    <div style="display:flex;gap:.75rem;">
-                        <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;">
-                            <input type="radio" name="reactPanelMessageType" id="reactPanelTypeEmbed" value="embed" checked>
-                            <span><%= t('common.embed') %></span>
-                        </label>
-                        <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;">
-                            <input type="radio" name="reactPanelMessageType" id="reactPanelTypePlain" value="plain">
-                            <span><%= t('common.plain_text') %></span>
-                        </label>
-                    </div>
-                </div>
-
-                <div id="reactPanelPlainPanel" style="display:none;">
-                    <div class="form-group">
-                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.35rem;">
-                            <label class="label" style="margin:0;"><%= t('common.plain_text_message') %></label>
-                            <div class="ph-picker-anchor mention-anchor">
-                                <button type="button" class="ph-toggle-btn" onclick="togglePicker('reactPlainMentionPicker',event)">@ Mention</button>
-                                <div class="ph-dropdown mention-dd" id="reactPlainMentionPicker" style="display:none;"></div>
-                            </div>
-                        </div>
-                        <textarea id="reactPanelPlainText" class="textarea" rows="5"
-                                  placeholder="<%= t('autorole.plain_text_ph') %>"
-                                  oninput="updateReactPanelPreview()"></textarea>
-                    </div>
-                </div>
-
-                <div id="reactPanelEmbedPanel">
-                <div class="ar-divider"></div>
-                <div style="font-size:.8rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:.75rem;"><%= t('autorole.embed_display') %></div>
-
-                <div class="form-group">
-                    <label class="label"><%= t('autorole.embed_title_label') %></label>
-                    <input type="text" id="reactPanelEmbedTitle" class="input" placeholder="Example: Choose Your Role"
-                           maxlength="256" oninput="updateReactPanelPreview()">
-                </div>
-                <div class="form-group">
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.35rem;">
-                        <label class="label" style="margin:0;"><%= t('autorole.embed_desc_label') %></label>
-                        <div class="ph-picker-anchor mention-anchor">
-                            <button type="button" class="ph-toggle-btn" onclick="togglePicker('reactEmbedMentionPicker',event)">@ Mention</button>
-                            <div class="ph-dropdown mention-dd" id="reactEmbedMentionPicker" style="display:none;"></div>
-                        </div>
-                    </div>
-                    <textarea id="reactPanelEmbedDescription" class="textarea" rows="4"
-                              placeholder="Describe how to use reactions here..." maxlength="4000"
-                              oninput="updateReactPanelPreview()"></textarea>
-                </div>
-                <div class="form-group">
-                    <label class="label"><%= t('common.footer_label') %></label>
-                    <input type="text" id="reactPanelEmbedFooter" class="input" placeholder="<%= t('autorole.footer_ph') %>"
-                           maxlength="2048" oninput="updateReactPanelPreview()">
-                </div>
-                <div class="form-group">
-                    <label class="label"><%= t('autorole.image_url_label') %> <span class="hint-inline">(<%= t('autorole.image_url_hint') %>)</span></label>
-                    <input type="text" id="reactPanelEmbedImage" class="input" placeholder="https://... (type - to remove)"
-                           oninput="updateReactPanelPreview()">
-                </div>
-                <div class="form-group">
-                    <label class="label"><%= t('autorole.thumbnail_url_label') %> <span class="hint-inline">(<%= t('autorole.thumbnail_url_hint') %>)</span></label>
-                    <input type="text" id="reactPanelEmbedThumbnail" class="input" placeholder="https://... (type - to remove)"
-                           oninput="updateReactPanelPreview()">
-                </div>
-                <div class="form-group">
-                    <label class="label"><%= t('common.embed_color') %></label>
-                    <div style="display:flex;gap:.75rem;align-items:center;">
-                        <input type="color" id="reactPanelColorPicker" value="#5865F2"
-                               style="width:44px;height:36px;border:none;border-radius:6px;cursor:pointer;padding:0;background:none;"
-                               oninput="syncPicker('reactPanelEmbedColor','reactPanelColorPicker');updateReactPanelPreview()">
-                        <input type="text" id="reactPanelEmbedColor" class="input" style="max-width:130px;"
-                               placeholder="#5865F2" maxlength="7" value="#5865F2"
-                               oninput="syncHex('reactPanelEmbedColor','reactPanelColorPicker');updateReactPanelPreview()">
-                    </div>
-                </div>
-                </div><!-- /reactPanelEmbedPanel -->
-
-            </div>
-
-            <!-- ── Preview kanan ── -->
-            <div class="mb-editor-preview">
-                <div class="preview-label">Preview</div>
-                <div class="dc-window">
-                    <div class="dc-channel-bar">
-                        <span class="dc-channel-hash">#</span>
-                        <span>preview-channel</span>
-                    </div>
-                    <div class="dc-messages">
-                        <div class="dc-message">
-                            <img class="dc-avatar" src="<%- locals.botNavAvatar || 'https://cdn.discordapp.com/embed/avatars/0.png' %>" alt="avatar" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
-                            <div class="dc-msg-body">
-                                <span class="dc-username" style="color:<%- locals.botNavColor || '#ffffff' %>"><%- locals.botNavName || 'Bot' %></span>
-                                <span class="dc-timestamp">Today at 12:00 PM</span>
-                                <div id="reactPanelPreviewPlain" class="dc-plain-msg" style="display:none;"></div>
-                                <div class="dc-embed" id="reactPanelPreviewEmbed">
-                                    <div class="dc-embed-pill" id="reactPanelPreviewPill"></div>
-                                    <div class="dc-embed-content">
-                                        <div class="dc-embed-title"  id="reactPanelPreviewTitle"></div>
-                                        <div class="dc-embed-desc"   id="reactPanelPreviewDesc"></div>
-                                        <img class="dc-embed-image"  id="reactPanelPreviewImage" src="" alt=""
-                                             style="display:none;max-width:100%;border-radius:4px;margin-top:.5rem;">
-                                        <div class="dc-embed-footer" id="reactPanelPreviewFooter"></div>
-                                    </div>
-                                    <img class="dc-embed-thumb" id="reactPanelPreviewThumb" src="" alt="" style="display:none;">
-                                </div>
-                                <!-- Preview reactions dummy -->
-                                <div id="reactPanelPreviewReacts" style="display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.5rem;"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div style="margin-top:.75rem;font-size:.78rem;color:var(--text-muted);">
-                    <%- t('autorole.react_save_hint') %>
-                </div>
-            </div>
-        </div>
-
-        <!-- ── Section Reactions ── -->
-        <div id="reactPanelInlineReactions" style="display:none;margin-top:1.25rem;">
-            <div class="ar-divider"></div>
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem;flex-wrap:wrap;gap:.5rem;">
-                <div style="display:flex;align-items:center;gap:.5rem;">
-                    <span style="font-size:.8rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;">✨ Emoji Reactions</span>
-                    <span id="inlineReactCounter" style="font-size:.72rem;padding:.15rem .45rem;border-radius:999px;background:var(--bg2);border:1px solid var(--border);color:var(--text-muted);">0/20</span>
-                </div>
-                <button type="button" class="btn btn-primary btn-sm" onclick="addInlineReactRow()" style="gap:.3rem;">
-                    <span style="font-size:1rem;line-height:1;">＋</span> Add Reaction
-                </button>
-            </div>
-            <div id="inlineReactTable" data-flt-ignore></div>
-            <div id="inlineReactEmpty" style="text-align:center;padding:1.5rem 1rem;color:var(--text-muted);border:2px dashed var(--border);border-radius:10px;margin:.5rem 0;">
-                <div style="font-size:2rem;margin-bottom:.4rem;">✨</div>
-                <div style="font-size:.85rem;"><%- t('autorole.no_inline_react_hint') %></div>
-            </div>
-            <div style="margin-top:.75rem;padding:.6rem .75rem;background:rgba(88,101,242,.08);border-radius:8px;border:1px solid rgba(88,101,242,.2);font-size:.78rem;color:var(--text-muted);line-height:1.6;">
-                💡 <strong style="color:var(--text);">Tips:</strong>
-                <%- t('autorole.react_tips_body') %>
-            </div>
-        </div>
-
-        <div id="reactPanelMsg" class="form-message" style="margin-top:.75rem;"></div>
-    </div>
-    <div class="mb-modal-footer">
-        <div id="reactPanelFooterForm" style="display:none;"></div>
-        <div id="reactPanelFooterSend" style="display:none;">
-            <div style="display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;justify-content:space-between;">
-                <div style="display:flex;gap:.6rem;align-items:center;flex:1;min-width:200px;">
-                    <span style="font-size:.85rem;white-space:nowrap;">📨 Send to:</span>
-                    <select id="reactPanelSendChannel" class="select" style="flex:1;">
-                        <option value="">— Select channel —</option>
-                        <% channels.forEach(c => { %>
-                            <option value="<%= c.id %>">#<%= c.name %></option>
-                        <% }) %>
-                    </select>
-                </div>
-                <div style="display:flex;gap:.6rem;">
-                    <button class="btn btn-outline" onclick="closeReactPanelModal()">Skip</button>
-                    <button class="btn btn-primary" onclick="sendReactAfterSave()">📨 Send</button>
-                </div>
-            </div>
-            <div id="reactPanelSendMsg" class="form-message" style="margin-top:.5rem;"></div>
-        </div>
-    </div>
-</div>
-
-<!-- ══════════════════════════════════════
      MODAL: Kirim Panel Reaction
 ══════════════════════════════════════ -->
 <div class="mb-modal-backdrop" id="sendReactPanelBackdrop" onclick="closeSendReactPanel()"></div>
 <div class="mb-modal mb-modal-sm" id="sendReactPanelModal" data-flt-ignore>
     <div class="mb-modal-header">
-        <h2>📨 Send Reaction Panel</h2>
+        <h2><i data-lucide="send" style="width:16px;height:16px;vertical-align:middle;margin-right:.4rem;"></i>Send Reaction Panel</h2>
         <button class="mb-modal-close" onclick="closeSendReactPanel()">✕</button>
     </div>
     <div class="mb-modal-body">
-        <p style="margin-bottom:1rem;color:var(--text-muted);font-size:.9rem;">
-            <%= t('autorole.send_panel_pre') %> <strong id="sendReactPanelName"></strong> <%= t('autorole.send_panel_post') %>
+        <p style="color:var(--text-muted);font-size:.9rem;margin:0;">
+            Send <strong id="sendReactPanelName"></strong> to <strong id="sendReactPanelChannelName"></strong>?
         </p>
-        <select id="sendReactPanelChannel" class="select">
-            <option value="">— Select channel —</option>
-            <% channels.forEach(c => { %>
-                <option value="<%= c.id %>">#<%= c.name %></option>
-            <% }) %>
-        </select>
-        <div class="hint" style="margin-top:.5rem;">
-            <%- t('autorole.send_react_once_hint') %>
-        </div>
+        <p style="color:var(--text-muted);font-size:.8rem;margin-top:.5rem;opacity:.7;"><%- t('autorole.send_react_once_hint') %></p>
         <div id="sendReactPanelMsg" class="form-message" style="margin-top:.75rem;"></div>
     </div>
     <div class="mb-modal-footer">
@@ -1239,9 +1218,9 @@
 /* ── Modal editor layout ── */
 .mb-editor-layout { display:flex; gap:1.5rem; flex-direction:column; }
 @media(min-width:860px){
-    .mb-editor-layout { flex-direction:row; }
-    .mb-editor-form    { flex:1; }
-    .mb-editor-preview { flex:1; min-width:280px; }
+    .mb-editor-layout  { flex-direction:row; align-items:flex-start; }
+    .mb-editor-form    { flex:1; min-width:0; }
+    .mb-editor-preview { width:380px; flex-shrink:0; position:sticky; top:calc(var(--navbar-h, 64px) + 1.5rem); }
 }
 .preview-label { font-size:.75rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:.05em; margin-bottom:.5rem; }
 
@@ -1548,6 +1527,44 @@
 
 /* ── Card: everything vertically centered ── */
 .react-editor-card { align-items: center; }
+
+/* ── Embed builder sections (matching message-builder) ── */
+.ee-body     { border:1px solid var(--border); border-radius:10px; overflow:visible; }
+.ee-section  { padding:.85rem 1rem; }
+.ee-sep      { height:1px; background:var(--border); }
+.ee-sec-label { font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--text-muted); margin-bottom:.5rem; }
+.ee-title-input { font-weight:600 !important; }
+.mb-section { border:1px solid var(--border); border-radius:var(--radius); overflow:visible; margin-bottom:.85rem; }
+.mb-section-head {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:.45rem .85rem; background:var(--bg3);
+    border-bottom:1px solid var(--border);
+    border-radius:var(--radius) var(--radius) 0 0;
+}
+.mb-section-title { font-size:.8rem; font-weight:600; color:var(--text); display:flex; align-items:center; gap:.4rem; }
+.mb-section-body  { padding:.85rem; display:flex; flex-direction:column; gap:.7rem; }
+.mb-url-area { resize:none; overflow:hidden; min-height:34px; line-height:1.45; word-break:break-all; font-family:inherit; font-size:.85rem; padding:.4rem .6rem; box-sizing:border-box; width:100%; }
+.mb-auto-resize { resize:none !important; overflow:hidden !important; }
+.mb-char-count { text-align:right; font-size:.72rem; color:var(--text-muted); margin-top:.18rem; transition:color .2s; user-select:none; }
+.mb-char-count.warn   { color:#f0b232; }
+.mb-char-count.danger { color:#ed4245; font-weight:600; }
+.mb-color-pk { width:30px; height:30px; padding:2px; border-radius:6px; border:1px solid var(--border); background:none; cursor:pointer; }
+.cc-ph-dark-btn { font-size:.68rem; padding:2px 8px; background:rgba(255,255,255,.05); color:rgba(255,255,255,.35); border-color:rgba(255,255,255,.1); }
+.cc-ph-dark-btn:hover { background:rgba(255,255,255,.12); color:rgba(255,255,255,.75); border-color:rgba(255,255,255,.2); }
+.cc-ph-dark-btn.active { background:rgba(88,101,242,.2); border-color:rgba(88,101,242,.4); color:#c0c7ff; }
+[data-theme="light"] .cc-ph-dark-btn { background:rgba(0,0,0,.04); color:var(--text-muted); border-color:var(--border); }
+[data-theme="light"] .cc-ph-dark-btn:hover { background:rgba(0,0,0,.08); color:var(--text); }
+.cc-field-row { display:flex; gap:.6rem; align-items:flex-start; background:var(--bg3); border:1px solid var(--border); border-radius:8px; padding:.65rem .75rem; margin-bottom:.45rem; }
+.cc-field-inputs { flex:1; min-width:0; display:flex; flex-direction:column; gap:.4rem; }
+.cc-field-num { font-size:.73rem; color:var(--text-muted); font-weight:600; }
+.cc-field-del { flex-shrink:0; align-self:flex-start; }
+.cc-field-inline-row { display:flex; align-items:center; gap:.5rem; margin-top:.15rem; }
+.cc-field-inline-row label { font-size:.8rem; color:var(--text-muted); cursor:pointer; display:flex; align-items:center; gap:.3rem; }
+.ee-body .cc-field-inline-row input[type="checkbox"] { accent-color:#5865F2; }
+.ee-body .cc-field-row { background:var(--bg2); }
+.input-sm { font-size:.85rem !important; padding:.35rem .65rem !important; }
+.mb-url-pair { display:grid; grid-template-columns:1fr 1fr; gap:.5rem; }
+.ph-btn-group { display:flex; align-items:center; gap:.4rem; flex-wrap:wrap; }
 </style>
 
 <script>
@@ -1555,6 +1572,137 @@ const GUILD_ID  = '<%= guild.id %>';
 const ALL_ROLES = <%- JSON.stringify(roles) %>;
 const CHANNELS  = <%- JSON.stringify(Object.fromEntries(channels.map(c=>[c.id,c.name]))) %>;
 const ROLES_MAP = <%- JSON.stringify(Object.fromEntries(roles.map(r=>[r.id,{name:r.name,color:r.color}]))) %>;
+
+function updatePanelPreviewChannel() {
+    const el = document.getElementById('apPreviewChannel');
+    if (!el) return;
+    const id   = document.getElementById('panelSendPreviewChannel')?.value;
+    const name = id && CHANNELS[id] ? CHANNELS[id] : 'preview';
+    el.innerHTML = `<span style="opacity:.5;font-weight:700;font-size:.85rem;flex-shrink:0;">#</span>${escHtml(name)}`;
+}
+function updateReactPanelPreviewChannel() {
+    const el = document.getElementById('rpPreviewChannel');
+    if (!el) return;
+    const id   = document.getElementById('reactSendPreviewChannel')?.value;
+    const name = id && CHANNELS[id] ? CHANNELS[id] : 'preview';
+    el.innerHTML = `<span style="opacity:.5;font-weight:700;font-size:.85rem;flex-shrink:0;">#</span>${escHtml(name)}`;
+}
+
+// ── Utilities ──────────────────────────────────────────────────────────────
+function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function isHttpImg(url) { return url && /^https?:\/\/.+\.(png|jpe?g|gif|webp|bmp|avif)(?:[?#]|$)/i.test(url); }
+function apResizeArea(el) {
+    if (!el) return;
+    el.style.height = '1px';
+    el.style.height = el.scrollHeight + 'px';
+}
+function apResizeAll() {
+    requestAnimationFrame(() => { document.querySelectorAll('.mb-url-area,.mb-auto-resize').forEach(apResizeArea); });
+}
+
+// ── Placeholder picker ─────────────────────────────────────────────────────
+const AP_PLACEHOLDERS = [
+    { group: 'USER', items: [
+        ['{user.mention}',   'Mention user'],
+        ['{user.username}',  'Username'],
+        ['{user.id}',        'User ID'],
+        ['{user.avatar}',    'Avatar URL'],
+    ]},
+    { group: 'SERVER', items: [
+        ['{server.name}',    'Server name'],
+        ['{server.id}',      'Server ID'],
+        ['{server.members}', 'Member count'],
+        ['{server.icon}',    'Server icon URL'],
+    ]},
+];
+function buildApPhPicker(pickerId, targetId) {
+    const el = document.getElementById(pickerId);
+    if (!el) return;
+    let html = '';
+    AP_PLACEHOLDERS.forEach(({ group, items }, gi) => {
+        if (gi > 0) html += `<div style="grid-column:1/-1;height:1px;background:rgba(255,255,255,.1);margin:.2rem 0;"></div>`;
+        html += `<div class="ph-group-label" style="grid-column:1/-1;">${group}</div>`;
+        items.forEach(([ph, desc]) => {
+            html += `<button type="button" class="ph-item" onclick="insertApPlaceholder('${targetId}','${ph}')"><code>${ph}</code><span>${desc}</span></button>`;
+        });
+    });
+    el.innerHTML = html;
+}
+function insertApPlaceholder(targetId, text) {
+    const el = document.getElementById(targetId);
+    if (!el) return;
+    const start = el.selectionStart ?? el.value.length;
+    const end   = el.selectionEnd   ?? el.value.length;
+    el.value = el.value.slice(0, start) + text + el.value.slice(end);
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+    document.querySelectorAll('.ph-dropdown').forEach(d => d.style.display = 'none');
+    document.querySelectorAll('.ph-toggle-btn').forEach(b => b.classList.remove('active'));
+}
+
+// ── Embed fields — Button panel ────────────────────────────────────────────
+let apEmbedFields = [];
+function addApField() {
+    if (apEmbedFields.length >= 25) return;
+    apEmbedFields.push({ name: '', value: '', inline: false });
+    renderApFields(); updatePanelPreview();
+}
+function removeApField(idx) {
+    apEmbedFields.splice(idx, 1); renderApFields(); updatePanelPreview();
+}
+const _trashSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>`;
+function renderApFields() {
+    const container = document.getElementById('apFieldsList');
+    const countEl   = document.getElementById('apFieldCount');
+    if (!container) return;
+    if (countEl) countEl.textContent = `(${apEmbedFields.length} / 25)`;
+    if (!apEmbedFields.length) { container.innerHTML = ''; return; }
+    container.innerHTML = apEmbedFields.map((f, i) => `
+        <div class="cc-field-row">
+            <div class="cc-field-inputs">
+                <div class="cc-field-num">Field #${i + 1}</div>
+                <input type="text" class="input" placeholder="Field name…" maxlength="256" value="${escHtml(f.name)}"
+                    oninput="apEmbedFields[${i}].name=this.value;updatePanelPreview()">
+                <textarea class="input" placeholder="Field value…" maxlength="1024" rows="2" style="resize:vertical;"
+                    oninput="apEmbedFields[${i}].value=this.value;updatePanelPreview()">${escHtml(f.value)}</textarea>
+                <div class="cc-field-inline-row">
+                    <label><input type="checkbox" ${f.inline ? 'checked' : ''} onchange="apEmbedFields[${i}].inline=this.checked;updatePanelPreview()"> Inline</label>
+                </div>
+            </div>
+            <button type="button" class="btn btn-danger btn-sm cc-field-del" onclick="removeApField(${i})">${_trashSvg}</button>
+        </div>`).join('');
+}
+
+// ── Embed fields — Reaction panel ──────────────────────────────────────────
+let rpEmbedFields = [];
+function addRpField() {
+    if (rpEmbedFields.length >= 25) return;
+    rpEmbedFields.push({ name: '', value: '', inline: false });
+    renderRpFields(); updateReactPanelPreview();
+}
+function removeRpField(idx) {
+    rpEmbedFields.splice(idx, 1); renderRpFields(); updateReactPanelPreview();
+}
+function renderRpFields() {
+    const container = document.getElementById('rpFieldsList');
+    const countEl   = document.getElementById('rpFieldCount');
+    if (!container) return;
+    if (countEl) countEl.textContent = `(${rpEmbedFields.length} / 25)`;
+    if (!rpEmbedFields.length) { container.innerHTML = ''; return; }
+    container.innerHTML = rpEmbedFields.map((f, i) => `
+        <div class="cc-field-row">
+            <div class="cc-field-inputs">
+                <div class="cc-field-num">Field #${i + 1}</div>
+                <input type="text" class="input" placeholder="Field name…" maxlength="256" value="${escHtml(f.name)}"
+                    oninput="rpEmbedFields[${i}].name=this.value;updateReactPanelPreview()">
+                <textarea class="input" placeholder="Field value…" maxlength="1024" rows="2" style="resize:vertical;"
+                    oninput="rpEmbedFields[${i}].value=this.value;updateReactPanelPreview()">${escHtml(f.value)}</textarea>
+                <div class="cc-field-inline-row">
+                    <label><input type="checkbox" ${f.inline ? 'checked' : ''} onchange="rpEmbedFields[${i}].inline=this.checked;updateReactPanelPreview()"> Inline</label>
+                </div>
+            </div>
+            <button type="button" class="btn btn-danger btn-sm cc-field-del" onclick="removeRpField(${i})">${_trashSvg}</button>
+        </div>`).join('');
+}
 
 // ── Markdown Discord → HTML (preview plain text panel) ────────────────────
 function mdToHtml(text) {
@@ -1654,6 +1802,12 @@ function _restoreTab() {
     switchTab(valid.includes(tab) ? tab : 'join');
 }
 document.addEventListener('DOMContentLoaded', _restoreTab);
+document.addEventListener('DOMContentLoaded', function () {
+    const pendingBtn  = sessionStorage.getItem('_openSendPanel');
+    const pendingReact = sessionStorage.getItem('_openSendReactPanel');
+    if (pendingBtn)   { sessionStorage.removeItem('_openSendPanel');      setTimeout(() => openSendPanel(pendingBtn), 150); }
+    if (pendingReact) { sessionStorage.removeItem('_openSendReactPanel'); setTimeout(() => openSendReactPanel(pendingReact), 150); }
+});
 
 function _reloadKeepHash() { location.reload(); }
 
@@ -1681,84 +1835,8 @@ function syncPicker(hexId, pickerId) {
     document.getElementById(hexId).value = document.getElementById(pickerId).value;
 }
 
-// ── Panel preview (side panel) ────────────────────────────────────────────────
-let _selectedPanel = null;
+// ── Panel preview (side panel removed — live preview is in inline form card) ──
 
-document.getElementById('panelGrid').addEventListener('click', e => {
-    if (e.target.closest('.ar-panel-actions')) return;
-    const card = e.target.closest('.ar-panel-card');
-    if (card) selectPanelPreview(card.dataset.name);
-});
-
-async function selectPanelPreview(name) {
-    if (_selectedPanel === name) { closePreviewPanel(); return; }
-
-    if (_selectedPanel) {
-        document.querySelector(`.ar-panel-card[data-name="${_selectedPanel}"]`)?.classList.remove('selected');
-    }
-    _selectedPanel = name;
-    document.querySelector(`.ar-panel-card[data-name="${name}"]`)?.classList.add('selected');
-
-    const res  = await fetch(`/api/guild/${GUILD_ID}/autorole-button/${encodeURIComponent(name)}`);
-    const data = await res.json();
-    if (!data.success) return;
-
-    renderPreviewPanel(data.panel);
-
-    document.getElementById('apPreviewTitle').textContent = name;
-    document.getElementById('apPreviewPlaceholder').style.display = 'none';
-    document.getElementById('apPreviewContent').style.display = '';
-    document.getElementById('apPreviewPanel').classList.add('open');
-    document.getElementById('apPreviewBackdrop').classList.add('open');
-}
-
-function renderPreviewPanel(panel) {
-    const isPlain = panel.messageType === 'plain';
-    const plainEl = document.getElementById('apPanelPreviewPlain');
-    const embedEl = document.getElementById('apPanelPreviewEmbed');
-
-    if (isPlain) {
-        plainEl.style.display = 'block';
-        embedEl.style.display = 'none';
-        plainEl.innerHTML = resolveHtmlMentions(mdToHtml(panel.plainText || ''));
-    } else {
-        plainEl.style.display = 'none';
-        embedEl.style.display = 'flex';
-
-        const color = panel.embedColor || '#5865F2';
-        document.getElementById('apPanelPreviewPill').style.background  = color;
-        document.getElementById('apPanelPreviewTitle').textContent       = panel.embedTitle       || '';
-        document.getElementById('apPanelPreviewDesc').textContent        = panel.embedDescription || '';
-        document.getElementById('apPanelPreviewFooter').textContent      = panel.embedFooter      || '';
-
-        const imgEl = document.getElementById('apPanelPreviewImage');
-        if (panel.embedImage && /^https?:\/\//.test(panel.embedImage)) { imgEl.src = panel.embedImage; imgEl.style.display = 'block'; }
-        else imgEl.style.display = 'none';
-
-        const thumbEl = document.getElementById('apPanelPreviewThumb');
-        if (panel.embedThumbnail && /^https?:\/\//.test(panel.embedThumbnail)) { thumbEl.src = panel.embedThumbnail; thumbEl.style.display = 'block'; }
-        else thumbEl.style.display = 'none';
-    }
-
-    // Render tombol
-    const styleClass = { 1:'ar-btn-1', 2:'ar-btn-2', 3:'ar-btn-3', 4:'ar-btn-4' };
-    document.getElementById('apPanelPreviewBtns').innerHTML = (panel.buttons || [])
-        .filter(b => b.label)
-        .map(b => `<span class="ar-btn-chip ${styleClass[b.style] || 'ar-btn-1'}">${b.label}</span>`)
-        .join('');
-}
-
-function closePreviewPanel() {
-    document.getElementById('apPreviewPanel').classList.remove('open');
-    document.getElementById('apPreviewBackdrop').classList.remove('open');
-    document.getElementById('apPreviewPlaceholder').style.display = '';
-    document.getElementById('apPreviewContent').style.display = 'none';
-    document.getElementById('apPreviewTitle').textContent = 'Preview';
-    if (_selectedPanel) {
-        document.querySelector(`.ar-panel-card[data-name="${_selectedPanel}"]`)?.classList.remove('selected');
-        _selectedPanel = null;
-    }
-}
 
 // ── Filter panels ─────────────────────────────────────────────────────────────
 function filterPanels(q) {
@@ -1812,52 +1890,113 @@ async function saveBooster() {
 //  embedColor, embedImage, embedThumbnail — sama persis dengan command JS)
 // ══════════════════════════════════════════════════════════════════════════════
 
-function togglePanelTypePanel() {
-    const isPlain = document.getElementById('panelTypePlain').checked;
-    document.getElementById('panelPlainPanel').style.display = isPlain ? 'block' : 'none';
-    document.getElementById('panelEmbedPanel').style.display = isPlain ? 'none'  : 'block';
-    updatePanelPreview();
-}
-document.querySelectorAll('input[name="panelMessageType"]').forEach(el =>
-    el.addEventListener('change', togglePanelTypePanel)
-);
-
 function updatePanelPreview() {
-    const isPlain  = document.getElementById('panelTypePlain').checked;
-    const plainEl  = document.getElementById('panelPreviewPlain');
-    const embedEl  = document.getElementById('panelPreviewEmbed');
+    const plainEl  = document.getElementById('apModalPreviewPlain');
+    const embedEl  = document.getElementById('apModalPreviewEmbed');
+    const emptyEl  = document.getElementById('apModalPreviewEmpty');
 
-    if (isPlain) {
-        const text = document.getElementById('panelPlainText').value;
-        const html = resolveHtmlMentions(mdToHtml(text));
-        plainEl.innerHTML     = html;
-        plainEl.style.display = html.trim() ? 'block' : 'none';
-        embedEl.style.display = 'none';
-        return;
+    // Plain text block — always update independently
+    const rawText   = document.getElementById('panelPlainText').value;
+    const plainHtml = rawText.trim() ? resolveHtmlMentions(mdToHtml(rawText)) : '';
+    plainEl.innerHTML     = plainHtml;
+    plainEl.style.display = plainHtml ? 'block' : 'none';
+
+    // Embed block — always update independently
+    const title      = document.getElementById('panelEmbedTitle').value;
+    const desc       = document.getElementById('panelEmbedDescription').value;
+    const footer     = document.getElementById('panelEmbedFooter').value;
+    const footerIcon = document.getElementById('panelEmbedFooterIcon')?.value.trim() || '';
+    const image      = document.getElementById('panelEmbedImage').value.trim();
+    const thumb      = document.getElementById('panelEmbedThumbnail').value.trim();
+    const color      = document.getElementById('panelEmbedColor').value || '#5865F2';
+    const authorName = document.getElementById('panelEmbedAuthorName')?.value.trim() || '';
+    const authorUrl  = document.getElementById('panelEmbedAuthorUrl')?.value.trim() || '';
+    const authorIcon = document.getElementById('panelEmbedAuthorIcon')?.value.trim() || '';
+    const titleUrl   = document.getElementById('panelEmbedTitleUrl')?.value.trim() || '';
+    const timestamp  = document.getElementById('panelEmbedTimestamp')?.checked || false;
+
+    const validUrl = v => v && v !== '-' && /^https?:\/\/.+\..+/.test(v);
+    const hasEmbedContent = !!(title || desc || footer || validUrl(image) || validUrl(thumb) || authorName || apEmbedFields.length || timestamp);
+
+    embedEl.style.display = hasEmbedContent ? 'flex' : 'none';
+
+    if (hasEmbedContent) {
+        document.getElementById('apModalPreviewPill').style.background = color;
+
+        // Author
+        const authorEl = document.getElementById('apModalPreviewAuthor');
+        if (authorEl) {
+            if (authorName) {
+                const iconHtml = validUrl(authorIcon) ? `<img src="${authorIcon}" style="width:16px;height:16px;border-radius:50%;margin-right:.3rem;vertical-align:middle;" onerror="this.style.display='none'">` : '';
+                const link = validUrl(authorUrl) ? `<a href="${authorUrl}" target="_blank" style="color:inherit;">${escHtml(authorName)}</a>` : escHtml(authorName);
+                authorEl.innerHTML = iconHtml + link;
+                authorEl.style.display = '';
+            } else { authorEl.style.display = 'none'; }
+        }
+
+        // Title
+        const titleEl = document.getElementById('apModalPreviewTitle');
+        if (titleEl) {
+            if (title) {
+                titleEl.innerHTML = validUrl(titleUrl)
+                    ? `<a href="${titleUrl}" target="_blank" style="color:#00b0f4;">${resolveHtmlMentions(mdToHtml(title))}</a>`
+                    : resolveHtmlMentions(mdToHtml(title));
+                titleEl.style.display = '';
+            } else { titleEl.style.display = 'none'; }
+        }
+
+        // Description
+        const descEl = document.getElementById('apModalPreviewDesc');
+        if (descEl) {
+            if (desc) { descEl.innerHTML = resolveHtmlMentions(mdToHtml(desc)); descEl.style.display = ''; }
+            else { descEl.style.display = 'none'; }
+        }
+
+        // Fields
+        const fieldsEl = document.getElementById('apModalPreviewFields');
+        if (fieldsEl) {
+            if (apEmbedFields.length) {
+                fieldsEl.innerHTML = apEmbedFields.filter(f => f.name || f.value).map(f =>
+                    `<div class="cc-dp-embed-field${f.inline ? ' inline' : ''}">
+                        <div class="cc-dp-embed-field-name">${escHtml(f.name)}</div>
+                        <div class="cc-dp-embed-field-value">${resolveHtmlMentions(mdToHtml(f.value))}</div>
+                    </div>`
+                ).join('');
+                fieldsEl.style.display = '';
+            } else { fieldsEl.style.display = 'none'; }
+        }
+
+        // Thumbnail
+        const thumbWrap = document.getElementById('apModalPreviewThumb');
+        const thumbImg  = document.getElementById('apModalPreviewThumbImg');
+        if (thumbWrap && thumbImg) {
+            if (validUrl(thumb)) { thumbImg.src = thumb; thumbWrap.style.display = ''; }
+            else { thumbImg.src = ''; thumbWrap.style.display = 'none'; }
+        }
+
+        // Image
+        const imgWrap = document.getElementById('apModalPreviewImage');
+        const imgImg  = document.getElementById('apModalPreviewImageImg');
+        if (imgWrap && imgImg) {
+            if (validUrl(image)) { imgImg.src = image; imgWrap.style.display = ''; }
+            else { imgImg.src = ''; imgWrap.style.display = 'none'; }
+        }
+
+        // Footer
+        const footerEl = document.getElementById('apModalPreviewFooter');
+        if (footerEl) {
+            if (footer || timestamp) {
+                const iconHtml = validUrl(footerIcon) ? `<img src="${footerIcon}" style="width:16px;height:16px;border-radius:50%;margin-right:.3rem;vertical-align:middle;" onerror="this.style.display='none'">` : '';
+                const ts = timestamp ? new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+                const sep = footer && ts ? ' · ' : '';
+                footerEl.innerHTML = iconHtml + escHtml(footer) + sep + ts;
+                footerEl.style.display = '';
+            } else { footerEl.style.display = 'none'; }
+        }
     }
 
-    plainEl.style.display = 'none';
-    embedEl.style.display = 'flex';
-
-    const title  = document.getElementById('panelEmbedTitle').value;
-    const desc   = document.getElementById('panelEmbedDescription').value;
-    const footer = document.getElementById('panelEmbedFooter').value;
-    const image  = document.getElementById('panelEmbedImage').value.trim();
-    const thumb  = document.getElementById('panelEmbedThumbnail').value.trim();
-    const color  = document.getElementById('panelEmbedColor').value || '#5865F2';
-
-    document.getElementById('panelPreviewPill').style.background = color;
-    document.getElementById('panelPreviewTitle').innerHTML       = resolveHtmlMentions(mdToHtml(title));
-    document.getElementById('panelPreviewDesc').innerHTML        = resolveHtmlMentions(mdToHtml(desc));
-    document.getElementById('panelPreviewFooter').innerHTML      = footer ? resolveHtmlMentions(mdToHtml(footer)) : '';
-
-    const imgEl   = document.getElementById('panelPreviewImage');
-    const thumbEl = document.getElementById('panelPreviewThumb');
-    const validUrl = v => v && v !== '-' && /^https?:\/\/.+\..+/.test(v);
-    if (validUrl(image))  { imgEl.src   = image;   imgEl.style.display = ''; }
-    else                  { imgEl.src   = '';       imgEl.style.display = 'none'; }
-    if (validUrl(thumb))  { thumbEl.src = thumb;    thumbEl.style.display = ''; }
-    else                  { thumbEl.src = '';        thumbEl.style.display = 'none'; }
+    if (emptyEl) emptyEl.style.display = (plainHtml || hasEmbedContent) ? 'none' : '';
+    updatePanelPreviewBtns();
 }
 
 function _fillPanelForm(panel) {
@@ -1867,120 +2006,119 @@ function _fillPanelForm(panel) {
     document.getElementById('panelEmbedImage').value       = panel.embedImage       || '';
     document.getElementById('panelEmbedThumbnail').value   = panel.embedThumbnail   || '';
 
+    const el = id => document.getElementById(id);
+    if (el('panelEmbedAuthorName'))  el('panelEmbedAuthorName').value  = panel.embedAuthorName  || '';
+    if (el('panelEmbedAuthorUrl'))   el('panelEmbedAuthorUrl').value   = panel.embedAuthorUrl   || '';
+    if (el('panelEmbedAuthorIcon'))  el('panelEmbedAuthorIcon').value  = panel.embedAuthorIcon  || '';
+    if (el('panelEmbedTitleUrl'))    el('panelEmbedTitleUrl').value    = panel.embedTitleUrl    || '';
+    if (el('panelEmbedFooterIcon'))  el('panelEmbedFooterIcon').value  = panel.embedFooterIcon  || '';
+    if (el('panelEmbedTimestamp'))   el('panelEmbedTimestamp').checked = !!panel.embedTimestamp;
+
+    apEmbedFields = Array.isArray(panel.embedFields) ? panel.embedFields.map(f => ({...f})) : [];
+    renderApFields();
+
     const color = panel.embedColor && /^#[0-9A-Fa-f]{6}$/.test(panel.embedColor)
         ? panel.embedColor : '#5865F2';
-    document.getElementById('panelEmbedColor').value       = color;
-    document.getElementById('panelColorPicker').value      = color;
-    document.getElementById('panelMode').value             = panel.mode || 'multi';
-    const isPlain = panel.messageType === 'plain';
-    document.getElementById(isPlain ? 'panelTypePlain' : 'panelTypeEmbed').checked = true;
+    document.getElementById('panelEmbedColor').value  = color;
+    document.getElementById('panelColorPicker').value = color;
+    document.getElementById('panelMode').value        = panel.mode || 'multi';
     document.getElementById('panelPlainText').value = panel.plainText || '';
-    togglePanelTypePanel();
+    updatePanelPreview();
+    apResizeAll();
 }
 
 function _resetPanelForm() {
-    document.getElementById('panelName').value             = '';
-    document.getElementById('panelEmbedTitle').value       = '';
-    document.getElementById('panelEmbedDescription').value = '';
-    document.getElementById('panelEmbedFooter').value      = '';
-    document.getElementById('panelEmbedImage').value       = '';
-    document.getElementById('panelEmbedThumbnail').value   = '';
-    document.getElementById('panelEmbedColor').value       = '#5865F2';
-    document.getElementById('panelColorPicker').value      = '#5865F2';
-    document.getElementById('panelMode').value             = 'multi';
-    document.getElementById('panelMsg').textContent        = '';
-    document.getElementById('panelTypeEmbed').checked = true;
-    document.getElementById('panelPlainText').value   = '';
+    const el = id => document.getElementById(id);
+    el('panelName').value             = '';
+    el('panelEmbedTitle').value       = '';
+    el('panelEmbedDescription').value = '';
+    el('panelEmbedFooter').value      = '';
+    el('panelEmbedImage').value       = '';
+    el('panelEmbedThumbnail').value   = '';
+    el('panelEmbedColor').value       = '#5865F2';
+    el('panelColorPicker').value      = '#5865F2';
+    el('panelMode').value             = 'multi';
+    el('panelMsg').textContent        = '';
+    el('panelPlainText').value        = '';
+    if (el('panelEmbedAuthorName'))  el('panelEmbedAuthorName').value  = '';
+    if (el('panelEmbedAuthorUrl'))   el('panelEmbedAuthorUrl').value   = '';
+    if (el('panelEmbedAuthorIcon'))  el('panelEmbedAuthorIcon').value  = '';
+    if (el('panelEmbedTitleUrl'))    el('panelEmbedTitleUrl').value    = '';
+    if (el('panelEmbedFooterIcon'))  el('panelEmbedFooterIcon').value  = '';
+    if (el('panelEmbedTimestamp'))   el('panelEmbedTimestamp').checked = false;
+    apEmbedFields = [];
+    renderApFields();
     _inlineBtns = [];
     renderInlineBtnTable();
-    togglePanelTypePanel();
+    updatePanelPreview();
 }
 
 function openCreatePanel() {
+    _editingPanelName  = '';
+    _editingPanelIsSent = false;
     document.getElementById('panelModalTitle').textContent = '<%= t("autorole.new_panel_title") %>';
     document.getElementById('panelOriginalName').value     = '';
     document.getElementById('panelIsSent').value           = '0';
     document.getElementById('panelName').disabled          = false;
     _resetPanelForm();
-    // Tampilkan section tombol inline & sembunyikan hint
-    document.getElementById('panelInlineButtons').style.display = '';
-    document.getElementById('panelPreviewHint').style.display   = 'none';
-    // Tampilkan dropdown channel (hanya untuk panel baru)
-    document.getElementById('panelChannelGroup').style.display = '';
-    document.getElementById('panelSendChannelInline').value    = '';
-    // Reset footer ke state form
+    document.getElementById('panelInlineButtons').style.display  = '';
+    document.getElementById('panelPreviewHint').style.display    = 'none';
+    document.getElementById('panelChannelGroup').style.display              = '';
+    document.getElementById('panelSendPreviewChannel').value               = '';
+    document.getElementById('panelSendPreviewChannel').disabled            = false;
+    document.getElementById('panelBtnSend').style.display                  = '';
+    document.getElementById('panelBtnReset').style.display                 = 'none';
+    updatePanelPreviewChannel();
     _showPanelFooter('form');
-    openModal('panelBackdrop', 'panelModal');
-    window._floatSave  = async () => savePanel();
-    window._floatReset = () => { _inlineBtns = []; renderInlineBtnTable(); window._floatCapture?.(); };
-    setTimeout(() => window._floatCapture?.(), 80);
+    document.getElementById('panelFormCard').style.display = '';
+    document.getElementById('panelFormCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-async function openEditPanel(name) {
+async function openEditPanel(name, isSent = false) {
+    _editingPanelName   = name;
+    _editingPanelIsSent = isSent;
     document.getElementById('panelModalTitle').textContent = '<%= t("autorole.edit_panel_title") %>: ' + name;
     document.getElementById('panelOriginalName').value     = name;
     document.getElementById('panelName').value             = name;
     document.getElementById('panelName').disabled          = true;
     document.getElementById('panelMsg').textContent        = '';
-    // Tampilkan section tombol inline saat edit (sama dengan panel baru)
-    document.getElementById('panelInlineButtons').style.display = '';
-    document.getElementById('panelPreviewHint').style.display   = 'none';
+    document.getElementById('panelInlineButtons').style.display  = '';
+    document.getElementById('panelPreviewHint').style.display    = 'none';
+    document.getElementById('panelChannelGroup').style.display   = '';
+    document.getElementById('panelBtnSend').style.display        = isSent ? 'none' : '';
+    document.getElementById('panelBtnReset').style.display       = '';
+    document.getElementById('panelSendPreviewChannel').value     = '';
 
-    // Load data embed + tombol dari API
     try {
         const res  = await fetch(`/api/guild/${GUILD_ID}/autorole-button/${encodeURIComponent(name)}`);
         const data = await res.json();
         if (data.success && data.panel) {
             _fillPanelForm(data.panel);
-            // Load tombol yang sudah ada ke editor inline
             _inlineBtns = (data.panel.buttons || []).map(b => ({
-                roleId: b.roleId,
-                label:  b.label,
-                style:  b.style || 1,
+                roleId: b.roleId, label: b.label, style: b.style || 1,
             }));
             renderInlineBtnTable();
-
+            if (data.panel.sentChannelId) {
+                document.getElementById('panelSendPreviewChannel').value = data.panel.sentChannelId;
+                document.getElementById('panelSendPreviewChannel').disabled = true;
+            } else {
+                document.getElementById('panelSendPreviewChannel').disabled = false;
+            }
+            updatePanelPreviewChannel();
         }
     } catch(e) { console.error(e); }
 
-    // Sembunyikan dropdown channel (hanya untuk panel baru)
-    document.getElementById('panelChannelGroup').style.display = 'none';
-    // Reset footer ke state form
     _showPanelFooter('form');
-    openModal('panelBackdrop', 'panelModal');
-    const _btnsSnap = _inlineBtns.map(b => ({...b}));
-    window._floatSave  = async () => savePanel();
-    window._floatReset = () => { _inlineBtns = _btnsSnap.map(b => ({...b})); renderInlineBtnTable(); window._floatCapture?.(); };
-    setTimeout(() => window._floatCapture?.(), 80);
+    document.getElementById('panelFormCard').style.display = '';
+    document.getElementById('panelFormCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function closePanelModal() {
-    closeModal('panelBackdrop', 'panelModal');
-    window._floatClean?.();
-    window._floatSave  = _arDefaultFloatSave;
-    window._floatReset = undefined;
+    document.getElementById('panelFormCard').style.display = 'none';
 }
 
 function _showPanelFooter(state) {
-    document.getElementById('panelFooterForm').style.display = state === 'form' ? '' : 'none';
-    document.getElementById('panelFooterSend').style.display = state === 'send' ? '' : 'none';
-}
-
-let _savedPanelName = '';
-
-async function sendAfterSave() {
-    const msg       = document.getElementById('panelSendMsg');
-    const channelId = document.getElementById('panelSendChannel').value;
-    if (!channelId) return showMsg(msg, 'Please select a channel first.', 'error');
-
-    const res  = await fetch(`/api/guild/${GUILD_ID}/autorole-button/${encodeURIComponent(_savedPanelName)}/send`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ channelId })
-    });
-    const data = await res.json();
-    if (!data.success) return showMsg(msg, data.message, 'error');
-    showMsg(msg, '✅ Panel sent successfully!', 'success');
-    setTimeout(() => { closePanelModal(); _reloadKeepHash(); }, 900);
+    document.getElementById('panelFooterForm').style.display = state === 'form' ? 'flex' : 'none';
 }
 
 async function savePanel() {
@@ -1992,7 +2130,7 @@ async function savePanel() {
         showMsg(msg, 'Invalid panel name. Use letters, numbers, - or _.', 'error'); throw new Error();
     }
 
-    const isPlainType      = document.getElementById('panelTypePlain').checked;
+    const panelPlainText   = document.getElementById('panelPlainText').value.trim();
     const embedTitle       = document.getElementById('panelEmbedTitle').value.trim();
     const embedDescription = document.getElementById('panelEmbedDescription').value.trim();
     const embedFooter      = document.getElementById('panelEmbedFooter').value.trim();
@@ -2000,35 +2138,39 @@ async function savePanel() {
     const rawThumb         = document.getElementById('panelEmbedThumbnail').value.trim();
     const embedColor       = document.getElementById('panelEmbedColor').value.trim() || '#5865F2';
     const mode             = document.getElementById('panelMode').value;
-    const panelPlainText   = document.getElementById('panelPlainText').value.trim();
+    const isPlainType      = !!panelPlainText;
+    const hasEmbedContent  = !!(embedTitle || embedDescription);
 
-    if (isPlainType) {
-        if (!panelPlainText) { showMsg(msg, 'Plain text message cannot be empty.', 'error'); throw new Error(); }
-    } else {
-        const urlOk = v => !v || v === '-' || /^https?:\/\/.+\..+/.test(v);
-        if (!urlOk(rawImage)) { showMsg(msg, 'Invalid image URL. Must start with https://...', 'error'); throw new Error(); }
-        if (!urlOk(rawThumb)) { showMsg(msg, 'Invalid thumbnail URL. Must start with https://...', 'error'); throw new Error(); }
-        if (!/^#[0-9A-Fa-f]{6}$/.test(embedColor)) { showMsg(msg, 'Invalid embed color. Example: #5865F2', 'error'); throw new Error(); }
-    }
+    const urlOk = v => !v || v === '-' || /^https?:\/\/.+\..+/.test(v);
+    if (!urlOk(rawImage)) { showMsg(msg, 'Invalid image URL. Must start with https://...', 'error'); throw new Error(); }
+    if (!urlOk(rawThumb)) { showMsg(msg, 'Invalid thumbnail URL. Must start with https://...', 'error'); throw new Error(); }
+    if (!/^#[0-9A-Fa-f]{6}$/.test(embedColor)) { showMsg(msg, 'Invalid embed color. Example: #5865F2', 'error'); throw new Error(); }
 
     if (!originalName) {
-        const inlineChannelVal = document.getElementById('panelSendChannelInline').value;
-        if (!inlineChannelVal) { showMsg(msg, 'Please select a channel to send the panel to.', 'error'); throw new Error(); }
         const validBtns = _inlineBtns.filter(b => b.roleId && b.label);
         if (validBtns.length === 0) { showMsg(msg, 'Add at least 1 role button before saving the panel.', 'error'); throw new Error(); }
     }
 
+    const el = id => document.getElementById(id);
     const payload = {
         name,
         mode,
-        messageType: isPlainType ? 'plain' : 'embed',
+        messageType: isPlainType && hasEmbedContent ? 'both' : isPlainType ? 'plain' : 'embed',
         plainText:   panelPlainText,
+        channelId:   el('panelSendPreviewChannel')?.value || '',
         embedTitle,
         embedDescription,
         embedFooter,
         embedColor,
         embedImage:     rawImage === '-' ? '' : rawImage,
         embedThumbnail: rawThumb === '-' ? '' : rawThumb,
+        embedAuthorName: el('panelEmbedAuthorName')?.value.trim() || '',
+        embedAuthorUrl:  el('panelEmbedAuthorUrl')?.value.trim()  || '',
+        embedAuthorIcon: el('panelEmbedAuthorIcon')?.value.trim() || '',
+        embedTitleUrl:   el('panelEmbedTitleUrl')?.value.trim()   || '',
+        embedFooterIcon: el('panelEmbedFooterIcon')?.value.trim() || '',
+        embedTimestamp:  el('panelEmbedTimestamp')?.checked        || false,
+        embedFields:     apEmbedFields.filter(f => f.name && f.value),
     };
 
     const url = originalName
@@ -2052,39 +2194,54 @@ async function savePanel() {
     } catch(e) { console.error('Failed to save inline buttons:', e); }
 
     if (originalName) {
-        // Edit panel — langsung tutup
+        // Edit panel
         showMsg(msg, data.message, 'success');
-        setTimeout(() => { closePanelModal(); _reloadKeepHash(); }, 800);
-    } else {
-        // Panel baru — cek apakah ada channel yang dipilih
-        const inlineChannelId = document.getElementById('panelSendChannelInline').value;
-        if (inlineChannelId) {
-            // Auto-kirim ke channel yang sudah dipilih
-            showMsg(msg, '<%= t("autorole.panel_saved_sending") %>', 'success');
+        const pendingCh = _pendingBtnSendChannel;
+        _pendingBtnSendChannel = '';
+        if (pendingCh) {
             try {
                 const sendRes  = await fetch(`/api/guild/${GUILD_ID}/autorole-button/${encodeURIComponent(name)}/send`, {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ channelId: inlineChannelId })
+                    body: JSON.stringify({ channelId: pendingCh })
                 });
                 const sendData = await sendRes.json();
-                if (sendData.success) {
-                    showMsg(msg, '✅ Panel saved and sent to channel successfully!', 'success');
-                } else {
-                    showMsg(msg, `⚠️ Panel saved, but failed to send: ${sendData.message}`, 'error');
-                }
-            } catch(e) {
-                showMsg(msg, '⚠️ Panel saved, but failed to send. Try sending manually.', 'error');
-            }
+                showMsg(msg, sendData.success ? '✅ Saved & sent to channel!' : `Saved, but send failed: ${sendData.message}`, sendData.success ? 'success' : 'error');
+            } catch { showMsg(msg, '✅ Saved, but failed to send.', 'error'); }
             setTimeout(() => { closePanelModal(); _reloadKeepHash(); }, 1200);
         } else {
-            // Tidak ada channel dipilih — tampilkan footer kirim seperti sebelumnya
-            showMsg(msg, '✅ Panel saved! Select a channel to send it to Discord.', 'success');
-            document.getElementById('panelSendChannel').value   = '';
-            document.getElementById('panelSendMsg').textContent = '';
-            _savedPanelName = name;
-            _showPanelFooter('send');
+            setTimeout(() => { closePanelModal(); _reloadKeepHash(); }, 800);
+        }
+    } else {
+        // Panel baru — kirim jika _pendingBtnSendChannel diisi (dari tombol Send), atau simpan saja
+        showMsg(msg, data.message, 'success');
+        const pendingNewCh = _pendingBtnSendChannel;
+        _pendingBtnSendChannel = '';
+        if (pendingNewCh) {
+            try {
+                const sendRes  = await fetch(`/api/guild/${GUILD_ID}/autorole-button/${encodeURIComponent(name)}/send`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ channelId: pendingNewCh }) });
+                const sendData = await sendRes.json();
+                showMsg(msg, sendData.success ? '✅ Saved & sent to channel!' : `Saved, but send failed: ${sendData.message}`, sendData.success ? 'success' : 'error');
+            } catch { showMsg(msg, '✅ Saved, but failed to send.', 'error'); }
+            setTimeout(() => { closePanelModal(); _reloadKeepHash(); }, 1200);
+        } else {
+            setTimeout(() => { closePanelModal(); _reloadKeepHash(); }, 800);
         }
     }
+}
+
+let _editingPanelName  = '';
+let _editingPanelIsSent = false;
+let _pendingBtnSendChannel = '';
+
+async function saveAndSendPanel() {
+    const channelId = document.getElementById('panelSendPreviewChannel').value;
+    if (!channelId) { showMsg(document.getElementById('panelMsg'), 'Please select a channel first.', 'error'); return; }
+    _pendingBtnSendChannel = channelId;
+    await savePanel();
+}
+
+function resetPanelToOriginal() {
+    if (_editingPanelName) openEditPanel(_editingPanelName, _editingPanelIsSent);
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -2152,26 +2309,22 @@ function updateInlineBtn(i) {
     }
     document.getElementById('inlineBtnCounter').textContent = `${_inlineBtns.length}/25`;
     updatePanelPreviewBtns();
-    window._floatDirty?.();
 }
 
 function addInlineBtnRow() {
     if (_inlineBtns.length >= 25) return alert('Max 25 buttons per panel.');
     _inlineBtns.push({ roleId: '', label: '', style: 1 });
     renderInlineBtnTable();
-    window._floatDirty?.();
-    const body = document.getElementById('panelModal').querySelector('.mb-modal-body');
-    setTimeout(() => { body.scrollTop = body.scrollHeight; }, 50);
+    setTimeout(() => { document.getElementById('panelFormCard').scrollIntoView({ behavior: 'smooth', block: 'end' }); }, 50);
 }
 
 function removeInlineBtn(i) {
     _inlineBtns.splice(i, 1);
     renderInlineBtnTable();
-    window._floatDirty?.();
 }
 
 function updatePanelPreviewBtns() {
-    const container = document.getElementById('panelPreviewBtns');
+    const container = document.getElementById('apModalPreviewBtns');
     if (!container) return;
     const styleClass = { 1: 'ar-btn-1', 2: 'ar-btn-2', 3: 'ar-btn-3', 4: 'ar-btn-4' };
     container.innerHTML = _inlineBtns
@@ -2201,23 +2354,29 @@ async function deletePanel(name) {
 
 // ── Kirim panel ──────────────────────────────────────────────────────────────
 let _sendPanelName = '';
+let _sendPanelChannelId = '';
 function openSendPanel(name) {
-    _sendPanelName = name;
-    document.getElementById('sendPanelName').textContent = name;
-    document.getElementById('sendPanelChannel').value    = '';
-    document.getElementById('sendPanelMsg').textContent  = '';
+    const card = document.querySelector(`.ar-panel-card[data-name="${name}"]:not([data-type])`);
+    const channelId = card?.dataset.channelId || '';
+    if (!channelId) {
+        openEditPanel(name, false);
+        return;
+    }
+    _sendPanelName      = name;
+    _sendPanelChannelId = channelId;
+    const channelName   = CHANNELS[channelId] || channelId;
+    document.getElementById('sendPanelName').textContent        = `"${name}"`;
+    document.getElementById('sendPanelChannelName').textContent = `#${channelName}`;
+    document.getElementById('sendPanelMsg').textContent         = '';
     openModal('sendPanelBackdrop', 'sendPanelModal');
 }
 function closeSendPanel() { closeModal('sendPanelBackdrop', 'sendPanelModal'); }
 
 async function doSendPanel() {
-    const msg       = document.getElementById('sendPanelMsg');
-    const channelId = document.getElementById('sendPanelChannel').value;
-    if (!channelId) return showMsg(msg, 'Please select a channel first.', 'error');
-
-    const res  = await fetch(`/api/guild/${GUILD_ID}/autorole-button/${encodeURIComponent(_sendPanelName)}/send`, {
+    const msg = document.getElementById('sendPanelMsg');
+    const res = await fetch(`/api/guild/${GUILD_ID}/autorole-button/${encodeURIComponent(_sendPanelName)}/send`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ channelId })
+        body: JSON.stringify({ channelId: _sendPanelChannelId })
     });
     const data = await res.json();
     if (!data.success) return showMsg(msg, data.message, 'error');
@@ -2388,83 +2547,6 @@ function checkDuplicateRoles() {
     }
 }
 
-// ══════════════════════════════════════════════════════════════════════════════
-// AUTOROLE REACTION — PANEL PREVIEW (side panel)
-// ══════════════════════════════════════════════════════════════════════════════
-
-let _selectedReactPanel = null;
-
-document.getElementById('reactPanelGrid').addEventListener('click', e => {
-    if (e.target.closest('.ar-panel-actions')) return;
-    const card = e.target.closest('.ar-panel-card[data-type="reaction"]');
-    if (card) selectReactPanelPreview(card.dataset.name);
-});
-
-async function selectReactPanelPreview(name) {
-    if (_selectedReactPanel === name) { closeReactPreviewPanel(); return; }
-    if (_selectedReactPanel) {
-        document.querySelector(`.ar-panel-card[data-type="reaction"][data-name="${_selectedReactPanel}"]`)?.classList.remove('selected');
-    }
-    _selectedReactPanel = name;
-    document.querySelector(`.ar-panel-card[data-type="reaction"][data-name="${name}"]`)?.classList.add('selected');
-
-    const res  = await fetch(`/api/guild/${GUILD_ID}/autorole-reaction/${encodeURIComponent(name)}`);
-    const data = await res.json();
-    if (!data.success) return;
-
-    renderReactPreviewPanel(data.panel);
-    document.getElementById('apReactPreviewTitle').textContent = name;
-    document.getElementById('apReactPreviewPlaceholder').style.display = 'none';
-    document.getElementById('apReactPreviewContent').style.display = '';
-    document.getElementById('apReactPreviewPanel').classList.add('open');
-    document.getElementById('apReactPreviewBackdrop').classList.add('open');
-}
-
-function renderReactPreviewPanel(panel) {
-    const isPlain = panel.messageType === 'plain';
-    const plainEl = document.getElementById('apReactPanelPreviewPlain');
-    const embedEl = document.getElementById('apReactPanelPreviewEmbed');
-
-    if (isPlain) {
-        plainEl.style.display = 'block';
-        embedEl.style.display = 'none';
-        plainEl.innerHTML = resolveHtmlMentions(mdToHtml(panel.plainText || ''));
-    } else {
-        plainEl.style.display = 'none';
-        embedEl.style.display = 'flex';
-        const color = panel.embedColor || '#5865F2';
-        document.getElementById('apReactPanelPreviewPill').style.background = color;
-        document.getElementById('apReactPanelPreviewTitle').textContent      = panel.embedTitle       || '';
-        document.getElementById('apReactPanelPreviewDesc').textContent       = panel.embedDescription || '';
-        document.getElementById('apReactPanelPreviewFooter').textContent     = panel.embedFooter      || '';
-
-        const imgEl = document.getElementById('apReactPanelPreviewImage');
-        if (panel.embedImage && /^https?:\/\//.test(panel.embedImage)) { imgEl.src = panel.embedImage; imgEl.style.display = 'block'; }
-        else imgEl.style.display = 'none';
-
-        const thumbEl = document.getElementById('apReactPanelPreviewThumb');
-        if (panel.embedThumbnail && /^https?:\/\//.test(panel.embedThumbnail)) { thumbEl.src = panel.embedThumbnail; thumbEl.style.display = 'block'; }
-        else thumbEl.style.display = 'none';
-    }
-
-    document.getElementById('apReactPanelPreviewReacts').innerHTML = (panel.reactions || [])
-        .map(r => {
-            const emojiDisplay = r.emoji.includes(':') ? `<span style="font-size:.8rem;color:var(--text-muted);">:${r.emoji.split(':')[0]}:</span>` : r.emoji;
-            return `<span class="ar-react-chip">${emojiDisplay}</span>`;
-        }).join('');
-}
-
-function closeReactPreviewPanel() {
-    document.getElementById('apReactPreviewPanel').classList.remove('open');
-    document.getElementById('apReactPreviewBackdrop').classList.remove('open');
-    document.getElementById('apReactPreviewPlaceholder').style.display = '';
-    document.getElementById('apReactPreviewContent').style.display = 'none';
-    document.getElementById('apReactPreviewTitle').textContent = 'Preview';
-    if (_selectedReactPanel) {
-        document.querySelector(`.ar-panel-card[data-type="reaction"][data-name="${_selectedReactPanel}"]`)?.classList.remove('selected');
-        _selectedReactPanel = null;
-    }
-}
 
 function filterReactPanels(q) {
     q = q.toLowerCase();
@@ -2477,115 +2559,201 @@ function filterReactPanels(q) {
 // AUTOROLE REACTION — PANEL MODAL (Buat / Edit)
 // ══════════════════════════════════════════════════════════════════════════════
 
-function toggleReactPanelTypePanel() {
-    const isPlain = document.getElementById('reactPanelTypePlain').checked;
-    document.getElementById('reactPanelPlainPanel').style.display = isPlain ? 'block' : 'none';
-    document.getElementById('reactPanelEmbedPanel').style.display = isPlain ? 'none'  : 'block';
-    updateReactPanelPreview();
-}
-document.querySelectorAll('input[name="reactPanelMessageType"]').forEach(el =>
-    el.addEventListener('change', toggleReactPanelTypePanel)
-);
-
 function updateReactPanelPreview() {
-    const isPlain  = document.getElementById('reactPanelTypePlain').checked;
-    const plainEl  = document.getElementById('reactPanelPreviewPlain');
-    const embedEl  = document.getElementById('reactPanelPreviewEmbed');
+    const plainEl  = document.getElementById('rpModalPreviewPlain');
+    const embedEl  = document.getElementById('rpModalPreviewEmbed');
+    const emptyEl  = document.getElementById('rpModalPreviewEmpty');
 
-    if (isPlain) {
-        const text = document.getElementById('reactPanelPlainText').value;
-        const html = resolveHtmlMentions(mdToHtml(text));
-        plainEl.innerHTML     = html;
-        plainEl.style.display = html.trim() ? 'block' : 'none';
-        embedEl.style.display = 'none';
-        return;
-    }
+    // Plain text block — always update independently
+    const rawText   = document.getElementById('reactPanelPlainText').value;
+    const plainHtml = rawText.trim() ? resolveHtmlMentions(mdToHtml(rawText)) : '';
+    plainEl.innerHTML     = plainHtml;
+    plainEl.style.display = plainHtml ? 'block' : 'none';
 
-    plainEl.style.display = 'none';
-    embedEl.style.display = 'flex';
-
-    const title  = document.getElementById('reactPanelEmbedTitle').value;
-    const desc   = document.getElementById('reactPanelEmbedDescription').value;
-    const footer = document.getElementById('reactPanelEmbedFooter').value;
-    const image  = document.getElementById('reactPanelEmbedImage').value.trim();
-    const thumb  = document.getElementById('reactPanelEmbedThumbnail').value.trim();
-    const color  = document.getElementById('reactPanelEmbedColor').value || '#5865F2';
-
-    document.getElementById('reactPanelPreviewPill').style.background = color;
-    document.getElementById('reactPanelPreviewTitle').innerHTML       = resolveHtmlMentions(mdToHtml(title));
-    document.getElementById('reactPanelPreviewDesc').innerHTML        = resolveHtmlMentions(mdToHtml(desc));
-    document.getElementById('reactPanelPreviewFooter').innerHTML      = footer ? resolveHtmlMentions(mdToHtml(footer)) : '';
+    // Embed block — always update independently
+    const title      = document.getElementById('reactPanelEmbedTitle').value;
+    const desc       = document.getElementById('reactPanelEmbedDescription').value;
+    const footer     = document.getElementById('reactPanelEmbedFooter').value;
+    const footerIcon = document.getElementById('reactPanelEmbedFooterIcon')?.value.trim() || '';
+    const image      = document.getElementById('reactPanelEmbedImage').value.trim();
+    const thumb      = document.getElementById('reactPanelEmbedThumbnail').value.trim();
+    const color      = document.getElementById('reactPanelEmbedColor').value || '#5865F2';
+    const authorName = document.getElementById('reactPanelEmbedAuthorName')?.value.trim() || '';
+    const authorUrl  = document.getElementById('reactPanelEmbedAuthorUrl')?.value.trim()  || '';
+    const authorIcon = document.getElementById('reactPanelEmbedAuthorIcon')?.value.trim() || '';
+    const titleUrl   = document.getElementById('reactPanelEmbedTitleUrl')?.value.trim()   || '';
+    const timestamp  = document.getElementById('reactPanelEmbedTimestamp')?.checked        || false;
 
     const validUrl = v => v && v !== '-' && /^https?:\/\/.+\..+/.test(v);
-    const imgEl   = document.getElementById('reactPanelPreviewImage');
-    const thumbEl = document.getElementById('reactPanelPreviewThumb');
-    if (validUrl(image)) { imgEl.src = image; imgEl.style.display = ''; } else { imgEl.src = ''; imgEl.style.display = 'none'; }
-    if (validUrl(thumb)) { thumbEl.src = thumb; thumbEl.style.display = ''; } else { thumbEl.src = ''; thumbEl.style.display = 'none'; }
+    const hasEmbedContent = !!(title || desc || footer || validUrl(image) || validUrl(thumb) || authorName || rpEmbedFields.length || timestamp);
+
+    embedEl.style.display = hasEmbedContent ? 'flex' : 'none';
+
+    if (hasEmbedContent) {
+        document.getElementById('rpModalPreviewPill').style.background = color;
+
+        // Author
+        const authorEl = document.getElementById('rpModalPreviewAuthor');
+        if (authorEl) {
+            if (authorName) {
+                const iconHtml = validUrl(authorIcon) ? `<img src="${authorIcon}" style="width:16px;height:16px;border-radius:50%;margin-right:.3rem;vertical-align:middle;" onerror="this.style.display='none'">` : '';
+                const link = validUrl(authorUrl) ? `<a href="${authorUrl}" target="_blank" style="color:inherit;">${escHtml(authorName)}</a>` : escHtml(authorName);
+                authorEl.innerHTML = iconHtml + link;
+                authorEl.style.display = '';
+            } else { authorEl.style.display = 'none'; }
+        }
+
+        // Title
+        const titleEl = document.getElementById('rpModalPreviewTitle');
+        if (titleEl) {
+            if (title) {
+                titleEl.innerHTML = validUrl(titleUrl)
+                    ? `<a href="${titleUrl}" target="_blank" style="color:#00b0f4;">${resolveHtmlMentions(mdToHtml(title))}</a>`
+                    : resolveHtmlMentions(mdToHtml(title));
+                titleEl.style.display = '';
+            } else { titleEl.style.display = 'none'; }
+        }
+
+        // Description
+        const descEl = document.getElementById('rpModalPreviewDesc');
+        if (descEl) {
+            if (desc) { descEl.innerHTML = resolveHtmlMentions(mdToHtml(desc)); descEl.style.display = ''; }
+            else { descEl.style.display = 'none'; }
+        }
+
+        // Fields
+        const fieldsEl = document.getElementById('rpModalPreviewFields');
+        if (fieldsEl) {
+            if (rpEmbedFields.length) {
+                fieldsEl.innerHTML = rpEmbedFields.filter(f => f.name || f.value).map(f =>
+                    `<div class="cc-dp-embed-field${f.inline ? ' inline' : ''}">
+                        <div class="cc-dp-embed-field-name">${escHtml(f.name)}</div>
+                        <div class="cc-dp-embed-field-value">${resolveHtmlMentions(mdToHtml(f.value))}</div>
+                    </div>`
+                ).join('');
+                fieldsEl.style.display = '';
+            } else { fieldsEl.style.display = 'none'; }
+        }
+
+        // Thumbnail
+        const thumbWrap = document.getElementById('rpModalPreviewThumb');
+        const thumbImg  = document.getElementById('rpModalPreviewThumbImg');
+        if (thumbWrap && thumbImg) {
+            if (validUrl(thumb)) { thumbImg.src = thumb; thumbWrap.style.display = ''; }
+            else { thumbImg.src = ''; thumbWrap.style.display = 'none'; }
+        }
+
+        // Image
+        const imgWrap = document.getElementById('rpModalPreviewImage');
+        const imgImg  = document.getElementById('rpModalPreviewImageImg');
+        if (imgWrap && imgImg) {
+            if (validUrl(image)) { imgImg.src = image; imgWrap.style.display = ''; }
+            else { imgImg.src = ''; imgWrap.style.display = 'none'; }
+        }
+
+        // Footer
+        const footerEl = document.getElementById('rpModalPreviewFooter');
+        if (footerEl) {
+            if (footer || timestamp) {
+                const iconHtml = validUrl(footerIcon) ? `<img src="${footerIcon}" style="width:16px;height:16px;border-radius:50%;margin-right:.3rem;vertical-align:middle;" onerror="this.style.display='none'">` : '';
+                const ts = timestamp ? new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+                const sep = footer && ts ? ' · ' : '';
+                footerEl.innerHTML = iconHtml + escHtml(footer) + sep + ts;
+                footerEl.style.display = '';
+            } else { footerEl.style.display = 'none'; }
+        }
+    }
+
+    if (emptyEl) emptyEl.style.display = (plainHtml || hasEmbedContent) ? 'none' : '';
+    updateReactPanelPreviewReacts();
 }
 
 function _fillReactPanelForm(panel) {
-    document.getElementById('reactPanelEmbedTitle').value       = panel.embedTitle       || '';
-    document.getElementById('reactPanelEmbedDescription').value = panel.embedDescription || '';
-    document.getElementById('reactPanelEmbedFooter').value      = panel.embedFooter      || '';
-    document.getElementById('reactPanelEmbedImage').value       = panel.embedImage       || '';
-    document.getElementById('reactPanelEmbedThumbnail').value   = panel.embedThumbnail   || '';
+    const el = id => document.getElementById(id);
+    el('reactPanelEmbedTitle').value       = panel.embedTitle       || '';
+    el('reactPanelEmbedDescription').value = panel.embedDescription || '';
+    el('reactPanelEmbedFooter').value      = panel.embedFooter      || '';
+    el('reactPanelEmbedImage').value       = panel.embedImage       || '';
+    el('reactPanelEmbedThumbnail').value   = panel.embedThumbnail   || '';
+    if (el('reactPanelEmbedAuthorName'))  el('reactPanelEmbedAuthorName').value  = panel.embedAuthorName  || '';
+    if (el('reactPanelEmbedAuthorUrl'))   el('reactPanelEmbedAuthorUrl').value   = panel.embedAuthorUrl   || '';
+    if (el('reactPanelEmbedAuthorIcon'))  el('reactPanelEmbedAuthorIcon').value  = panel.embedAuthorIcon  || '';
+    if (el('reactPanelEmbedTitleUrl'))    el('reactPanelEmbedTitleUrl').value    = panel.embedTitleUrl    || '';
+    if (el('reactPanelEmbedFooterIcon'))  el('reactPanelEmbedFooterIcon').value  = panel.embedFooterIcon  || '';
+    if (el('reactPanelEmbedTimestamp'))   el('reactPanelEmbedTimestamp').checked = !!panel.embedTimestamp;
+    rpEmbedFields = Array.isArray(panel.embedFields) ? panel.embedFields.map(f => ({...f})) : [];
+    renderRpFields();
     const color = panel.embedColor && /^#[0-9A-Fa-f]{6}$/.test(panel.embedColor) ? panel.embedColor : '#5865F2';
-    document.getElementById('reactPanelEmbedColor').value  = color;
-    document.getElementById('reactPanelColorPicker').value = color;
-    document.getElementById('reactPanelMode').value        = panel.mode || 'multi';
-    const isPlain = panel.messageType === 'plain';
-    document.getElementById(isPlain ? 'reactPanelTypePlain' : 'reactPanelTypeEmbed').checked = true;
-    document.getElementById('reactPanelPlainText').value = panel.plainText || '';
-    toggleReactPanelTypePanel();
+    el('reactPanelEmbedColor').value  = color;
+    el('reactPanelColorPicker').value = color;
+    el('reactPanelMode').value        = panel.mode || 'multi';
+    el('reactPanelPlainText').value = panel.plainText || '';
+    updateReactPanelPreview();
+    apResizeAll();
 }
 
 function _resetReactPanelForm() {
-    document.getElementById('reactPanelName').value             = '';
-    document.getElementById('reactPanelEmbedTitle').value       = '';
-    document.getElementById('reactPanelEmbedDescription').value = '';
-    document.getElementById('reactPanelEmbedFooter').value      = '';
-    document.getElementById('reactPanelEmbedImage').value       = '';
-    document.getElementById('reactPanelEmbedThumbnail').value   = '';
-    document.getElementById('reactPanelEmbedColor').value       = '#5865F2';
-    document.getElementById('reactPanelColorPicker').value      = '#5865F2';
-    document.getElementById('reactPanelMode').value             = 'multi';
-    document.getElementById('reactPanelMsg').textContent        = '';
-    document.getElementById('reactPanelTypeEmbed').checked = true;
-    document.getElementById('reactPanelPlainText').value   = '';
+    const el = id => document.getElementById(id);
+    el('reactPanelName').value             = '';
+    el('reactPanelEmbedTitle').value       = '';
+    el('reactPanelEmbedDescription').value = '';
+    el('reactPanelEmbedFooter').value      = '';
+    el('reactPanelEmbedImage').value       = '';
+    el('reactPanelEmbedThumbnail').value   = '';
+    el('reactPanelEmbedColor').value       = '#5865F2';
+    el('reactPanelColorPicker').value      = '#5865F2';
+    el('reactPanelMode').value             = 'multi';
+    el('reactPanelMsg').textContent        = '';
+    el('reactPanelPlainText').value        = '';
+    if (el('reactPanelEmbedAuthorName'))  el('reactPanelEmbedAuthorName').value  = '';
+    if (el('reactPanelEmbedAuthorUrl'))   el('reactPanelEmbedAuthorUrl').value   = '';
+    if (el('reactPanelEmbedAuthorIcon'))  el('reactPanelEmbedAuthorIcon').value  = '';
+    if (el('reactPanelEmbedTitleUrl'))    el('reactPanelEmbedTitleUrl').value    = '';
+    if (el('reactPanelEmbedFooterIcon'))  el('reactPanelEmbedFooterIcon').value  = '';
+    if (el('reactPanelEmbedTimestamp'))   el('reactPanelEmbedTimestamp').checked = false;
+    rpEmbedFields = [];
+    renderRpFields();
     _inlineReacts = [];
     renderInlineReactTable();
-    toggleReactPanelTypePanel();
+    updateReactPanelPreview();
 }
 
 function _showReactPanelFooter(state) {
-    document.getElementById('reactPanelFooterForm').style.display = state === 'form' ? '' : 'none';
-    document.getElementById('reactPanelFooterSend').style.display = state === 'send' ? '' : 'none';
+    document.getElementById('reactPanelFooterForm').style.display = state === 'form' ? 'flex' : 'none';
 }
 
 function openCreateReactPanel() {
+    _editingReactPanelName   = '';
+    _editingReactPanelIsSent = false;
     document.getElementById('reactPanelModalTitle').textContent = '<%= t("autorole.new_react_panel_title") %>';
     document.getElementById('reactPanelOriginalName').value     = '';
     document.getElementById('reactPanelName').disabled          = false;
     _resetReactPanelForm();
     document.getElementById('reactPanelInlineReactions').style.display = '';
     document.getElementById('reactPanelChannelGroup').style.display    = '';
-    document.getElementById('reactPanelSendChannelInline').value       = '';
+    document.getElementById('reactSendPreviewChannel').value           = '';
+    document.getElementById('reactSendPreviewChannel').disabled        = false;
+    document.getElementById('reactPanelBtnSend').style.display         = '';
+    document.getElementById('reactPanelBtnReset').style.display        = 'none';
+    updateReactPanelPreviewChannel();
     _showReactPanelFooter('form');
-    openModal('reactPanelBackdrop', 'reactPanelModal');
-    window._floatSave  = async () => saveReactPanel();
-    window._floatReset = () => { _inlineReacts = []; renderInlineReactTable(); window._floatCapture?.(); };
-    setTimeout(() => window._floatCapture?.(), 80);
+    document.getElementById('reactPanelFormCard').style.display = '';
+    document.getElementById('reactPanelFormCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-async function openEditReactPanel(name) {
+async function openEditReactPanel(name, isSent = false) {
+    _editingReactPanelName   = name;
+    _editingReactPanelIsSent = isSent;
     document.getElementById('reactPanelModalTitle').textContent = '<%= t("autorole.edit_panel_title") %>: ' + name;
     document.getElementById('reactPanelOriginalName').value     = name;
     document.getElementById('reactPanelName').value             = name;
     document.getElementById('reactPanelName').disabled          = true;
     document.getElementById('reactPanelMsg').textContent        = '';
     document.getElementById('reactPanelInlineReactions').style.display = '';
-    document.getElementById('reactPanelChannelGroup').style.display    = 'none';
-
+    document.getElementById('reactPanelChannelGroup').style.display    = '';
+    document.getElementById('reactPanelBtnSend').style.display         = isSent ? 'none' : '';
+    document.getElementById('reactPanelBtnReset').style.display        = '';
+    document.getElementById('reactSendPreviewChannel').value           = '';
     try {
         const res  = await fetch(`/api/guild/${GUILD_ID}/autorole-reaction/${encodeURIComponent(name)}`);
         const data = await res.json();
@@ -2593,39 +2761,23 @@ async function openEditReactPanel(name) {
             _fillReactPanelForm(data.panel);
             _inlineReacts = (data.panel.reactions || []).map(r => ({ emoji: r.emoji, roleId: r.roleId }));
             renderInlineReactTable();
+            if (data.panel.sentChannelId) {
+                document.getElementById('reactSendPreviewChannel').value    = data.panel.sentChannelId;
+                document.getElementById('reactSendPreviewChannel').disabled = true;
+            } else {
+                document.getElementById('reactSendPreviewChannel').disabled = false;
+            }
+            updateReactPanelPreviewChannel();
         }
     } catch(e) { console.error(e); }
 
     _showReactPanelFooter('form');
-    openModal('reactPanelBackdrop', 'reactPanelModal');
-    const _reactsSnap = _inlineReacts.map(r => ({...r}));
-    window._floatSave  = async () => saveReactPanel();
-    window._floatReset = () => { _inlineReacts = _reactsSnap.map(r => ({...r})); renderInlineReactTable(); window._floatCapture?.(); };
-    setTimeout(() => window._floatCapture?.(), 80);
+    document.getElementById('reactPanelFormCard').style.display = '';
+    document.getElementById('reactPanelFormCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function closeReactPanelModal() {
-    closeModal('reactPanelBackdrop', 'reactPanelModal');
-    window._floatClean?.();
-    window._floatSave  = _arDefaultFloatSave;
-    window._floatReset = undefined;
-}
-
-let _savedReactPanelName = '';
-
-async function sendReactAfterSave() {
-    const msg       = document.getElementById('reactPanelSendMsg');
-    const channelId = document.getElementById('reactPanelSendChannel').value;
-    if (!channelId) return showMsg(msg, 'Please select a channel first.', 'error');
-
-    const res  = await fetch(`/api/guild/${GUILD_ID}/autorole-reaction/${encodeURIComponent(_savedReactPanelName)}/send`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ channelId })
-    });
-    const data = await res.json();
-    if (!data.success) return showMsg(msg, data.message, 'error');
-    showMsg(msg, '✅ Panel sent successfully!', 'success');
-    setTimeout(() => { closeReactPanelModal(); _reloadKeepHash(); }, 900);
+    document.getElementById('reactPanelFormCard').style.display = 'none';
 }
 
 async function saveReactPanel() {
@@ -2637,7 +2789,7 @@ async function saveReactPanel() {
         showMsg(msg, 'Invalid panel name. Use letters, numbers, - or _.', 'error'); throw new Error();
     }
 
-    const isPlainType      = document.getElementById('reactPanelTypePlain').checked;
+    const panelPlainText   = document.getElementById('reactPanelPlainText').value.trim();
     const embedTitle       = document.getElementById('reactPanelEmbedTitle').value.trim();
     const embedDescription = document.getElementById('reactPanelEmbedDescription').value.trim();
     const embedFooter      = document.getElementById('reactPanelEmbedFooter').value.trim();
@@ -2645,30 +2797,35 @@ async function saveReactPanel() {
     const rawThumb         = document.getElementById('reactPanelEmbedThumbnail').value.trim();
     const embedColor       = document.getElementById('reactPanelEmbedColor').value.trim() || '#5865F2';
     const mode             = document.getElementById('reactPanelMode').value;
-    const panelPlainText   = document.getElementById('reactPanelPlainText').value.trim();
+    const isPlainType      = !!panelPlainText;
+    const hasEmbedContent  = !!(embedTitle || embedDescription);
 
-    if (isPlainType) {
-        if (!panelPlainText) { showMsg(msg, 'Plain text message cannot be empty.', 'error'); throw new Error(); }
-    } else {
-        const urlOk = v => !v || v === '-' || /^https?:\/\/.+\..+/.test(v);
-        if (!urlOk(rawImage)) { showMsg(msg, 'Invalid image URL. Must start with https://...', 'error'); throw new Error(); }
-        if (!urlOk(rawThumb)) { showMsg(msg, 'Invalid thumbnail URL. Must start with https://...', 'error'); throw new Error(); }
-        if (!/^#[0-9A-Fa-f]{6}$/.test(embedColor)) { showMsg(msg, 'Invalid embed color. Example: #5865F2', 'error'); throw new Error(); }
-    }
+    const urlOk = v => !v || v === '-' || /^https?:\/\/.+\..+/.test(v);
+    if (!urlOk(rawImage)) { showMsg(msg, 'Invalid image URL. Must start with https://...', 'error'); throw new Error(); }
+    if (!urlOk(rawThumb)) { showMsg(msg, 'Invalid thumbnail URL. Must start with https://...', 'error'); throw new Error(); }
+    if (!/^#[0-9A-Fa-f]{6}$/.test(embedColor)) { showMsg(msg, 'Invalid embed color. Example: #5865F2', 'error'); throw new Error(); }
 
     if (!originalName) {
-        const inlineChannelVal = document.getElementById('reactPanelSendChannelInline').value;
-        if (!inlineChannelVal) { showMsg(msg, 'Please select a channel to send the panel to.', 'error'); throw new Error(); }
         const validReacts = _inlineReacts.filter(r => r.emoji && r.roleId);
         if (validReacts.length === 0) { showMsg(msg, 'Add at least 1 reaction before saving the panel.', 'error'); throw new Error(); }
     }
 
+    const rEl = id => document.getElementById(id);
     const payload = {
         name, mode,
-        messageType: isPlainType ? 'plain' : 'embed',
-        plainText: panelPlainText, embedTitle, embedDescription, embedFooter, embedColor,
+        messageType: isPlainType && hasEmbedContent ? 'both' : isPlainType ? 'plain' : 'embed',
+        plainText: panelPlainText,
+        channelId: rEl('reactSendPreviewChannel')?.value || '',
+        embedTitle, embedDescription, embedFooter, embedColor,
         embedImage:     rawImage === '-' ? '' : rawImage,
         embedThumbnail: rawThumb === '-' ? '' : rawThumb,
+        embedAuthorName: rEl('reactPanelEmbedAuthorName')?.value.trim() || '',
+        embedAuthorUrl:  rEl('reactPanelEmbedAuthorUrl')?.value.trim()  || '',
+        embedAuthorIcon: rEl('reactPanelEmbedAuthorIcon')?.value.trim() || '',
+        embedTitleUrl:   rEl('reactPanelEmbedTitleUrl')?.value.trim()   || '',
+        embedFooterIcon: rEl('reactPanelEmbedFooterIcon')?.value.trim() || '',
+        embedTimestamp:  rEl('reactPanelEmbedTimestamp')?.checked        || false,
+        embedFields:     rpEmbedFields.filter(f => f.name && f.value),
     };
 
     const url = originalName
@@ -2693,32 +2850,49 @@ async function saveReactPanel() {
 
     if (originalName) {
         showMsg(msg, data.message, 'success');
-        setTimeout(() => { closeReactPanelModal(); _reloadKeepHash(); }, 800);
-    } else {
-        const inlineChannelId = document.getElementById('reactPanelSendChannelInline').value;
-        if (inlineChannelId) {
-            showMsg(msg, '<%= t("autorole.panel_saved_sending") %>', 'success');
+        const pendingCh = _pendingReactSendChannel;
+        _pendingReactSendChannel = '';
+        if (pendingCh) {
             try {
-                const sendRes  = await fetch(`/api/guild/${GUILD_ID}/autorole-reaction/${encodeURIComponent(name)}/send`, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ channelId: inlineChannelId })
-                });
+                const sendRes  = await fetch(`/api/guild/${GUILD_ID}/autorole-reaction/${encodeURIComponent(name)}/send`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ channelId: pendingCh }) });
                 const sendData = await sendRes.json();
-                if (sendData.success) {
-                    showMsg(msg, '✅ Panel saved and sent to channel!', 'success');
-                } else {
-                    showMsg(msg, `⚠️ Panel saved, but failed to send: ${sendData.message}`, 'error');
-                }
-            } catch { showMsg(msg, '⚠️ Panel saved, but failed to send.', 'error'); }
+                showMsg(msg, sendData.success ? '✅ Saved & sent to channel!' : `Saved, but send failed: ${sendData.message}`, sendData.success ? 'success' : 'error');
+            } catch { showMsg(msg, '✅ Saved, but failed to send.', 'error'); }
             setTimeout(() => { closeReactPanelModal(); _reloadKeepHash(); }, 1200);
         } else {
-            showMsg(msg, '✅ Panel saved! Select a channel to send it.', 'success');
-            document.getElementById('reactPanelSendChannel').value   = '';
-            document.getElementById('reactPanelSendMsg').textContent = '';
-            _savedReactPanelName = name;
-            _showReactPanelFooter('send');
+            setTimeout(() => { closeReactPanelModal(); _reloadKeepHash(); }, 800);
+        }
+    } else {
+        // Panel baru — kirim jika _pendingReactSendChannel diisi (dari tombol Send), atau simpan saja
+        showMsg(msg, data.message, 'success');
+        const pendingNewCh = _pendingReactSendChannel;
+        _pendingReactSendChannel = '';
+        if (pendingNewCh) {
+            try {
+                const sendRes  = await fetch(`/api/guild/${GUILD_ID}/autorole-reaction/${encodeURIComponent(name)}/send`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ channelId: pendingNewCh }) });
+                const sendData = await sendRes.json();
+                showMsg(msg, sendData.success ? '✅ Saved & sent to channel!' : `Saved, but send failed: ${sendData.message}`, sendData.success ? 'success' : 'error');
+            } catch { showMsg(msg, '✅ Saved, but failed to send.', 'error'); }
+            setTimeout(() => { closeReactPanelModal(); _reloadKeepHash(); }, 1200);
+        } else {
+            setTimeout(() => { closeReactPanelModal(); _reloadKeepHash(); }, 800);
         }
     }
+}
+
+let _editingReactPanelName   = '';
+let _editingReactPanelIsSent = false;
+let _pendingReactSendChannel = '';
+
+async function saveAndSendReactPanel() {
+    const channelId = document.getElementById('reactSendPreviewChannel').value;
+    if (!channelId) { showMsg(document.getElementById('reactPanelMsg'), 'Please select a channel first.', 'error'); return; }
+    _pendingReactSendChannel = channelId;
+    await saveReactPanel();
+}
+
+function resetReactPanelToOriginal() {
+    if (_editingReactPanelName) openEditReactPanel(_editingReactPanelName, _editingReactPanelIsSent);
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -2928,22 +3102,18 @@ function updateInlineReact(i) {
 
     document.getElementById('inlineReactCounter').textContent = `${_inlineReacts.length}/20`;
     updateReactPanelPreviewReacts();
-    window._floatDirty?.();
 }
 
 function addInlineReactRow() {
     if (_inlineReacts.length >= 20) return alert('Maks 20 reaction per panel.');
     _inlineReacts.push({ emoji: '', roleId: '' });
     renderInlineReactTable();
-    window._floatDirty?.();
-    const body = document.getElementById('reactPanelModal').querySelector('.mb-modal-body');
-    setTimeout(() => { body.scrollTop = body.scrollHeight; }, 50);
+    setTimeout(() => { document.getElementById('reactPanelFormCard').scrollIntoView({ behavior: 'smooth', block: 'end' }); }, 50);
 }
 
 function removeInlineReact(i) {
     _inlineReacts.splice(i, 1);
     renderInlineReactTable();
-    window._floatDirty?.();
 }
 
 function updateReactPanelPreviewReacts() {
@@ -2973,23 +3143,29 @@ async function deleteReactPanel(name) {
 }
 
 let _sendReactPanelName = '';
+let _sendReactPanelChannelId = '';
 function openSendReactPanel(name) {
-    _sendReactPanelName = name;
-    document.getElementById('sendReactPanelName').textContent = name;
-    document.getElementById('sendReactPanelChannel').value    = '';
-    document.getElementById('sendReactPanelMsg').textContent  = '';
+    const card = document.querySelector(`.ar-panel-card[data-type="reaction"][data-name="${name}"]`);
+    const channelId = card?.dataset.channelId || '';
+    if (!channelId) {
+        openEditReactPanel(name, false);
+        return;
+    }
+    _sendReactPanelName      = name;
+    _sendReactPanelChannelId = channelId;
+    const channelName        = CHANNELS[channelId] || channelId;
+    document.getElementById('sendReactPanelName').textContent        = `"${name}"`;
+    document.getElementById('sendReactPanelChannelName').textContent = `#${channelName}`;
+    document.getElementById('sendReactPanelMsg').textContent         = '';
     openModal('sendReactPanelBackdrop', 'sendReactPanelModal');
 }
 function closeSendReactPanel() { closeModal('sendReactPanelBackdrop', 'sendReactPanelModal'); }
 
 async function doSendReactPanel() {
-    const msg       = document.getElementById('sendReactPanelMsg');
-    const channelId = document.getElementById('sendReactPanelChannel').value;
-    if (!channelId) return showMsg(msg, 'Please select a channel first.', 'error');
-
-    const res  = await fetch(`/api/guild/${GUILD_ID}/autorole-reaction/${encodeURIComponent(_sendReactPanelName)}/send`, {
+    const msg = document.getElementById('sendReactPanelMsg');
+    const res = await fetch(`/api/guild/${GUILD_ID}/autorole-reaction/${encodeURIComponent(_sendReactPanelName)}/send`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ channelId })
+        body: JSON.stringify({ channelId: _sendReactPanelChannelId })
     });
     const data = await res.json();
     if (!data.success) return showMsg(msg, data.message, 'error');
@@ -3094,6 +3270,11 @@ _buildMentionDd(document.getElementById('panelPlainMentionPicker'),  () => docum
 _buildMentionDd(document.getElementById('panelEmbedMentionPicker'),  () => document.getElementById('panelEmbedDescription'));
 _buildMentionDd(document.getElementById('reactPlainMentionPicker'),  () => document.getElementById('reactPanelPlainText'));
 _buildMentionDd(document.getElementById('reactEmbedMentionPicker'),  () => document.getElementById('reactPanelEmbedDescription'));
+
+buildApPhPicker('panelPlainPhPicker',  'panelPlainText');
+buildApPhPicker('panelDescPhPicker',   'panelEmbedDescription');
+buildApPhPicker('reactPlainPhPicker',  'reactPanelPlainText');
+buildApPhPicker('reactDescPhPicker',   'reactPanelEmbedDescription');
 </script>
 
 <%- include('../partials/footer') %>

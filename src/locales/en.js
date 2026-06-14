@@ -1119,6 +1119,11 @@ module.exports = {
         // button-autobtn-quickskip.js
         qs_ready_title     : (name) => `✅ Panel \`${name}\` Ready`,
         qs_ready_desc      : (name) => `Panel created successfully. Add buttons at any time with the following commands:\n\n• \`/autorole-button add-button\` — add buttons one at a time\n• \`/autorole-button add-bulk\` — add multiple buttons at once\n• \`/autorole-button send ${name}\` — send the panel to a channel when ready`,
+        // set-author
+        author_updated     : (name, author, status) => `✅ Author for panel \`${name}\` set to **${author}**.\n${status}`,
+        author_removed     : (name, status) => `✅ Author removed from panel \`${name}\`.\n${status}`,
+        // info
+        info_title         : (name) => `📋 Panel Info: ${name}`,
     },
 
     // ── /autorole-reaction ───────────────────────────────────────────────────
@@ -1183,6 +1188,11 @@ module.exports = {
         modal_not_sent_yet : (name) => `📭 Panel not sent yet. Use \`/autorole-reaction send ${name}\` after finishing setup.`,
         modal_created      : (name) => `✅ Panel \`${name}\` Created`,
         modal_updated      : (name) => `✏️ Panel \`${name}\` Updated`,
+        // set-author
+        author_updated     : (name, author, status) => `✅ Author for panel \`${name}\` set to **${author}**.\n${status}`,
+        author_removed     : (name, status) => `✅ Author removed from panel \`${name}\`.\n${status}`,
+        // info
+        info_title         : (name) => `📋 Panel Info: ${name}`,
     },
 
     // ── /poll ─────────────────────────────────────────────────────────────────

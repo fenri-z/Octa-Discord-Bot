@@ -38,9 +38,14 @@ function buildPanelEmbed(panel) {
     embed.setColor(colorHex);
     if (panel.embedTitle)       embed.setTitle(panel.embedTitle.slice(0, 256));
     if (panel.embedDescription) embed.setDescription(panel.embedDescription.slice(0, 4096));
-    if (panel.embedFooter)      embed.setFooter({ text: panel.embedFooter.slice(0, 2048) });
+    if (panel.embedAuthorName)  embed.setAuthor({ name: panel.embedAuthorName.slice(0, 256), url: panel.embedAuthorUrl || undefined, iconURL: panel.embedAuthorIcon || undefined });
+    if (panel.embedTitleUrl)    embed.setURL(panel.embedTitleUrl);
+    if (panel.embedFooter || panel.embedFooterIcon) embed.setFooter({ text: (panel.embedFooter || '').slice(0, 2048), iconURL: panel.embedFooterIcon || undefined });
+    if (panel.embedTimestamp)   embed.setTimestamp();
     if (panel.embedImage)       embed.setImage(panel.embedImage);
     if (panel.embedThumbnail)   embed.setThumbnail(panel.embedThumbnail);
+    const embedFields = (panel.embedFields || []).filter(f => f.name && f.value).slice(0, 25);
+    if (embedFields.length) embed.addFields(embedFields.map(f => ({ name: f.name.slice(0, 256), value: f.value.slice(0, 1024), inline: !!f.inline })));
     return embed;
 }
 
@@ -73,47 +78,18 @@ module.exports = new Component({
         try { pending = JSON.parse(rawPending); }
         catch { return interaction.reply({ content: s.session_corrupt, flags: MessageFlags.Ephemeral }); }
 
-        const { nama, mode, isNew, pendingType } = pending;
+        const { nama, mode, isNew } = pending;
         const existing = getPanel(client, guildId, nama);
         const now      = Date.now();
 
-        // ── PLAIN TYPE ────────────────────────────────────────────────────────
-        if (pendingType === 'plain') {
-            let plainText = '';
-            try { plainText = interaction.fields.getTextInputValue('autoreact-field-plaintext').trim(); } catch {}
-            if (!existing) return interaction.reply({ content: s.panel_not_found(nama), flags: MessageFlags.Ephemeral });
-
-            const panel = { ...existing, messageType: 'plain', plainText, updatedAt: now };
-            savePanel(client, guildId, nama, panel);
-
-            const sent = getSentPanel(client, guildId, nama);
-            let statusStr = '';
-            if (sent) {
-                const channel = interaction.guild.channels.cache.get(sent.channelId)
-                    ?? await interaction.guild.channels.fetch(sent.channelId).catch(() => null);
-                if (channel) {
-                    let message = null;
-                    try { message = await channel.messages.fetch(sent.messageId); } catch {}
-                    if (message) {
-                        try {
-                            await message.edit({ content: plainText.slice(0, 2000), embeds: [] });
-                            statusStr = `\n${s.modal_live_ok(guildId, sent.channelId, sent.messageId)}`;
-                        } catch { statusStr = `\n${s.modal_live_fail(nama)}`; }
-                    }
-                }
-            }
-
-            return interaction.reply({
-                content: s.modal_plain_ok(nama, statusStr),
-                flags: MessageFlags.Ephemeral
-            });
-        }
-
-        // ── EMBED TYPE ────────────────────────────────────────────────────────
-        let embedTitle = '', embedDescription = '', embedFooter = '';
+        // Read all 4 modal fields — plain text presence determines message type
+        let embedTitle = '', embedDescription = '', embedFooter = '', plainText = '';
         try { embedTitle       = interaction.fields.getTextInputValue('autoreact-field-title').trim(); } catch {}
         try { embedDescription = interaction.fields.getTextInputValue('autoreact-field-description').trim(); } catch {}
         try { embedFooter      = interaction.fields.getTextInputValue('autoreact-field-footer').trim(); } catch {}
+        try { plainText        = interaction.fields.getTextInputValue('autoreact-field-plaintext').trim(); } catch {}
+
+        const messageType = plainText ? 'plain' : 'embed';
 
         const panel = {
             name:             nama,
@@ -121,14 +97,21 @@ module.exports = new Component({
             embedTitle,
             embedDescription,
             embedFooter,
-            embedColor:     existing?.embedColor     || '#5865F2',
-            embedImage:     existing?.embedImage     || '',
-            embedThumbnail: existing?.embedThumbnail || '',
-            reactions:      existing?.reactions      || [],
-            messageType:    existing?.messageType    || 'embed',
-            plainText:      existing?.plainText      || '',
-            createdAt:      existing?.createdAt      || now,
-            updatedAt:      now
+            messageType,
+            plainText,
+            embedColor:      existing?.embedColor      || '#5865F2',
+            embedImage:      existing?.embedImage      || '',
+            embedThumbnail:  existing?.embedThumbnail  || '',
+            embedAuthorName: existing?.embedAuthorName || '',
+            embedAuthorUrl:  existing?.embedAuthorUrl  || '',
+            embedAuthorIcon: existing?.embedAuthorIcon || '',
+            embedTitleUrl:   existing?.embedTitleUrl   || '',
+            embedFooterIcon: existing?.embedFooterIcon || '',
+            embedTimestamp:  existing?.embedTimestamp  || false,
+            embedFields:     existing?.embedFields     || [],
+            reactions:       existing?.reactions       || [],
+            createdAt:       existing?.createdAt       || now,
+            updatedAt:       now
         };
 
         savePanel(client, guildId, nama, panel);
@@ -163,7 +146,7 @@ module.exports = new Component({
             statusStr = s.modal_not_sent_yet(nama);
         }
 
-        const isEmpty  = !embedTitle && !embedDescription;
+        const isEmpty  = messageType === 'embed' && !embedTitle && !embedDescription;
         const modeIcon = mode === 'single' ? '🔘 Single (radio)' : '✅ Multi';
 
         const fields = [
@@ -185,7 +168,8 @@ module.exports = new Component({
             value: [
                 `• \`/autorole-reaction add-reaction\` — add emoji + role`,
                 `• \`/autorole-reaction set-color\` — change embed color`,
-                `• \`/autorole-reaction set-image\` — add an image`,
+                `• \`/autorole-reaction set-author\` — set embed author`,
+                `• \`/autorole-reaction edit ${nama}\` — edit content again`,
                 `• \`/autorole-reaction preview ${nama}\` — preview the panel`,
                 `• \`/autorole-reaction send ${nama}\` — send to a channel`
             ].join('\n'),

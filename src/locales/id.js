@@ -1119,6 +1119,11 @@ module.exports = {
         // button-autobtn-quickskip.js
         qs_ready_title     : (name) => `✅ Panel \`${name}\` Siap`,
         qs_ready_desc      : (name) => `Panel berhasil dibuat. Tambahkan button kapan saja dengan perintah berikut:\n\n• \`/autorole-button add-button\` — tambah button satu per satu\n• \`/autorole-button add-bulk\` — tambah banyak button sekaligus\n• \`/autorole-button send ${name}\` — kirim panel ke channel jika sudah siap`,
+        // set-author
+        author_updated     : (name, author, status) => `✅ Author panel \`${name}\` diatur ke **${author}**.\n${status}`,
+        author_removed     : (name, status) => `✅ Author dihapus dari panel \`${name}\`.\n${status}`,
+        // info
+        info_title         : (name) => `📋 Info Panel: ${name}`,
     },
 
     // ── /autorole-reaction ───────────────────────────────────────────────────
@@ -1183,6 +1188,11 @@ module.exports = {
         modal_not_sent_yet : (name) => `📭 Panel belum dikirim. Gunakan \`/autorole-reaction send ${name}\` setelah setup selesai.`,
         modal_created      : (name) => `✅ Panel \`${name}\` Dibuat`,
         modal_updated      : (name) => `✏️ Panel \`${name}\` Diperbarui`,
+        // set-author
+        author_updated     : (name, author, status) => `✅ Author panel \`${name}\` diatur ke **${author}**.\n${status}`,
+        author_removed     : (name, status) => `✅ Author dihapus dari panel \`${name}\`.\n${status}`,
+        // info
+        info_title         : (name) => `📋 Info Panel: ${name}`,
     },
 
     // ── /poll ─────────────────────────────────────────────────────────────────

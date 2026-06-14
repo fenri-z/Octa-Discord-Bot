@@ -97,9 +97,14 @@ function buildPanelEmbed(panel) {
     embed.setColor(colorHex);
     if (panel.embedTitle)       embed.setTitle(panel.embedTitle.slice(0, 256));
     if (panel.embedDescription) embed.setDescription(panel.embedDescription.slice(0, 4096));
-    if (panel.embedFooter)      embed.setFooter({ text: panel.embedFooter.slice(0, 2048) });
+    if (panel.embedAuthorName)  embed.setAuthor({ name: panel.embedAuthorName.slice(0, 256), url: panel.embedAuthorUrl || undefined, iconURL: panel.embedAuthorIcon || undefined });
+    if (panel.embedTitleUrl)    embed.setURL(panel.embedTitleUrl);
+    if (panel.embedFooter || panel.embedFooterIcon) embed.setFooter({ text: (panel.embedFooter || '').slice(0, 2048), iconURL: panel.embedFooterIcon || undefined });
+    if (panel.embedTimestamp)   embed.setTimestamp();
     if (panel.embedImage)       embed.setImage(panel.embedImage);
     if (panel.embedThumbnail)   embed.setThumbnail(panel.embedThumbnail);
+    const embedFields = (panel.embedFields || []).filter(f => f.name && f.value).slice(0, 25);
+    if (embedFields.length) embed.addFields(embedFields.map(f => ({ name: f.name.slice(0, 256), value: f.value.slice(0, 1024), inline: !!f.inline })));
     return embed;
 }
 
@@ -189,6 +194,39 @@ module.exports = new ApplicationCommand({
                 ]
             },
 
+            // ── set-author ────────────────────────────────────────────────
+            {
+                name: 'set-author',
+                description: 'Set or remove the embed author (name, URL, icon).',
+                type: 1,
+                options: [
+                    { name: 'panel', description: 'Panel name', type: 3, required: true, autocomplete: true },
+                    { name: 'name',  description: 'Author name (max 256). Type - to remove.', type: 3, required: true, max_length: 256 },
+                    { name: 'url',   description: 'Author profile URL (optional, https://...)', type: 3, required: false },
+                    { name: 'icon',  description: 'Author icon image URL (optional, https://...)', type: 3, required: false }
+                ]
+            },
+
+            // ── info ─────────────────────────────────────────────────────
+            {
+                name: 'info',
+                description: 'Show full details of a panel.',
+                type: 1,
+                options: [
+                    { name: 'panel', description: 'Panel name', type: 3, required: true, autocomplete: true }
+                ]
+            },
+
+            // ── edit ─────────────────────────────────────────────────────
+            {
+                name: 'edit',
+                description: 'Edit the text/embed content of an existing panel.',
+                type: 1,
+                options: [
+                    { name: 'panel', description: 'Panel name', type: 3, required: true, autocomplete: true }
+                ]
+            },
+
             // ── add-reaction ─────────────────────────────────────────────
             {
                 name: 'add-reaction',
@@ -243,23 +281,6 @@ module.exports = new ApplicationCommand({
                 ]
             },
 
-            // ── type ─────────────────────────────────────────────────────
-            {
-                name: 'type',
-                description: 'Change the panel message type: embed or plain text.',
-                type: 1,
-                options: [
-                    { name: 'panel', description: 'Panel name', type: 3, required: true, autocomplete: true },
-                    {
-                        name: 'type', description: 'Desired message type',
-                        type: 3, required: true,
-                        choices: [
-                            { name: 'Embed — message in a colored box', value: 'embed' },
-                            { name: 'Plain Text — text without an embed box',    value: 'plain' }
-                        ]
-                    }
-                ]
-            }
         ]
     },
 
@@ -327,43 +348,6 @@ module.exports = new ApplicationCommand({
             });
         }
 
-        // ── /autorole-reaction type ────────────────────────────────────────
-        if (sub === 'type') {
-            const panelName = options.getString('panel');
-            const tipe      = options.getString('type');
-            const panel     = getPanel(client, guild.id, panelName);
-            if (!panel) return interaction.reply({ content: s.panel_not_found(panelName), flags: MessageFlags.Ephemeral });
-
-            if (tipe === 'embed') {
-                panel.messageType = 'embed';
-                panel.updatedAt   = Date.now();
-                savePanel(client, guild.id, panelName, panel);
-                return interaction.reply({
-                    content: s.type_embed(panelName),
-                    flags: MessageFlags.Ephemeral
-                });
-            }
-
-            client.database.set(
-                `autoreact-pending-${guild.id}-${interaction.user.id}`,
-                JSON.stringify({ nama: panelName, mode: panel.mode || 'multi', isNew: false, pendingType: 'plain' })
-            );
-            await interaction.showModal({
-                custom_id: `autoreact-modal:${panelName}`,
-                title: `Plain Text: ${panelName}`.slice(0, 45),
-                components: [{
-                    type: 1,
-                    components: [{
-                        type: 4, custom_id: 'autoreact-field-plaintext',
-                        label: 'Plain Text Message Content (max. 2000)', style: 2,
-                        placeholder: 'Write your message content here...',
-                        value: panel.plainText || '', required: true, max_length: 2000
-                    }]
-                }]
-            });
-            return;
-        }
-
         // ── /autorole-reaction create ──────────────────────────────────────
         if (sub === 'create') {
             const name = options.getString('name').trim().toLowerCase();
@@ -419,6 +403,15 @@ module.exports = new ApplicationCommand({
                             label: 'Embed Footer (max. 2048 characters)', style: 1,
                             placeholder: 'Text at the bottom of the embed...',
                             value: existing?.embedFooter || '', required: false, max_length: 2048
+                        }]
+                    },
+                    {
+                        type: 1,
+                        components: [{
+                            type: 4, custom_id: 'autoreact-field-plaintext',
+                            label: 'Plain Text — leave blank to use embed (max. 2000)', style: 2,
+                            placeholder: 'If filled, sends as plain text instead of an embed...',
+                            value: existing?.plainText || '', required: false, max_length: 2000
                         }]
                     }
                 ]
@@ -515,6 +508,148 @@ module.exports = new ApplicationCommand({
                 content: s.thumbnail_updated(panelName, thumbAction, statusStr),
                 flags: MessageFlags.Ephemeral
             });
+        }
+
+        // ── /autorole-reaction set-author ─────────────────────────────────
+        if (sub === 'set-author') {
+            const panelName  = options.getString('panel');
+            const authorName = options.getString('name').trim();
+            const authorUrl  = options.getString('url')  || '';
+            const authorIcon = options.getString('icon') || '';
+            const panel = getPanel(client, guild.id, panelName);
+            if (!panel) return interaction.reply({ content: s.panel_not_found(panelName), flags: MessageFlags.Ephemeral });
+
+            if (authorName === '-') {
+                panel.embedAuthorName = '';
+                panel.embedAuthorUrl  = '';
+                panel.embedAuthorIcon = '';
+            } else {
+                if (authorUrl  && !/^https?:\/\/.+\..+/.test(authorUrl))  return interaction.reply({ content: s.invalid_url, flags: MessageFlags.Ephemeral });
+                if (authorIcon && !/^https?:\/\/.+\..+/.test(authorIcon)) return interaction.reply({ content: s.invalid_url, flags: MessageFlags.Ephemeral });
+                panel.embedAuthorName = authorName.slice(0, 256);
+                panel.embedAuthorUrl  = authorUrl;
+                panel.embedAuthorIcon = authorIcon;
+            }
+            panel.updatedAt = Date.now();
+            savePanel(client, guild.id, panelName, panel);
+
+            const sentResult = await resolveSentMessage(client, guild, panelName);
+            let statusStr = s.not_sent_info(panelName);
+            if (sentResult) {
+                try {
+                    await sentResult.message.edit({ embeds: [buildPanelEmbed(panel)] });
+                    statusStr = s.msg_updated(guild.id, sentResult.sent.channelId, sentResult.sent.messageId);
+                } catch {
+                    statusStr = s.msg_update_failed;
+                }
+            }
+
+            const removed = authorName === '-';
+            return interaction.reply({
+                content: removed
+                    ? s.author_removed(panelName, statusStr)
+                    : s.author_updated(panelName, panel.embedAuthorName, statusStr),
+                flags: MessageFlags.Ephemeral
+            });
+        }
+
+        // ── /autorole-reaction info ────────────────────────────────────────
+        if (sub === 'info') {
+            const panelName = options.getString('panel');
+            const panel     = getPanel(client, guild.id, panelName);
+            if (!panel) return interaction.reply({ content: s.panel_not_found(panelName), flags: MessageFlags.Ephemeral });
+
+            const sent      = getSentPanel(client, guild.id, panelName);
+            const modeLabel = panel.mode === 'single' ? '🔘 Single (radio)' : '✅ Multi';
+            const typeLabel = panel.messageType === 'plain' ? '📄 Plain Text' : '🖼️ Embed';
+
+            const infoFields = [
+                { name: '🔧 Mode',         value: modeLabel,                         inline: true },
+                { name: '📋 Message Type', value: typeLabel,                          inline: true },
+                { name: '🎨 Embed Color',  value: panel.embedColor || '#5865F2',      inline: true },
+                { name: '✨ Reactions',    value: `${(panel.reactions || []).length}/20`, inline: true },
+                { name: '📤 Sent',         value: sent
+                    ? `[View Message](https://discord.com/channels/${guild.id}/${sent.channelId}/${sent.messageId})`
+                    : '📭 Not sent yet', inline: true },
+            ];
+
+            if (panel.embedTitle)      infoFields.push({ name: '🏷️ Title',     value: panel.embedTitle.slice(0, 100),      inline: false });
+            if (panel.embedAuthorName) infoFields.push({ name: '✍️ Author',    value: panel.embedAuthorName.slice(0, 100), inline: false });
+            if (panel.embedImage)      infoFields.push({ name: '🖼️ Image',     value: panel.embedImage.slice(0, 100),      inline: false });
+            if (panel.embedThumbnail)  infoFields.push({ name: '🖼️ Thumbnail', value: panel.embedThumbnail.slice(0, 100),  inline: false });
+            if ((panel.embedFields || []).length) infoFields.push({ name: '📑 Embed Fields', value: `${panel.embedFields.length} field(s)`, inline: true });
+
+            infoFields.push(
+                { name: '📅 Created', value: panel.createdAt ? `<t:${Math.floor(panel.createdAt / 1000)}:R>` : '?', inline: true },
+                { name: '🔄 Updated', value: panel.updatedAt ? `<t:${Math.floor(panel.updatedAt / 1000)}:R>` : '?', inline: true }
+            );
+
+            return interaction.reply({
+                embeds: [
+                    new EmbedBuilder()
+                        .setColor(panel.embedColor || '#5865F2')
+                        .setTitle(s.info_title(panelName))
+                        .addFields(infoFields)
+                        .setTimestamp()
+                ],
+                flags: MessageFlags.Ephemeral
+            });
+        }
+
+        // ── /autorole-reaction edit ────────────────────────────────────────
+        if (sub === 'edit') {
+            const panelName = options.getString('panel');
+            const existing  = getPanel(client, guild.id, panelName);
+            if (!existing) return interaction.reply({ content: s.panel_not_found(panelName), flags: MessageFlags.Ephemeral });
+
+            client.database.set(
+                `autoreact-pending-${guild.id}-${interaction.user.id}`,
+                JSON.stringify({ nama: panelName, mode: existing.mode || 'multi', isNew: false })
+            );
+
+            await interaction.showModal({
+                custom_id: `autoreact-modal:${panelName}`,
+                title: `Edit Panel: ${panelName}`.slice(0, 45),
+                components: [
+                    {
+                        type: 1,
+                        components: [{
+                            type: 4, custom_id: 'autoreact-field-title',
+                            label: 'Embed Title (max. 256 characters)', style: 1,
+                            placeholder: 'Example: Choose Your Role',
+                            value: existing.embedTitle || '', required: false, max_length: 256
+                        }]
+                    },
+                    {
+                        type: 1,
+                        components: [{
+                            type: 4, custom_id: 'autoreact-field-description',
+                            label: 'Embed Description (max. 4000 characters)', style: 2,
+                            placeholder: 'Explain how to use reactions here...',
+                            value: existing.embedDescription || '', required: false, max_length: 4000
+                        }]
+                    },
+                    {
+                        type: 1,
+                        components: [{
+                            type: 4, custom_id: 'autoreact-field-footer',
+                            label: 'Embed Footer (max. 2048 characters)', style: 1,
+                            placeholder: 'Text at the bottom of the embed...',
+                            value: existing.embedFooter || '', required: false, max_length: 2048
+                        }]
+                    },
+                    {
+                        type: 1,
+                        components: [{
+                            type: 4, custom_id: 'autoreact-field-plaintext',
+                            label: 'Plain Text — leave blank to use embed (max. 2000)', style: 2,
+                            placeholder: 'If filled, sends as plain text instead of an embed...',
+                            value: existing.plainText || '', required: false, max_length: 2000
+                        }]
+                    }
+                ]
+            });
+            return;
         }
 
         // ── /autorole-reaction add-reaction ────────────────────────────────

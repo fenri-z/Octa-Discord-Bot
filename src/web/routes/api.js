@@ -509,6 +509,20 @@ router.post('/guild/:guildId/autorole-booster', requireLogin, requireManageGuild
     res.json({ success: true, message: 'Booster Autorole saved successfully.' });
 });
 
+// Shared helper — applies extended embed fields (author, titleUrl, footer icon, timestamp, fields)
+function _applyEmbedExtras(embed, panel) {
+    if (panel.embedAuthorName) {
+        embed.setAuthor({ name: panel.embedAuthorName.slice(0, 256), url: panel.embedAuthorUrl || undefined, iconURL: panel.embedAuthorIcon || undefined });
+    }
+    if (panel.embedTitleUrl) embed.setURL(panel.embedTitleUrl);
+    if (panel.embedFooter || panel.embedFooterIcon) {
+        embed.setFooter({ text: (panel.embedFooter || '').slice(0, 2048), iconURL: panel.embedFooterIcon || undefined });
+    }
+    if (panel.embedTimestamp) embed.setTimestamp();
+    const fields = (panel.embedFields || []).filter(f => f.name && f.value).slice(0, 25);
+    if (fields.length) embed.addFields(fields.map(f => ({ name: f.name.slice(0, 256), value: f.value.slice(0, 1024), inline: !!f.inline })));
+}
+
 // ── GET /api/guild/:guildId/autorole-button/:name — ambil satu panel ──────
 router.get('/guild/:guildId/autorole-button/:name', requireLogin, requireManageGuild, (req, res) => {
     const db      = req.discordClient?.database;
@@ -519,7 +533,8 @@ router.get('/guild/:guildId/autorole-button/:name', requireLogin, requireManageG
     try {
         const panel = JSON.parse(raw);
         const sentRaw = db?.get(`autobtn-sent-${guildId}-${name}`);
-        panel.isSent  = !!sentRaw;
+        panel.isSent       = !!sentRaw;
+        panel.sentChannelId = sentRaw ? (JSON.parse(sentRaw).channelId || '') : '';
         res.json({ success: true, panel });
     } catch {
         res.json({ success: false, message: 'Data panel rusak.' });
@@ -535,9 +550,11 @@ router.post('/guild/:guildId/autorole-button', requireLogin, requireManageGuild,
     const guildId = req.params.guildId;
     const {
         name, mode,
-        messageType, plainText,
+        messageType, plainText, channelId,
         embedTitle, embedDescription, embedFooter,
-        embedColor, embedImage, embedThumbnail
+        embedColor, embedImage, embedThumbnail,
+        embedAuthorName, embedAuthorUrl, embedAuthorIcon,
+        embedTitleUrl, embedFooterIcon, embedTimestamp, embedFields,
     } = req.body;
 
     const panelName = (name || '').trim().toLowerCase();
@@ -571,10 +588,18 @@ router.post('/guild/:guildId/autorole-button', requireLogin, requireManageGuild,
         embedColor:       colorHex,
         embedImage:       embedImage       !== undefined ? embedImage.trim()       : (existing?.embedImage       || ''),
         embedThumbnail:   embedThumbnail   !== undefined ? embedThumbnail.trim()   : (existing?.embedThumbnail   || ''),
+        embedAuthorName:  embedAuthorName  !== undefined ? (embedAuthorName||'').trim()  : (existing?.embedAuthorName  || ''),
+        embedAuthorUrl:   embedAuthorUrl   !== undefined ? (embedAuthorUrl||'').trim()   : (existing?.embedAuthorUrl   || ''),
+        embedAuthorIcon:  embedAuthorIcon  !== undefined ? (embedAuthorIcon||'').trim()  : (existing?.embedAuthorIcon  || ''),
+        embedTitleUrl:    embedTitleUrl    !== undefined ? (embedTitleUrl||'').trim()    : (existing?.embedTitleUrl    || ''),
+        embedFooterIcon:  embedFooterIcon  !== undefined ? (embedFooterIcon||'').trim()  : (existing?.embedFooterIcon  || ''),
+        embedTimestamp:   embedTimestamp   !== undefined ? !!embedTimestamp               : (existing?.embedTimestamp   || false),
+        embedFields:      Array.isArray(embedFields) ? embedFields.filter(f=>f.name&&f.value) : (existing?.embedFields || []),
         defaultStyle:     existing?.defaultStyle || null,
         buttons:          existing?.buttons      || [],
-        messageType: messageType === 'plain' ? 'plain' : (existing?.messageType || 'embed'),
-        plainText:   messageType === 'plain' ? (plainText || '').trim() : (existing?.plainText || ''),
+        messageType: ['plain','both'].includes(messageType) ? messageType : (existing?.messageType || 'embed'),
+        plainText:   (plainText || '').trim() || (existing?.plainText || ''),
+        channelId:   (channelId || '').trim() || (existing?.channelId || ''),
         createdAt:        existing?.createdAt    || now,
         updatedAt:        now,
     };
@@ -599,9 +624,11 @@ router.post('/guild/:guildId/autorole-button/:name', requireLogin, requireManage
     const name    = req.params.name.trim().toLowerCase();
     const {
         mode,
-        messageType, plainText,
+        messageType, plainText, channelId,
         embedTitle, embedDescription, embedFooter,
-        embedColor, embedImage, embedThumbnail
+        embedColor, embedImage, embedThumbnail,
+        embedAuthorName, embedAuthorUrl, embedAuthorIcon,
+        embedTitleUrl, embedFooterIcon, embedTimestamp, embedFields,
     } = req.body;
 
     const raw = db?.get(`autobtn-${guildId}-${name}`);
@@ -621,13 +648,19 @@ router.post('/guild/:guildId/autorole-button/:name', requireLogin, requireManage
     if (embedTitle       !== undefined) panel.embedTitle       = embedTitle.trim();
     if (embedDescription !== undefined) panel.embedDescription = embedDescription.trim();
     if (embedFooter      !== undefined) panel.embedFooter      = embedFooter.trim();
-    if (embedColor       !== undefined) {
-        panel.embedColor = embedColor.startsWith('#') ? embedColor : `#${embedColor}`;
-    }
+    if (embedColor       !== undefined) panel.embedColor = embedColor.startsWith('#') ? embedColor : `#${embedColor}`;
     if (embedImage       !== undefined) panel.embedImage       = embedImage.trim();
     if (embedThumbnail   !== undefined) panel.embedThumbnail   = embedThumbnail.trim();
-    if (messageType !== undefined) panel.messageType = messageType === 'plain' ? 'plain' : 'embed';
+    if (embedAuthorName  !== undefined) panel.embedAuthorName  = (embedAuthorName||'').trim();
+    if (embedAuthorUrl   !== undefined) panel.embedAuthorUrl   = (embedAuthorUrl||'').trim();
+    if (embedAuthorIcon  !== undefined) panel.embedAuthorIcon  = (embedAuthorIcon||'').trim();
+    if (embedTitleUrl    !== undefined) panel.embedTitleUrl    = (embedTitleUrl||'').trim();
+    if (embedFooterIcon  !== undefined) panel.embedFooterIcon  = (embedFooterIcon||'').trim();
+    if (embedTimestamp   !== undefined) panel.embedTimestamp   = !!embedTimestamp;
+    if (Array.isArray(embedFields))    panel.embedFields      = embedFields.filter(f=>f.name&&f.value);
+    if (messageType !== undefined) panel.messageType = ['plain','both'].includes(messageType) ? messageType : 'embed';
     if (plainText   !== undefined) panel.plainText   = plainText.trim();
+    if (channelId   !== undefined) panel.channelId   = (channelId || '').trim();
     panel.updatedAt = Date.now();
     db.set(`autobtn-${guildId}-${name}`, JSON.stringify(panel));
 
@@ -650,9 +683,9 @@ router.post('/guild/:guildId/autorole-button/:name', requireLogin, requireManage
                     const embed = new EmbedBuilder().setColor(colorHex);
                     if (panel.embedTitle)       embed.setTitle(panel.embedTitle.slice(0, 256));
                     if (panel.embedDescription) embed.setDescription(panel.embedDescription.slice(0, 4096));
-                    if (panel.embedFooter)      embed.setFooter({ text: panel.embedFooter.slice(0, 2048) });
                     if (panel.embedImage)       embed.setImage(panel.embedImage);
                     if (panel.embedThumbnail)   embed.setThumbnail(panel.embedThumbnail);
+                    _applyEmbedExtras(embed, panel);
 
                     // Bangun components (sinkron dengan buildButtonRows di command)
                     const rows = [];
@@ -671,10 +704,13 @@ router.post('/guild/:guildId/autorole-button/:name', requireLogin, requireManage
                     }
                     if (colIdx > 0) rows.push(currentRow);
 
-                    if (panel.messageType === 'plain') {
-                        await discordMsg.edit({ content: (panel.plainText || '').slice(0, 2000), embeds: [], components: panel.buttons.length > 0 ? rows : [] });
+                    const comps = panel.buttons.length > 0 ? rows : [];
+                    if (panel.messageType === 'both') {
+                        await discordMsg.edit({ content: (panel.plainText || '').slice(0, 2000), embeds: [embed], components: comps });
+                    } else if (panel.messageType === 'plain') {
+                        await discordMsg.edit({ content: (panel.plainText || '').slice(0, 2000), embeds: [], components: comps });
                     } else {
-                        await discordMsg.edit({ embeds: [embed], content: null, components: panel.buttons.length > 0 ? rows : [] });
+                        await discordMsg.edit({ embeds: [embed], content: null, components: comps });
                     }
                     liveUpdate = ' Discord message updated live.';
                 }
@@ -860,9 +896,9 @@ router.post('/guild/:guildId/autorole-button/:name/send', requireLogin, requireM
         const embed = new EmbedBuilder().setColor(colorHex);
         if (panel.embedTitle)       embed.setTitle(panel.embedTitle.slice(0, 256));
         if (panel.embedDescription) embed.setDescription(panel.embedDescription.slice(0, 4096));
-        if (panel.embedFooter)      embed.setFooter({ text: panel.embedFooter.slice(0, 2048) });
         if (panel.embedImage)       embed.setImage(panel.embedImage);
         if (panel.embedThumbnail)   embed.setThumbnail(panel.embedThumbnail);
+        _applyEmbedExtras(embed, panel);
 
         // Bangun rows tombol — customId sinkron: autobtn:<mode>:<panelName>:<roleId>
         const rows = [];
@@ -882,7 +918,9 @@ router.post('/guild/:guildId/autorole-button/:name/send', requireLogin, requireM
         if (colIdx > 0) rows.push(currentRow);
 
         let sent;
-        if (panel.messageType === 'plain') {
+        if (panel.messageType === 'both') {
+            sent = await channel.send({ content: (panel.plainText || '').slice(0, 2000), embeds: [embed], components: rows });
+        } else if (panel.messageType === 'plain') {
             if (!panel.plainText) return res.json({ success: false, message: 'Plain text message content is still empty.' });
             sent = await channel.send({ content: panel.plainText.slice(0, 2000), components: rows });
         } else {
@@ -914,7 +952,8 @@ router.get('/guild/:guildId/autorole-reaction/:name', requireLogin, requireManag
     try {
         const panel   = JSON.parse(raw);
         const sentRaw = db?.get(`autoreact-sent-${guildId}-${name}`);
-        panel.isSent  = !!sentRaw;
+        panel.isSent       = !!sentRaw;
+        panel.sentChannelId = sentRaw ? (JSON.parse(sentRaw).channelId || '') : '';
         res.json({ success: true, panel });
     } catch {
         res.json({ success: false, message: 'Data panel rusak.' });
@@ -927,9 +966,11 @@ router.post('/guild/:guildId/autorole-reaction', requireLogin, requireManageGuil
     const guildId = req.params.guildId;
     const {
         name, mode,
-        messageType, plainText,
+        messageType, plainText, channelId,
         embedTitle, embedDescription, embedFooter,
-        embedColor, embedImage, embedThumbnail
+        embedColor, embedImage, embedThumbnail,
+        embedAuthorName, embedAuthorUrl, embedAuthorIcon,
+        embedTitleUrl, embedFooterIcon, embedTimestamp, embedFields,
     } = req.body;
 
     const panelName = (name || '').trim().toLowerCase();
@@ -961,9 +1002,17 @@ router.post('/guild/:guildId/autorole-reaction', requireLogin, requireManageGuil
         embedColor:       colorHex,
         embedImage:       embedImage       !== undefined ? embedImage.trim()       : (existing?.embedImage       || ''),
         embedThumbnail:   embedThumbnail   !== undefined ? embedThumbnail.trim()   : (existing?.embedThumbnail   || ''),
+        embedAuthorName:  embedAuthorName  !== undefined ? (embedAuthorName||'').trim()  : (existing?.embedAuthorName  || ''),
+        embedAuthorUrl:   embedAuthorUrl   !== undefined ? (embedAuthorUrl||'').trim()   : (existing?.embedAuthorUrl   || ''),
+        embedAuthorIcon:  embedAuthorIcon  !== undefined ? (embedAuthorIcon||'').trim()  : (existing?.embedAuthorIcon  || ''),
+        embedTitleUrl:    embedTitleUrl    !== undefined ? (embedTitleUrl||'').trim()    : (existing?.embedTitleUrl    || ''),
+        embedFooterIcon:  embedFooterIcon  !== undefined ? (embedFooterIcon||'').trim()  : (existing?.embedFooterIcon  || ''),
+        embedTimestamp:   embedTimestamp   !== undefined ? !!embedTimestamp               : (existing?.embedTimestamp   || false),
+        embedFields:      Array.isArray(embedFields) ? embedFields.filter(f=>f.name&&f.value) : (existing?.embedFields || []),
         reactions:        existing?.reactions || [],
-        messageType: messageType === 'plain' ? 'plain' : (existing?.messageType || 'embed'),
-        plainText:   messageType === 'plain' ? (plainText || '').trim() : (existing?.plainText || ''),
+        messageType: ['plain','both'].includes(messageType) ? messageType : (existing?.messageType || 'embed'),
+        plainText:   (plainText || '').trim() || (existing?.plainText || ''),
+        channelId:   (channelId || '').trim() || (existing?.channelId || ''),
         createdAt:        existing?.createdAt || now,
         updatedAt:        now,
     };
@@ -985,9 +1034,11 @@ router.post('/guild/:guildId/autorole-reaction/:name', requireLogin, requireMana
     const name    = req.params.name.trim().toLowerCase();
     const {
         mode,
-        messageType, plainText,
+        messageType, plainText, channelId,
         embedTitle, embedDescription, embedFooter,
-        embedColor, embedImage, embedThumbnail
+        embedColor, embedImage, embedThumbnail,
+        embedAuthorName, embedAuthorUrl, embedAuthorIcon,
+        embedTitleUrl, embedFooterIcon, embedTimestamp, embedFields,
     } = req.body;
 
     const raw = db?.get(`autoreact-${guildId}-${name}`);
@@ -1009,8 +1060,16 @@ router.post('/guild/:guildId/autorole-reaction/:name', requireLogin, requireMana
     if (embedColor       !== undefined) panel.embedColor       = embedColor.startsWith('#') ? embedColor : `#${embedColor}`;
     if (embedImage       !== undefined) panel.embedImage       = embedImage.trim();
     if (embedThumbnail   !== undefined) panel.embedThumbnail   = embedThumbnail.trim();
-    if (messageType !== undefined) panel.messageType = messageType === 'plain' ? 'plain' : 'embed';
+    if (embedAuthorName  !== undefined) panel.embedAuthorName  = (embedAuthorName||'').trim();
+    if (embedAuthorUrl   !== undefined) panel.embedAuthorUrl   = (embedAuthorUrl||'').trim();
+    if (embedAuthorIcon  !== undefined) panel.embedAuthorIcon  = (embedAuthorIcon||'').trim();
+    if (embedTitleUrl    !== undefined) panel.embedTitleUrl    = (embedTitleUrl||'').trim();
+    if (embedFooterIcon  !== undefined) panel.embedFooterIcon  = (embedFooterIcon||'').trim();
+    if (embedTimestamp   !== undefined) panel.embedTimestamp   = !!embedTimestamp;
+    if (Array.isArray(embedFields))    panel.embedFields      = embedFields.filter(f=>f.name&&f.value);
+    if (messageType !== undefined) panel.messageType = ['plain','both'].includes(messageType) ? messageType : 'embed';
     if (plainText   !== undefined) panel.plainText   = plainText.trim();
+    if (channelId   !== undefined) panel.channelId   = (channelId || '').trim();
     panel.updatedAt = Date.now();
     db.set(`autoreact-${guildId}-${name}`, JSON.stringify(panel));
 
@@ -1031,11 +1090,13 @@ router.post('/guild/:guildId/autorole-reaction/:name', requireLogin, requireMana
                     const embed = new EmbedBuilder().setColor(colorHex);
                     if (panel.embedTitle)       embed.setTitle(panel.embedTitle.slice(0, 256));
                     if (panel.embedDescription) embed.setDescription(panel.embedDescription.slice(0, 4096));
-                    if (panel.embedFooter)      embed.setFooter({ text: panel.embedFooter.slice(0, 2048) });
                     if (panel.embedImage)       embed.setImage(panel.embedImage);
                     if (panel.embedThumbnail)   embed.setThumbnail(panel.embedThumbnail);
+                    _applyEmbedExtras(embed, panel);
 
-                    if (panel.messageType === 'plain') {
+                    if (panel.messageType === 'both') {
+                        await discordMsg.edit({ content: (panel.plainText || '').slice(0, 2000), embeds: [embed] });
+                    } else if (panel.messageType === 'plain') {
                         await discordMsg.edit({ content: (panel.plainText || '').slice(0, 2000), embeds: [] });
                     } else {
                         await discordMsg.edit({ embeds: [embed], content: null });
@@ -1180,12 +1241,14 @@ router.post('/guild/:guildId/autorole-reaction/:name/send', requireLogin, requir
         const embed = new EmbedBuilder().setColor(colorHex);
         if (panel.embedTitle)       embed.setTitle(panel.embedTitle.slice(0, 256));
         if (panel.embedDescription) embed.setDescription(panel.embedDescription.slice(0, 4096));
-        if (panel.embedFooter)      embed.setFooter({ text: panel.embedFooter.slice(0, 2048) });
         if (panel.embedImage)       embed.setImage(panel.embedImage);
         if (panel.embedThumbnail)   embed.setThumbnail(panel.embedThumbnail);
+        _applyEmbedExtras(embed, panel);
 
         let sent;
-        if (panel.messageType === 'plain') {
+        if (panel.messageType === 'both') {
+            sent = await channel.send({ content: (panel.plainText || '').slice(0, 2000), embeds: [embed] });
+        } else if (panel.messageType === 'plain') {
             if (!panel.plainText) return res.json({ success: false, message: 'Plain text message content is still empty.' });
             sent = await channel.send({ content: panel.plainText.slice(0, 2000) });
         } else {
