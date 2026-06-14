@@ -188,6 +188,31 @@
         ══════════════════════════════════════ -->
         <div id="tab-button" class="ar-tab-content" style="display:none;">
 
+            <!-- ── Stats cards ── -->
+            <div class="stats-grid" style="margin-bottom:1.5rem;">
+                <div class="stat-card">
+                    <div class="stat-icon" style="color:#5865F2;"><i data-lucide="circle-dot"></i></div>
+                    <div class="stat-info">
+                        <div class="stat-value"><%= panels.length %></div>
+                        <div class="stat-label">Total Panels</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="color:#57F287;"><i data-lucide="hash"></i></div>
+                    <div class="stat-info">
+                        <div class="stat-value"><%= panels.filter(p => p.channelId).length %></div>
+                        <div class="stat-label">With Channel</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="color:<%= panels.length >= 20 ? '#ed4245' : '#FEE75C' %>;"><i data-lucide="layers"></i></div>
+                    <div class="stat-info">
+                        <div class="stat-value" style="<%= panels.length >= 20 ? 'color:#ed4245;' : '' %>"><%= panels.length %>/20</div>
+                        <div class="stat-label">Slots Used</div>
+                    </div>
+                </div>
+            </div>
+
             <!-- ── How to Use: Button ────────────────────────────────────────────── -->
             <div class="settings-card" style="margin-bottom:1.5rem;--guide-accent:#5865F2;">
                 <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.25rem;">
@@ -214,17 +239,13 @@
                 <div class="guide-tip">💡 <%- t('autorole.button_tip') %></div>
             </div>
 
-            <!-- Toolbar -->
-            <div class="mb-toolbar">
-                <button class="btn btn-primary" onclick="openCreatePanel()"><%= t('autorole.new_panel_btn') %></button>
-                <input type="text" class="input mb-search" data-flt-ignore placeholder="<%= t('autorole.search_panel_ph') %>" oninput="filterPanels(this.value)">
-            </div>
-
             <!-- Inline form card -->
-            <div class="settings-card" id="panelFormCard" style="display:none;margin-bottom:1.5rem;" data-flt-ignore>
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
-                    <h2 id="panelModalTitle" style="margin:0;font-size:1.05rem;font-weight:600;"></h2>
-                    <button class="mb-modal-close" onclick="closePanelModal()">✕</button>
+            <div class="settings-card" id="panelFormCard" style="margin-bottom:1.5rem;" data-flt-ignore>
+                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;margin-bottom:1rem;">
+                    <h2 id="panelModalTitle" style="margin:0;font-size:1.05rem;font-weight:600;"><%= t('autorole.new_panel_title') %></h2>
+                    <button id="panelCancelEdit" class="btn btn-sm btn-outline" onclick="closePanelModal()" style="display:none;">
+                        <i data-lucide="x" style="width:13px;height:13px;vertical-align:middle;margin-right:.2rem;"></i>Cancel Edit
+                    </button>
                 </div>
                 <input type="hidden" id="panelOriginalName">
                 <input type="hidden" id="panelIsSent" value="0">
@@ -420,7 +441,10 @@
                     </div>
 
                     <!-- ── Preview kanan ── -->
-                    <div class="mb-editor-preview">
+                    <button class="ap-preview-toggle" onclick="this.style.display='none';document.querySelector('.mb-editor-preview[data-form=btn]').classList.add('force-show')">
+                        👁 Show Preview
+                    </button>
+                    <div class="mb-editor-preview" data-form="btn">
                         <div class="preview-label">Preview</div>
                         <div class="dc-window">
                             <div id="apPreviewChannel" class="dc-channel-bar">
@@ -469,10 +493,10 @@
 
                 <div id="panelMsg" class="form-message" style="margin-top:.75rem;"></div>
                 <div id="panelFooterForm" style="display:flex;gap:.5rem;align-items:center;margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border);">
-                    <button id="panelBtnReset" class="btn btn-outline" onclick="resetPanelToOriginal()" style="display:none;margin-right:auto;" title="Discard changes and reload original data">
+                    <button id="panelBtnReset" class="btn btn-outline" onclick="resetPanelToOriginal()" style="display:none;" title="Discard changes and reload original data">
                         <i data-lucide="rotate-ccw" style="width:13px;height:13px;vertical-align:middle;margin-right:.3rem;"></i><%= t('common.reset') %>
                     </button>
-                    <span style="flex:1;"></span>
+                    <span class="footer-spacer" style="flex:1;"></span>
                     <button class="btn btn-outline" onclick="closePanelModal()"><%= t('common.cancel') %></button>
                     <button class="btn btn-outline" onclick="savePanel()"><i data-lucide="save" style="width:14px;height:14px;vertical-align:middle;margin-right:.3rem;"></i><%= t('common.save') %></button>
                     <button id="panelBtnSend" class="btn btn-primary" onclick="saveAndSendPanel()" style="display:none;"><i data-lucide="send" style="width:14px;height:14px;vertical-align:middle;margin-right:.3rem;"></i>Send</button>
@@ -480,6 +504,17 @@
             </div>
 
             <!-- Grid panel -->
+            <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.75rem;">
+                <span style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);white-space:nowrap;">Saved Panels</span>
+                <div style="flex:1;height:1px;background:var(--border);"></div>
+                <span style="font-size:.75rem;color:var(--text-muted);"><%= panels.length %> panel<%= panels.length !== 1 ? 's' : '' %></span>
+            </div>
+            <% if (panels.length >= 20) { %>
+            <div style="background:rgba(240,178,50,.1);border:1px solid rgba(240,178,50,.3);border-radius:8px;padding:.55rem .85rem;margin-bottom:.75rem;font-size:.82rem;color:#f0b232;display:flex;align-items:center;gap:.5rem;">
+                <i data-lucide="alert-triangle" style="width:14px;height:14px;flex-shrink:0;"></i>
+                Panel limit reached (20/20). Delete an existing panel to create a new one.
+            </div>
+            <% } %>
             <div id="panelGrid">
                 <% if (panels.length === 0) { %>
                     <div class="empty-state" id="emptyPanels">
@@ -497,14 +532,6 @@
                         <div class="ar-panel-row-left">
                             <span class="ar-panel-name"><i data-lucide="circle-dot" style="width:13px;height:13px;"></i><%= p.name %></span>
                             <span class="ar-panel-mode <%= p.mode === 'single' ? 'mode-single' : 'mode-multi' %>"><%= p.mode === 'single' ? 'Single' : 'Multi' %></span>
-                            <span class="ar-panel-status <%= sentP ? 'status-sent' : 'status-unsent' %>"><%= sentP ? t('autorole.status_sent') : t('autorole.status_unsent') %></span>
-                        </div>
-                        <div class="ar-panel-row-chips">
-                            <% if (p.buttons && p.buttons.length > 0) { %>
-                                <% p.buttons.forEach(btn => { %><span class="ar-btn-chip ar-btn-<%= btn.styleKey || '1' %>"><%= btn.label %><span class="ar-btn-role">@<%= roles.find(r => r.id === btn.roleId)?.name || btn.roleId %></span></span><% }) %>
-                            <% } else { %>
-                                <span style="color:var(--text-muted);font-size:.8rem"><%= t('autorole.no_buttons_yet') %></span>
-                            <% } %>
                         </div>
                         <div class="ar-panel-row-right">
                             <button class="btn btn-outline btn-sm" onclick="openEditPanel('<%= p.name %>', <%= sentP ? 'true' : 'false' %>)"><i data-lucide="pencil" style="width:13px;height:13px;vertical-align:middle;margin-right:.25rem;"></i><%= t('autorole.edit_panel_btn') %></button>
@@ -525,6 +552,31 @@
              TAB: AUTOROLE REACTION
         ══════════════════════════════════════ -->
         <div id="tab-reaction" class="ar-tab-content" style="display:none;">
+
+            <!-- ── Stats cards ── -->
+            <div class="stats-grid" style="margin-bottom:1.5rem;">
+                <div class="stat-card">
+                    <div class="stat-icon" style="color:#57F287;"><i data-lucide="smile"></i></div>
+                    <div class="stat-info">
+                        <div class="stat-value"><%= reactPanels.length %></div>
+                        <div class="stat-label">Total Panels</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="color:#5865F2;"><i data-lucide="hash"></i></div>
+                    <div class="stat-info">
+                        <div class="stat-value"><%= reactPanels.filter(p => p.channelId).length %></div>
+                        <div class="stat-label">With Channel</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="color:<%= reactPanels.length >= 20 ? '#ed4245' : '#FEE75C' %>;"><i data-lucide="layers"></i></div>
+                    <div class="stat-info">
+                        <div class="stat-value" style="<%= reactPanels.length >= 20 ? 'color:#ed4245;' : '' %>"><%= reactPanels.length %>/20</div>
+                        <div class="stat-label">Slots Used</div>
+                    </div>
+                </div>
+            </div>
 
             <!-- ── How to Use: Reaction ──────────────────────────────────────────── -->
             <div class="settings-card" style="margin-bottom:1.5rem;--guide-accent:#57F287;">
@@ -552,17 +604,13 @@
                 <div class="guide-tip">💡 <%- t('autorole.react_tip') %></div>
             </div>
 
-            <!-- Toolbar -->
-            <div class="mb-toolbar">
-                <button class="btn btn-primary" onclick="openCreateReactPanel()"><%= t('autorole.new_panel_btn') %></button>
-                <input type="text" class="input mb-search" data-flt-ignore placeholder="<%= t('autorole.search_panel_ph') %>" oninput="filterReactPanels(this.value)">
-            </div>
-
             <!-- Inline form card (reaction) -->
-            <div class="settings-card" id="reactPanelFormCard" style="display:none;margin-bottom:1.5rem;" data-flt-ignore>
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
-                    <h2 id="reactPanelModalTitle" style="margin:0;font-size:1.05rem;font-weight:600;"></h2>
-                    <button class="mb-modal-close" onclick="closeReactPanelModal()">✕</button>
+            <div class="settings-card" id="reactPanelFormCard" style="margin-bottom:1.5rem;" data-flt-ignore>
+                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;margin-bottom:1rem;">
+                    <h2 id="reactPanelModalTitle" style="margin:0;font-size:1.05rem;font-weight:600;"><%= t('autorole.new_react_panel_title') %></h2>
+                    <button id="reactPanelCancelEdit" class="btn btn-sm btn-outline" onclick="closeReactPanelModal()" style="display:none;">
+                        <i data-lucide="x" style="width:13px;height:13px;vertical-align:middle;margin-right:.2rem;"></i>Cancel Edit
+                    </button>
                 </div>
                 <input type="hidden" id="reactPanelOriginalName">
 
@@ -760,7 +808,10 @@
                     </div>
 
                     <!-- ── Preview kanan ── -->
-                    <div class="mb-editor-preview">
+                    <button class="ap-preview-toggle" onclick="this.style.display='none';document.querySelector('.mb-editor-preview[data-form=react]').classList.add('force-show')">
+                        👁 Show Preview
+                    </button>
+                    <div class="mb-editor-preview" data-form="react">
                         <div class="preview-label">Preview</div>
                         <div class="dc-window">
                             <div id="rpPreviewChannel" class="dc-channel-bar">
@@ -811,7 +862,7 @@
                     <button id="reactPanelBtnReset" class="btn btn-outline" onclick="resetReactPanelToOriginal()" style="display:none;" title="Discard changes and reload original data">
                         <i data-lucide="rotate-ccw" style="width:13px;height:13px;vertical-align:middle;margin-right:.3rem;"></i><%= t('common.reset') %>
                     </button>
-                    <span style="flex:1;"></span>
+                    <span class="footer-spacer" style="flex:1;"></span>
                     <button class="btn btn-outline" onclick="closeReactPanelModal()"><%= t('common.cancel') %></button>
                     <button class="btn btn-outline" onclick="saveReactPanel()"><i data-lucide="save" style="width:14px;height:14px;vertical-align:middle;margin-right:.3rem;"></i><%= t('common.save') %></button>
                     <button id="reactPanelBtnSend" class="btn btn-primary" onclick="saveAndSendReactPanel()" style="display:none;"><i data-lucide="send" style="width:14px;height:14px;vertical-align:middle;margin-right:.3rem;"></i>Send</button>
@@ -819,6 +870,17 @@
             </div>
 
             <!-- Grid panel reaction -->
+            <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.75rem;">
+                <span style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);white-space:nowrap;">Saved Panels</span>
+                <div style="flex:1;height:1px;background:var(--border);"></div>
+                <span style="font-size:.75rem;color:var(--text-muted);"><%= reactPanels.length %> panel<%= reactPanels.length !== 1 ? 's' : '' %></span>
+            </div>
+            <% if (reactPanels.length >= 20) { %>
+            <div style="background:rgba(240,178,50,.1);border:1px solid rgba(240,178,50,.3);border-radius:8px;padding:.55rem .85rem;margin-bottom:.75rem;font-size:.82rem;color:#f0b232;display:flex;align-items:center;gap:.5rem;">
+                <i data-lucide="alert-triangle" style="width:14px;height:14px;flex-shrink:0;"></i>
+                Panel limit reached (20/20). Delete an existing panel to create a new one.
+            </div>
+            <% } %>
             <div id="reactPanelGrid">
                 <% if (reactPanels.length === 0) { %>
                     <div class="empty-state" id="emptyReactPanels">
@@ -836,14 +898,6 @@
                         <div class="ar-panel-row-left">
                             <span class="ar-panel-name"><i data-lucide="smile" style="width:13px;height:13px;"></i><%= p.name %></span>
                             <span class="ar-panel-mode <%= p.mode === 'single' ? 'mode-single' : 'mode-multi' %>"><%= p.mode === 'single' ? 'Single' : 'Multi' %></span>
-                            <span class="ar-panel-status <%= sentRP ? 'status-sent' : 'status-unsent' %>"><%= sentRP ? t('autorole.status_sent') : t('autorole.status_unsent') %></span>
-                        </div>
-                        <div class="ar-panel-row-chips">
-                            <% if (p.reactions && p.reactions.length > 0) { %>
-                                <% p.reactions.forEach(react => { %><span class="ar-react-chip"><%= react.emoji.includes(':') ? '' : react.emoji %><% if (react.emoji.includes(':')) { %><span class="ar-react-custom">:<%= react.emoji.split(':')[0] %>:</span><% } %><span class="ar-btn-role">@<%= roles.find(r => r.id === react.roleId)?.name || react.roleId %></span></span><% }) %>
-                            <% } else { %>
-                                <span style="color:var(--text-muted);font-size:.8rem"><%= t('autorole.no_reactions_yet') %></span>
-                            <% } %>
                         </div>
                         <div class="ar-panel-row-right">
                             <button class="btn btn-outline btn-sm" onclick="openEditReactPanel('<%= p.name %>', <%= sentRP ? 'true' : 'false' %>)"><i data-lucide="pencil" style="width:13px;height:13px;vertical-align:middle;margin-right:.25rem;"></i><%= t('autorole.edit_panel_btn') %></button>
@@ -1007,23 +1061,23 @@
 
 /* ── Panel card (compact row) ── */
 .ar-panel-card {
-    display:flex; align-items:center; gap:.6rem; flex-wrap:wrap;
+    display:flex; align-items:center; gap:.6rem;
     background:var(--bg3); border:1px solid var(--border);
-    border-radius:8px; padding:.55rem .75rem;
+    border-radius:8px; padding:.5rem .75rem;
     margin-bottom:.4rem; transition:border-color .15s;
 }
 .ar-panel-card:hover { border-color:var(--accent); }
-.ar-panel-row-left  { display:flex; align-items:center; gap:.45rem; flex-wrap:wrap; flex-shrink:0; }
-.ar-panel-row-chips { display:flex; align-items:center; gap:.35rem; flex-wrap:wrap; flex:1; min-width:0; }
-.ar-panel-row-right { display:flex; align-items:center; gap:.4rem; flex-shrink:0; margin-left:auto; }
-.ar-panel-name { font-weight:600; font-size:.875rem; display:flex; align-items:center; gap:.3rem; }
-.ar-panel-mode, .ar-panel-status {
-    font-size:.72rem; padding:2px 8px; border-radius:12px; white-space:nowrap;
+.ar-panel-row-left  { display:flex; align-items:center; gap:.4rem; flex-wrap:wrap; flex:1; min-width:0; }
+.ar-panel-row-right { display:flex; align-items:center; gap:.3rem; flex-shrink:0; margin-left:auto; }
+.ar-panel-name {
+    font-weight:600; font-size:.875rem; display:flex; align-items:center; gap:.3rem;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0;
+}
+.ar-panel-mode {
+    font-size:.72rem; padding:2px 7px; border-radius:12px; white-space:nowrap; flex-shrink:0;
 }
 .mode-single { background:rgba(254,231,92,.15); color:#FEE75C; }
 .mode-multi  { background:rgba(87,242,135,.15); color:#57F287; }
-.status-sent   { background:rgba(87,242,135,.15); color:#57F287; }
-.status-unsent { background:var(--bg2); color:var(--text-muted); border:1px solid var(--border); }
 .ar-btn-chip {
     font-size:.75rem; padding:2px 8px; border-radius:6px;
     display:inline-flex; align-items:center; gap:.3rem; white-space:nowrap;
@@ -1036,16 +1090,25 @@
 .ar-btn-2 { background:var(--bg2); color:var(--text-muted); }
 .ar-react-chip {
     font-size:.75rem; padding:2px 8px; border-radius:6px;
-    background:var(--bg2); border:1px solid var(--border);
+    background:rgba(88,101,242,.15); color:#7289da;
     display:inline-flex; align-items:center; gap:.3rem; white-space:nowrap;
 }
 .ar-react-chip .ar-btn-role { opacity:.65; font-size:.7rem; }
+/* Action buttons in panel card — always compact, no touch-target override */
+.ar-panel-row-right .btn {
+    min-height:28px !important; padding:.25rem .55rem !important;
+    font-size:.78rem !important; line-height:1.2;
+}
 .ar-btn-delete {
     background:transparent; border:1.5px solid var(--border);
     color:var(--red); border-radius:var(--radius); cursor:pointer;
-    transition:all .15s; min-height:30px; padding:.2rem .5rem;
+    transition:all .15s; min-height:28px !important; padding:.2rem .45rem;
+    display:flex; align-items:center; justify-content:center;
 }
 .ar-btn-delete:hover { background:rgba(237,66,69,.1); border-color:var(--red); }
+@media(max-width:400px) {
+    .ar-panel-mode { display:none; }
+}
 
 /* ══════════════════════════════════════
    BUTTON EDITOR — card-based redesign
@@ -1113,7 +1176,8 @@
 }
 @media(max-width:600px) {
     .btn-card-fields { grid-template-columns: 1fr; }
-    .btn-num-badge { display: none; }
+    .btn-card { padding:.55rem .65rem; }
+    .btn-card-top { margin-bottom:.35rem; }
 }
 
 /* ── Column header ── */
@@ -1257,14 +1321,6 @@
 .multi-count-btn { min-width:80px; }
 .multi-count-btn:hover { background:var(--accent); border-color:var(--accent); color:#fff; }
 
-/* ── Reaction chips ── */
-.ar-react-chip {
-    font-size:.8rem; padding:.2rem .55rem; border-radius:6px;
-    display:flex; align-items:center; gap:.35rem;
-    background:rgba(88,101,242,.15); color:#7289da;
-}
-.ar-react-chip .ar-btn-role { opacity:.65; font-size:.7rem; }
-.ar-react-custom { font-size:.78rem; color:var(--text-muted); }
 
 /* ── Reaction editor card ── */
 .react-editor-card {
@@ -1301,11 +1357,16 @@
     font-size: 1.5rem;
     flex-shrink: 0;
     transition: border-color .2s, background .2s, transform .15s;
-    cursor: default;
+    cursor: pointer;
     user-select: none;
     overflow: hidden;
     text-align: center;
     line-height: 1;
+}
+.react-emoji-bubble:hover {
+    border-color: var(--accent);
+    background: rgba(88,101,242,.08);
+    transform: scale(1.05);
 }
 .react-emoji-bubble.has-emoji {
     border: 2px solid rgba(88,101,242,.5);
@@ -1331,7 +1392,7 @@
 .react-fields {
     flex: 1;
     display: grid;
-    grid-template-columns: 1fr 1.1fr;
+    grid-template-columns: 1fr;
     gap: .5rem;
     min-width: 0;
 }
@@ -1346,7 +1407,7 @@
 @media(min-width:540px) {
     .react-col-header {
         display: grid;
-        grid-template-columns: 22px 48px 1fr 1.1fr auto;
+        grid-template-columns: 22px 48px 1fr auto;
         gap: .75rem;
         align-items: center;
         padding: .2rem .25rem .4rem 1rem;
@@ -1382,51 +1443,6 @@
 }
 .react-select option { background: var(--bg2); color: var(--text); }
 
-/* ── Emoji input ── */
-.react-emoji-input-wrap { position: relative; }
-.react-emoji-input-wrap .react-emoji-prefix {
-    position: absolute;
-    left: .6rem; top: 50%; transform: translateY(-50%);
-    font-size: .85rem; pointer-events: none; user-select: none;
-    opacity: .45; line-height: 1;
-    transition: opacity .15s;
-}
-.react-emoji-input-wrap .react-input { padding-left: 1.85rem; }
-
-/* Emoji valid: besar, centered, prefix disembunyikan */
-.react-emoji-input-wrap .react-input.emoji-valid {
-    font-size: 1.3rem;
-    text-align: center;
-    padding-left: .65rem !important;
-    letter-spacing: .05em;
-    border-color: rgba(88,101,242,.5) !important;
-}
-.react-emoji-input-wrap:has(.emoji-valid) .react-emoji-prefix { opacity: 0; }
-
-/* Mobile: emoji input lebih kecil & compact */
-@media(max-width:540px) {
-    .react-fields { grid-template-columns: 1fr auto; }
-    .react-emoji-input-wrap { width: 72px; }
-    .react-emoji-input-wrap .react-input {
-        width: 72px !important; text-align: center;
-        padding-left: .5rem !important; padding-right: .5rem;
-    }
-    .react-emoji-input-wrap .react-input.emoji-valid { font-size: 1.1rem; }
-    .react-emoji-input-wrap .react-emoji-prefix { display: none; }
-}
-
-/* Emoji invalid: goyangan merah */
-.react-emoji-input-wrap .react-input.emoji-invalid {
-    border-color: var(--red) !important;
-    box-shadow: 0 0 0 2px rgba(237,66,69,.2) !important;
-    animation: emoji-shake .35s ease;
-}
-@keyframes emoji-shake {
-    0%,100% { transform: translateX(0); }
-    20%      { transform: translateX(-5px); }
-    60%      { transform: translateX(5px); }
-    80%      { transform: translateX(-3px); }
-}
 
 /* ── Card: everything vertically centered ── */
 .react-editor-card { align-items: center; }
@@ -1467,7 +1483,99 @@
 .ee-body .cc-field-row { background:var(--bg2); }
 .input-sm { font-size:.85rem !important; padding:.35rem .65rem !important; }
 .mb-url-pair { display:grid; grid-template-columns:1fr 1fr; gap:.5rem; }
-.ph-btn-group { display:flex; align-items:center; gap:.4rem; flex-wrap:wrap; }
+
+
+/* ── Preview section: hide on narrow screens, show toggle button ── */
+.ap-preview-toggle {
+    display:none; width:100%; margin-top:.75rem;
+    background:var(--bg3); border:1px solid var(--border);
+    border-radius:8px; padding:.5rem .75rem;
+    font-size:.82rem; color:var(--text-muted); cursor:pointer;
+    align-items:center; justify-content:center; gap:.4rem;
+    transition:background .15s;
+}
+.ap-preview-toggle:hover { background:var(--bg2); color:var(--text); }
+
+/* ── Mobile/tablet responsiveness ── */
+@media(max-width:860px) {
+    /* Preview di bawah form — limit tinggi & scroll */
+    .mb-editor-preview {
+        width:100%;
+        position:relative !important;
+        top:auto !important;
+    }
+    .mb-editor-preview .dc-window {
+        max-width:100%;
+        overflow-x:hidden;
+    }
+}
+
+@media(max-width:600px) {
+    /* Settings card lebih compact */
+    #panelFormCard.settings-card,
+    #reactPanelFormCard.settings-card { padding:1rem .85rem; }
+
+    /* URL pair stack vertikal */
+    .mb-url-pair { grid-template-columns:1fr; }
+
+    /* Footer form — wrap dan tombol equal width */
+    #panelFooterForm,
+    #reactPanelFooterForm {
+        flex-wrap:wrap;
+        gap:.4rem;
+    }
+    #panelFooterForm .footer-spacer,
+    #reactPanelFooterForm .footer-spacer { display:none; }
+    #panelFooterForm .btn,
+    #reactPanelFooterForm .btn { flex:1; min-width:80px; justify-content:center; }
+    #panelBtnReset,
+    #reactPanelBtnReset { flex:0 0 auto !important; min-width:auto !important; }
+
+    /* Btn-card-top chip tidak terlalu lebar */
+    .btn-preview-chip { max-width:calc(100% - 80px); }
+
+    /* Footer tombol — tidak perlu touch-target 44px saat inline form */
+    #panelFooterForm .btn,
+    #reactPanelFooterForm .btn { min-height:38px !important; padding:.4rem .7rem !important; font-size:.83rem !important; }
+
+    /* Kolom header reaction tersembunyi di mobile */
+    .react-col-header { display:none !important; }
+
+    /* Reaction card — badge tersembunyi, layout lebih compact */
+    .react-num-badge { display:none; }
+    .react-editor-card { padding:.55rem .65rem; gap:.5rem; }
+    .react-emoji-bubble { width:40px; height:40px; font-size:1.25rem; }
+
+    /* Button editor col header tersembunyi */
+    .btn-col-header { display:none !important; }
+
+    /* Add Button — override 44px touch target */
+    #panelInlineButtons .btn.btn-primary,
+    #btnModal .btn.btn-primary { min-height:34px !important; padding:.25rem .6rem !important; font-size:.8rem !important; }
+
+    /* Role Buttons header row wrap rapi */
+    #panelInlineButtons > div { align-items:center; }
+}
+
+@media(max-width:400px) {
+    /* Padding settings card minimal */
+    #panelFormCard.settings-card,
+    #reactPanelFormCard.settings-card { padding:.75rem .6rem; }
+
+    /* Sembunyikan preview Discord di layar sangat kecil */
+    .mb-editor-preview { display:none; }
+    .ap-preview-toggle { display:flex; }
+    .mb-editor-preview.force-show { display:block !important; }
+
+    /* Btn card lebih compact */
+    .btn-card { padding:.45rem .55rem; }
+    .btn-card-top { margin-bottom:.25rem; }
+    .btn-num-badge { width:18px; height:18px; font-size:.62rem; }
+    .react-select, .react-input { font-size:.82rem; padding:.4rem .55rem; min-height:34px; }
+
+    /* Add button compact */
+    #panelInlineButtons .btn.btn-primary { min-height:32px !important; padding:.2rem .5rem !important; font-size:.78rem !important; }
+}
 </style>
 
 <script>
@@ -1960,31 +2068,32 @@ function openCreatePanel() {
     _editingPanelName  = '';
     _editingPanelIsSent = false;
     document.getElementById('panelModalTitle').textContent = '<%= t("autorole.new_panel_title") %>';
-    document.getElementById('panelOriginalName').value     = '';
-    document.getElementById('panelIsSent').value           = '0';
-    document.getElementById('panelName').disabled          = false;
+    document.getElementById('panelCancelEdit').style.display               = 'none';
+    document.getElementById('panelOriginalName').value                     = '';
+    document.getElementById('panelIsSent').value                           = '0';
+    document.getElementById('panelName').disabled                          = false;
     _resetPanelForm();
-    document.getElementById('panelInlineButtons').style.display  = '';
-    document.getElementById('panelPreviewHint').style.display    = 'none';
-    document.getElementById('panelChannelGroup').style.display              = '';
+    document.getElementById('panelInlineButtons').style.display            = '';
+    document.getElementById('panelPreviewHint').style.display              = 'none';
+    document.getElementById('panelChannelGroup').style.display             = '';
     document.getElementById('panelSendPreviewChannel').value               = '';
     document.getElementById('panelSendPreviewChannel').disabled            = false;
     document.getElementById('panelBtnSend').style.display                  = '';
     document.getElementById('panelBtnReset').style.display                 = 'none';
     updatePanelPreviewChannel();
     _showPanelFooter('form');
-    document.getElementById('panelFormCard').style.display = '';
     document.getElementById('panelFormCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 async function openEditPanel(name, isSent = false) {
     _editingPanelName   = name;
     _editingPanelIsSent = isSent;
-    document.getElementById('panelModalTitle').textContent = '<%= t("autorole.edit_panel_title") %>: ' + name;
-    document.getElementById('panelOriginalName').value     = name;
-    document.getElementById('panelName').value             = name;
-    document.getElementById('panelName').disabled          = true;
-    document.getElementById('panelMsg').textContent        = '';
+    document.getElementById('panelModalTitle').textContent   = '<%= t("autorole.edit_panel_title") %>: ' + name;
+    document.getElementById('panelCancelEdit').style.display = '';
+    document.getElementById('panelOriginalName').value       = name;
+    document.getElementById('panelName').value               = name;
+    document.getElementById('panelName').disabled            = true;
+    document.getElementById('panelMsg').textContent          = '';
     document.getElementById('panelInlineButtons').style.display  = '';
     document.getElementById('panelPreviewHint').style.display    = 'none';
     document.getElementById('panelChannelGroup').style.display   = '';
@@ -2012,16 +2121,15 @@ async function openEditPanel(name, isSent = false) {
     } catch(e) { console.error(e); }
 
     _showPanelFooter('form');
-    document.getElementById('panelFormCard').style.display = '';
     document.getElementById('panelFormCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function closePanelModal() {
-    document.getElementById('panelFormCard').style.display = 'none';
+    openCreatePanel();
 }
 
 function _showPanelFooter(state) {
-    document.getElementById('panelFooterForm').style.display = state === 'form' ? 'flex' : 'none';
+    document.getElementById('panelFooterForm').style.display = 'flex';
 }
 
 async function savePanel() {
@@ -2050,6 +2158,7 @@ async function savePanel() {
     if (!/^#[0-9A-Fa-f]{6}$/.test(embedColor)) { showMsg(msg, 'Invalid embed color. Example: #5865F2', 'error'); throw new Error(); }
 
     if (!originalName) {
+        if (<%= panels.length %> >= 20) { showMsg(msg, 'Panel limit reached (20/20). Delete an existing panel first.', 'error'); throw new Error(); }
         const validBtns = _inlineBtns.filter(b => b.roleId && b.label);
         if (validBtns.length === 0) { showMsg(msg, 'Add at least 1 role button before saving the panel.', 'error'); throw new Error(); }
     }
@@ -2168,13 +2277,10 @@ function renderInlineBtnTable() {
     table.innerHTML = _inlineBtns.map((btn, i) => {
         const style    = btn.style || 1;
         const label    = btn.label || '';
-        const chipCls  = label ? `style-${style}` : 'style-empty';
-        const chipText = label || 'Button label...';
         return `
         <div class="btn-card" id="inrow-${i}">
             <div class="btn-card-top">
                 <span class="btn-num-badge">${i + 1}</span>
-                <span class="btn-preview-chip ${chipCls}" id="inrow-preview-${i}">${chipText}</span>
                 <span style="flex:1;"></span>
                 <button class="ar-btn-delete" onclick="removeInlineBtn(${i})" title="Delete">${trashSvg}</button>
             </div>
@@ -2204,12 +2310,6 @@ function updateInlineBtn(i) {
         label,
         style,
     };
-    // Live-update preview chip
-    const chip = document.getElementById(`inrow-preview-${i}`);
-    if (chip) {
-        chip.textContent = label || 'Button label...';
-        chip.className   = `btn-preview-chip ${label ? `style-${style}` : 'style-empty'}`;
-    }
     document.getElementById('inlineBtnCounter').textContent = `${_inlineBtns.length}/25`;
     updatePanelPreviewBtns();
 }
@@ -2328,13 +2428,10 @@ function renderBtnEditorTable() {
     table.innerHTML = _btnData.map((btn, i) => {
         const style    = btn.style || 1;
         const label    = btn.label || '';
-        const chipCls  = label ? `style-${style}` : 'style-empty';
-        const chipText = label || 'Button label...';
         return `
         <div class="btn-card" id="btnrow-${i}">
             <div class="btn-card-top">
                 <span class="btn-num-badge">${i + 1}</span>
-                <span class="btn-preview-chip ${chipCls}" id="brow-preview-${i}">${chipText}</span>
                 <span style="flex:1;"></span>
                 <button class="ar-btn-delete" onclick="removeButtonRow(${i})" title="Delete">${trashSvg}</button>
             </div>
@@ -2413,13 +2510,6 @@ function collectButtonsFromEditor() {
 }
 
 function updateBulkPreview(i) {
-    const label = (document.getElementById(`brow-label-${i}`)?.value || '').trim();
-    const style = parseInt(document.getElementById(`brow-style-${i}`)?.value || '1');
-    const chip  = document.getElementById(`brow-preview-${i}`);
-    if (chip) {
-        chip.textContent = label || 'Button label...';
-        chip.className   = `btn-preview-chip ${label ? `style-${style}` : 'style-empty'}`;
-    }
 }
 
 function checkDuplicateRoles() {
@@ -2617,15 +2707,16 @@ function _resetReactPanelForm() {
 }
 
 function _showReactPanelFooter(state) {
-    document.getElementById('reactPanelFooterForm').style.display = state === 'form' ? 'flex' : 'none';
+    document.getElementById('reactPanelFooterForm').style.display = 'flex';
 }
 
 function openCreateReactPanel() {
     _editingReactPanelName   = '';
     _editingReactPanelIsSent = false;
-    document.getElementById('reactPanelModalTitle').textContent = '<%= t("autorole.new_react_panel_title") %>';
-    document.getElementById('reactPanelOriginalName').value     = '';
-    document.getElementById('reactPanelName').disabled          = false;
+    document.getElementById('reactPanelModalTitle').textContent        = '<%= t("autorole.new_react_panel_title") %>';
+    document.getElementById('reactPanelCancelEdit').style.display      = 'none';
+    document.getElementById('reactPanelOriginalName').value            = '';
+    document.getElementById('reactPanelName').disabled                 = false;
     _resetReactPanelForm();
     document.getElementById('reactPanelInlineReactions').style.display = '';
     document.getElementById('reactPanelChannelGroup').style.display    = '';
@@ -2635,18 +2726,18 @@ function openCreateReactPanel() {
     document.getElementById('reactPanelBtnReset').style.display        = 'none';
     updateReactPanelPreviewChannel();
     _showReactPanelFooter('form');
-    document.getElementById('reactPanelFormCard').style.display = '';
     document.getElementById('reactPanelFormCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 async function openEditReactPanel(name, isSent = false) {
     _editingReactPanelName   = name;
     _editingReactPanelIsSent = isSent;
-    document.getElementById('reactPanelModalTitle').textContent = '<%= t("autorole.edit_panel_title") %>: ' + name;
-    document.getElementById('reactPanelOriginalName').value     = name;
-    document.getElementById('reactPanelName').value             = name;
-    document.getElementById('reactPanelName').disabled          = true;
-    document.getElementById('reactPanelMsg').textContent        = '';
+    document.getElementById('reactPanelModalTitle').textContent        = '<%= t("autorole.edit_panel_title") %>: ' + name;
+    document.getElementById('reactPanelCancelEdit').style.display      = '';
+    document.getElementById('reactPanelOriginalName').value            = name;
+    document.getElementById('reactPanelName').value                    = name;
+    document.getElementById('reactPanelName').disabled                 = true;
+    document.getElementById('reactPanelMsg').textContent               = '';
     document.getElementById('reactPanelInlineReactions').style.display = '';
     document.getElementById('reactPanelChannelGroup').style.display    = '';
     document.getElementById('reactPanelBtnSend').style.display         = isSent ? 'none' : '';
@@ -2670,12 +2761,11 @@ async function openEditReactPanel(name, isSent = false) {
     } catch(e) { console.error(e); }
 
     _showReactPanelFooter('form');
-    document.getElementById('reactPanelFormCard').style.display = '';
     document.getElementById('reactPanelFormCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function closeReactPanelModal() {
-    document.getElementById('reactPanelFormCard').style.display = 'none';
+    openCreateReactPanel();
 }
 
 async function saveReactPanel() {
@@ -2704,6 +2794,7 @@ async function saveReactPanel() {
     if (!/^#[0-9A-Fa-f]{6}$/.test(embedColor)) { showMsg(msg, 'Invalid embed color. Example: #5865F2', 'error'); throw new Error(); }
 
     if (!originalName) {
+        if (<%= reactPanels.length %> >= 20) { showMsg(msg, 'Panel limit reached (20/20). Delete an existing panel first.', 'error'); throw new Error(); }
         const validReacts = _inlineReacts.filter(r => r.emoji && r.roleId);
         if (validReacts.length === 0) { showMsg(msg, 'Add at least 1 reaction before saving the panel.', 'error'); throw new Error(); }
     }
@@ -2814,18 +2905,17 @@ function renderInlineReactTable() {
         <div class="react-col-header">
             <span></span><span></span>
             <span>🎭 Role</span>
-            <span>✨ Emoji</span>
             <span></span>
         </div>`;
     const rows = _inlineReacts.map((r, i) => {
         const emojiDisplay = _emojiDisplayFromStored(r.emoji);
         const hasEmoji     = !!r.emoji;
-        const inputVal     = r.emoji ? (r.emoji.includes(':') ? `<:${r.emoji}>` : r.emoji) : '';
         return `
         <div class="react-editor-card" id="inreact-${i}">
             <span class="react-num-badge">${i + 1}</span>
             <div class="react-emoji-bubble ${hasEmoji ? 'has-emoji' : ''}" id="inreact-bubble-${i}"
-                 title="${hasEmoji ? 'Preview emoji' : 'No emoji selected'}">
+                 title="${hasEmoji ? 'Click to change emoji' : 'Click to pick emoji'}"
+                 onclick="openEmojiPickerForReact(${i}, this)">
                 ${hasEmoji ? emojiDisplay : '<span class="react-empty-icon">✨</span>'}
             </div>
             <div class="react-fields">
@@ -2833,14 +2923,6 @@ function renderInlineReactTable() {
                     <option value="">— Select Role —</option>
                     ${ALL_ROLES.map(role => `<option value="${role.id}" style="color:${role.color}" ${role.id === r.roleId ? 'selected' : ''}>@${role.name}</option>`).join('')}
                 </select>
-                <div class="react-emoji-input-wrap">
-                    <span class="react-emoji-prefix">✨</span>
-                    <input type="text" class="react-input${inputVal ? ' emoji-valid' : ''}" id="inreact-emoji-${i}"
-                           value="${inputVal.replace(/"/g, '&quot;')}"
-                           placeholder="<%= t('autorole.emoji_ph') %>" maxlength="8"
-                           oninput="_onEmojiInput(${i})"
-                           onpaste="_onEmojiPaste(event,${i})">
-                </div>
             </div>
             <button class="ar-btn-delete" onclick="removeInlineReact(${i})" title="Delete">
                 <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
@@ -2851,153 +2933,37 @@ function renderInlineReactTable() {
     updateReactPanelPreviewReacts();
 }
 
-// ── Emoji input: hanya 1 emoji yang valid ────────────────────────────────────
-
-function _extractFirstEmoji(raw) {
-    raw = (raw || '').trim();
-    if (!raw) return null;
-    // Custom emoji Discord: <:name:id> atau <a:name:id>
-    const custom = raw.match(/^<a?:([^:>\s]{1,32}):(\d{5,20})>/);
-    if (custom) return custom[0];
-    // Unicode emoji via Intl.Segmenter (modern browsers)
-    if (typeof Intl !== 'undefined' && Intl.Segmenter) {
-        try {
-            const seg = new Intl.Segmenter(undefined, { granularity: 'grapheme' });
-            for (const { segment } of seg.segment(raw)) {
-                if (/\p{Emoji}/u.test(segment) && !/^[0-9#*]$/.test(segment)) return segment;
-            }
-        } catch {}
-    }
-    // Fallback regex
-    const m = raw.match(/\p{Extended_Pictographic}(?:‍\p{Extended_Pictographic}|️|⃣|[\u{1F3FB}-\u{1F3FF}])*/u);
-    return m ? m[0] : null;
-}
-
-function _applyEmojiToInput(i, emoji) {
-    const input = document.getElementById(`inreact-emoji-${i}`);
-    if (!input) return;
-    if (emoji) {
-        input.value = emoji;
-        input.classList.add('emoji-valid');
-        input.classList.remove('emoji-invalid');
-    } else {
-        input.classList.remove('emoji-valid');
-    }
-    updateInlineReact(i);
-}
-
-// Cek apakah teks sedang dalam proses pengetikan custom emoji <:nama:id>
-function _isTypingCustomEmoji(raw) {
-    // Izinkan selama belum ada '>' (masih dalam proses mengetik format custom emoji)
-    return raw.startsWith('<') && !raw.includes('>');
-}
-
-function _onEmojiInput(i) {
-    const input = document.getElementById(`inreact-emoji-${i}`);
-    if (!input) return;
-    const raw   = input.value;
-
-    // Sedang mengetik custom emoji <:nama:id> — jangan interupsi
-    if (_isTypingCustomEmoji(raw)) {
-        input.classList.remove('emoji-valid', 'emoji-invalid');
-        updateInlineReact(i);
-        return;
-    }
-
-    const emoji = _extractFirstEmoji(raw);
-
-    if (emoji) {
-        input.value = emoji;
-        input.classList.add('emoji-valid');
-        input.classList.remove('emoji-invalid');
-    } else if (raw.length > 0) {
-        // Bukan emoji & bukan custom emoji — tolak dengan animasi
-        input.classList.add('emoji-invalid');
-        input.classList.remove('emoji-valid');
-        setTimeout(() => {
-            const el = document.getElementById(`inreact-emoji-${i}`);
-            if (el && !_extractFirstEmoji(el.value) && !_isTypingCustomEmoji(el.value)) {
-                el.value = '';
-                el.classList.remove('emoji-invalid', 'emoji-valid');
-            }
-        }, 500);
-    } else {
-        input.classList.remove('emoji-valid', 'emoji-invalid');
-    }
-    updateInlineReact(i);
-}
-
-function _onEmojiPaste(e, i) {
-    e.preventDefault();
-    const pasted = (e.clipboardData || window.clipboardData).getData('text');
-    const emoji  = _extractFirstEmoji(pasted);
-    _applyEmojiToInput(i, emoji);
-    if (!emoji) {
-        const input = document.getElementById(`inreact-emoji-${i}`);
-        if (input) {
-            input.classList.add('emoji-invalid');
-            setTimeout(() => input.classList.remove('emoji-invalid'), 600);
+// Buka emoji picker untuk reaction row ke-i
+function openEmojiPickerForReact(i, anchorEl) {
+    EmojiPicker.open(anchorEl, function(value, isCustom) {
+        _inlineReacts[i].emoji = value;
+        const bubble = document.getElementById(`inreact-bubble-${i}`);
+        if (bubble) {
+            bubble.innerHTML = _emojiDisplayFromStored(value);
+            bubble.classList.add('has-emoji');
+            bubble.title = 'Click to change emoji';
         }
-    }
+        updateReactPanelPreviewReacts();
+    });
 }
 
 // Konversi stored emoji (name:id atau unicode) ke HTML di dalam bubble
 function _emojiDisplayFromStored(stored) {
     if (!stored) return '';
     if (stored.includes(':')) {
-        // Custom emoji — tampilkan nama terpotong di dalam bubble
-        const name = stored.split(':')[0];
-        const label = name.length > 6 ? name.slice(0, 5) + '…' : name;
-        return `<span class="react-custom-tag">:${label}:</span>`;
+        const [name, id] = stored.split(':');
+        return `<img src="https://cdn.discordapp.com/emojis/${id}.webp?size=64" alt=":${name}:" style="width:30px;height:30px;object-fit:contain;border-radius:4px;">`;
     }
-    // Unicode emoji — validasi apakah benar-benar emoji (bukan teks biasa)
     const isEmoji = /\p{Emoji}/u.test(stored) && !/^[a-zA-Z0-9\s]+$/.test(stored);
-    if (!isEmoji) {
-        // Bukan emoji valid — tampilkan tanda tanya
-        return `<span style="font-size:1rem;opacity:.4;">?</span>`;
-    }
+    if (!isEmoji) return `<span style="font-size:1rem;opacity:.4;">?</span>`;
     return stored;
 }
 
 function updateInlineReact(i) {
-    const emojiRaw    = (document.getElementById(`inreact-emoji-${i}`)?.value || '').trim();
-    const customMatch = emojiRaw.match(/^<a?:([^:>\s]{1,32}):(\d{5,20})>$/);
-    const emojiStored = customMatch ? `${customMatch[1]}:${customMatch[2]}` : emojiRaw;
-
     _inlineReacts[i] = {
         roleId: document.getElementById(`inreact-role-${i}`)?.value || '',
-        emoji:  emojiStored,
+        emoji:  _inlineReacts[i]?.emoji || '',
     };
-
-    // Live-update emoji bubble
-    const bubble = document.getElementById(`inreact-bubble-${i}`);
-    if (bubble) {
-        const rawInput   = document.getElementById(`inreact-emoji-${i}`)?.value || '';
-        const isTyping   = _isTypingCustomEmoji(rawInput);
-        const isCustom   = emojiStored.includes(':');
-        const isUnicode  = !isCustom && /\p{Emoji}/u.test(emojiStored) && !/^[a-zA-Z0-9\s]+$/.test(emojiStored);
-        const isValid    = isCustom || isUnicode;
-
-        if (isTyping) {
-            // Sedang mengetik custom emoji — tampilkan animasi loading
-            bubble.innerHTML = `<span style="font-size:.75rem;opacity:.5;letter-spacing:.05em;">…</span>`;
-            bubble.classList.remove('has-emoji');
-            bubble.title = 'Mengetik format custom emoji';
-        } else if (emojiStored && isValid) {
-            bubble.innerHTML = _emojiDisplayFromStored(emojiStored);
-            bubble.classList.add('has-emoji');
-            bubble.title = 'Preview emoji';
-        } else if (emojiStored) {
-            bubble.innerHTML = `<span style="font-size:.9rem;opacity:.35;">?</span>`;
-            bubble.classList.remove('has-emoji');
-            bubble.title = 'Bukan emoji yang valid';
-        } else {
-            bubble.innerHTML = '<span class="react-empty-icon">✨</span>';
-            bubble.classList.remove('has-emoji');
-            bubble.title = 'No emoji selected';
-        }
-    }
-
     document.getElementById('inlineReactCounter').textContent = `${_inlineReacts.length}/20`;
     updateReactPanelPreviewReacts();
 }
@@ -3021,7 +2987,13 @@ function updateReactPanelPreviewReacts() {
         .filter(r => r.emoji)
         .map(r => {
             const isCustom = r.emoji.includes(':');
-            const display  = isCustom ? `<span style="font-size:.75rem;color:var(--text-muted)">:${r.emoji.split(':')[0]}:</span>` : r.emoji;
+            let display;
+            if (isCustom) {
+                const [name, id] = r.emoji.split(':');
+                display = `<img src="https://cdn.discordapp.com/emojis/${id}.webp?size=32" alt=":${name}:" style="width:18px;height:18px;object-fit:contain;vertical-align:middle;">`;
+            } else {
+                display = r.emoji;
+            }
             return `<span class="ar-react-chip">${display}</span>`;
         }).join('');
 }
@@ -3172,6 +3144,17 @@ buildApPhPicker('panelPlainPhPicker',  'panelPlainText');
 buildApPhPicker('panelDescPhPicker',   'panelEmbedDescription');
 buildApPhPicker('reactPlainPhPicker',  'reactPanelPlainText');
 buildApPhPicker('reactDescPhPicker',   'reactPanelEmbedDescription');
+
+// Inisialisasi form ke mode "New Panel" saat pertama load
+document.addEventListener('DOMContentLoaded', () => {
+    openCreatePanel();
+    openCreateReactPanel();
+});
+</script>
+
+<script src="/js/emoji-picker.js"></script>
+<script>
+EmojiPicker.init(<%- JSON.stringify(guildEmojis || []) %>);
 </script>
 
 <%- include('../partials/footer') %>

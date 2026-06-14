@@ -1621,6 +1621,7 @@ html.theme-transitioning *::after {
 .dc-embed-footer:empty  { display:none; }
 .dc-footer-icon         { width:16px; height:16px; border-radius:50%; object-fit:cover; }
 .dc-footer-sep          { opacity:.5; }
+.dc-embed-footer .dc-text-wrap { flex:0 1 auto; word-break:break-word; }
 
 /* Empty state */
 .dc-embed-empty { font-size:.78rem; color:var(--text-muted); padding:.2rem 0; font-style:italic; opacity:.6; }

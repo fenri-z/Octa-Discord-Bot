@@ -1,0 +1,135 @@
+{
+  "people": {
+    "label": "People & Emotion",
+    "icon": "😀",
+    "emojis": [
+      ["😀","grinning"],["😃","smiley"],["😄","smile"],["😁","grin"],["😆","laughing"],["😅","sweat smile"],["🤣","rofl"],["😂","joy"],["🙂","slightly smiling"],["🙃","upside down"],
+      ["😉","wink"],["😊","blush"],["😇","innocent"],["🥰","smiling hearts"],["😍","heart eyes"],["🤩","star struck"],["😘","kiss"],["😗","kissing"],["😚","kissing closed eyes"],["😙","kissing smiling"],
+      ["🥲","smiling tear"],["😋","yum"],["😛","stuck out tongue"],["😜","winking tongue"],["🤪","zany"],["😝","squinting tongue"],["🤑","money mouth"],["🤗","hugging"],["🤭","hand over mouth"],["🫢","eyes peeking"],
+      ["🤫","shushing"],["🤔","thinking"],["🫡","saluting"],["🤐","zipper mouth"],["🤨","raised eyebrow"],["😐","neutral"],["😑","expressionless"],["😶","no mouth"],["🫥","dotted line face"],["😏","smirk"],
+      ["😒","unamused"],["🙄","eye roll"],["😬","grimacing"],["🤥","lying"],["🫨","shaking"],["😌","relieved"],["😔","pensive"],["😪","sleepy"],["🤤","drooling"],["😴","sleeping"],
+      ["😷","mask"],["🤒","thermometer"],["🤕","head bandage"],["🤢","nauseated"],["🤮","vomiting"],["🤧","sneezing"],["🥵","hot"],["🥶","cold"],["🥴","woozy"],["😵","dizzy"],
+      ["🤯","exploding head"],["🤠","cowboy"],["🥳","partying"],["🥸","disguised"],["😎","sunglasses"],["🤓","nerd"],["🧐","monocle"],["😕","confused"],["🫤","diagonal mouth"],["😟","worried"],
+      ["🙁","slightly frowning"],["☹️","frowning"],["😮","open mouth"],["😯","hushed"],["😲","astonished"],["😳","flushed"],["🥺","pleading"],["🥹","holding back tears"],["😦","frowning open mouth"],["😧","anguished"],
+      ["😨","fearful"],["😰","anxious sweat"],["😥","sad but relieved"],["😢","cry"],["😭","loudly crying"],["😱","screaming fear"],["😖","confounded"],["😣","persevering"],["😞","disappointed"],["😓","downcast sweat"],
+      ["😩","weary"],["😫","tired"],["🥱","yawning"],["😤","steam nose"],["😡","rage"],["😠","angry"],["🤬","symbols mouth"],["😈","smiling devil"],["👿","angry devil"],["💀","skull"],
+      ["☠️","skull crossbones"],["💩","poop"],["🤡","clown"],["👹","ogre"],["👺","goblin"],["👻","ghost"],["👽","alien"],["👾","space invader"],["🤖","robot"],["😺","grinning cat"],
+      ["👋","waving hand"],["🤚","raised back hand"],["🖐️","hand splayed"],["✋","raised hand"],["🖖","vulcan salute"],["🫱","rightward hand"],["🫲","leftward hand"],["👌","ok hand"],["🤌","pinched fingers"],["🤏","pinching hand"],
+      ["✌️","victory"],["🤞","crossed fingers"],["🫰","hand with index finger"],["🤟","love you gesture"],["🤘","sign of horns"],["🤙","call me hand"],["👈","backhand left"],["👉","backhand right"],["👆","backhand up"],["🖕","middle finger"],
+      ["👇","backhand down"],["☝️","index pointing up"],["🫵","pointing at you"],["👍","thumbs up"],["👎","thumbs down"],["✊","raised fist"],["👊","oncoming fist"],["🤛","left fist"],["🤜","right fist"],["👏","clapping"],
+      ["🙌","raising hands"],["🫶","heart hands"],["👐","open hands"],["🤲","palms together"],["🤝","handshake"],["🙏","folded hands"],["💪","flexed bicep"],["🦾","mechanical arm"],["🖊️","pen"],["💅","nail polish"],
+      ["❤️","red heart"],["🧡","orange heart"],["💛","yellow heart"],["💚","green heart"],["💙","blue heart"],["💜","purple heart"],["🖤","black heart"],["🩶","grey heart"],["🤍","white heart"],["🤎","brown heart"],
+      ["💔","broken heart"],["❤️‍🔥","heart on fire"],["💕","two hearts"],["💞","revolving hearts"],["💓","beating heart"],["💗","growing heart"],["💖","sparkling heart"],["💘","heart arrow"],["💝","heart ribbon"],["💟","heart decoration"]
+    ]
+  },
+  "nature": {
+    "label": "Animals & Nature",
+    "icon": "🐶",
+    "emojis": [
+      ["🐶","dog"],["🐱","cat"],["🐭","mouse"],["🐹","hamster"],["🐰","rabbit"],["🦊","fox"],["🐻","bear"],["🐼","panda"],["🐻‍❄️","polar bear"],["🐨","koala"],
+      ["🐯","tiger"],["🦁","lion"],["🐮","cow"],["🐷","pig"],["🐸","frog"],["🐵","monkey"],["🙈","see no evil"],["🙉","hear no evil"],["🙊","speak no evil"],["🐔","chicken"],
+      ["🐧","penguin"],["🐦","bird"],["🐤","baby chick"],["🦆","duck"],["🦅","eagle"],["🦉","owl"],["🦇","bat"],["🐺","wolf"],["🐗","boar"],["🐴","horse"],
+      ["🦄","unicorn"],["🐝","bee"],["🪱","worm"],["🐛","bug"],["🦋","butterfly"],["🐌","snail"],["🐞","ladybug"],["🐜","ant"],["🪰","fly"],["🦟","mosquito"],
+      ["🦗","cricket"],["🕷️","spider"],["🦂","scorpion"],["🐢","turtle"],["🐍","snake"],["🦎","lizard"],["🦖","t-rex"],["🦕","sauropod"],["🐊","crocodile"],["🐳","whale"],
+      ["🐋","whale"],["🦈","shark"],["🐬","dolphin"],["🦭","seal"],["🐟","fish"],["🐠","tropical fish"],["🐡","blowfish"],["🦐","shrimp"],["🦑","squid"],["🐙","octopus"],
+      ["🦞","lobster"],["🦀","crab"],["🐚","spiral shell"],["🌸","cherry blossom"],["🌹","rose"],["🥀","wilted flower"],["🌺","hibiscus"],["🌻","sunflower"],["🌼","blossom"],["🌷","tulip"],
+      ["🌱","seedling"],["🌿","herb"],["☘️","shamrock"],["🍀","four leaf clover"],["🎋","bamboo"],["🎍","pine decoration"],["🍃","leaves"],["🍂","fallen leaf"],["🍁","maple leaf"],["🌾","sheaf of rice"],
+      ["🌵","cactus"],["🌴","palm tree"],["🌲","evergreen tree"],["🌳","deciduous tree"],["🌏","globe asia"],["🌍","globe europe"],["🌎","globe americas"],["🌙","crescent moon"],["⭐","star"],["🌟","glowing star"],
+      ["💫","dizzy star"],["✨","sparkles"],["⚡","lightning"],["🌈","rainbow"],["☁️","cloud"],["⛅","sun behind cloud"],["🌤️","sun small cloud"],["🌦️","sun rain"],["🌧️","rain"],["⛈️","thunder rain"]
+    ]
+  },
+  "food": {
+    "label": "Food & Drink",
+    "icon": "🍕",
+    "emojis": [
+      ["🍎","apple"],["🍐","pear"],["🍊","orange"],["🍋","lemon"],["🍌","banana"],["🍉","watermelon"],["🍇","grapes"],["🍓","strawberry"],["🫐","blueberries"],["🍈","melon"],
+      ["🍒","cherries"],["🍑","peach"],["🥭","mango"],["🍍","pineapple"],["🥥","coconut"],["🥝","kiwi"],["🍅","tomato"],["🍆","eggplant"],["🥑","avocado"],["🫑","bell pepper"],
+      ["🥦","broccoli"],["🥬","leafy green"],["🥒","cucumber"],["🌶️","hot pepper"],["🌽","corn"],["🥕","carrot"],["🧄","garlic"],["🧅","onion"],["🥔","potato"],["🍠","roasted sweet potato"],
+      ["🥐","croissant"],["🥯","bagel"],["🍞","bread"],["🥖","baguette"],["🥨","pretzel"],["🧀","cheese"],["🥚","egg"],["🍳","frying pan"],["🧈","butter"],["🥞","pancakes"],
+      ["🧇","waffle"],["🥓","bacon"],["🥩","cut of meat"],["🍗","poultry leg"],["🍖","meat on bone"],["🦴","bone"],["🌭","hot dog"],["🍔","hamburger"],["🍟","fries"],["🍕","pizza"],
+      ["🫓","flatbread"],["🥪","sandwich"],["🥙","stuffed pita"],["🧆","falafel"],["🌮","taco"],["🌯","burrito"],["🫔","tamale"],["🥗","salad"],["🥘","shallow pan"],["🫕","fondue"],
+      ["🍝","spaghetti"],["🍜","steaming bowl"],["🍲","pot of food"],["🍛","curry"],["🍣","sushi"],["🍱","bento box"],["🥟","dumpling"],["🦪","oyster"],["🍤","fried shrimp"],["🍙","rice ball"],
+      ["🍚","cooked rice"],["🍘","rice cracker"],["🍥","fish cake"],["🥮","moon cake"],["🍡","dango"],["🧁","cupcake"],["🍰","cake"],["🎂","birthday cake"],["🍮","custard"],["🍭","lollipop"],
+      ["🍬","candy"],["🍫","chocolate"],["🍿","popcorn"],["🍩","donut"],["🍪","cookie"],["🌰","chestnut"],["🥜","peanuts"],["🍯","honey pot"],["🧃","beverage box"],["🥤","cup straw"],
+      ["☕","coffee"],["🍵","tea"],["🧋","bubble tea"],["🍶","sake"],["🍺","beer"],["🍻","clinking beers"],["🥂","clinking glasses"],["🍷","wine"],["🥃","whiskey"],["🍸","cocktail"]
+    ]
+  },
+  "activity": {
+    "label": "Activities",
+    "icon": "⚽",
+    "emojis": [
+      ["⚽","soccer"],["🏀","basketball"],["🏈","football"],["⚾","baseball"],["🥎","softball"],["🎾","tennis"],["🏐","volleyball"],["🏉","rugby"],["🥏","flying disc"],["🎱","billiards"],
+      ["🏓","ping pong"],["🏸","badminton"],["🏒","ice hockey"],["🥍","lacrosse"],["🏑","field hockey"],["🏏","cricket"],["🥅","goal net"],["⛳","golf"],["🏹","bow arrow"],["🎣","fishing"],
+      ["🤿","diving mask"],["🥊","boxing glove"],["🥋","martial arts"],["🎽","running shirt"],["🛹","skateboard"],["🛼","roller skate"],["🛷","sled"],["⛸️","ice skate"],["🏋️","weightlifter"],["🤼","wrestlers"],
+      ["🤸","cartwheel"],["⛹️","bouncing ball"],["🤺","fencer"],["🏇","horse racing"],["🧘","lotus position"],["🏊","swimmer"],["🚴","cyclist"],["🏆","trophy"],["🥇","gold medal"],["🥈","silver medal"],
+      ["🥉","bronze medal"],["🏅","sports medal"],["🎖️","military medal"],["🎗️","reminder ribbon"],["🎫","ticket"],["🎟️","admission"],["🎪","circus"],["🎭","performing arts"],["🎨","artist palette"],["🎬","clapper"],
+      ["🎤","microphone"],["🎧","headphone"],["🎼","musical score"],["🎹","piano"],["🥁","drum"],["🪘","long drum"],["🎷","saxophone"],["🎺","trumpet"],["🎸","guitar"],["🪕","banjo"],
+      ["🎻","violin"],["🎲","game die"],["♟️","chess pawn"],["🎯","bullseye"],["🎳","bowling"],["🎮","video game"],["🕹️","joystick"],["🧩","puzzle"],["🪅","pinata"],["🪆","nesting dolls"]
+    ]
+  },
+  "travel": {
+    "label": "Travel & Places",
+    "icon": "✈️",
+    "emojis": [
+      ["🚗","car"],["🚕","taxi"],["🚙","suv"],["🚌","bus"],["🚎","trolleybus"],["🏎️","racing car"],["🚓","police car"],["🚑","ambulance"],["🚒","fire engine"],["🚐","minibus"],
+      ["🛻","pickup truck"],["🚚","delivery truck"],["🚛","articulated truck"],["🚜","tractor"],["🛵","motor scooter"],["🏍️","motorcycle"],["🛺","auto rickshaw"],["🚲","bicycle"],["🛴","kick scooter"],["🛼","roller skate"],
+      ["🚏","bus stop"],["🛣️","motorway"],["🛤️","railway track"],["⛽","fuel pump"],["🚨","police light"],["🚥","horizontal traffic light"],["🚦","vertical traffic light"],["🚧","construction"],["⚓","anchor"],["🛟","ring buoy"],
+      ["⛵","sailboat"],["🛶","canoe"],["🚤","speedboat"],["🛳️","passenger ship"],["⛴️","ferry"],["🛥️","motor boat"],["🚢","ship"],["✈️","airplane"],["🛩️","small airplane"],["🛫","takeoff"],
+      ["🛬","landing"],["🪂","parachute"],["💺","seat"],["🚁","helicopter"],["🚟","suspension railway"],["🚠","mountain cableway"],["🚡","aerial tramway"],["🛰️","satellite"],["🚀","rocket"],["🛸","flying saucer"],
+      ["🌍","globe"],["🗺️","map"],["🧭","compass"],["🏔️","mountain"],["⛰️","mountain"],["🌋","volcano"],["🗻","mount fuji"],["🏕️","camping"],["🏖️","beach"],["🏜️","desert"],
+      ["🏝️","island"],["🏞️","national park"],["🏟️","stadium"],["🏛️","classical building"],["🏗️","construction"],["🧱","brick"],["🏠","house"],["🏡","house garden"],["🏢","office"],["🏣","post office"],
+      ["🏤","post office"],["🏥","hospital"],["🏦","bank"],["🏨","hotel"],["🏩","love hotel"],["🏪","store"],["🏫","school"],["🏬","department store"],["🏭","factory"],["🏯","castle"],
+      ["🏰","european castle"],["💒","wedding"],["🗼","tokyo tower"],["🗽","statue liberty"],["⛪","church"],["🕌","mosque"],["🛕","hindu temple"],["🕍","synagogue"],["⛩️","shinto shrine"],["🌁","foggy"]
+    ]
+  },
+  "objects": {
+    "label": "Objects",
+    "icon": "💡",
+    "emojis": [
+      ["⌚","watch"],["📱","phone"],["💻","laptop"],["⌨️","keyboard"],["🖥️","monitor"],["🖨️","printer"],["🖱️","mouse"],["💾","floppy disk"],["💿","cd"],["📀","dvd"],
+      ["📷","camera"],["📸","camera flash"],["📹","video camera"],["🎥","movie camera"],["📽️","film projector"],["🎞️","film frames"],["📞","telephone"],["☎️","telephone"],["📟","pager"],["📠","fax"],
+      ["📺","television"],["📻","radio"],["🧭","compass"],["⏱️","stopwatch"],["⏰","alarm clock"],["⏳","hourglass"],["📡","satellite antenna"],["🔋","battery"],["🔌","plug"],["💡","bulb"],
+      ["🔦","flashlight"],["🕯️","candle"],["💰","money bag"],["💴","yen"],["💵","dollar"],["💶","euro"],["💷","pound"],["💸","money wings"],["💳","card"],["🪙","coin"],
+      ["📈","chart up"],["📉","chart down"],["📊","bar chart"],["📋","clipboard"],["📌","pushpin"],["📍","round pushpin"],["✂️","scissors"],["🗃️","card box"],["🗂️","dividers"],["🗑️","wastebasket"],
+      ["🔒","locked"],["🔓","unlocked"],["🔏","locked pen"],["🔐","locked key"],["🔑","key"],["🗝️","old key"],["🔨","hammer"],["🪓","axe"],["⛏️","pick"],["🔧","wrench"],
+      ["🪛","screwdriver"],["🔩","bolt"],["⚙️","gear"],["🗜️","clamp"],["🧲","magnet"],["🪜","ladder"],["🧪","test tube"],["🧫","petri dish"],["🔬","microscope"],["🔭","telescope"],
+      ["📜","scroll"],["📄","page"],["📃","curl page"],["📑","bookmark tabs"],["🗒️","spiral notepad"],["📔","notebook"],["📒","ledger"],["📕","book red"],["📗","book green"],["📘","book blue"],
+      ["📙","book orange"],["📚","books"],["📖","open book"],["🔖","bookmark"],["🏷️","label"],["💉","syringe"],["🩸","drop of blood"],["💊","pill"],["🩹","bandage"],["🩺","stethoscope"],
+      ["🚪","door"],["🛋️","couch"],["🪑","chair"],["🚽","toilet"],["🪠","plunger"],["🚿","shower"],["🛁","bathtub"],["🪤","mousetrap"],["🪒","razor"],["🧴","lotion"],
+      ["🧷","safety pin"],["🧹","broom"],["🧺","basket"],["🧻","roll of paper"],["🪣","bucket"],["🧼","soap"],["🫧","bubbles"],["🪥","toothbrush"],["🧽","sponge"],["🧯","extinguisher"]
+    ]
+  },
+  "symbols": {
+    "label": "Symbols",
+    "icon": "❤️",
+    "emojis": [
+      ["❤️","heart"],["🧡","orange heart"],["💛","yellow heart"],["💚","green heart"],["💙","blue heart"],["💜","purple heart"],["🖤","black heart"],["🤍","white heart"],["🤎","brown heart"],["💔","broken heart"],
+      ["❣️","exclamation heart"],["💕","two hearts"],["💞","revolving hearts"],["💓","beating heart"],["💗","growing heart"],["💖","sparkling heart"],["💘","cupid"],["💝","gift heart"],["💟","decoration"],["☮️","peace"],
+      ["✝️","cross"],["☪️","star crescent"],["🕉️","om"],["☸️","dharma wheel"],["✡️","star of david"],["🔯","dotted six point star"],["🕎","menorah"],["☯️","yin yang"],["☦️","orthodox cross"],["🛐","worship"],
+      ["⛎","ophiuchus"],["♈","aries"],["♉","taurus"],["♊","gemini"],["♋","cancer"],["♌","leo"],["♍","virgo"],["♎","libra"],["♏","scorpius"],["♐","sagittarius"],
+      ["♑","capricorn"],["♒","aquarius"],["♓","pisces"],["🆔","id"],["⚛️","atom"],["🉑","acceptable"],["☢️","radioactive"],["☣️","biohazard"],["📴","phone off"],["📳","vibration mode"],
+      ["🈶","have"],["🈚","free"],["🈸","apply"],["🈺","open"],["🈷️","monthly"],["✴️","eight pointed star"],["🆚","vs"],["💮","white flower"],["🉐","bargain"],["㊙️","secret"],
+      ["㊗️","congratulation"],["🈴","pass"],["🈵","no vacancy"],["🈹","discount"],["🈲","prohibited"],["🅰️","blood type a"],["🅱️","blood type b"],["🆎","ab"],["🆑","cl"],["🅾️","blood type o"],
+      ["🆘","sos"],["❌","cross mark"],["⭕","red circle"],["🛑","stop sign"],["⛔","no entry"],["📛","name badge"],["🚫","prohibited"],["💯","hundred"],["💢","anger"],["♨️","hot springs"],
+      ["🚷","no pedestrians"],["📵","no mobile"],["🔞","no eighteen"],["🔃","arrows"],["🔄","counterclockwise"],["🔙","back"],["🔛","on"],["🔝","top"],["🔜","soon"],["🔚","end"],
+      ["⚜️","fleur de lis"],["🔱","trident"],["📛","name badge"],["🔰","japanese symbol"],["♻️","recycle"],["✅","check"],["🈯","reserved"],["💹","chart yen"],["❎","cross button"],["🌐","globe"],
+      ["💠","diamond"],["Ⓜ️","circled m"],["🌀","cyclone"],["💤","zzz"],["🏧","atm"],["🚾","wc"],["♿","wheelchair"],["🅿️","parking"],["🛗","elevator"],["🈳","vacancy"],
+      ["🚰","potable water"],["🚹","men"],["🚺","women"],["🚻","restroom"],["🚼","baby"],["🚽","toilet"],["🛚","shower"],["🛛","bath"],["⚠️","warning"],["🔔","bell"],
+      ["🔕","no bell"],["🎵","note"],["🎶","notes"],["✔️","check"],["🔅","dim"],["🔆","bright"],["📶","signal"],["🏁","checkered flag"],["🚩","triangular flag"],["🎌","crossed flags"],
+      ["🏴","black flag"],["🏳️","white flag"],["⭐","star"],["🌟","glowing star"],["💥","collision"],["❗","exclamation"],["❓","question"],["‼️","double exclamation"],["⁉️","exclamation question"],["🔴","red circle"],
+      ["🟠","orange circle"],["🟡","yellow circle"],["🟢","green circle"],["🔵","blue circle"],["🟣","purple circle"],["⚫","black circle"],["⚪","white circle"],["🟤","brown circle"],["🔶","orange diamond"],["🔷","blue diamond"]
+    ]
+  },
+  "flags": {
+    "label": "Flags",
+    "icon": "🏳️",
+    "emojis": [
+      ["🏳️","white flag"],["🏴","black flag"],["🚩","red flag"],["🎌","crossed flags"],["🏁","chequered flag"],["🏴‍☠️","pirate flag"],["🏳️‍🌈","rainbow flag"],["🏳️‍⚧️","transgender flag"],
+      ["🇮🇩","indonesia"],["🇺🇸","united states"],["🇬🇧","united kingdom"],["🇯🇵","japan"],["🇰🇷","south korea"],["🇨🇳","china"],["🇩🇪","germany"],["🇫🇷","france"],["🇮🇹","italy"],["🇪🇸","spain"],
+      ["🇷🇺","russia"],["🇧🇷","brazil"],["🇨🇦","canada"],["🇦🇺","australia"],["🇮🇳","india"],["🇲🇽","mexico"],["🇸🇦","saudi arabia"],["🇦🇪","uae"],["🇹🇷","turkey"],["🇳🇱","netherlands"],
+      ["🇵🇱","poland"],["🇸🇬","singapore"],["🇲🇾","malaysia"],["🇵🇭","philippines"],["🇹🇭","thailand"],["🇻🇳","vietnam"],["🇵🇰","pakistan"],["🇧🇩","bangladesh"],["🇳🇬","nigeria"],["🇿🇦","south africa"],
+      ["🇦🇷","argentina"],["🇨🇱","chile"],["🇨🇴","colombia"],["🇵🇹","portugal"],["🇸🇪","sweden"],["🇳🇴","norway"],["🇩🇰","denmark"],["🇫🇮","finland"],["🇨🇭","switzerland"],["🇦🇹","austria"],
+      ["🇧🇪","belgium"],["🇨🇿","czech republic"],["🇭🇺","hungary"],["🇷🇴","romania"],["🇺🇦","ukraine"],["🇬🇷","greece"],["🇮🇱","israel"],["🇪🇬","egypt"],["🇮🇷","iran"],["🇮🇶","iraq"]
+    ]
+  }
+}

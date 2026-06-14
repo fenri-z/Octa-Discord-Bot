@@ -521,10 +521,19 @@ router.get('/commands', (req, res) => {
 
 // ── Broadcast Message ─────────────────────────────────────────────────────────
 router.get('/broadcast', (req, res) => {
+    const client = req.discordClient;
+    const u = client?.user;
+    const botUser = u ? {
+        username:  u.username,
+        avatarUrl: u.avatar
+            ? `https://cdn.discordapp.com/avatars/${u.id}/${u.avatar}.png?size=256`
+            : 'https://cdn.discordapp.com/embed/avatars/0.png',
+    } : { username: 'Bot', avatarUrl: 'https://cdn.discordapp.com/embed/avatars/0.png' };
     res.render('owner/broadcast', {
         title: 'Broadcast Message',
         hasSidebar: true,
         activePage: 'broadcast',
+        botUser,
     });
 });
 
@@ -569,9 +578,9 @@ router.post('/broadcast', async (req, res) => {
                 if (e.image)       try { embed.setImage(e.image); } catch {}
                 if (e.footer)      embed.setFooter({ text: String(e.footer).slice(0, 2048) });
                 if (e.timestamp)   embed.setTimestamp();
-                await channel.send({ content: content || undefined, embeds: [embed] });
+                await channel.send({ content: content || undefined, embeds: [embed], allowedMentions: { parse: [] } });
             } else {
-                await channel.send(content);
+                await channel.send({ content, allowedMentions: { parse: [] } });
             }
             sent++;
         } catch { failed++; }

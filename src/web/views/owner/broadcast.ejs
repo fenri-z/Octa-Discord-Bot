@@ -1,5 +1,6 @@
 <%- include('../partials/head') %>
 <%- include('../partials/navbar') %>
+<% const _bu = (typeof botUser !== 'undefined' && botUser) ? botUser : { username: 'Bot', avatarUrl: 'https://cdn.discordapp.com/embed/avatars/0.png' }; %>
 
 <div class="dash-layout">
 <%- include('../partials/owner-sidebar', { activePage: 'broadcast' }) %>
@@ -13,146 +14,165 @@
         </div>
     </div>
 
-    <!-- Mode selector -->
-    <div class="bc-mode-bar">
-        <button class="bc-mode active" id="modeText" onclick="setMode('text')">
-            <i data-lucide="align-left"></i> Plain Text
-        </button>
-        <button class="bc-mode" id="modeEmbed" onclick="setMode('embed')">
-            <i data-lucide="layout"></i> Embed
-        </button>
+    <div class="bc-notice" style="margin-bottom:1.25rem;">
+        <i data-lucide="info"></i>
+        <span>The message will be sent to the first accessible text channel in each server. Servers where the bot lacks permission will be counted as failed.</span>
     </div>
 
-    <!-- ── PLAIN TEXT mode ─────────────────────────────────────────────── -->
-    <div id="paneText">
-        <div class="bc-card">
-            <div class="bc-card-top">
-                <div class="bc-tabs">
-                    <button class="bc-tab active" id="bcTabWrite" onclick="switchTab('write')"><i data-lucide="pencil"></i> Write</button>
-                    <button class="bc-tab" id="bcTabPreview" onclick="switchTab('preview')"><i data-lucide="eye"></i> Preview</button>
+    <!-- Main layout: form left, preview right -->
+    <div class="bc-layout">
+
+        <!-- Left: form -->
+        <div class="bc-form-col">
+
+            <!-- Plain Text -->
+            <div class="bc-section">
+                <div class="bc-section-head">
+                    <span class="bc-section-head-left">
+                        <i data-lucide="message-square"></i> Plain Text
+                    </span>
+                    <span class="bc-char" id="bcChar">0 / 2000</span>
                 </div>
-                <span class="bc-char" id="bcChar">0 / 2000</span>
-            </div>
-            <div id="bcWritePane">
-                <textarea id="bcText" class="bc-textarea" placeholder="Type your broadcast message here..." maxlength="2000" data-flt-ignore></textarea>
-            </div>
-            <div id="bcPreviewPane" class="bc-preview-wrap" style="display:none;">
-                <div class="bc-preview-msg" id="bcPreviewContent">
-                    <span class="bc-preview-empty">Nothing to preview yet.</span>
+                <div class="bc-section-body">
+                    <textarea id="bcText" class="textarea" rows="4" style="width:100%;resize:vertical;min-height:90px;max-height:320px;"
+                        placeholder="Type your broadcast message here..." maxlength="2000" data-flt-ignore
+                        oninput="onBcInput(this);livePreview()"></textarea>
                 </div>
             </div>
-            <div class="bc-footer">
+
+            <!-- Embed Builder -->
+            <div class="bc-section">
+                <div class="bc-section-head">
+                    <span class="bc-section-head-left">
+                        <i data-lucide="layers"></i> Embed Builder
+                        <span style="font-size:.72rem;font-weight:400;color:var(--text-muted);">(optional)</span>
+                    </span>
+                    <div class="bc-color-row">
+                        <span style="font-size:.72rem;color:var(--text-muted);white-space:nowrap;">Accent</span>
+                        <input type="color" id="ebColor" class="bc-color-pick" value="#5865F2" data-flt-ignore oninput="syncColorHex(this);livePreview()">
+                        <input type="text"  id="ebColorHex" class="input" value="#5865F2" maxlength="7" data-flt-ignore style="width:80px;padding:.3rem .5rem;font-size:.8rem;" oninput="syncColorFromHex(this)">
+                    </div>
+                </div>
+                <div class="bc-section-body">
+
+                    <div>
+                        <label class="bc-label">Author</label>
+                        <input type="text" id="ebAuthor" class="input" placeholder="Author name" maxlength="256" data-flt-ignore oninput="livePreview()">
+                    </div>
+
+                    <div class="bc-field-row">
+                        <div>
+                            <label class="bc-label">Title</label>
+                            <input type="text" id="ebTitle" class="input" placeholder="Embed title" maxlength="256" data-flt-ignore oninput="livePreview()">
+                        </div>
+                        <div>
+                            <label class="bc-label">Title URL</label>
+                            <input type="url" id="ebUrl" class="input" placeholder="https://..." data-flt-ignore oninput="livePreview()">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="bc-label" style="display:flex;justify-content:space-between;">
+                            <span>Description</span>
+                            <span id="ebDescCount" style="font-weight:400;text-transform:none;letter-spacing:0;">0 / 4096</span>
+                        </label>
+                        <textarea id="ebDesc" class="textarea" rows="4" style="width:100%;resize:vertical;min-height:80px;"
+                            placeholder="Embed description..." maxlength="4096" data-flt-ignore
+                            oninput="onDescInput();livePreview()"></textarea>
+                    </div>
+
+                    <div class="bc-field-row">
+                        <div>
+                            <label class="bc-label">Thumbnail URL</label>
+                            <input type="url" id="ebThumb" class="input" placeholder="https://..." data-flt-ignore oninput="livePreview()">
+                        </div>
+                        <div>
+                            <label class="bc-label">Image URL</label>
+                            <input type="url" id="ebImage" class="input" placeholder="https://..." data-flt-ignore oninput="livePreview()">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="bc-label">Footer Text</label>
+                        <input type="text" id="ebFooter" class="input" placeholder="Footer text" maxlength="2048" data-flt-ignore oninput="livePreview()">
+                    </div>
+
+                    <label style="display:flex;align-items:center;gap:.5rem;font-size:.85rem;color:var(--text-muted);cursor:pointer;">
+                        <input type="checkbox" id="ebTimestamp" data-flt-ignore onchange="livePreview()" style="accent-color:var(--accent);">
+                        <span>Add timestamp</span>
+                    </label>
+
+                </div>
+            </div>
+
+            <!-- Send -->
+            <div class="bc-send-row">
                 <button class="btn btn-primary bc-send" onclick="sendBroadcast()">
                     <i data-lucide="send"></i> Send to All Guilds
                 </button>
             </div>
-        </div>
-    </div>
 
-    <!-- ── EMBED mode ──────────────────────────────────────────────────── -->
-    <div id="paneEmbed" style="display:none;">
-        <div class="bc-embed-layout">
+        </div><!-- /bc-form-col -->
 
-            <!-- Left: form -->
-            <div class="bc-embed-form">
-                <div class="bc-field-group">
-                    <label class="bc-label">Color</label>
-                    <div class="bc-color-row">
-                        <input type="color" id="ebColor" class="bc-color-pick" value="#5865F2" data-flt-ignore oninput="livePreview()">
-                        <input type="text"  id="ebColorHex" class="input bc-color-hex" value="#5865F2" maxlength="7" data-flt-ignore oninput="syncColorHex(this)" placeholder="#5865F2">
-                    </div>
+        <!-- Right: preview -->
+        <div class="bc-preview-col preview-panel">
+            <div class="preview-label">PREVIEW</div>
+            <div class="dc-window">
+                <div class="dc-channel-bar">
+                    <span class="dc-channel-hash">#</span>
+                    <span>general</span>
                 </div>
-
-                <div class="bc-field-group">
-                    <label class="bc-label">Author</label>
-                    <input type="text" id="ebAuthor" class="input bc-input" placeholder="Author name" maxlength="256" data-flt-ignore oninput="livePreview()">
-                </div>
-
-                <div class="bc-field-group bc-field-row">
-                    <div style="flex:1;">
-                        <label class="bc-label">Title</label>
-                        <input type="text" id="ebTitle" class="input bc-input" placeholder="Embed title" maxlength="256" data-flt-ignore oninput="livePreview()">
-                    </div>
-                    <div style="flex:1;">
-                        <label class="bc-label">Title URL</label>
-                        <input type="url" id="ebUrl" class="input bc-input" placeholder="https://..." data-flt-ignore oninput="livePreview()">
-                    </div>
-                </div>
-
-                <div class="bc-field-group">
-                    <label class="bc-label">Description <span class="bc-field-max" id="ebDescCount">0 / 4096</span></label>
-                    <textarea id="ebDesc" class="bc-textarea bc-textarea-sm" placeholder="Embed description..." maxlength="4096" data-flt-ignore oninput="countDesc();livePreview()"></textarea>
-                </div>
-
-                <div class="bc-field-group bc-field-row">
-                    <div style="flex:1;">
-                        <label class="bc-label">Thumbnail URL</label>
-                        <input type="url" id="ebThumb" class="input bc-input" placeholder="https://..." data-flt-ignore oninput="livePreview()">
-                    </div>
-                    <div style="flex:1;">
-                        <label class="bc-label">Image URL</label>
-                        <input type="url" id="ebImage" class="input bc-input" placeholder="https://..." data-flt-ignore oninput="livePreview()">
-                    </div>
-                </div>
-
-                <div class="bc-field-group">
-                    <label class="bc-label">Footer Text</label>
-                    <input type="text" id="ebFooter" class="input bc-input" placeholder="Footer text" maxlength="2048" data-flt-ignore oninput="livePreview()">
-                </div>
-
-                <div class="bc-field-group">
-                    <label class="bc-checkbox-row">
-                        <input type="checkbox" id="ebTimestamp" data-flt-ignore onchange="livePreview()">
-                        <span>Add timestamp</span>
-                    </label>
-                </div>
-
-                <div class="bc-field-group">
-                    <label class="bc-label">Additional message content <span style="font-weight:400;text-transform:none;letter-spacing:0;">(appears above embed)</span></label>
-                    <input type="text" id="ebContent" class="input bc-input" placeholder="Optional plain text..." maxlength="2000" data-flt-ignore oninput="livePreview()">
-                </div>
-            </div>
-
-            <!-- Right: live preview -->
-            <div class="bc-embed-preview">
-                <div class="bc-preview-label">Preview</div>
-                <div class="bc-discord-msg">
-                    <div class="bc-dc-content" id="previewContent" style="display:none;"></div>
-                    <div class="bc-dc-embed" id="previewEmbed">
-                        <div class="bc-dc-embed-bar" id="previewBar" style="background:#5865F2;"></div>
-                        <div class="bc-dc-embed-body">
-                            <div class="bc-dc-embed-main">
-                                <div class="bc-dc-author" id="previewAuthor" style="display:none;"></div>
-                                <div class="bc-dc-title" id="previewTitle" style="display:none;"></div>
-                                <div class="bc-dc-desc" id="previewDesc" style="display:none;"></div>
-                                <img class="bc-dc-image" id="previewImage" style="display:none;" alt="">
-                                <div class="bc-dc-footer" id="previewFooter" style="display:none;"></div>
+                <div class="dc-messages">
+                    <div class="dc-message">
+                        <div class="dc-avatar">
+                            <img src="<%= botUser.avatarUrl %>" alt=""
+                                 onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+                        </div>
+                        <div class="dc-msg-body">
+                            <div class="dc-username-row">
+                                <%= botUser.username %>
+                                <span class="dc-app-badge">
+                                    <svg width="9" height="9" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                        <path d="M1.5 6L4.5 9L10.5 3" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                    APP
+                                </span>
+                                <span class="dc-timestamp">Today at 12:00</span>
                             </div>
-                            <img class="bc-dc-thumb" id="previewThumb" style="display:none;" alt="">
+                            <div id="bcPreviewPlain" class="dc-plain-msg" style="display:none;"></div>
+                            <div id="bcPreviewEmbed" class="dc-embed" style="display:none;">
+                                <div id="bcPreviewPill" class="dc-embed-pill" style="background:#5865F2;"></div>
+                                <div class="dc-embed-body">
+                                    <div class="dc-embed-main">
+                                        <div class="dc-embed-content">
+                                            <div id="bcPreviewAuthor" class="dc-embed-author" style="display:none;"></div>
+                                            <div id="bcPreviewTitle"  class="dc-embed-title"  style="display:none;"></div>
+                                            <div id="bcPreviewDesc"   class="dc-embed-desc"   style="display:none;"></div>
+                                        </div>
+                                        <div id="bcPreviewThumbWrap" class="dc-embed-thumb" style="display:none;">
+                                            <img id="bcPreviewThumb" src="" alt="">
+                                        </div>
+                                    </div>
+                                    <div id="bcPreviewImageWrap" class="dc-embed-image" style="display:none;">
+                                        <img id="bcPreviewImage" src="" alt="">
+                                    </div>
+                                    <div id="bcPreviewFooter" class="dc-embed-footer" style="display:none;"></div>
+                                </div>
+                            </div>
+                            <div id="bcPreviewEmpty" class="dc-embed-empty">Fill in fields above to see preview</div>
                         </div>
                     </div>
-                    <div class="bc-preview-empty-embed" id="previewEmpty">Fill in the form to see a preview.</div>
                 </div>
             </div>
-        </div>
+        </div><!-- /bc-preview-col -->
 
-        <div class="bc-embed-send">
-            <button class="btn btn-primary bc-send" onclick="sendBroadcast()">
-                <i data-lucide="send"></i> Send to All Guilds
-            </button>
-        </div>
-    </div>
-
-    <div class="bc-notice">
-        <i data-lucide="info"></i>
-        <span>The message will be sent to the first accessible text channel in each server. Servers where the bot lacks permission will be counted as failed.</span>
-    </div>
+    </div><!-- /bc-layout -->
 
 </main>
 </div>
 
 <style>
-.bc-header { display: flex; align-items: center; gap: .9rem; margin-bottom: 1.5rem; }
+.bc-header { display: flex; align-items: center; gap: .9rem; margin-bottom: 1.25rem; }
 .bc-hicon {
     width: 46px; height: 46px; border-radius: 13px; flex-shrink: 0;
     background: rgba(255,115,250,.14); color: #FF73FA;
@@ -162,142 +182,6 @@
 .bc-title { font-size: 1.4rem; font-weight: 800; letter-spacing: -.02em; margin: 0; }
 .bc-sub   { font-size: .8rem; color: var(--text-muted); margin: .1rem 0 0; }
 
-/* Mode bar */
-.bc-mode-bar { display: flex; gap: .4rem; margin-bottom: 1rem; }
-.bc-mode {
-    display: flex; align-items: center; gap: .4rem;
-    background: var(--bg2); border: 1.5px solid var(--border);
-    border-radius: 9px; padding: .42rem 1rem;
-    font-size: .82rem; font-weight: 600; color: var(--text-muted);
-    cursor: pointer; transition: all .18s;
-}
-.bc-mode svg { width: 14px; height: 14px; }
-.bc-mode:hover { color: var(--text); border-color: rgba(88,101,242,.4); }
-.bc-mode.active { background: rgba(88,101,242,.15); border-color: rgba(88,101,242,.5); color: #949cf7; }
-
-/* Plain text card */
-.bc-card {
-    background: var(--bg2); border: 1.5px solid var(--border);
-    border-radius: 14px; overflow: hidden; margin-bottom: 1.1rem;
-}
-.bc-card-top {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: .55rem .85rem; background: var(--bg3);
-    border-bottom: 1px solid var(--border);
-}
-.bc-tabs { display: flex; gap: .2rem; }
-.bc-tab {
-    display: flex; align-items: center; gap: .35rem;
-    background: none; border: none; border-radius: 7px;
-    padding: .3rem .7rem; font-size: .78rem; font-weight: 600;
-    color: var(--text-muted); cursor: pointer; transition: background .15s, color .15s;
-}
-.bc-tab svg { width: 13px; height: 13px; }
-.bc-tab:hover, .bc-tab.active { background: var(--bg2); color: var(--text); }
-.bc-char { font-size: .75rem; color: var(--text-muted); }
-.bc-char.warn { color: #FEE75C; }
-.bc-char.over { color: #ED4245; }
-.bc-textarea {
-    display: block; width: 100%; height: 180px; resize: vertical;
-    background: var(--bg); color: var(--text); border: none; outline: none;
-    font-size: .9rem; line-height: 1.6; padding: 1rem 1.1rem;
-    min-height: 120px; max-height: 440px; box-sizing: border-box;
-}
-.bc-textarea-sm { height: 120px; min-height: 80px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); }
-.bc-preview-wrap { min-height: 180px; padding: 1rem 1.1rem; background: var(--bg); }
-.bc-preview-msg { font-size: .9375rem; line-height: 1.375; color: var(--text); word-break: break-word; white-space: pre-wrap; }
-.bc-preview-empty { color: var(--text-muted); font-style: italic; font-size: .875rem; }
-.bc-preview-msg strong { font-weight: 700; }
-.bc-preview-msg em     { font-style: italic; }
-.bc-preview-msg u      { text-decoration: underline; }
-.bc-preview-msg s      { text-decoration: line-through; }
-.bc-preview-msg .dmd-code { background: rgba(0,0,0,.3); border-radius: 3px; padding: .1em .25em; font-family: monospace; font-size: .875em; }
-.bc-preview-msg .dmd-pre  { background: rgba(0,0,0,.35); border: 1px solid rgba(255,255,255,.06); border-radius: 4px; padding: .75rem 1rem; margin: .35rem 0; font-family: monospace; font-size: .84rem; overflow-x: auto; white-space: pre; }
-.bc-preview-msg .dmd-mention { background: rgba(88,101,242,.28); color: #bcc0f0; border-radius: 3px; padding: 0 3px; font-weight: 500; }
-.bc-preview-msg .dmd-mention-all { background: rgba(250,168,26,.25); color: #faa81a; }
-.bc-preview-msg .dmd-spoiler { background: rgba(255,255,255,.1); color: transparent; border-radius: 3px; padding: 0 3px; cursor: pointer; transition: all .2s; }
-.bc-preview-msg .dmd-spoiler:hover,.bc-preview-msg .dmd-spoiler.revealed { color: var(--text); background: rgba(255,255,255,.07); }
-.bc-preview-msg .dmd-blockquote { border-left: 4px solid rgba(255,255,255,.15); padding-left: .75rem; margin: .25rem 0; color: var(--text-muted); }
-.bc-preview-msg .dmd-h1 { font-size: 1.5rem; font-weight: 700; margin: .4rem 0 .2rem; border-bottom: 1px solid var(--border); padding-bottom: .3rem; }
-.bc-preview-msg .dmd-h2 { font-size: 1.25rem; font-weight: 700; margin: .35rem 0 .15rem; }
-.bc-preview-msg .dmd-h3 { font-size: 1.05rem; font-weight: 700; margin: .3rem 0 .1rem; }
-.bc-preview-msg .dmd-link { color: #00aff4; text-decoration: none; }
-.bc-preview-msg .dmd-link:hover { text-decoration: underline; }
-.bc-footer {
-    display: flex; justify-content: flex-end;
-    padding: .75rem 1rem; border-top: 1px solid var(--border); background: var(--bg3);
-}
-
-/* Embed builder layout */
-.bc-embed-layout {
-    display: grid; grid-template-columns: 1fr 380px;
-    gap: 1.1rem; margin-bottom: 1rem; align-items: start;
-}
-@media(max-width:960px) { .bc-embed-layout { grid-template-columns: 1fr; } }
-
-.bc-embed-form {
-    background: var(--bg2); border: 1.5px solid var(--border);
-    border-radius: 14px; padding: 1.25rem;
-    display: flex; flex-direction: column; gap: .9rem;
-}
-.bc-label {
-    display: block; font-size: .7rem; font-weight: 700; color: var(--text-muted);
-    text-transform: uppercase; letter-spacing: .08em; margin-bottom: .4rem;
-}
-.bc-field-max { font-size: .68rem; font-weight: 400; float: right; }
-.bc-field-group { display: flex; flex-direction: column; }
-.bc-field-row { flex-direction: row !important; gap: .75rem; }
-.bc-field-row > div { display: flex; flex-direction: column; }
-.bc-input { width: 100%; box-sizing: border-box; }
-.bc-color-row { display: flex; gap: .5rem; align-items: center; }
-.bc-color-pick { width: 40px; height: 36px; border-radius: 8px; border: 1px solid var(--border); padding: 2px; cursor: pointer; background: none; }
-.bc-color-hex { flex: 1; }
-.bc-checkbox-row {
-    display: flex; align-items: center; gap: .5rem;
-    font-size: .85rem; color: var(--text-muted); cursor: pointer;
-}
-.bc-checkbox-row input { width: 15px; height: 15px; accent-color: var(--accent); }
-
-/* Embed preview panel */
-.bc-embed-preview {
-    position: sticky; top: 1rem;
-}
-.bc-preview-label {
-    font-size: .7rem; font-weight: 700; color: var(--text-muted);
-    text-transform: uppercase; letter-spacing: .08em; margin-bottom: .6rem;
-}
-.bc-discord-msg {
-    background: #313338; border-radius: 10px; padding: 1rem;
-    min-height: 120px;
-}
-.bc-dc-content {
-    font-size: .9375rem; color: #dcddde; line-height: 1.375;
-    margin-bottom: .5rem; white-space: pre-wrap; word-break: break-word;
-}
-.bc-dc-embed {
-    display: flex; border-radius: 4px; overflow: hidden;
-    background: #2b2d31; max-width: 432px;
-}
-.bc-dc-embed-bar { width: 4px; flex-shrink: 0; }
-.bc-dc-embed-body {
-    display: flex; flex: 1; padding: .6rem .75rem .75rem;
-    gap: .75rem; min-width: 0;
-}
-.bc-dc-embed-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: .3rem; }
-.bc-dc-author { font-size: .8rem; font-weight: 600; color: #dcddde; }
-.bc-dc-title  { font-size: 1rem; font-weight: 700; color: #fff; line-height: 1.3; }
-.bc-dc-title a { color: #00aff4; text-decoration: none; }
-.bc-dc-title a:hover { text-decoration: underline; }
-.bc-dc-desc   { font-size: .875rem; color: #dcddde; line-height: 1.4; white-space: pre-wrap; word-break: break-word; }
-.bc-dc-image  { max-width: 100%; border-radius: 4px; margin-top: .4rem; }
-.bc-dc-footer { font-size: .75rem; color: #8e9297; }
-.bc-dc-thumb  { width: 80px; height: 80px; object-fit: cover; border-radius: 4px; flex-shrink: 0; align-self: flex-start; }
-.bc-preview-empty-embed { color: #8e9297; font-size: .82rem; font-style: italic; padding: .5rem 0; }
-
-.bc-embed-send {
-    display: flex; justify-content: flex-end; margin-bottom: 1.1rem;
-}
-
 .bc-notice {
     display: flex; align-items: flex-start; gap: .65rem;
     background: rgba(88,101,242,.07); border: 1px solid rgba(88,101,242,.18);
@@ -305,38 +189,65 @@
     font-size: .8rem; color: var(--text-muted); line-height: 1.55;
 }
 .bc-notice svg { width: 15px; height: 15px; color: #7289da; flex-shrink: 0; margin-top: .1rem; }
+
+/* Layout */
+.bc-layout { display: flex; gap: 1.25rem; align-items: flex-start; }
+.bc-form-col { flex: 1; min-width: 0; }
+.bc-preview-col { width: 420px; flex-shrink: 0; position: sticky; top: calc(var(--navbar-h, 64px) + 1rem); }
+@media (max-width: 1000px) { .bc-layout { flex-direction: column; } .bc-preview-col { width: 100%; position: static; } }
+
+/* Sections */
+.bc-section {
+    background: var(--bg2); border: 1.5px solid var(--border);
+    border-radius: 12px; margin-bottom: .75rem; overflow: hidden;
+}
+.bc-section-head {
+    display: flex; align-items: center; justify-content: space-between; gap: .5rem;
+    padding: .6rem 1rem; background: var(--bg3); border-bottom: 1px solid var(--border);
+    font-size: .82rem; font-weight: 700;
+}
+.bc-section-head-left { display: flex; align-items: center; gap: .4rem; }
+.bc-section-head svg { width: 13px; height: 13px; color: var(--accent); }
+.bc-section-body { padding: 1rem; display: flex; flex-direction: column; gap: .75rem; }
+
+.bc-label { font-size: .7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .08em; margin-bottom: .3rem; display: block; }
+.bc-char { font-size: .73rem; color: var(--text-muted); }
+.bc-char.warn { color: #FEE75C; }
+.bc-char.over { color: #ED4245; }
+.bc-field-row { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; }
+.bc-color-row { display: flex; gap: .45rem; align-items: center; }
+.bc-color-pick { width: 32px; height: 32px; border-radius: 7px; border: 1px solid var(--border); padding: 2px; cursor: pointer; background: none; flex-shrink: 0; }
+
+.bc-send-row { display: flex; justify-content: flex-end; margin-bottom: 1.1rem; }
 </style>
 
 <script>
-// ── Mode toggle ───────────────────────────────────────────────────────────────
-let _mode = 'text';
-function setMode(m) {
-    _mode = m;
-    document.getElementById('modeText').classList.toggle('active', m === 'text');
-    document.getElementById('modeEmbed').classList.toggle('active', m === 'embed');
-    document.getElementById('paneText').style.display  = m === 'text'  ? '' : 'none';
-    document.getElementById('paneEmbed').style.display = m === 'embed' ? '' : 'none';
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ── Char counter ──────────────────────────────────────────────────────────────
+function onBcInput(el) {
+    const len = el.value.length;
+    const charEl = document.getElementById('bcChar');
+    charEl.textContent = len + ' / 2000';
+    charEl.className = 'bc-char' + (len > 1900 ? (len >= 2000 ? ' over' : ' warn') : '');
 }
 
-// ── Plain text tabs ───────────────────────────────────────────────────────────
-const bcTextarea = document.getElementById('bcText');
-const bcCharEl   = document.getElementById('bcChar');
-
-function switchTab(tab) {
-    const isPrev = tab === 'preview';
-    document.getElementById('bcTabWrite').classList.toggle('active', !isPrev);
-    document.getElementById('bcTabPreview').classList.toggle('active', isPrev);
-    document.getElementById('bcWritePane').style.display   = isPrev ? 'none' : '';
-    document.getElementById('bcPreviewPane').style.display = isPrev ? ''     : 'none';
-    if (isPrev) renderTextPreview();
+function onDescInput() {
+    const n = document.getElementById('ebDesc').value.length;
+    document.getElementById('ebDescCount').textContent = n + ' / 4096';
 }
 
-bcTextarea.addEventListener('input', function() {
-    const len = this.value.length;
-    bcCharEl.textContent = len + ' / 2000';
-    bcCharEl.className   = 'bc-char' + (len > 1900 ? (len > 2000 ? ' over' : ' warn') : '');
-    if (document.getElementById('bcPreviewPane').style.display !== 'none') renderTextPreview();
-});
+// ── Color sync ────────────────────────────────────────────────────────────────
+function syncColorHex(picker) {
+    document.getElementById('ebColorHex').value = picker.value;
+}
+function syncColorFromHex(input) {
+    const val = input.value.trim();
+    if (/^#[0-9a-fA-F]{6}$/.test(val)) {
+        document.getElementById('ebColor').value = val;
+        livePreview();
+    }
+}
 
 // ── Discord Markdown renderer ─────────────────────────────────────────────────
 function discordMarkdown(raw) {
@@ -367,18 +278,10 @@ function discordMarkdown(raw) {
     return s;
 }
 
-function renderTextPreview() {
-    const el = document.getElementById('bcPreviewContent');
-    const raw = bcTextarea.value;
-    if (!raw.trim()) { el.innerHTML = '<span class="bc-preview-empty">Nothing to preview yet.</span>'; return; }
-    el.innerHTML = discordMarkdown(raw);
-}
-
-// ── Embed preview ─────────────────────────────────────────────────────────────
-function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
+// ── Live preview ──────────────────────────────────────────────────────────────
 function livePreview() {
-    const color  = document.getElementById('ebColor').value  || '#5865F2';
+    const text   = document.getElementById('bcText').value.trim();
+    const color  = document.getElementById('ebColor').value || '#5865F2';
     const author = document.getElementById('ebAuthor').value.trim();
     const title  = document.getElementById('ebTitle').value.trim();
     const url    = document.getElementById('ebUrl').value.trim();
@@ -387,100 +290,97 @@ function livePreview() {
     const image  = document.getElementById('ebImage').value.trim();
     const footer = document.getElementById('ebFooter').value.trim();
     const ts     = document.getElementById('ebTimestamp').checked;
-    const cnt    = document.getElementById('ebContent').value.trim();
 
-    const hasContent = author || title || desc || footer || image || thumb;
+    const hasEmbed = author || title || desc || footer || image || thumb;
+    const hasAny   = text || hasEmbed;
 
-    document.getElementById('previewEmpty').style.display  = hasContent ? 'none' : '';
-    document.getElementById('previewEmbed').style.display  = hasContent ? ''     : 'none';
+    // Plain text
+    const plainEl = document.getElementById('bcPreviewPlain');
+    plainEl.style.display = text ? '' : 'none';
+    if (text) plainEl.innerHTML = discordMarkdown(text);
 
-    document.getElementById('previewBar').style.background = color;
+    // Empty state
+    document.getElementById('bcPreviewEmpty').style.display = hasAny ? 'none' : '';
 
-    const cntEl = document.getElementById('previewContent');
-    cntEl.style.display = cnt ? '' : 'none';
-    if (cnt) cntEl.textContent = cnt;
+    // Embed
+    document.getElementById('bcPreviewEmbed').style.display = hasEmbed ? '' : 'none';
+    if (hasEmbed) {
+        document.getElementById('bcPreviewPill').style.background = color;
 
-    const authEl = document.getElementById('previewAuthor');
-    authEl.style.display = author ? '' : 'none';
-    if (author) authEl.textContent = author;
+        const authEl = document.getElementById('bcPreviewAuthor');
+        authEl.style.display = author ? '' : 'none';
+        if (author) authEl.textContent = author;
 
-    const titleEl = document.getElementById('previewTitle');
-    titleEl.style.display = title ? '' : 'none';
-    if (title) titleEl.innerHTML = url
-        ? `<a href="${esc(url)}" target="_blank" rel="noopener">${esc(title)}</a>`
-        : esc(title);
+        const titleEl = document.getElementById('bcPreviewTitle');
+        titleEl.style.display = title ? '' : 'none';
+        if (title) titleEl.innerHTML = url
+            ? `<a href="${esc(url)}" target="_blank" rel="noopener">${esc(title)}</a>`
+            : esc(title);
 
-    const descEl = document.getElementById('previewDesc');
-    descEl.style.display = desc ? '' : 'none';
-    if (desc) descEl.textContent = desc;
+        const descEl = document.getElementById('bcPreviewDesc');
+        descEl.style.display = desc ? '' : 'none';
+        if (desc) descEl.textContent = desc;
 
-    const imgEl = document.getElementById('previewImage');
-    imgEl.style.display = image ? '' : 'none';
-    if (image) imgEl.src = image;
+        const imgWrap = document.getElementById('bcPreviewImageWrap');
+        const imgEl   = document.getElementById('bcPreviewImage');
+        imgWrap.style.display = image ? '' : 'none';
+        if (image) imgEl.src = image;
 
-    const thumbEl = document.getElementById('previewThumb');
-    thumbEl.style.display = thumb ? '' : 'none';
-    if (thumb) thumbEl.src = thumb;
+        const thumbWrap = document.getElementById('bcPreviewThumbWrap');
+        const thumbEl   = document.getElementById('bcPreviewThumb');
+        thumbWrap.style.display = thumb ? '' : 'none';
+        if (thumb) thumbEl.src = thumb;
 
-    const footerEl = document.getElementById('previewFooter');
-    const footerParts = [];
-    if (footer) footerParts.push(esc(footer));
-    if (ts) footerParts.push(new Date().toLocaleString());
-    footerEl.style.display = footerParts.length ? '' : 'none';
-    footerEl.textContent = footerParts.join(' · ');
-}
-
-function syncColorHex(input) {
-    const val = input.value.trim();
-    if (/^#[0-9a-fA-F]{6}$/.test(val)) {
-        document.getElementById('ebColor').value = val;
-        livePreview();
+        const footerEl = document.getElementById('bcPreviewFooter');
+        const parts = [];
+        if (footer) parts.push(esc(footer));
+        if (ts) { const now = new Date(); parts.push('Today at ' + now.toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit', hour12:true })); }
+        footerEl.style.display = parts.length ? '' : 'none';
+        footerEl.innerHTML = parts.join('<span class="dc-footer-sep"> · </span>');
     }
-}
-
-document.getElementById('ebColor').addEventListener('input', function() {
-    document.getElementById('ebColorHex').value = this.value;
-    livePreview();
-});
-
-function countDesc() {
-    const n = document.getElementById('ebDesc').value.length;
-    document.getElementById('ebDescCount').textContent = n + ' / 4096';
 }
 
 // ── Send ──────────────────────────────────────────────────────────────────────
 async function sendBroadcast() {
+    const text   = document.getElementById('bcText').value.trim();
+    const author = document.getElementById('ebAuthor').value.trim();
+    const title  = document.getElementById('ebTitle').value.trim();
+    const desc   = document.getElementById('ebDesc').value.trim();
+    const footer = document.getElementById('ebFooter').value.trim();
+    const image  = document.getElementById('ebImage').value.trim();
+    const thumb  = document.getElementById('ebThumb').value.trim();
+
+    const hasEmbed = author || title || desc || footer || image || thumb;
+
+    if (!text && !hasEmbed) {
+        showMsg(null, 'Please fill in plain text or embed fields.', 'error');
+        return;
+    }
+
     const btn = document.querySelector('.bc-send');
     btn.disabled = true;
-    btn.innerHTML = '<i data-lucide="loader-2" class="spin"></i> Sending...';
+    btn.innerHTML = '<i data-lucide="loader-2" class="bc-spin"></i> Sending...';
     if (window.lucide) lucide.createIcons();
 
     let body;
-    if (_mode === 'text') {
-        const message = bcTextarea.value.trim();
-        if (!message) {
-            showMsg(null, 'Please enter a message.', 'error');
-            btn.disabled = false; btn.innerHTML = '<i data-lucide="send"></i> Send to All Guilds';
-            if (window.lucide) lucide.createIcons();
-            return;
-        }
-        body = { mode: 'text', message };
-    } else {
+    if (hasEmbed) {
         body = {
             mode: 'embed',
-            message: document.getElementById('ebContent').value.trim(),
+            message: text,
             embed: {
                 color:       document.getElementById('ebColor').value,
-                author:      document.getElementById('ebAuthor').value.trim(),
-                title:       document.getElementById('ebTitle').value.trim(),
+                author,
+                title,
                 url:         document.getElementById('ebUrl').value.trim(),
-                description: document.getElementById('ebDesc').value.trim(),
-                thumbnail:   document.getElementById('ebThumb').value.trim(),
-                image:       document.getElementById('ebImage').value.trim(),
-                footer:      document.getElementById('ebFooter').value.trim(),
+                description: desc,
+                thumbnail:   thumb,
+                image,
+                footer,
                 timestamp:   document.getElementById('ebTimestamp').checked,
             },
         };
+    } else {
+        body = { mode: 'text', message: text };
     }
 
     try {
@@ -491,7 +391,7 @@ async function sendBroadcast() {
         });
         const d = await r.json();
         if (d.success) {
-            showMsg(null, `**Broadcast sent!**\n${d.sent} delivered · ${d.failed} failed · ${d.total} total guilds`, 'success');
+            showMsg(null, `Broadcast sent! ${d.sent} delivered · ${d.failed} failed · ${d.total} total guilds`, 'success');
         } else {
             showMsg(null, d.message, 'error');
         }
@@ -505,7 +405,20 @@ async function sendBroadcast() {
 }
 
 const _s = document.createElement('style');
-_s.textContent = '@keyframes spin{to{transform:rotate(360deg)}}.spin{animation:spin .8s linear infinite;}';
+_s.textContent = `
+@keyframes bc-spin { to { transform: rotate(360deg); } }
+.bc-spin { animation: bc-spin .8s linear infinite; display:inline-block; }
+.bc-preview-col .dc-plain-msg .dmd-pre { background:rgba(0,0,0,.2); border:1px solid rgba(255,255,255,.06); border-radius:4px; padding:.5rem .75rem; font-family:monospace; font-size:.82rem; overflow-x:auto; white-space:pre; }
+.bc-preview-col .dc-plain-msg .dmd-code { background:rgba(0,0,0,.2); border-radius:3px; padding:.1em .25em; font-family:monospace; font-size:.875em; }
+.bc-preview-col .dc-plain-msg .dmd-mention { background:rgba(88,101,242,.28); color:#bcc0f0; border-radius:3px; padding:0 3px; font-weight:500; }
+.bc-preview-col .dc-plain-msg .dmd-mention-all { background:rgba(250,168,26,.25); color:#faa81a; }
+.bc-preview-col .dc-plain-msg .dmd-blockquote { border-left:4px solid rgba(255,255,255,.15); padding-left:.75rem; margin:.25rem 0; color:var(--text-muted); }
+.bc-preview-col .dc-plain-msg .dmd-h1 { font-size:1.5rem; font-weight:700; margin:.4rem 0 .2rem; }
+.bc-preview-col .dc-plain-msg .dmd-h2 { font-size:1.25rem; font-weight:700; margin:.35rem 0 .15rem; }
+.bc-preview-col .dc-plain-msg .dmd-h3 { font-size:1.05rem; font-weight:700; margin:.3rem 0 .1rem; }
+.bc-preview-col .dc-plain-msg .dmd-link { color:#00aff4; text-decoration:none; }
+.bc-preview-col .dc-embed-title a { color:#00aff4; text-decoration:none; }
+`;
 document.head.appendChild(_s);
 </script>
 

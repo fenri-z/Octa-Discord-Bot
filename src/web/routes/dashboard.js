@@ -681,12 +681,18 @@ router.get('/:guildId/autorole', requireLogin, requireManageGuild, async (req, r
         .map(c => ({ id: c.id, name: c.name }))
         .sort((a, b) => a.name.localeCompare(b.name));
 
+    const guildEmojis = [...guild.emojis.cache.values()].map(e => ({
+        id: e.id, name: e.name, animated: e.animated,
+        url: `https://cdn.discordapp.com/emojis/${e.id}.${e.animated ? 'gif' : 'webp'}?size=32`,
+    }));
+
     const autoroleTabTitles = { join: 'Autorole Join', booster: 'Autorole Booster', button: 'Autorole Button', reaction: 'Autorole Reaction' };
     res.render('dashboard/autorole', {
         title: autoroleTabTitles[req.query.tab] || 'Auto Role',
         guild,
         roles,
         channels,
+        guildEmojis,
         missingPerms: getMissingPerms(guild),
         joinData,
         boosterData,

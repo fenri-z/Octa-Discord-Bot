@@ -574,6 +574,13 @@ router.post('/guild/:guildId/autorole-button', requireLogin, requireManageGuild,
         try { const r = db?.get(`autobtn-${guildId}-${panelName}`); return r ? JSON.parse(r) : null; } catch { return null; }
     })();
 
+    if (!existing) {
+        const listRaw = db?.get(`autobtn-list-${guildId}`);
+        const currentList = listRaw ? (() => { try { return JSON.parse(listRaw); } catch { return []; } })() : [];
+        if (currentList.length >= 20)
+            return res.json({ success: false, message: 'Panel limit reached. Maximum 20 button panels allowed.' });
+    }
+
     const colorHex = embedColor
         ? (embedColor.startsWith('#') ? embedColor : `#${embedColor}`)
         : (existing?.embedColor || '#5865F2');
@@ -987,6 +994,13 @@ router.post('/guild/:guildId/autorole-reaction', requireLogin, requireManageGuil
     const existing = (() => {
         try { const r = db?.get(`autoreact-${guildId}-${panelName}`); return r ? JSON.parse(r) : null; } catch { return null; }
     })();
+
+    if (!existing) {
+        const listRaw = db?.get(`autoreact-list-${guildId}`);
+        const currentList = listRaw ? (() => { try { return JSON.parse(listRaw); } catch { return []; } })() : [];
+        if (currentList.length >= 20)
+            return res.json({ success: false, message: 'Panel limit reached. Maximum 20 reaction panels allowed.' });
+    }
 
     const colorHex = embedColor
         ? (embedColor.startsWith('#') ? embedColor : `#${embedColor}`)
