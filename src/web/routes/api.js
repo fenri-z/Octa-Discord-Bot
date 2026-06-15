@@ -1391,7 +1391,7 @@ router.post('/guild/:guildId/ticket/send-panel', requireLogin, requireManageGuil
         const title    = db?.get(`ticket-embed-title-${guildId}`)     || '🎫 Support Ticket';
         const desc     = db?.get(`ticket-embed-desc-${guildId}`)      || 'Click the button below to create a ticket.';
         const colorRaw = db?.get(`ticket-embed-color-${guildId}`)     || '#5865F2';
-        const btnLabel = db?.get(`ticket-embed-btn-label-${guildId}`) || '📩 Buat Ticket';
+        const btnLabel = db?.get(`ticket-embed-btn-label-${guildId}`) || '📩 Create Ticket';
         const color    = colorRaw.startsWith('#') ? colorRaw : `#${colorRaw}`;
 
         const embed = new EmbedBuilder().setColor(color).setTitle(title).setDescription(desc);
@@ -3243,7 +3243,7 @@ router.post('/guild/:guildId/level', requireLogin, requireManageGuild, (req, res
 
     setDbBool(db, `level-enabled-${guildId}`, !!enabled);
     if (channelId) db.set(`level-channel-${guildId}`, channelId); else db.delete(`level-channel-${guildId}`);
-    db.set(`level-message-${guildId}`,  (message  || 'Selamat {member}, kamu naik ke Level **{level}**! 🎉').slice(0, 500));
+    db.set(`level-message-${guildId}`,  (message  || 'Congratulations {member}, you leveled up to Level **{level}**! 🎉').slice(0, 500));
     db.set(`level-xpMin-${guildId}`,    String(Math.max(1, Math.min(100,  parseInt(xpMin)    || 15))));
     db.set(`level-xpMax-${guildId}`,    String(Math.max(1, Math.min(100,  parseInt(xpMax)    || 25))));
     db.set(`level-cooldown-${guildId}`, String(Math.max(0, Math.min(3600, parseInt(cooldown)  || 60))));

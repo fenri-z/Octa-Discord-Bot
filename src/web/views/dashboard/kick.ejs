@@ -562,7 +562,7 @@ async function testKickNotif(slug, key) {
         const data = await r.json();
         showMsg(msgEl, data.message, data.success ? 'success' : 'error');
     } catch {
-        showMsg(msgEl, 'Gagal terhubung ke server.', 'error');
+        showMsg(msgEl, 'Failed to connect to server.', 'error');
     }
 }
 

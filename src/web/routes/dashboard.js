@@ -510,7 +510,7 @@ router.get('/:guildId/booster', requireLogin, requireManageGuild, async (req, re
             showThumbnail:      getDbBool(db, `booster-unboost-showThumbnail-${guildId}`,    true),
             cardEnabled:        getDbBool(db, `booster-unboost-cardEnabled-${guildId}`,      false),
             cardWelcomeText:    db?.get(`booster-unboost-cardWelcomeText-${guildId}`)        ?? 'UNBOOST',
-            cardSubText:        db?.get(`booster-unboost-cardSubText-${guildId}`)            ?? 'Boost berakhir...',
+            cardSubText:        db?.get(`booster-unboost-cardSubText-${guildId}`)            ?? 'Boost ended...',
             cardBgColor:        db?.get(`booster-unboost-cardBgColor-${guildId}`)            ?? '#1e0a0a',
             cardBgColor2:       db?.get(`booster-unboost-cardBgColor2-${guildId}`)           ?? '#2e0a0a',
             cardAccentColor:    db?.get(`booster-unboost-cardAccent-${guildId}`)             ?? '#ED4245',
@@ -578,7 +578,7 @@ router.get('/:guildId/booster', requireLogin, requireManageGuild, async (req, re
         });
     } catch (err) {
         console.error('[dashboard/booster] Error:', err);
-        res.status(500).render('error', { hasSidebar: false, title: 'Server Error', message: 'Gagal memuat data server.' });
+        res.status(500).render('error', { hasSidebar: false, title: 'Server Error', message: 'Failed to load server data.' });
     }
 });
 
@@ -1429,7 +1429,7 @@ router.get('/:guildId/level', requireLogin, requireManageGuild, async (req, res)
         const levelData = {
             enabled:  getDbBool(db, `level-enabled-${guildId}`, false),
             channelId: db?.get(`level-channel-${guildId}`) ?? '',
-            message:   db?.get(`level-message-${guildId}`) ?? 'Selamat {member}, kamu naik ke Level **{level}**! 🎉',
+            message:   db?.get(`level-message-${guildId}`) ?? 'Congratulations {member}, you leveled up to Level **{level}**! 🎉',
             xpMin:    parseInt(db?.get(`level-xpMin-${guildId}`)    || '15'),
             xpMax:    parseInt(db?.get(`level-xpMax-${guildId}`)    || '25'),
             cooldown: parseInt(db?.get(`level-cooldown-${guildId}`) || '60'),
@@ -1466,7 +1466,7 @@ router.get('/:guildId/level', requireLogin, requireManageGuild, async (req, res)
         });
     } catch (err) {
         console.error('[dashboard/level] Error:', err);
-        res.status(500).render('error', { hasSidebar: false, title: 'Server Error', message: 'Gagal memuat halaman Level.' });
+        res.status(500).render('error', { hasSidebar: false, title: 'Server Error', message: 'Failed to load Level page.' });
     }
 });
 
@@ -1500,7 +1500,7 @@ router.get('/:guildId/starboard', requireLogin, requireManageGuild, async (req, 
         });
     } catch (err) {
         console.error('[dashboard/starboard] Error:', err);
-        res.status(500).render('error', { hasSidebar: false, title: 'Server Error', message: 'Gagal memuat halaman Starboard.' });
+        res.status(500).render('error', { hasSidebar: false, title: 'Server Error', message: 'Failed to load Starboard page.' });
     }
 });
 
@@ -1547,7 +1547,7 @@ router.get('/:guildId/custom-commands', requireLogin, requireManageGuild, async 
         });
     } catch (err) {
         console.error('[dashboard/custom-commands] Error:', err);
-        res.status(500).render('error', { hasSidebar: false, title: 'Server Error', message: 'Gagal memuat halaman Custom Commands.' });
+        res.status(500).render('error', { hasSidebar: false, title: 'Server Error', message: 'Failed to load Custom Commands page.' });
     }
 });
 
@@ -1586,7 +1586,7 @@ router.get('/:guildId/extlog', requireLogin, requireManageGuild, async (req, res
         });
     } catch (err) {
         console.error('[dashboard/extlog] Error:', err);
-        res.status(500).render('error', { hasSidebar: false, title: 'Server Error', message: 'Gagal memuat halaman Extended Logging.' });
+        res.status(500).render('error', { hasSidebar: false, title: 'Server Error', message: 'Failed to load Extended Logging page.' });
     }
 });
 

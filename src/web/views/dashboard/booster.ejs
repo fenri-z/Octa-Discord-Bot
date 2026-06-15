@@ -996,7 +996,7 @@ async function drawBoostCard() {
     await _drawCard('boost','boostCardCanvas','boostCardPreviewWrap','BOOST!','Thank you for boosting!','#FF73FA','#0a0a1e','#1e0a2e');
 }
 async function drawUnboostCard() {
-    await _drawCard('unboost','unboostCardCanvas','unboostCardPreviewWrap','UNBOOST','Boost berakhir...','#ED4245','#1e0a0a','#2e0a0a');
+    await _drawCard('unboost','unboostCardCanvas','unboostCardPreviewWrap','UNBOOST','Boost ended...','#ED4245','#1e0a0a','#2e0a0a');
 }
 
 // ── Field sample data ──────────────────────────────────────────────────────
@@ -1238,7 +1238,7 @@ async function saveUnboost() {
             showThumbnail:   document.getElementById('unboostShowThumbnail').checked,
             cardEnabled:        document.getElementById('unboostCardEnabled').checked,
             cardWelcomeText:    document.getElementById('unboostCardWelcomeText').value.trim()    || 'UNBOOST',
-            cardSubText:        document.getElementById('unboostCardSubText').value.trim()        || 'Boost berakhir...',
+            cardSubText:        document.getElementById('unboostCardSubText').value.trim()        || 'Boost ended...',
             cardBgColor:        document.getElementById('unboostCardBgColor').value.trim()        || '#1e0a0a',
             cardBgColor2:       document.getElementById('unboostCardBgColor2').value.trim()       || '#2e0a0a',
             cardAccentColor:    document.getElementById('unboostCardAccentColor').value.trim()    || '#ED4245',

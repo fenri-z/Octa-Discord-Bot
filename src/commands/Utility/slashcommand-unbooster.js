@@ -40,7 +40,7 @@ function getConfig(client, guildId) {
         unboostShowThumbnail:    getBool(client, `booster-unboost-showThumbnail-${guildId}`,   true),
         unboostCardEnabled:      getBool(client, `booster-unboost-cardEnabled-${guildId}`,     false),
         unboostCardWelcomeText:  client.database.get(`booster-unboost-cardWelcomeText-${guildId}`)   ?? 'GOODBYE',
-        unboostCardSubText:      client.database.get(`booster-unboost-cardSubText-${guildId}`)       ?? 'Boost berakhir...',
+        unboostCardSubText:      client.database.get(`booster-unboost-cardSubText-${guildId}`)       ?? 'Boost ended...',
         unboostCardBgColor:      client.database.get(`booster-unboost-cardBgColor-${guildId}`)       ?? '#1e0a0a',
         unboostCardBgColor2:     client.database.get(`booster-unboost-cardBgColor2-${guildId}`)      ?? '#2e0a0a',
         unboostCardAccentColor:  client.database.get(`booster-unboost-cardAccent-${guildId}`)        ?? '#ED4245',

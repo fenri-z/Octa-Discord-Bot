@@ -22,14 +22,14 @@ function getOpenList(client, guildId) {
 
 function buildPanelEmbed(client, guildId) {
     const title    = client.database.get(`ticket-embed-title-${guildId}`) || '🎫 Support Ticket';
-    const desc     = client.database.get(`ticket-embed-desc-${guildId}`)  || 'Klik tombol di bawah untuk membuat tiket dan mendapatkan bantuan dari tim staff.';
+    const desc     = client.database.get(`ticket-embed-desc-${guildId}`)  || 'Click the button below to create a ticket and get help from the staff team.';
     const colorRaw = client.database.get(`ticket-embed-color-${guildId}`) || '#5865F2';
     const color    = colorRaw.startsWith('#') ? colorRaw : `#${colorRaw}`;
     return new EmbedBuilder().setColor(color).setTitle(title).setDescription(desc);
 }
 
 function buildPanelRow(client, guildId) {
-    const btnLabel = client.database.get(`ticket-embed-btn-label-${guildId}`) || '📩 Buat Ticket';
+    const btnLabel = client.database.get(`ticket-embed-btn-label-${guildId}`) || '📩 Create Ticket';
     return new ActionRowBuilder().addComponents(
         new ButtonBuilder()
             .setCustomId('ticket-open')
