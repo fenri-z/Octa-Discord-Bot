@@ -2,6 +2,7 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
+    color-scheme: dark;
     --bg:        #0e0f18;
     --bg2:       #14151f;
     --bg3:       #1c1d2a;
@@ -826,6 +827,49 @@ code {
 .textarea { resize: vertical; min-height: 100px; }
 .input-hint { font-size: .75rem; color: var(--text-muted); margin-top: .35rem; }
 
+/* ── Custom select ───────────────────────────────────────────────────────
+   Pengganti popup native <select>, yang di sebagian browser/OS mobile
+   (mis. Brave/Chrome Android) dirender pakai widget OS dan mengabaikan
+   color-scheme/tema halaman. Native <select> tetap ada di DOM (disembunyikan,
+   class .csel-native) sebagai value store, supaya semua onchange="" / .value
+   yang sudah ada di tiap halaman tidak perlu diubah. */
+.csel { position: relative; display: block; width: 100%; }
+.csel-native {
+    position: absolute; width: 1px; height: 1px;
+    opacity: 0; pointer-events: none;
+}
+.csel-trigger {
+    width: 100%; background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 8px; padding: .65rem .9rem; padding-right: 2.5rem;
+    color: var(--text); font-family: inherit; font-size: 1rem;
+    cursor: pointer; user-select: none; transition: border-color .15s;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23a3a6aa' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right .9rem center;
+}
+.csel-trigger:focus { outline: none; }
+.csel.open .csel-trigger, .csel-trigger:focus { border-color: var(--accent); }
+.csel.disabled .csel-trigger { opacity: .5; cursor: not-allowed; }
+.csel-popup {
+    position: absolute; left: 0; right: 0; top: calc(100% + 6px);
+    background: var(--bg2); border: 1px solid var(--border); border-radius: 8px;
+    box-shadow: var(--shadow-md); max-height: 260px; overflow-y: auto;
+    z-index: 200; display: none;
+}
+.csel.open .csel-popup { display: block; }
+.csel-option {
+    padding: .6rem .9rem; font-size: .92rem; color: var(--text);
+    cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.csel-option:hover { background: rgba(var(--accent-rgb), .08); }
+.csel-option.active { background: rgba(var(--accent-rgb), .12); color: var(--accent); font-weight: 500; }
+.csel-option.is-disabled { opacity: .4; cursor: not-allowed; pointer-events: none; }
+[data-theme="light"] .csel-trigger {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236c7178' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+}
+[data-theme="light"] .csel-popup { box-shadow: 0 8px 28px rgba(0,0,0,.14); }
+
 /* ── Placeholder picker ──────────────────────────────────────────────────── */
 .label-with-picker {
     display: flex; align-items: center; justify-content: space-between;
@@ -1340,6 +1384,7 @@ html.theme-transitioning *::after {
 
 /* ── Light mode variables ──────────────────────────────────────────────── */
 [data-theme="light"] {
+    color-scheme: light;
     --bg:        #f2f3f5;
     --bg2:       #ffffff;
     --bg3:       #e9eaed;

@@ -63,3 +63,103 @@ window.queueToast = function(text, type) {
         if (text) setTimeout(() => showMsg(null, text, type || 'success'), 80);
     } catch(e) {}
 })();
+
+// ── Custom select ────────────────────────────────────────────────────────
+// Popup native <select> di sebagian browser/OS mobile (mis. Brave/Chrome
+// Android) dirender pakai widget OS dan mengabaikan tema halaman. Di sini
+// tiap <select class="select"> dibungkus dengan dropdown custom (HTML/CSS
+// sendiri) yang selalu ikut tema web. <select> aslinya tetap ada di DOM
+// (disembunyikan) sebagai value store, jadi semua onchange="" / .value yang
+// sudah ada di tiap halaman tetap berfungsi tanpa diubah.
+(function () {
+    function syncTrigger(trigger, select) {
+        const opt = select.options[select.selectedIndex];
+        trigger.textContent = opt ? opt.textContent : '';
+    }
+
+    function closeAll() {
+        document.querySelectorAll('.csel.open').forEach(c => c.classList.remove('open'));
+    }
+
+    function positionPopup(csel, popup) {
+        popup.style.top = ''; popup.style.bottom = '';
+        const rect = csel.getBoundingClientRect();
+        const spaceBelow = window.innerHeight - rect.bottom;
+        const spaceAbove = rect.top;
+        if (spaceBelow < 220 && spaceAbove > spaceBelow) {
+            popup.style.top = 'auto';
+            popup.style.bottom = 'calc(100% + 6px)';
+        }
+    }
+
+    function enhance(select) {
+        if (select.dataset.cselEnhanced) return;
+        select.dataset.cselEnhanced = '1';
+
+        const csel = document.createElement('div');
+        csel.className = 'csel' + (select.disabled ? ' disabled' : '');
+        if (select.style.fontSize) csel.style.fontSize = select.style.fontSize;
+
+        const trigger = document.createElement('div');
+        trigger.className = 'csel-trigger';
+        trigger.tabIndex = select.disabled ? -1 : 0;
+
+        select.parentNode.insertBefore(csel, select);
+        csel.appendChild(trigger);
+        csel.appendChild(select);
+        select.classList.add('csel-native');
+
+        const popup = document.createElement('div');
+        popup.className = 'csel-popup';
+        Array.from(select.options).forEach(opt => {
+            const item = document.createElement('div');
+            item.className = 'csel-option' + (opt.disabled ? ' is-disabled' : '') + (opt.selected ? ' active' : '');
+            item.textContent = opt.textContent;
+            item.dataset.value = opt.value;
+            if (!opt.disabled) {
+                item.addEventListener('click', () => {
+                    select.value = opt.value;
+                    select.dispatchEvent(new Event('change', { bubbles: true }));
+                    closeAll();
+                });
+            }
+            popup.appendChild(item);
+        });
+        csel.appendChild(popup);
+        syncTrigger(trigger, select);
+
+        if (!select.disabled) {
+            trigger.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const isOpen = csel.classList.contains('open');
+                closeAll();
+                if (!isOpen) {
+                    csel.classList.add('open');
+                    positionPopup(csel, popup);
+                }
+            });
+            trigger.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    trigger.click();
+                } else if (e.key === 'Escape') {
+                    closeAll();
+                }
+            });
+        }
+
+        // Sinkronkan tampilan custom kalau select.value diubah dari kode lain
+        select.addEventListener('change', () => {
+            syncTrigger(trigger, select);
+            popup.querySelectorAll('.csel-option').forEach(o => {
+                o.classList.toggle('active', o.dataset.value === select.value);
+            });
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('select.select').forEach(enhance);
+    });
+    document.addEventListener('click', closeAll);
+    window.addEventListener('resize', closeAll);
+})();
