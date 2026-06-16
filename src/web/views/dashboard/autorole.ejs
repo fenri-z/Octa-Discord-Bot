@@ -239,8 +239,8 @@
                 <div class="guide-tip">💡 <%- t('autorole.button_tip') %></div>
             </div>
 
-            <!-- Inline form card -->
-            <div class="settings-card" id="panelFormCard" style="margin-bottom:1.5rem;" data-flt-ignore>
+            <!-- Inline form card (hidden by default, opened via New Panel button) -->
+            <div class="settings-card" id="panelFormCard" style="margin-bottom:1.5rem;display:none;" data-flt-ignore>
                 <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;margin-bottom:1rem;">
                     <h2 id="panelModalTitle" style="margin:0;font-size:1.05rem;font-weight:600;"><%= t('autorole.new_panel_title') %></h2>
                     <button id="panelCancelEdit" class="btn btn-sm btn-outline" onclick="closePanelModal()" style="display:none;">
@@ -508,6 +508,11 @@
                 <span style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);white-space:nowrap;">Saved Panels</span>
                 <div style="flex:1;height:1px;background:var(--border);"></div>
                 <span style="font-size:.75rem;color:var(--text-muted);"><%= panels.length %> panel<%= panels.length !== 1 ? 's' : '' %></span>
+                <% if (panels.length < 20) { %>
+                <button class="btn btn-primary btn-sm" onclick="openCreatePanel()" style="flex-shrink:0;gap:.3rem;">
+                    <i data-lucide="plus" style="width:13px;height:13px;"></i> New Panel
+                </button>
+                <% } %>
             </div>
             <% if (panels.length >= 20) { %>
             <div style="background:rgba(240,178,50,.1);border:1px solid rgba(240,178,50,.3);border-radius:8px;padding:.55rem .85rem;margin-bottom:.75rem;font-size:.82rem;color:#f0b232;display:flex;align-items:center;gap:.5rem;">
@@ -604,8 +609,8 @@
                 <div class="guide-tip">💡 <%- t('autorole.react_tip') %></div>
             </div>
 
-            <!-- Inline form card (reaction) -->
-            <div class="settings-card" id="reactPanelFormCard" style="margin-bottom:1.5rem;" data-flt-ignore>
+            <!-- Inline form card (reaction, hidden by default) -->
+            <div class="settings-card" id="reactPanelFormCard" style="margin-bottom:1.5rem;display:none;" data-flt-ignore>
                 <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;margin-bottom:1rem;">
                     <h2 id="reactPanelModalTitle" style="margin:0;font-size:1.05rem;font-weight:600;"><%= t('autorole.new_react_panel_title') %></h2>
                     <button id="reactPanelCancelEdit" class="btn btn-sm btn-outline" onclick="closeReactPanelModal()" style="display:none;">
@@ -874,6 +879,11 @@
                 <span style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);white-space:nowrap;">Saved Panels</span>
                 <div style="flex:1;height:1px;background:var(--border);"></div>
                 <span style="font-size:.75rem;color:var(--text-muted);"><%= reactPanels.length %> panel<%= reactPanels.length !== 1 ? 's' : '' %></span>
+                <% if (reactPanels.length < 20) { %>
+                <button class="btn btn-primary btn-sm" onclick="openCreateReactPanel()" style="flex-shrink:0;gap:.3rem;">
+                    <i data-lucide="plus" style="width:13px;height:13px;"></i> New Panel
+                </button>
+                <% } %>
             </div>
             <% if (reactPanels.length >= 20) { %>
             <div style="background:rgba(240,178,50,.1);border:1px solid rgba(240,178,50,.3);border-radius:8px;padding:.55rem .85rem;margin-bottom:.75rem;font-size:.82rem;color:#f0b232;display:flex;align-items:center;gap:.5rem;">
@@ -2082,6 +2092,7 @@ function openCreatePanel() {
     document.getElementById('panelBtnReset').style.display                 = 'none';
     updatePanelPreviewChannel();
     _showPanelFooter('form');
+    document.getElementById('panelFormCard').style.display = '';
     document.getElementById('panelFormCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
@@ -2120,12 +2131,16 @@ async function openEditPanel(name, isSent = false) {
         }
     } catch(e) { console.error(e); }
 
+    document.getElementById('panelFormCard').style.display = '';
     _showPanelFooter('form');
     document.getElementById('panelFormCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function closePanelModal() {
-    openCreatePanel();
+    document.getElementById('panelFormCard').style.display = 'none';
+    _editingPanelName  = '';
+    _editingPanelIsSent = false;
+    _resetPanelForm();
 }
 
 function _showPanelFooter(state) {
@@ -2726,6 +2741,7 @@ function openCreateReactPanel() {
     document.getElementById('reactPanelBtnReset').style.display        = 'none';
     updateReactPanelPreviewChannel();
     _showReactPanelFooter('form');
+    document.getElementById('reactPanelFormCard').style.display = '';
     document.getElementById('reactPanelFormCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
@@ -2760,12 +2776,16 @@ async function openEditReactPanel(name, isSent = false) {
         }
     } catch(e) { console.error(e); }
 
+    document.getElementById('reactPanelFormCard').style.display = '';
     _showReactPanelFooter('form');
     document.getElementById('reactPanelFormCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function closeReactPanelModal() {
-    openCreateReactPanel();
+    document.getElementById('reactPanelFormCard').style.display = 'none';
+    _editingReactPanelName   = '';
+    _editingReactPanelIsSent = false;
+    _resetReactPanelForm();
 }
 
 async function saveReactPanel() {
@@ -3145,10 +3165,10 @@ buildApPhPicker('panelDescPhPicker',   'panelEmbedDescription');
 buildApPhPicker('reactPlainPhPicker',  'reactPanelPlainText');
 buildApPhPicker('reactDescPhPicker',   'reactPanelEmbedDescription');
 
-// Inisialisasi form ke mode "New Panel" saat pertama load
+// Inisialisasi state form tanpa membuka/scroll ke form
 document.addEventListener('DOMContentLoaded', () => {
-    openCreatePanel();
-    openCreateReactPanel();
+    _resetPanelForm();
+    _resetReactPanelForm();
 });
 </script>
 

@@ -135,9 +135,12 @@
 /* ── Sidebar drawer ── */
 // Simpan posisi scroll body sebelum dikunci agar tidak loncat ke atas
 let _bodyScrollY = 0;
+let _bodyLocked  = false; // guard: cegah unlock ganda / unlock tanpa lock
 
 function _lockBodyScroll() {
-    _bodyScrollY = window.scrollY;
+    if (_bodyLocked) return;
+    _bodyLocked   = true;
+    _bodyScrollY  = window.scrollY;
     document.body.style.position   = 'fixed';
     document.body.style.top        = `-${_bodyScrollY}px`;
     document.body.style.left       = '0';
@@ -145,12 +148,21 @@ function _lockBodyScroll() {
     document.body.style.overflowY  = 'scroll'; // cegah layout shift karena scrollbar hilang
 }
 function _unlockBodyScroll() {
+    if (!_bodyLocked) return; // sidebar tidak sedang dikunci — jangan scroll ke atas
+    _bodyLocked = false;
+    const y = _bodyScrollY;
+    // Matikan smooth-scroll sementara agar restore instan (beberapa tablet abaikan behavior:'instant')
+    document.documentElement.style.scrollBehavior = 'auto';
     document.body.style.position  = '';
     document.body.style.top       = '';
     document.body.style.left      = '';
     document.body.style.right     = '';
     document.body.style.overflowY = '';
-    window.scrollTo({ top: _bodyScrollY, behavior: 'instant' }); // instant: bypass css scroll-behavior smooth
+    window.scrollTo(0, y);
+    // Kembalikan smooth-scroll setelah frame berikutnya (setelah posisi sudah di-commit browser)
+    requestAnimationFrame(function () {
+        document.documentElement.style.scrollBehavior = '';
+    });
 }
 
 function toggleSidebar() {

@@ -494,7 +494,7 @@ code {
 .sidebar-server-dd-change:hover { color: var(--text) !important; }
 
 /* Nav */
-.sidebar-nav  { display: flex; flex-direction: column; gap: .1rem; padding-bottom: 2rem; }
+.sidebar-nav  { display: flex; flex-direction: column; gap: .1rem; padding-bottom: 4.5rem; }
 .sidebar-link {
     display: flex; align-items: center; gap: .65rem;
     padding: .55rem .75rem; border-radius: 8px;
@@ -1097,6 +1097,7 @@ code {
         top: var(--navbar-h);
         left: 0;
         height: calc(100vh - var(--navbar-h));
+        height: calc(100dvh - var(--navbar-h)); /* dvh: tidak ikut-sertakan chrome browser */
         z-index: 150;
         width: 232px;
         padding-top: .5rem;
@@ -1108,6 +1109,7 @@ code {
     body.has-sidebar.nav-is-hidden .sidebar {
         top: 0;
         height: 100vh;
+        height: 100dvh;
     }
 
     /* Gradient fade at bottom of sidebar to indicate overflow */
@@ -1223,13 +1225,14 @@ code {
     /* Stats jadi 2 kolom */
     .stats-grid { grid-template-columns: 1fr 1fr; }
 
-    /* Feature grid 1 kolom di mobile */
-    .feat-grid { grid-template-columns: 1fr; gap: .6rem; }
-    .feat-card { padding: .85rem 1rem; }
+    /* Feature grid 2 kolom di mobile */
+    .feat-grid { grid-template-columns: 1fr 1fr; gap: .55rem; }
+    .feat-card { padding: .85rem .9rem; gap: .65rem; }
     .feat-icon-wrap { width: 38px; height: 38px; border-radius: 10px; }
     .feat-icon-wrap svg { width: 18px; height: 18px; }
-    .feat-title { font-size: .85rem; }
-    .feat-desc { font-size: .74rem; }
+    .feat-title { font-size: .83rem; }
+    .feat-desc { font-size: .72rem; }
+    .feat-arrow { display: none; }
 
     /* Settings card lebih compact */
     .settings-card { padding: 1.25rem 1rem; }
@@ -1285,6 +1288,9 @@ code {
     .stats-grid { grid-template-columns: 1fr; }
     .shortcuts-grid { grid-template-columns: 1fr 1fr; }
     .btn-lg { padding: .65rem 1.25rem; font-size: .95rem; }
+    /* feat-grid fallback 1 kolom di HP sangat kecil */
+    .feat-grid { grid-template-columns: 1fr; }
+    .feat-arrow { display: flex; }
 }
 
 /* ── How to Use guide card (reusable across dashboard pages) ────────────── */

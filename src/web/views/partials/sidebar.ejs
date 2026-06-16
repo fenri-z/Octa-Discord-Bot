@@ -74,19 +74,55 @@
         if (el) el.classList.add('active');
     }
 
-    // Scroll sidebar ke item aktif agar tidak kembali ke atas
-    var sidebar = document.querySelector('.sidebar');
-    var active  = sidebar && sidebar.querySelector('.sidebar-link.active, .sidebar-sublink.active');
-    if (sidebar && active) {
-        var sRect  = sidebar.getBoundingClientRect();
-        var aRect  = active.getBoundingClientRect();
-        var relTop = aRect.top    - sRect.top;
-        var relBot = aRect.bottom - sRect.top;
-        var sH     = sidebar.clientHeight;
-        // Scroll hanya jika item aktif tidak sepenuhnya terlihat
-        if (relTop < 0 || relBot > sH) {
-            sidebar.scrollTop += relTop - sH / 2 + active.offsetHeight / 2;
+    var SCROLL_KEY = 'octa-sidebar-scroll';
+    var sidebar    = document.querySelector('.sidebar');
+    var sidebarNav = document.querySelector('.sidebar-nav');
+    if (!sidebar) return;
+
+    // ── Restore posisi scroll dari navigasi sebelumnya ──────────────────────
+    // Desktop → .sidebar yang scroll; Mobile drawer → .sidebar-nav yang scroll.
+    // Set keduanya sekaligus; yang tidak bisa scroll (overflow bukan auto/scroll)
+    // akan mengabaikannya secara otomatis.
+    var saved = sessionStorage.getItem(SCROLL_KEY);
+    if (saved !== null) {
+        var pos = parseInt(saved, 10);
+        sidebar.scrollTop = pos;
+        if (sidebarNav) sidebarNav.scrollTop = pos;
+    } else {
+        // Belum ada simpanan → scroll ke item aktif (fallback pertama kali)
+        var active = sidebar.querySelector('.sidebar-link.active, .sidebar-sublink.active');
+        if (active) {
+            var sRect  = sidebar.getBoundingClientRect();
+            var aRect  = active.getBoundingClientRect();
+            var relTop = aRect.top    - sRect.top;
+            var relBot = aRect.bottom - sRect.top;
+            var sH     = sidebar.clientHeight;
+            if (relTop < 0 || relBot > sH) {
+                sidebar.scrollTop += relTop - sH / 2 + active.offsetHeight / 2;
+            }
         }
     }
+
+    // ── Simpan posisi scroll sebelum pindah halaman ──────────────────────────
+    // Ambil nilai terbesar antara .sidebar dan .sidebar-nav (hanya satu
+    // yang aktif scroll pada satu waktu, yang lain selalu 0).
+    function _savePos() {
+        var pos = Math.max(sidebar.scrollTop, sidebarNav ? sidebarNav.scrollTop : 0);
+        sessionStorage.setItem(SCROLL_KEY, pos);
+    }
+
+    // Simpan saat klik link (tepat sebelum navigasi terjadi)
+    sidebar.addEventListener('click', function (e) {
+        if (e.target.closest('a[href]')) _savePos();
+    });
+
+    // Simpan juga saat user scroll sidebar manual (debounced 150 ms)
+    var _t;
+    function _onScroll() {
+        clearTimeout(_t);
+        _t = setTimeout(_savePos, 150);
+    }
+    sidebar.addEventListener('scroll', _onScroll, { passive: true });
+    if (sidebarNav) sidebarNav.addEventListener('scroll', _onScroll, { passive: true });
 })();
 </script>
