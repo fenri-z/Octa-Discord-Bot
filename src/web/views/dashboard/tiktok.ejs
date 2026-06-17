@@ -1,6 +1,6 @@
 ﻿<%- include('../partials/head') %>
 <%- include('../partials/navbar') %>
-<style>
+<style nonce="<%= typeof locals.nonce !== 'undefined' ? locals.nonce : '' %>">
 /* ── Layout 2 kolom per card (sama pola YouTube) ───────────────────────── */
 .tt-panel-layout {
     display: grid;
@@ -345,6 +345,11 @@
                     <div style="font-size:.78rem;color:var(--text-muted);margin-top:.1rem;">
                         <%= acc.username %>
                     </div>
+                    <% if (acc.broken) { %>
+                    <span class="server-badge badge-red" title="<%= t('tiktok.badge_broken_tooltip') %>">
+                        <%= t('tiktok.badge_broken') %>
+                    </span>
+                    <% } %>
                 </div>
                 <a href="https://www.tiktok.com/<%= acc.username %>" target="_blank" class="btn btn-sm" style="flex-shrink:0;" title="Buka di TikTok">
                     <i data-lucide="external-link" style="width:13px;height:13px;"></i>
@@ -600,7 +605,7 @@
 
 <%- include('../partials/bottom-nav') %>
 
-<script>
+<script nonce="<%= typeof locals.nonce !== 'undefined' ? locals.nonce : '' %>">
 const GUILD_ID    = '<%= guild.id %>';
 const CHANNELS    = <%- JSON.stringify(Object.fromEntries((locals.channels||[]).map(ch=>[ch.id,ch.name]))) %>;
 const ROLES_MAP   = <%- JSON.stringify(Object.fromEntries((locals.roles||[]).map(r=>[r.id,r]))) %>;
@@ -918,6 +923,8 @@ function insertPh(targetId, ph) {
 buildPickers();
 document.querySelectorAll('[id^="testBtn-"]').forEach(btn => btn.dataset.tab = 'video');
 document.getElementById('ttLookupInput')?.addEventListener('keydown', e => { if (e.key==='Enter') lookupTikTok(); });
+// Render preview pakai pesan custom yang sudah tersimpan (termasuk mention) saat halaman pertama dimuat
+document.querySelectorAll('[id^="vidMessage-"]').forEach(el => updatePreview(el.id.replace('vidMessage-', '')));
 
 // ── Mention picker ─────────────────────────────────────────────────────────────
 document.querySelectorAll('.ph-picker-anchor:not(.mention-anchor)').forEach(anchor => {

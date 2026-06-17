@@ -850,7 +850,9 @@
     "err_conn": "Gagal terhubung ke server: ",
     "err_connect": "Gagal terhubung ke server.",
     "sending_test": "Mengirim test notifikasi...",
-    "thumbnail_updated": "Thumbnail diperbarui."
+    "thumbnail_updated": "Thumbnail diperbarui.",
+    "badge_broken": "⚠️ Akun Bermasalah",
+    "badge_broken_tooltip": "Bot tidak bisa mengakses akun ini — kemungkinan username sudah diganti atau akun dihapus. Video/Live notification otomatis dinonaktifkan."
   },
   "twitch": {
     "page_title": "Notifikasi Twitch",
@@ -884,7 +886,9 @@
     "ph_url": "Link stream",
     "ph_game": "Nama game yang dimainkan",
     "ph_title": "Stream title",
-    "ph_viewers": "Jumlah penonton"
+    "ph_viewers": "Jumlah penonton",
+    "badge_broken": "⚠️ Akun Bermasalah",
+    "badge_broken_tooltip": "Bot tidak bisa mengakses akun ini — kemungkinan akun sudah dihapus/banned. Live notification otomatis dinonaktifkan."
   },
   "kick": {
     "page_title": "Notifikasi Kick",
@@ -923,7 +927,9 @@
     "ph_url": "Link stream",
     "ph_category": "Kategori stream",
     "ph_title": "Stream title",
-    "ph_viewers": "Jumlah penonton"
+    "ph_viewers": "Jumlah penonton",
+    "badge_broken": "⚠️ Akun Bermasalah",
+    "badge_broken_tooltip": "Bot tidak bisa mengakses akun ini — kemungkinan akun sudah dihapus/banned. Live notification otomatis dinonaktifkan."
   },
   "landing": {
     "badge": "Multipurpose Discord Bot",

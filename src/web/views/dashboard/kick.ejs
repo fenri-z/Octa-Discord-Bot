@@ -1,6 +1,6 @@
 ﻿<%- include('../partials/head') %>
 <%- include('../partials/navbar') %>
-<style>
+<style nonce="<%= typeof locals.nonce !== 'undefined' ? locals.nonce : '' %>">
 /* ── Layout 2 kolom ──────────────────────────────────────────────────────── */
 .kk-panel-layout {
     display: grid;
@@ -296,6 +296,11 @@
                 <div style="flex:1;min-width:0;">
                     <div class="kk-card-name" data-kick-name><%= acc.displayName || acc.slug %></div>
                     <div style="font-size:.78rem;color:var(--text-muted);margin-top:.1rem;">kick.com/<%= acc.slug %></div>
+                    <% if (acc.broken) { %>
+                    <span class="server-badge badge-red" title="<%= t('kick.badge_broken_tooltip') %>">
+                        <%= t('kick.badge_broken') %>
+                    </span>
+                    <% } %>
                 </div>
                 <a href="https://kick.com/<%= acc.slug %>" target="_blank" class="btn btn-sm" title="<%= t('kick.open_on_kick') %>">
                     <i data-lucide="external-link" style="width:13px;height:13px;"></i>
@@ -435,7 +440,7 @@
 
 <%- include('../partials/bottom-nav') %>
 
-<script>
+<script nonce="<%= typeof locals.nonce !== 'undefined' ? locals.nonce : '' %>">
 const GUILD_ID    = '<%= guild.id %>';
 const KK_CHANNELS = <%- JSON.stringify(Object.fromEntries((locals.channels||[]).map(ch=>[ch.id,ch.name]))) %>;
 const ROLES_MAP   = <%- JSON.stringify(Object.fromEntries((locals.roles||[]).map(r=>[r.id,r]))) %>;

@@ -850,7 +850,9 @@
     "err_conn": "Failed to connect to server: ",
     "err_connect": "Failed to connect to server.",
     "sending_test": "Sending test notification...",
-    "thumbnail_updated": "Thumbnail updated."
+    "thumbnail_updated": "Thumbnail updated.",
+    "badge_broken": "⚠️ Account Issue",
+    "badge_broken_tooltip": "Bot cannot access this account — the username may have changed or the account was deleted. Video/Live notifications have been automatically disabled."
   },
   "twitch": {
     "page_title": "Twitch Notification",
@@ -884,7 +886,9 @@
     "ph_url": "Stream link",
     "ph_game": "Game being played",
     "ph_title": "Stream title",
-    "ph_viewers": "Viewer count"
+    "ph_viewers": "Viewer count",
+    "badge_broken": "⚠️ Account Issue",
+    "badge_broken_tooltip": "Bot cannot access this account — it may have been deleted or banned. Live notifications have been automatically disabled."
   },
   "kick": {
     "page_title": "Kick Notification",
@@ -923,7 +927,9 @@
     "ph_url": "Stream link",
     "ph_category": "Stream category",
     "ph_title": "Stream title",
-    "ph_viewers": "Viewer count"
+    "ph_viewers": "Viewer count",
+    "badge_broken": "⚠️ Account Issue",
+    "badge_broken_tooltip": "Bot cannot access this account — it may have been deleted or banned. Live notifications have been automatically disabled."
   },
   "landing": {
     "badge": "Multipurpose Discord Bot",

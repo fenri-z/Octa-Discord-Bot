@@ -89,7 +89,7 @@ code {
 /* Kiri: hamburger + brand */
 .navbar-left {
     display: flex; align-items: center; gap: .5rem;
-    flex: 1; min-width: 0;
+    min-width: 0;
 }
 
 /* Brand: avatar bot + nama */
@@ -126,6 +126,7 @@ code {
     display: flex; align-items: center; gap: .6rem;
     position: relative;
     flex-shrink: 0;
+    z-index: 10;
 }
 
 /* ── Language switcher ── */
@@ -352,6 +353,7 @@ code {
 }
 .badge-green { background: rgba(59,165,93,.2); color: var(--green); }
 .badge-gray  { background: var(--bg3); color: var(--text-muted); }
+.badge-red   { background: rgba(237,66,69,.18); color: #f04747; }
 
 /* ── Hamburger button ────────────────────────────────────────────────────── */
 .hamburger-btn {
