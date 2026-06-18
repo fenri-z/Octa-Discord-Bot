@@ -13,7 +13,7 @@ try {
 }
 
 const POLL_INTERVAL_MS         = 5 * 60 * 1000;   // Video: 5 menit via yt-dlp
-const LIVE_POLL_INTERVAL_MS    = 3 * 60 * 1000;   // Live: 3 menit via WebSocket
+const LIVE_POLL_INTERVAL_MS    = 2 * 60 * 1000;   // Live: 2 menit via WebSocket
 const HEALTH_INTERVAL_MS       = 30 * 60 * 1000;  // Health check: 30 menit
 const HEALTH_FAIL_THRESHOLD    = 3;               // Alert setelah 3x gagal berturut-turut
 const LIVE_FAIL_THRESHOLD      = 3;               // Hapus liveKey setelah 3x gagal (bukan 2x)
@@ -541,7 +541,8 @@ class TikTokNotifier {
 
     async _isLiveRaw(username) {
         if (!WebcastPushConnection) return { isLive: false };
-        return new Promise(resolve => {
+
+        const tryConnect = () => new Promise(resolve => {
             let resolved = false;
             const done = val => {
                 if (resolved) return;
@@ -552,13 +553,13 @@ class TikTokNotifier {
             };
 
             const connection = new WebcastPushConnection(username, {
-                processInitialData:      false,
-                enableWebsocketUpgrade:  false,
+                processInitialData:       false,
+                enableWebsocketUpgrade:   false,
                 requestPollingIntervalMs: 1000,
-                fetchRoomInfoOnConnect:  true,
+                fetchRoomInfoOnConnect:   true,
             });
 
-            const timer = setTimeout(() => done({ isLive: false }), 12_000);
+            const timer = setTimeout(() => done(null), 10_000);
             connection.connect()
                 .then(state => {
                     const roomData = state?.roomInfo?.data || {};
@@ -569,14 +570,22 @@ class TikTokNotifier {
                                      || null;
                     done({
                         isLive: true,
-                        cover: roomData.cover?.url_list?.[0] || null,
-                        title: roomData.title || null,
+                        cover:      roomData.cover?.url_list?.[0] || null,
+                        title:      roomData.title || null,
                         ownerAvatar,
-                        ownerName: owner.nickname || null,
+                        ownerName:  owner.nickname || null,
                     });
                 })
-                .catch(() => done({ isLive: false }));
+                .catch(() => done(null)); // null = gagal, bukan "tidak live"
         });
+
+        // Percobaan pertama
+        const first = await tryConnect();
+        if (first) return first;
+
+        // Retry sekali setelah 3 detik jika percobaan pertama gagal
+        await new Promise(r => setTimeout(r, 3_000));
+        return await tryConnect() || { isLive: false };
     }
 
     // ─── Video Notification ────────────────────────────────────────────────────
