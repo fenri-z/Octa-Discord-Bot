@@ -108,9 +108,10 @@ class TikTokNotifier {
         }
 
         let name      = data.channelName || username;
-        let thumbnail = data.entries[0].thumbnail; // fallback: cover video
+        let thumbnail = null; // hanya pakai avatar profil dari tikwm, bukan cover video
 
         // Coba dapat avatar + nama asli via tikwm.com — tidak fatal kalau gagal
+        // Kalau gagal, thumbnail tetap null dan _refreshStaleAvatars akan isi dalam ~10 menit
         const profile = await this._fetchProfileTikwm(username).catch(() => null);
         if (profile?.avatar) thumbnail = profile.avatar;
         if (profile?.name)   name      = profile.name;

@@ -975,7 +975,6 @@ router.get('/:guildId/tiktok', requireLogin, requireManageGuild, async (req, res
             .map(c => ({ id: c.id, name: c.name }))
             .sort((a, b) => a.name.localeCompare(b.name));
 
-        const rsshubBase    = (process.env.RSSHUB_BASE_URL || 'https://rsshub.app').replace(/\/$/, '');
         const liveSupported = !!(req.discordClient?.tiktokNotifier?.liveSupported);
 
         const u = req.user || {};
@@ -1016,7 +1015,6 @@ router.get('/:guildId/tiktok', requireLogin, requireManageGuild, async (req, res
             roles,
             ttAccounts,
             lastVideoIds,
-            rsshubBase,
             liveSupported,
             loginUser,
             botUser,

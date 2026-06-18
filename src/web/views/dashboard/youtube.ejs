@@ -194,6 +194,7 @@
     .dc-window { font-size: 12px; }
     .dc-message { padding: .6rem; }
 }
+@keyframes yt-spin { to { transform: rotate(360deg); } }
 </style>
 
 <div class="dash-layout">
@@ -336,6 +337,9 @@
                 <a href="https://www.youtube.com/channel/<%= ytCh.id %>" target="_blank" class="btn btn-sm" style="flex-shrink:0;" title="<%= t('youtube.btn_open_youtube') %>">
                     <i data-lucide="external-link" style="width:13px;height:13px;"></i>
                 </a>
+                <button class="btn btn-sm" id="ytRefreshBtn-<%= ytCh.id %>" onclick="refreshYtProfile('<%= ytCh.id %>')" style="flex-shrink:0;" title="Update Profile">
+                    <i data-lucide="refresh-cw" style="width:13px;height:13px;"></i>
+                </button>
                 <button class="btn btn-sm btn-danger" data-id="<%= ytCh.id %>" data-name="<%= ytCh.name.replace(/"/g, '&quot;') %>" onclick="deleteYtChannel(this.dataset.id, this.dataset.name)" style="flex-shrink:0;" title="<%= t('youtube.btn_delete_channel') %>">
                     <i data-lucide="trash-2" style="width:13px;height:13px;"></i>
                 </button>
@@ -1079,6 +1083,63 @@ function _buildMentionDd(dd, ta) {
     if (cKeys.length) {
         dd.appendChild(hdr('Channels'));
         cKeys.forEach(id => { const c=CHANNELS_MAP[id]; dd.appendChild(item(`<span>#${c.name}</span>`, `<#${c.id}>`)); });
+    }
+}
+
+// ── Refresh Profile ────────────────────────────────────────────────────────────
+async function refreshYtProfile(chId) {
+    const btn = document.getElementById(`ytRefreshBtn-${chId}`);
+    const orig = btn?.innerHTML || '';
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i data-lucide="loader-2" style="width:13px;height:13px;animation:yt-spin .8s linear infinite;display:inline-block;"></i>';
+        if (window.lucide) lucide.createIcons();
+    }
+    try {
+        const r    = await fetch(`/api/guild/${GUILD_ID}/youtube/channels/${chId}/refresh-profile`, { method: 'POST' });
+        const data = await r.json();
+        if (data.success && data.channel) {
+            const card = document.getElementById(`ytCard-${chId}`);
+            if (card) {
+                if (data.channel.name) {
+                    const nameEl = card.querySelector('.yt-card-name');
+                    if (nameEl) nameEl.textContent = data.channel.name;
+                }
+                if (data.channel.handle || data.channel.id) {
+                    const subEl = card.querySelector('.yt-card-name + div');
+                    if (subEl) subEl.textContent = data.channel.handle || chId;
+                }
+                if (data.channel.thumbnail) {
+                    let imgEl = card.querySelector('img.yt-card-avatar');
+                    if (imgEl) {
+                        imgEl.src = data.channel.thumbnail;
+                        imgEl.style.display = '';
+                        const ph = imgEl.nextElementSibling;
+                        if (ph && ph.classList.contains('yt-card-avatar')) ph.style.display = 'none';
+                    } else {
+                        const ph = card.querySelector('.yt-card-avatar');
+                        if (ph && ph.tagName === 'DIV') {
+                            const img = document.createElement('img');
+                            img.src = data.channel.thumbnail;
+                            img.alt = '';
+                            img.className = 'yt-card-avatar';
+                            img.referrerPolicy = 'no-referrer';
+                            img.style.cssText = 'width:44px;height:44px;border-radius:50%;object-fit:cover;flex-shrink:0;background:#333;';
+                            img.onerror = function () { this.style.display = 'none'; ph.style.display = 'flex'; };
+                            ph.parentNode.insertBefore(img, ph);
+                            ph.style.display = 'none';
+                        }
+                    }
+                }
+            }
+            showMsg(null, data.message, 'success');
+        } else {
+            showMsg(null, data.message || 'Failed to refresh.', 'error');
+        }
+    } catch {
+        showMsg(null, I18N_YT_ERR_CONN, 'error');
+    } finally {
+        if (btn) { btn.disabled = false; btn.innerHTML = orig; if (window.lucide) lucide.createIcons(); }
     }
 }
 

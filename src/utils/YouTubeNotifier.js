@@ -617,6 +617,92 @@ class YouTubeNotifier {
         } catch { return { live: false, isUpcoming: false, isLiveContent: false, channelId: null }; }
     }
 
+    // ─── Live-stream detection via /live page ──────────────────────────────────
+
+    async _checkLivePage(channelId) {
+        const LIVE_SIGNAL = '"is_viewed_live","value":"True"';
+        const VID_PREFIX  = '"videoDetails":{"videoId":"';
+        const TAIL        = 512;
+        const MAX_BYTES   = 800_000;
+
+        const controller = new AbortController();
+        const timerId    = setTimeout(() => controller.abort(), 15_000);
+
+        try {
+            const res = await fetch(`https://www.youtube.com/channel/${channelId}/live`, {
+                headers:  { ...BROWSER_HEADERS, 'Accept-Encoding': 'br, gzip, deflate' },
+                redirect: 'follow',
+                signal:   controller.signal,
+            });
+            if (!res.ok) return { isLive: false, videoId: null, title: null };
+
+            const reader  = res.body.getReader();
+            const decoder = new TextDecoder('utf-8');
+            let buf       = '';
+            let bytesRead = 0;
+            let isLive    = false;
+            let videoId   = null;
+            let title     = null;
+
+            try {
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    buf       += decoder.decode(value, { stream: true });
+                    bytesRead += value.byteLength;
+
+                    if (!isLive) {
+                        if (buf.includes(LIVE_SIGNAL)) {
+                            isLive = true;
+                            // Mulai dari videoDetails jika sudah ada di buffer, atau simpan tail
+                            const vi = buf.indexOf(VID_PREFIX);
+                            buf = vi !== -1 ? buf.slice(vi) : buf.slice(-TAIL);
+                        } else {
+                            if (buf.length > TAIL * 2) buf = buf.slice(-TAIL);
+                            if (bytesRead > MAX_BYTES) break;
+                            continue;
+                        }
+                    }
+
+                    // isLive = true dari sini, cari videoId dan title
+                    const vi = buf.indexOf(VID_PREFIX);
+                    if (vi !== -1) {
+                        const after = buf.slice(vi + VID_PREFIX.length);
+                        const m = after.match(/^([a-zA-Z0-9_-]{11})"/);
+                        if (m) {
+                            videoId = m[1];
+                            // Coba ambil title dari section terdekat
+                            const section = buf.slice(vi, vi + 2000);
+                            const ti = section.indexOf('"title":"');
+                            if (ti !== -1) {
+                                const ta  = section.slice(ti + 9);
+                                const tm  = ta.match(/^((?:[^"\\]|\\.)*?)"/);
+                                if (tm) {
+                                    try { title = JSON.parse('"' + tm[1] + '"'); } catch { title = tm[1]; }
+                                }
+                            }
+                            break; // Dapat semua yang dibutuhkan
+                        }
+                    }
+
+                    if (bytesRead > MAX_BYTES) break;
+                }
+            } finally {
+                reader.cancel().catch(() => {});
+            }
+
+            return { isLive, videoId, title };
+        } catch (err) {
+            if (err.name !== 'AbortError') {
+                warn(`[YouTube/Live] /live page check failed untuk ${channelId}: ${err.message}`);
+            }
+            return { isLive: false, videoId: null, title: null };
+        } finally {
+            clearTimeout(timerId);
+        }
+    }
+
     // ─── Live-stream dedicated poll ────────────────────────────────────────────
 
     async _pollLive() {
@@ -647,6 +733,31 @@ class YouTubeNotifier {
     }
 
     async _checkLive(guild, db, ytCh) {
+        // Primary: stream /live page — tangkap live yang tidak muncul di RSS sekalipun
+        const livePage = await this._checkLivePage(ytCh.id);
+
+        if (livePage.isLive && livePage.videoId) {
+            const notifKey = `youtube-liveNotified-${guild.id}-${livePage.videoId}`;
+            if (!db.get(notifKey)) {
+                db.set(notifKey, String(Date.now()));
+                const videoUrl  = `https://www.youtube.com/watch?v=${livePage.videoId}`;
+                const thumbnail = `https://i.ytimg.com/vi/${livePage.videoId}/hqdefault.jpg`;
+                info(`[YouTube/Live] LIVE terdeteksi | ${ytCh.name} → guild ${guild.name}`);
+                await this._sendNotification(guild, ytCh, 'live', {
+                    videoId:   livePage.videoId,
+                    url:       videoUrl,
+                    title:     livePage.title || 'Live Stream',
+                    channel:   ytCh.name,
+                    thumbnail,
+                }).catch(err => warn(`[YouTube/Live] Failed to send notification: ${err.message}`));
+            }
+            return;
+        }
+
+        // Tidak live sama sekali — tidak perlu lanjut
+        if (!livePage.isLive) return;
+
+        // isLive = true tapi videoId tidak terambil → fallback ke RSS untuk dapat video ID
         const rssRes = await fetch(`${RSS_BASE}${ytCh.id}`, {
             signal:  AbortSignal.timeout(10_000),
             headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' },
@@ -654,29 +765,25 @@ class YouTubeNotifier {
         if (!rssRes.ok) return;
 
         const entries = this._parseRssEntries(await rssRes.text());
-        // Cek 5 video terbaru — antisipasi jika ada beberapa video diupload setelah stream dimulai
-        const recent = entries.slice(0, 5);
+        const recent  = entries.slice(0, 5);
 
         for (const entry of recent) {
             const notifKey = `youtube-liveNotified-${guild.id}-${entry.id}`;
-            if (db.get(notifKey)) continue; // sudah pernah kirim notif live untuk video ini
+            if (db.get(notifKey)) continue;
 
             const liveInfo = await this._isLive(entry.id);
             if (!liveInfo.live) continue;
 
-            // Verifikasi video memang milik channel yang dipantau (cegah cross-channel notification)
             if (liveInfo.channelId && liveInfo.channelId !== ytCh.id) {
                 warn(`[YouTube/Live] Video ${entry.id} does not belong to channel ${ytCh.id} (actual: ${liveInfo.channelId}), skipping`);
                 continue;
             }
 
-            // Tandai dulu sebelum kirim (hindari double-send jika poll overlap)
             db.set(notifKey, String(Date.now()));
-
             const videoUrl  = `https://www.youtube.com/watch?v=${entry.id}`;
             const thumbnail = entry.thumbnail || `https://i.ytimg.com/vi/${entry.id}/hqdefault.jpg`;
 
-            info(`[YouTube/Live] LIVE terdeteksi | ${entry.title} → guild ${guild.name}`);
+            info(`[YouTube/Live] LIVE terdeteksi via RSS fallback | ${entry.title} → guild ${guild.name}`);
 
             await this._sendNotification(guild, ytCh, 'live', {
                 videoId:   entry.id,
@@ -687,13 +794,11 @@ class YouTubeNotifier {
             }).catch(err => warn(`[YouTube/Live] Failed to send notification: ${err.message}`));
         }
 
-        // Bersihkan notifKey yang sudah > 48 jam untuk cegah bloat DB
+        // Bersihkan notifKey lama (> 7 hari) — hanya jalan di jalur RSS fallback
         for (const entry of entries) {
             const notifKey = `youtube-liveNotified-${guild.id}-${entry.id}`;
             const ts = parseInt(db.get(notifKey) || '0', 10);
-            if (ts && Date.now() - ts > 7 * 24 * 60 * 60 * 1000) {
-                db.delete(notifKey);
-            }
+            if (ts && Date.now() - ts > 7 * 24 * 60 * 60 * 1000) db.delete(notifKey);
         }
     }
 
