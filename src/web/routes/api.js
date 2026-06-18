@@ -2457,6 +2457,30 @@ router.post('/guild/:guildId/tiktok/accounts/:username/test', requireLogin, requ
     }
 });
 
+// POST /api/guild/:guildId/tiktok/accounts/:username/reenable — aktifkan kembali akun yang dinonaktifkan otomatis
+router.post('/guild/:guildId/tiktok/accounts/:username/reenable', requireLogin, requireManageGuild, (req, res) => {
+    const db       = req.discordClient?.database;
+    const guildId  = req.params.guildId;
+    const username = decodeURIComponent(req.params.username);
+    if (!db) return res.status(500).json({ success: false, message: 'Database not available.' });
+
+    const accounts = getTtAccounts(db, guildId);
+    const idx      = accounts.findIndex(a => a.username === username);
+    if (idx === -1) return res.json({ success: false, message: 'Account not found.' });
+
+    const acc = accounts[idx];
+    if (!acc.broken) return res.json({ success: false, message: 'Account is not disabled.' });
+
+    acc.broken       = false;
+    acc.brokenAt     = null;
+    acc.failCount    = 0;
+    acc.videoEnabled = true;
+    acc.liveEnabled  = true;
+    setTtAccounts(db, guildId, accounts);
+
+    res.json({ success: true, message: `@${username} has been re-enabled successfully.` });
+});
+
 // DELETE /api/guild/:guildId/tiktok/accounts/:username — hapus akun
 router.delete('/guild/:guildId/tiktok/accounts/:username', requireLogin, requireManageGuild, (req, res) => {
     const db       = req.discordClient?.database;

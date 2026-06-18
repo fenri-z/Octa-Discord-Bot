@@ -350,7 +350,14 @@ class TikTokNotifier {
             // tikwm sendiri error/down → jangan asumsikan akun yang rusak, anggap valid
             if (!res.ok) return true;
             const json = await res.json();
-            return json.code === 0;
+            if (json.code !== 0) {
+                // Rate limit atau error server tikwm → jangan hukum akun, anggap valid
+                const msg = (json.msg || '').toLowerCase();
+                if (msg.includes('limit') || msg.includes('rate') || !msg) return true;
+                // Akun memang tidak ditemukan
+                return false;
+            }
+            return true;
         } catch {
             return true; // network/timeout → jangan asumsikan akun yang rusak
         }
@@ -369,9 +376,14 @@ class TikTokNotifier {
             if (!Array.isArray(accounts) || accounts.length === 0) continue;
 
             let touched = false;
+            let firstCheck = true;
             for (const acc of accounts) {
                 if (acc.broken) continue; // sudah ditandai, jangan dicoba lagi terus-menerus
                 if (!acc.videoEnabled && !acc.liveEnabled) continue; // tidak aktif, tidak perlu dicek
+
+                // Delay antar request agar tidak kena rate limit tikwm (1 req/detik)
+                if (!firstCheck) await new Promise(r => setTimeout(r, 1200));
+                firstCheck = false;
 
                 const valid = await this._isUsernameValid(acc.username);
                 touched = true;
