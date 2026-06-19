@@ -121,9 +121,11 @@
                             </div>
                         </div>
                     </div>
-                    <textarea id="boostPlainText" class="textarea" rows="4"
+                    <textarea id="boostPlainText" class="textarea mb-auto-resize" rows="4"
+                              maxlength="2000"
                               placeholder="🚀 {member} just boosted **{server}**! Total boosts: **{boosts}**."
-                              oninput="updateBoostPreview()"><%= boostData.plainText %></textarea>
+                              oninput="mbResizeArea(this);mbUpdateCount('boostPlainText','boostPlainCount');updateBoostPreview()"><%= boostData.plainText %></textarea>
+                    <div class="mb-char-count" id="boostPlainCount">0 / 2000</div>
                 </div>
 
                 <!-- Panel Embed -->
@@ -151,8 +153,11 @@
 
                     <div class="form-group">
                         <label class="label"><%= t('common.embed_description') %></label>
-                        <textarea id="boostDesc" class="textarea" rows="4"
-                                  placeholder="Thank you {member} for boosting this server! 💖" oninput="updateBoostPreview()"><%= boostData.description %></textarea>
+                        <textarea id="boostDesc" class="textarea mb-auto-resize" rows="4"
+                                  maxlength="3500"
+                                  placeholder="Thank you {member} for boosting this server! 💖"
+                                  oninput="mbResizeArea(this);mbUpdateCount('boostDesc','boostDescCount');updateBoostPreview()"><%= boostData.description %></textarea>
+                        <div class="mb-char-count" id="boostDescCount">0 / 3500</div>
                     </div>
 
                     <div class="form-group">
@@ -444,9 +449,11 @@
                             </div>
                         </div>
                     </div>
-                    <textarea id="unboostPlainText" class="textarea" rows="4"
+                    <textarea id="unboostPlainText" class="textarea mb-auto-resize" rows="4"
+                              maxlength="2000"
                               placeholder="💔 {member} has stopped boosting **{server}**. Total boosts: **{boosts}**."
-                              oninput="updateUnboostPreview()"><%= unboostData.plainText %></textarea>
+                              oninput="mbResizeArea(this);mbUpdateCount('unboostPlainText','unboostPlainCount');updateUnboostPreview()"><%= unboostData.plainText %></textarea>
+                    <div class="mb-char-count" id="unboostPlainCount">0 / 2000</div>
                 </div>
 
                 <!-- Panel Embed -->
@@ -474,8 +481,11 @@
 
                     <div class="form-group">
                         <label class="label"><%= t('common.embed_description') %></label>
-                        <textarea id="unboostDesc" class="textarea" rows="4"
-                                  placeholder="{member} has removed their boost from the server." oninput="updateUnboostPreview()"><%= unboostData.description %></textarea>
+                        <textarea id="unboostDesc" class="textarea mb-auto-resize" rows="4"
+                                  maxlength="3500"
+                                  placeholder="{member} has removed their boost from the server."
+                                  oninput="mbResizeArea(this);mbUpdateCount('unboostDesc','unboostDescCount');updateUnboostPreview()"><%= unboostData.description %></textarea>
+                        <div class="mb-char-count" id="unboostDescCount">0 / 3500</div>
                     </div>
 
                     <div class="form-group">
@@ -813,6 +823,14 @@ document.querySelectorAll('input[name="boostMessageType"]').forEach(el =>
 document.querySelectorAll('input[name="unboostMessageType"]').forEach(el =>
     el.addEventListener('change', toggleUnboostType));
 
+// ── Custom Discord emoji dalam preview (desc/footer saja, bukan title) ────
+function resolveEmoji(html) {
+    if (!html) return '';
+    return html
+        .replace(/&lt;a:(\w+):(\d+)&gt;/g, (_, name, id) => `<img src="https://cdn.discordapp.com/emojis/${id}.gif" class="dc-emoji" alt=":${name}:">`)
+        .replace(/&lt;:(\w+):(\d+)&gt;/g,  (_, name, id) => `<img src="https://cdn.discordapp.com/emojis/${id}.webp" class="dc-emoji" alt=":${name}:">`);
+}
+
 // ── Markdown → HTML ────────────────────────────────────────────────────────
 function mdToHtml(text) {
     if (!text) return '';
@@ -1030,7 +1048,7 @@ function updateBoostPreview() {
     document.getElementById('boostPrevChannel').textContent = chanId && CHANNELS[chanId] ? CHANNELS[chanId] : 'pilih-channel';
 
     if (isPlain) {
-        const html = resolvePh(mdToHtml(document.getElementById('boostPlainText').value));
+        const html = resolveEmoji(resolvePh(mdToHtml(document.getElementById('boostPlainText').value)));
         plainEl.innerHTML     = html;
         plainEl.style.display = html.trim() ? 'block' : 'none';
         embedEl.style.display = 'none';
@@ -1039,10 +1057,10 @@ function updateBoostPreview() {
         const color = document.getElementById('boostColor').value || '#FF73FA';
         document.getElementById('boostPreviewPill').style.background = color;
         document.getElementById('boostPreviewTitle').innerHTML = resolvePh(mdToHtml(document.getElementById('boostTitle').value));
-        document.getElementById('boostPreviewDesc').innerHTML  = resolvePh(mdToHtml(document.getElementById('boostDesc').value));
+        document.getElementById('boostPreviewDesc').innerHTML  = resolveEmoji(resolvePh(mdToHtml(document.getElementById('boostDesc').value)));
         renderFields(BOOST_FIELDS, 'boostPreviewFields');
         const footer = document.getElementById('boostFooter').value.trim();
-        document.getElementById('boostPreviewFooter').innerHTML = footer ? resolvePh(mdToHtml(footer)) : '';
+        document.getElementById('boostPreviewFooter').innerHTML = footer ? resolveEmoji(resolvePh(mdToHtml(footer))) : '';
         const hasTitle    = document.getElementById('boostTitle').value.trim();
         const hasDesc     = document.getElementById('boostDesc').value.trim();
         const hasField    = BOOST_FIELDS.some(f => document.getElementById(f.id)?.checked);
@@ -1063,7 +1081,7 @@ function updateUnboostPreview() {
     document.getElementById('unboostPrevChannel').textContent = chanId && CHANNELS[chanId] ? CHANNELS[chanId] : 'pilih-channel';
 
     if (isPlain) {
-        const html = resolvePh(mdToHtml(document.getElementById('unboostPlainText').value));
+        const html = resolveEmoji(resolvePh(mdToHtml(document.getElementById('unboostPlainText').value)));
         plainEl.innerHTML     = html;
         plainEl.style.display = html.trim() ? 'block' : 'none';
         embedEl.style.display = 'none';
@@ -1072,10 +1090,10 @@ function updateUnboostPreview() {
         const color = document.getElementById('unboostColor').value || '#ED4245';
         document.getElementById('unboostPreviewPill').style.background  = color;
         document.getElementById('unboostPreviewTitle').innerHTML = resolvePh(mdToHtml(document.getElementById('unboostTitle').value));
-        document.getElementById('unboostPreviewDesc').innerHTML  = resolvePh(mdToHtml(document.getElementById('unboostDesc').value));
+        document.getElementById('unboostPreviewDesc').innerHTML  = resolveEmoji(resolvePh(mdToHtml(document.getElementById('unboostDesc').value)));
         renderFields(UNBOOST_FIELDS, 'unboostPreviewFields');
         const footer = document.getElementById('unboostFooter').value.trim();
-        document.getElementById('unboostPreviewFooter').innerHTML = footer ? resolvePh(mdToHtml(footer)) : '';
+        document.getElementById('unboostPreviewFooter').innerHTML = footer ? resolveEmoji(resolvePh(mdToHtml(footer))) : '';
         const hasTitle    = document.getElementById('unboostTitle').value.trim();
         const hasDesc     = document.getElementById('unboostDesc').value.trim();
         const hasField    = UNBOOST_FIELDS.some(f => document.getElementById(f.id)?.checked);
@@ -1326,6 +1344,28 @@ if (document.getElementById('unboostCardEnabled').checked)
 Promise.all([drawBoostCard(), drawUnboostCard()]).then(() => {
     toggleBoostType();
     toggleUnboostType();
+});
+
+function mbResizeArea(el) {
+    if (!el) return;
+    el.style.height = '1px';
+    el.style.height = el.scrollHeight + 'px';
+}
+function mbUpdateCount(taId, countId) {
+    const ta = document.getElementById(taId);
+    const ct = document.getElementById(countId);
+    if (!ta || !ct) return;
+    const len = ta.value.length;
+    const max = parseInt(ta.getAttribute('maxlength')) || 0;
+    ct.textContent = len + ' / ' + max;
+    ct.className = 'mb-char-count' + (len >= max ? ' danger' : len >= max * 0.9 ? ' warn' : '');
+}
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.mb-auto-resize').forEach(mbResizeArea);
+    mbUpdateCount('boostPlainText',   'boostPlainCount');
+    mbUpdateCount('boostDesc',        'boostDescCount');
+    mbUpdateCount('unboostPlainText', 'unboostPlainCount');
+    mbUpdateCount('unboostDesc',      'unboostDescCount');
 });
 
 window._floatSave = async function () {

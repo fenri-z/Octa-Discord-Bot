@@ -514,6 +514,7 @@ class TikTokNotifier {
             if (fails >= LIVE_FAIL_THRESHOLD) {
                 db.delete(liveKey);
                 db.delete(failKey);
+                db.delete(notifAtKey); // reset cooldown saat live benar-benar berakhir
             } else {
                 db.set(failKey, String(fails));
             }

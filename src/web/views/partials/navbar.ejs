@@ -29,7 +29,12 @@
                          src="https://cdn.discordapp.com/avatars/<%= user.id %>/<%= user.avatar %>.png"
                          alt="<%= user.username %>"
                          onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
-                    <span class="nav-dropdown-name"><%= user.username %></span>
+                    <div class="nav-dropdown-userinfo">
+                        <span class="nav-dropdown-displayname"><%= user.global_name || user.username %></span>
+                        <% if (user.global_name && user.global_name !== user.username) { %>
+                        <span class="nav-dropdown-username">@<%= user.username %></span>
+                        <% } %>
+                    </div>
                 </div>
                 <div class="nav-dropdown-divider"></div>
                 <a href="/dashboard" class="nav-dropdown-item"><i data-lucide="layout-grid"></i> <%= _t('nav.dashboard') %></a>

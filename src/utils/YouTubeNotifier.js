@@ -42,7 +42,10 @@ class YouTubeNotifier {
         this._useWebSub = !!this._baseUrl;
         this._apiKey   = process.env.YOUTUBE_API_KEY || '';
         // Cache hasil _isLive() selama 2 menit — cegah duplikat call antar guild untuk videoId sama
-        this._liveCache = new Map(); // videoId → { result, expiresAt }
+        this._liveCache     = new Map(); // videoId   → { result, expiresAt }
+        // Cache hasil _checkLivePage() selama 2.5 menit — share hasil antar guild & antar jalur
+        this._livePageCache   = new Map(); // channelId → { result, expiresAt }
+        this._livePagePending = new Map(); // channelId → Promise — cegah duplicate fetch paralel
     }
 
     // ─── Lifecycle ─────────────────────────────────────────────────────────────
@@ -124,13 +127,13 @@ class YouTubeNotifier {
 
     // Seed liveNotified untuk 5 video terbaru saat channel baru ditambahkan,
     // agar _checkLive tidak mengirim notif untuk stream lama yang sudah berakhir.
-    // Jika channel sedang live saat ditambahkan, skip seeding agar notif live bisa dikirim.
+    // Skip seeding untuk video yang sedang/akan live agar notif tetap bisa dikirim.
     async seedLiveNotified(guildId, channelId) {
         const db = this.client.database;
         if (!db) return;
         try {
             const livePage = await this._checkLivePage(channelId);
-            if (livePage.isLive) return; // biarkan _pollGuildLive kirim notif live nanti
+            if (livePage.isLive) return; // sedang live — biarkan _pollGuildLive handle
 
             const rssRes = await fetch(`${RSS_BASE}${channelId}`, {
                 signal:  AbortSignal.timeout(10_000),
@@ -138,8 +141,16 @@ class YouTubeNotifier {
             });
             if (!rssRes.ok) return;
             const entries = this._parseRssEntries(await rssRes.text());
-            for (const entry of entries.slice(0, 5)) {
-                const notifKey = `youtube-liveNotified-${guildId}-${entry.id}`;
+
+            // Cek entry pertama (terbaru): kalau waiting room (upcoming), jangan di-seed
+            // agar notif terkirim saat stream mulai live. Stream yang sudah berakhir tetap di-seed.
+            const skipFirst = entries.length > 0
+                ? await this._isLive(entries[0].id).then(r => r.isUpcoming).catch(() => false)
+                : false;
+
+            for (let i = 0; i < Math.min(entries.length, 5); i++) {
+                if (i === 0 && skipFirst) continue;
+                const notifKey = `youtube-liveNotified-${guildId}-${entries[i].id}`;
                 if (!db.get(notifKey)) db.set(notifKey, String(Date.now()));
             }
         } catch { /* noop */ }
@@ -283,6 +294,13 @@ class YouTubeNotifier {
         if (liveInfo.live) {
             type = 'live';
         } else {
+            // InnerTube bisa lag di awal stream — verifikasi via /live page
+            // pakai cache jika live poll baru saja jalan
+            const livePage = await this._checkLivePageCached(channelId);
+            if (livePage.isLive && (!livePage.videoId || livePage.videoId === videoId)) {
+                info(`[WebSub] ${videoId} terdeteksi live via /live page — live poll yang handle`);
+                return;
+            }
             // Bukan live content — baru cek apakah short
             const isShort = await this._isShort(videoId);
             if (isShort) type = 'short';
@@ -463,11 +481,24 @@ class YouTubeNotifier {
         const lastIdx = entries.findIndex(e => e.id === lastId);
         const newEntries = lastIdx === -1 ? entries.slice(0, 3) : entries.slice(0, lastIdx);
 
-        db.set(lastKey, latestId);
+        // Proses oldest-first; lastKey hanya maju ke entry yang bukan upcoming.
+        // Premiere yang masih upcoming tidak menggeser lastKey — sehingga bisa diproses
+        // lagi di poll berikutnya ketika premiere sudah selesai.
+        let lastProcessedId = null;
         for (const entry of [...newEntries].reverse()) {
-            await this._processVideo(guild, ytCh, entry).catch(err =>
+            const result = await this._processVideo(guild, ytCh, entry).catch(err =>
                 warn(`[YouTube] Process error ${entry.id}: ${err.message}`)
             );
+            if (result !== 'upcoming') lastProcessedId = entry.id;
+        }
+        if (lastProcessedId) db.set(lastKey, lastProcessedId);
+
+        // Cleanup liveNotified keys > 7 hari (jalan di setiap RSS poll, bukan hanya fallback)
+        const cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
+        for (const entry of entries) {
+            const notifKey = `youtube-liveNotified-${guild.id}-${entry.id}`;
+            const ts = parseInt(db.get(notifKey) || '0', 10);
+            if (ts && ts < cutoff) db.delete(notifKey);
         }
     }
 
@@ -481,8 +512,14 @@ class YouTubeNotifier {
         // Cek live LEBIH DULU agar live short tidak salah terdeteksi sebagai short biasa
         let type = 'video';
         const liveInfo = await this._isLive(entry.id);
-        if (liveInfo.isUpcoming) return;
-        if (liveInfo.isLiveContent && !liveInfo.live) return;
+        if (liveInfo.isUpcoming) return 'upcoming';
+        if (liveInfo.isLiveContent && !liveInfo.live) {
+            // VOD setelah live stream — sudah dinotif saat live, skip.
+            // Tapi kalau tidak ada liveNotified key = premiere VOD yang tidak tertangkap
+            // saat premiere berlangsung → lanjut dan notif sebagai video biasa.
+            const notifKey = `youtube-liveNotified-${guild.id}-${entry.id}`;
+            if (db?.get(notifKey)) return;
+        }
         if (liveInfo.live) {
             type = 'live';
         } else {
@@ -507,8 +544,9 @@ class YouTubeNotifier {
                 if (db.get(notifKey)) return;
 
                 // InnerTube kadang belum update status live saat stream baru mulai.
-                // Verifikasi via /live page sebelum kirim notif video/short.
-                const livePage = await this._checkLivePage(ytCh.id);
+                // Gunakan cache /live page (hasil fresh dari live poll jika ada) — zero fetch jika
+                // _checkLive baru saja jalan dalam 2.5 menit terakhir.
+                const livePage = await this._checkLivePageCached(ytCh.id);
                 if (livePage.isLive && (!livePage.videoId || livePage.videoId === entry.id)) {
                     // Video ini adalah live stream — biarkan _checkLive yang handle
                     return;
@@ -768,6 +806,36 @@ class YouTubeNotifier {
         }
     }
 
+    // Cache wrapper untuk _checkLivePage — TTL 2.5 menit agar hasil dipakai bersama
+    // antar guild dan antar jalur (live poll + video poll + WebSub) dalam satu siklus.
+    // In-flight deduplication: jika fetch sudah berjalan untuk channel yang sama,
+    // caller berikutnya await promise yang sama — tidak ada duplicate request ke YouTube.
+    async _checkLivePageCached(channelId) {
+        const cached = this._livePageCache.get(channelId);
+        if (cached && cached.expiresAt > Date.now()) return cached.result;
+
+        // Jika sudah ada fetch yang sedang berjalan, tunggu hasilnya
+        const pending = this._livePagePending.get(channelId);
+        if (pending) return pending;
+
+        const promise = this._checkLivePage(channelId).then(result => {
+            this._livePageCache.set(channelId, { result, expiresAt: Date.now() + 150_000 });
+            this._livePagePending.delete(channelId);
+            if (this._livePageCache.size > 200) {
+                const now = Date.now();
+                for (const [k, v] of this._livePageCache)
+                    if (v.expiresAt <= now) this._livePageCache.delete(k);
+            }
+            return result;
+        }).catch(err => {
+            this._livePagePending.delete(channelId);
+            throw err;
+        });
+
+        this._livePagePending.set(channelId, promise);
+        return promise;
+    }
+
     // ─── Live-stream dedicated poll ────────────────────────────────────────────
 
     async _pollLive() {
@@ -799,7 +867,7 @@ class YouTubeNotifier {
 
     async _checkLive(guild, db, ytCh) {
         // Primary: stream /live page — tangkap live yang tidak muncul di RSS sekalipun
-        const livePage = await this._checkLivePage(ytCh.id);
+        const livePage = await this._checkLivePageCached(ytCh.id);
 
         if (livePage.isLive && livePage.videoId) {
             const notifKey = `youtube-liveNotified-${guild.id}-${livePage.videoId}`;
@@ -839,8 +907,8 @@ class YouTubeNotifier {
             const liveInfo = await this._isLive(entry.id);
             if (!liveInfo.live) continue;
 
-            if (liveInfo.channelId && liveInfo.channelId !== ytCh.id) {
-                warn(`[YouTube/Live] Video ${entry.id} does not belong to channel ${ytCh.id} (actual: ${liveInfo.channelId}), skipping`);
+            if (!liveInfo.channelId || liveInfo.channelId !== ytCh.id) {
+                warn(`[YouTube/Live] Video ${entry.id} channelId ${liveInfo.channelId || 'unknown'} !== ${ytCh.id}, skipping`);
                 continue;
             }
 
@@ -859,12 +927,6 @@ class YouTubeNotifier {
             }).catch(err => warn(`[YouTube/Live] Failed to send notification: ${err.message}`));
         }
 
-        // Bersihkan notifKey lama (> 7 hari) — hanya jalan di jalur RSS fallback
-        for (const entry of entries) {
-            const notifKey = `youtube-liveNotified-${guild.id}-${entry.id}`;
-            const ts = parseInt(db.get(notifKey) || '0', 10);
-            if (ts && Date.now() - ts > 7 * 24 * 60 * 60 * 1000) db.delete(notifKey);
-        }
     }
 
     // ─── Notification ──────────────────────────────────────────────────────────

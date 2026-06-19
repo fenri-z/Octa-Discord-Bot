@@ -5,6 +5,15 @@
 :root                  { --accent: #ffffff; --accent-h: #cccccc; --accent-rgb: 255,255,255; }
 [data-theme="light"]   { --accent: #000000; --accent-h: #333333; --accent-rgb: 0,0,0; }
 
+/* ── Dark mode: white accent → fix contrast on buttons & toggle ─────────── */
+:root:not([data-theme="light"]) .btn-primary { color: #111111 !important; }
+:root:not([data-theme="light"]) .btn-primary:hover { color: #111111 !important; }
+:root:not([data-theme="light"]) .toggle-input:checked + .toggle-slider::after { background: #111111 !important; }
+
+/* ── Stat icon background: hitam pekat (dark) / abu terang (light) ───────── */
+:root:not([data-theme="light"]) .stat-icon.tt-brand-icon { background: #000000 !important; }
+[data-theme="light"] .stat-icon.tt-brand-icon             { background: #e0e0e0 !important; }
+
 /* ── Layout 2 kolom per card (sama pola YouTube) ───────────────────────── */
 .tt-panel-layout {
     display: grid;
@@ -403,11 +412,12 @@
                                     <div class="ph-dropdown" id="vidPicker-<%= key %>" style="display:none;"></div>
                                 </div>
                             </div>
-                            <textarea class="textarea" rows="3" id="vidMessage-<%= key %>"
-                                      style="font-size:.82rem;"
+                            <textarea class="textarea mb-auto-resize" rows="3" id="vidMessage-<%= key %>"
+                                      style="font-size:.82rem;" maxlength="3500"
                                       placeholder="🎵 {account} just uploaded a video! Watch: {url}"
-                                      oninput="updatePreview('<%= key %>')"
+                                      oninput="mbResizeArea(this);mbUpdateCount('vidMessage-<%= key %>','vidCount-<%= key %>');updatePreview('<%= key %>')"
                             ><%= acc.videoMessage || "**{account}** just posted a new video on TikTok!\nDon't miss it, watch now! 🎉" %></textarea>
+                            <div class="mb-char-count" id="vidCount-<%= key %>">0 / 3500</div>
                         </div>
                     </div>
 
@@ -447,12 +457,13 @@
                                 </div>
                                 <% } %>
                             </div>
-                            <textarea class="textarea" rows="3" id="liveMessage-<%= key %>"
-                                      style="font-size:.82rem;"
+                            <textarea class="textarea mb-auto-resize" rows="3" id="liveMessage-<%= key %>"
+                                      style="font-size:.82rem;" maxlength="3500"
                                       placeholder="🔴 {account} is LIVE on TikTok! {url}"
                                       <%= !liveSupported?'disabled':'' %>
-                                      oninput="updatePreview('<%= key %>')"
+                                      oninput="mbResizeArea(this);mbUpdateCount('liveMessage-<%= key %>','liveCount-<%= key %>');updatePreview('<%= key %>')"
                             ><%= acc.liveMessage || "Hey, **{account}** is **LIVE** on TikTok right now!\nCome join and watch the stream~ 🎉" %></textarea>
+                            <div class="mb-char-count" id="liveCount-<%= key %>">0 / 3500</div>
                         </div>
                     </div>
 
@@ -703,6 +714,8 @@ function discordMd(raw) {
     if (!raw) return '';
     const _t=[]; const _T=i=>`\x00${i}\x00`;
     let _src = raw
+        .replace(/<a:(\w+):(\d+)>/g, (_,name,id)=>{ _t.push(`<img src="https://cdn.discordapp.com/emojis/${id}.gif" class="dc-emoji" alt=":${name}:">`);  return _T(_t.length-1); })
+        .replace(/<:(\w+):(\d+)>/g,  (_,name,id)=>{ _t.push(`<img src="https://cdn.discordapp.com/emojis/${id}.webp" class="dc-emoji" alt=":${name}:">`); return _T(_t.length-1); })
         .replace(/<@&(\d+)>/g,  (_,id)=>{ const r=ROLES_MAP[id],c=r?.color||'#5865F2'; _t.push(`<span class="dc-mention" style="color:${c};background:${c}1a;">@${r?r.name:id}</span>`); return _T(_t.length-1); })
         .replace(/<@!?(\d+)>/g, (_,id)=>{ _t.push(`<span class="dc-mention">@${id}</span>`); return _T(_t.length-1); })
         .replace(/<#(\d+)>/g,   (_,id)=>{ const ch=CHANNELS_MAP[id]; _t.push(`<span class="dc-mention">#${ch?ch.name:id}</span>`); return _T(_t.length-1); })
@@ -982,6 +995,27 @@ function _buildMentionDd(dd, ta) {
     const cKeys=Object.keys(CHANNELS_MAP);
     if(cKeys.length){ dd.appendChild(hdr('Channels')); cKeys.forEach(id=>{ const c=CHANNELS_MAP[id]; dd.appendChild(item(`<span>#${c.name}</span>`,`<#${c.id}>`)); }); }
 }
+
+function mbResizeArea(el) {
+    if (!el) return;
+    el.style.height = '1px';
+    el.style.height = el.scrollHeight + 'px';
+}
+function mbUpdateCount(taId, countId) {
+    const ta = document.getElementById(taId);
+    const ct = document.getElementById(countId);
+    if (!ta || !ct) return;
+    const len = ta.value.length;
+    const max = parseInt(ta.getAttribute('maxlength')) || 0;
+    ct.textContent = len + ' / ' + max;
+    ct.className = 'mb-char-count' + (len >= max ? ' danger' : len >= max * 0.9 ? ' warn' : '');
+}
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.mb-auto-resize').forEach(mbResizeArea);
+    document.querySelectorAll('textarea[maxlength]').forEach(ta => {
+        mbUpdateCount(ta.id, ta.id.replace('Message', 'Count'));
+    });
+});
 
 const _ttAllUsers = <%- JSON.stringify(ttAccounts.map(a => a.username)) %>;
 window._floatSave = async function () {

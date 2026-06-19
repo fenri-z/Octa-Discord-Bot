@@ -93,8 +93,11 @@
                             </div>
                         </div>
                     </div>
-                    <textarea id="goodbyePlainText" class="textarea" rows="3"
-                              placeholder="Goodbye, {member}! Thanks for being with us in **{server}**."><%= goodbyeData.plainText %></textarea>
+                    <textarea id="goodbyePlainText" class="textarea mb-auto-resize" rows="3"
+                              maxlength="2000"
+                              placeholder="Goodbye, {member}! Thanks for being with us in **{server}**."
+                              oninput="mbResizeArea(this);mbUpdateCount('goodbyePlainText','goodbyePlainCount')"><%= goodbyeData.plainText %></textarea>
+                    <div class="mb-char-count" id="goodbyePlainCount">0 / 2000</div>
                 </div>
 
                 <!-- ── Panel Embed ── -->
@@ -121,8 +124,11 @@
 
                 <div class="form-group">
                     <label class="label"><%= t('common.embed_description') %></label>
-                    <textarea id="goodbyeDescription" class="textarea" rows="3"
-                              placeholder="{member} has left the server."><%= goodbyeData.description || '' %></textarea>
+                    <textarea id="goodbyeDescription" class="textarea mb-auto-resize" rows="3"
+                              maxlength="3500"
+                              placeholder="{member} has left the server."
+                              oninput="mbResizeArea(this);mbUpdateCount('goodbyeDescription','goodbyeDescCount')"><%= goodbyeData.description || '' %></textarea>
+                    <div class="mb-char-count" id="goodbyeDescCount">0 / 3500</div>
                 </div>
 
                 <div class="form-group">
@@ -524,6 +530,8 @@ function resolvePlaceholders(text) {
 function resolveHtmlMentions(html) {
     if (!html) return '';
     return html
+        .replace(/&lt;a:(\w+):(\d+)&gt;/g, (_, name, id) => `<img src="https://cdn.discordapp.com/emojis/${id}.gif" class="dc-emoji" alt=":${name}:">`)
+        .replace(/&lt;:(\w+):(\d+)&gt;/g,  (_, name, id) => `<img src="https://cdn.discordapp.com/emojis/${id}.webp" class="dc-emoji" alt=":${name}:">`)
         .replace(/\x00MENTION_MEMBER\x00/g, mentionBadge('#7289da', SAMPLE.member, 'rgba(88,101,242,.15)'))
         .replace(/&lt;@&amp;(\d+)&gt;/g, (_, id) => {
             const st = ROLES[id];
@@ -940,6 +948,26 @@ function showMsg(el, text, type) {
     el.className   = `form-message msg-${type}`;
     setTimeout(() => { el.textContent = ''; el.className = 'form-message'; }, 3000);
 }
+
+function mbResizeArea(el) {
+    if (!el) return;
+    el.style.height = '1px';
+    el.style.height = el.scrollHeight + 'px';
+}
+function mbUpdateCount(taId, countId) {
+    const ta = document.getElementById(taId);
+    const ct = document.getElementById(countId);
+    if (!ta || !ct) return;
+    const len = ta.value.length;
+    const max = parseInt(ta.getAttribute('maxlength')) || 0;
+    ct.textContent = len + ' / ' + max;
+    ct.className = 'mb-char-count' + (len >= max ? ' danger' : len >= max * 0.9 ? ' warn' : '');
+}
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.mb-auto-resize').forEach(mbResizeArea);
+    mbUpdateCount('goodbyePlainText',   'goodbyePlainCount');
+    mbUpdateCount('goodbyeDescription', 'goodbyeDescCount');
+});
 
 window._floatSave = () => saveGoodbye('<%= guild.id %>');
 </script>

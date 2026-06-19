@@ -216,7 +216,7 @@ code {
     pointer-events: none;
     position: absolute; top: calc(100% + .6rem); right: 0;
     background: var(--bg2); border: 1px solid rgba(56,58,74,.7);
-    border-radius: var(--radius-lg); min-width: 200px;
+    border-radius: var(--radius-lg); width: 190px;
     box-shadow: 0 12px 40px rgba(0,0,0,.55), 0 2px 8px rgba(0,0,0,.3);
     z-index: 300; overflow: hidden;
     transition: opacity .18s ease, transform .18s ease, visibility 0s .18s;
@@ -230,15 +230,23 @@ code {
 }
 
 .nav-dropdown-user {
-    display: flex; align-items: center; gap: .6rem;
+    display: flex; align-items: center; gap: .65rem;
     padding: .75rem 1rem;
 }
 .nav-dropdown-avatar {
     width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
     border: 2px solid rgba(var(--accent-rgb),.3);
 }
-.nav-dropdown-name {
+.nav-dropdown-userinfo {
+    display: flex; flex-direction: column; gap: .05rem;
+    min-width: 0;
+}
+.nav-dropdown-displayname {
     font-size: .88rem; font-weight: 600;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.nav-dropdown-username {
+    font-size: .72rem; color: var(--text-muted);
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .nav-dropdown-divider {
@@ -246,7 +254,7 @@ code {
 }
 .nav-dropdown-item {
     display: flex; align-items: center; gap: .6rem;
-    padding: .65rem 1rem; font-size: .88rem;
+    padding: .65rem .85rem; font-size: .88rem;
     color: var(--text); transition: background .15s;
 }
 .nav-dropdown-item:hover { background: var(--bg3); }
@@ -255,7 +263,7 @@ code {
 .nav-dropdown-item.active { color: var(--accent); font-weight: 600; }
 .nav-dropdown-label {
     display: flex; align-items: center; gap: .45rem;
-    padding: .4rem 1rem .25rem;
+    padding: .4rem .85rem .25rem;
     font-size: .72rem; font-weight: 700; letter-spacing: .06em;
     text-transform: uppercase; color: var(--text-muted);
     pointer-events: none;
@@ -896,7 +904,18 @@ code {
     padding-right: 2.5rem;
 }
 .select option { background: var(--bg3); }
-.textarea { resize: vertical; min-height: 100px; }
+.textarea { resize: vertical; min-height: 100px; word-break: break-all; overflow-wrap: anywhere; }
+
+/* ── Auto-resize textareas (message builder / custom commands) ──────────── */
+.mb-url-area {
+    resize:none; overflow:hidden; min-height:34px; line-height:1.45;
+    word-break:break-all; font-family:inherit; font-size:.85rem;
+    padding:.4rem .6rem; box-sizing:border-box; width:100%;
+}
+.mb-auto-resize { resize:none !important; overflow:hidden !important; }
+.mb-char-count { text-align:right; font-size:.72rem; color:var(--text-muted); margin-top:.18rem; user-select:none; }
+.mb-char-count.warn   { color:#f0b232; }
+.mb-char-count.danger { color:#ed4245; font-weight:600; }
 .input-hint { font-size: .75rem; color: var(--text-muted); margin-top: .35rem; }
 
 /* ── Custom select ───────────────────────────────────────────────────────
@@ -1580,7 +1599,7 @@ html.theme-transitioning *::after {
 /* ── Appearance section UI (dalam user dropdown) ──────────────────────── */
 .nav-appearance {
     display: flex; align-items: center; gap: .3rem;
-    padding: .45rem 1rem .55rem;
+    padding: .45rem .85rem .55rem;
     flex-wrap: wrap;
 }
 .theme-btn {
@@ -1603,10 +1622,9 @@ html.theme-transitioning *::after {
     color: var(--accent);
 }
 .nav-appearance-sep {
-    width: 1px; height: 22px;
+    flex-basis: 100%; height: 1px;
     background: var(--border);
-    margin: 0 .2rem;
-    flex-shrink: 0;
+    margin: .2rem 0;
 }
 .accent-dot {
     width: 20px; height: 20px; border-radius: 50%;
@@ -1755,6 +1773,9 @@ html.theme-transitioning *::after {
 /* Embed: spoiler */
 .dc-spoiler { background:var(--bg3); border-radius:2px; color:transparent; cursor:pointer; transition:color .1s,background .1s; user-select:none; }
 .dc-spoiler.shown { color:var(--text); background:rgba(32,34,37,.5); }
+
+/* Custom Discord emoji dalam preview */
+.dc-emoji { width:1.375em; height:1.375em; vertical-align:-0.3em; object-fit:contain; display:inline; }
 
 /* Embed: thumbnail — support div+img (baru) dan img langsung (lama) */
 .dc-embed-thumb {

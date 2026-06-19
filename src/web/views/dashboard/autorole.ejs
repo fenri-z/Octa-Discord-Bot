@@ -296,8 +296,10 @@
                                 </div>
                                 <div class="mb-section-body">
                                     <textarea id="panelPlainText" class="textarea mb-auto-resize" rows="5"
+                                              maxlength="2000"
                                               placeholder="<%= t('autorole.plain_text_ph') %>"
-                                              oninput="apResizeArea(this);updatePanelPreview()"></textarea>
+                                              oninput="apResizeArea(this);apUpdateCount('panelPlainText','panelPlainCount');updatePanelPreview()"></textarea>
+                                    <div class="mb-char-count" id="panelPlainCount">0 / 2000</div>
                                 </div>
                             </div>
                         </div>
@@ -361,8 +363,9 @@
                                             </div>
                                         </div>
                                         <textarea id="panelEmbedDescription" class="textarea mb-auto-resize" rows="4"
-                                                  placeholder="<%= t('message_builder.ph_description') %>" maxlength="4000"
-                                                  oninput="apResizeArea(this);updatePanelPreview()"></textarea>
+                                                  placeholder="<%= t('message_builder.ph_description') %>" maxlength="4096"
+                                                  oninput="apResizeArea(this);apUpdateCount('panelEmbedDescription','panelDescCount');updatePanelPreview()"></textarea>
+                                        <div class="mb-char-count" id="panelDescCount">0 / 4096</div>
                                     </div>
 
                                     <div class="ee-sep"></div>
@@ -664,8 +667,10 @@
                                 </div>
                                 <div class="mb-section-body">
                                     <textarea id="reactPanelPlainText" class="textarea mb-auto-resize" rows="5"
+                                              maxlength="2000"
                                               placeholder="<%= t('autorole.plain_text_ph') %>"
-                                              oninput="apResizeArea(this);updateReactPanelPreview()"></textarea>
+                                              oninput="apResizeArea(this);apUpdateCount('reactPanelPlainText','reactPlainCount');updateReactPanelPreview()"></textarea>
+                                    <div class="mb-char-count" id="reactPlainCount">0 / 2000</div>
                                 </div>
                             </div>
                         </div>
@@ -728,8 +733,9 @@
                                             </div>
                                         </div>
                                         <textarea id="reactPanelEmbedDescription" class="textarea mb-auto-resize" rows="4"
-                                                  placeholder="<%= t('message_builder.ph_description') %>" maxlength="4000"
-                                                  oninput="apResizeArea(this);updateReactPanelPreview()"></textarea>
+                                                  placeholder="<%= t('message_builder.ph_description') %>" maxlength="4096"
+                                                  oninput="apResizeArea(this);apUpdateCount('reactPanelEmbedDescription','reactDescCount');updateReactPanelPreview()"></textarea>
+                                        <div class="mb-char-count" id="reactDescCount">0 / 4096</div>
                                     </div>
 
                                     <div class="ee-sep"></div>
@@ -1472,11 +1478,6 @@
 }
 .mb-section-title { font-size:.8rem; font-weight:600; color:var(--text); display:flex; align-items:center; gap:.4rem; }
 .mb-section-body  { padding:.85rem; display:flex; flex-direction:column; gap:.7rem; }
-.mb-url-area { resize:none; overflow:hidden; min-height:34px; line-height:1.45; word-break:break-all; font-family:inherit; font-size:.85rem; padding:.4rem .6rem; box-sizing:border-box; width:100%; }
-.mb-auto-resize { resize:none !important; overflow:hidden !important; }
-.mb-char-count { text-align:right; font-size:.72rem; color:var(--text-muted); margin-top:.18rem; transition:color .2s; user-select:none; }
-.mb-char-count.warn   { color:#f0b232; }
-.mb-char-count.danger { color:#ed4245; font-weight:600; }
 .mb-color-pk { width:30px; height:30px; padding:2px; border-radius:6px; border:1px solid var(--border); background:none; cursor:pointer; }
 .cc-ph-dark-btn { font-size:.68rem; padding:2px 8px; background:rgba(255,255,255,.05); color:rgba(255,255,255,.35); border-color:rgba(255,255,255,.1); }
 .cc-ph-dark-btn:hover { background:rgba(255,255,255,.12); color:rgba(255,255,255,.75); border-color:rgba(255,255,255,.2); }
@@ -1619,6 +1620,15 @@ function apResizeArea(el) {
 }
 function apResizeAll() {
     requestAnimationFrame(() => { document.querySelectorAll('.mb-url-area,.mb-auto-resize').forEach(apResizeArea); });
+}
+function apUpdateCount(taId, countId) {
+    const ta = document.getElementById(taId);
+    const ct = document.getElementById(countId);
+    if (!ta || !ct) return;
+    const len = ta.value.length;
+    const max = parseInt(ta.getAttribute('maxlength')) || 0;
+    ct.textContent = len + ' / ' + max;
+    ct.className = 'mb-char-count' + (len >= max ? ' danger' : len >= max * 0.9 ? ' warn' : '');
 }
 
 // ── Placeholder picker ─────────────────────────────────────────────────────
@@ -3169,6 +3179,10 @@ buildApPhPicker('reactDescPhPicker',   'reactPanelEmbedDescription');
 document.addEventListener('DOMContentLoaded', () => {
     _resetPanelForm();
     _resetReactPanelForm();
+    apUpdateCount('panelPlainText',          'panelPlainCount');
+    apUpdateCount('panelEmbedDescription',   'panelDescCount');
+    apUpdateCount('reactPanelPlainText',     'reactPlainCount');
+    apUpdateCount('reactPanelEmbedDescription', 'reactDescCount');
 });
 </script>
 

@@ -156,9 +156,10 @@
                         <div class="ph-dropdown mention-dd" id="ticketDescMentionPicker" style="display:none;"></div>
                     </div>
                 </div>
-                <textarea id="panelDesc" class="textarea" rows="4" maxlength="4000"
+                <textarea id="panelDesc" class="textarea mb-auto-resize" rows="4" maxlength="4096"
                           placeholder="<%= t('ticket.embed_desc_default') %>"
-                          oninput="updateTicketPreview()"><%= ticketData.embedDesc %></textarea>
+                          oninput="mbResizeArea(this);mbUpdateCount('panelDesc','panelDescCount');updateTicketPreview()"><%= ticketData.embedDesc %></textarea>
+                <div class="mb-char-count" id="panelDescCount">0 / 4096</div>
             </div>
             <div class="form-group">
                 <label class="label"><%= t('ticket.embed_color_label') %></label>
@@ -344,6 +345,8 @@ function _tkMdToHtml(text) {
 function _tkResolveMentions(html) {
     if (!html) return '';
     return html
+        .replace(/&lt;a:(\w+):(\d+)&gt;/g, (_, name, id) => `<img src="https://cdn.discordapp.com/emojis/${id}.gif" class="dc-emoji" alt=":${name}:">`)
+        .replace(/&lt;:(\w+):(\d+)&gt;/g,  (_, name, id) => `<img src="https://cdn.discordapp.com/emojis/${id}.webp" class="dc-emoji" alt=":${name}:">`)
         .replace(/&lt;@&amp;(\d+)&gt;/g, (_, id) => { const r=ROLES_MAP[id]; return r ? _tkBadge(r.color,'@'+r.name) : _tkBadge('#99aab5','@unknown-role'); })
         .replace(/&lt;@!?(\d+)&gt;/g,    ()       => _tkBadge('#7289da','@User'))
         .replace(/&lt;#(\d+)&gt;/g,      (_, id)  => { const n=CHANNELS[id]; return n ? _tkBadge('#7289da','#'+n) : _tkBadge('#7289da','#unknown'); })
@@ -473,6 +476,25 @@ async function sendPanel() {
     if (data.success) { queueToast(I18N_TK_SENT_OK, 'success'); location.reload(); }
     else showMsg(msg, data.message, 'error');
 }
+
+function mbResizeArea(el) {
+    if (!el) return;
+    el.style.height = '1px';
+    el.style.height = el.scrollHeight + 'px';
+}
+function mbUpdateCount(taId, countId) {
+    const ta = document.getElementById(taId);
+    const ct = document.getElementById(countId);
+    if (!ta || !ct) return;
+    const len = ta.value.length;
+    const max = parseInt(ta.getAttribute('maxlength')) || 0;
+    ct.textContent = len + ' / ' + max;
+    ct.className = 'mb-char-count' + (len >= max ? ' danger' : len >= max * 0.9 ? ' warn' : '');
+}
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.mb-auto-resize').forEach(mbResizeArea);
+    mbUpdateCount('panelDesc', 'panelDescCount');
+});
 
 window._floatSave = async function () {
     const [d1, d2] = await Promise.all([saveConfig(true), savePanelEmbed(true)]);

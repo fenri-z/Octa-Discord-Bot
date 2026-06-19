@@ -170,6 +170,11 @@ router.post('/guild/:guildId/welcome', requireLogin, requireManageGuild, vNotifF
     ]);
     if (wpMissing.length) return res.status(400).json({ success: false, message: `Bot lacks permission in this channel:\n${wpMissing.map(p => `• ${p}`).join('\n')}` });
 
+    if (plainText && plainText.length > 2000)
+        return res.status(400).json({ success: false, message: 'Plain text message exceeds the maximum of 2000 characters.' });
+    if (description && description.length > 3500)
+        return res.status(400).json({ success: false, message: 'Embed description exceeds the maximum of 3500 characters.' });
+
     // Validasi warna hex
     if (color && !/^#[0-9A-Fa-f]{6}$/.test(color)) {
         return res.status(400).json({ success: false, message: 'Invalid color format. Use hex format, e.g.: #5865F2' });
@@ -261,6 +266,11 @@ router.post('/guild/:guildId/goodbye', requireLogin, requireManageGuild, vNotifF
         PermissionsBitField.Flags.AttachFiles,
     ]);
     if (gbMissing.length) return res.status(400).json({ success: false, message: `Bot lacks permission in this channel:\n${gbMissing.map(p => `• ${p}`).join('\n')}` });
+
+    if (plainText && plainText.length > 2000)
+        return res.status(400).json({ success: false, message: 'Plain text message exceeds the maximum of 2000 characters.' });
+    if (description && description.length > 3500)
+        return res.status(400).json({ success: false, message: 'Embed description exceeds the maximum of 3500 characters.' });
 
     if (color && !/^#[0-9A-Fa-f]{6}$/.test(color)) {
         return res.status(400).json({ success: false, message: 'Invalid color format. Use hex format, e.g.: #ED4245' });
@@ -377,6 +387,11 @@ router.post('/guild/:guildId/booster-boost', requireLogin, requireManageGuild, (
     ]);
     if (boostMissing.length) return res.json({ success: false, message: `Bot lacks permission in this channel:\n${boostMissing.map(p => `• ${p}`).join('\n')}` });
 
+    if (plainText && plainText.length > 2000)
+        return res.json({ success: false, message: 'Plain text message exceeds the maximum of 2000 characters.' });
+    if (description && description.length > 3500)
+        return res.json({ success: false, message: 'Embed description exceeds the maximum of 3500 characters.' });
+
     if (color && !/^#[0-9A-Fa-f]{6}$/.test(color))
         return res.json({ success: false, message: 'Invalid color format. Example: #FF73FA' });
 
@@ -440,6 +455,11 @@ router.post('/guild/:guildId/booster-unboost', requireLogin, requireManageGuild,
         PermissionsBitField.Flags.AttachFiles,
     ]);
     if (unboostMissing.length) return res.json({ success: false, message: `Bot lacks permission in this channel:\n${unboostMissing.map(p => `• ${p}`).join('\n')}` });
+
+    if (plainText && plainText.length > 2000)
+        return res.json({ success: false, message: 'Plain text message exceeds the maximum of 2000 characters.' });
+    if (description && description.length > 3500)
+        return res.json({ success: false, message: 'Embed description exceeds the maximum of 3500 characters.' });
 
     if (color && !/^#[0-9A-Fa-f]{6}$/.test(color))
         return res.json({ success: false, message: 'Invalid color format. Example: #ED4245' });
@@ -645,6 +665,10 @@ router.post('/guild/:guildId/autorole-button/:name', requireLogin, requireManage
     try { panel = JSON.parse(raw); } catch { return res.json({ success: false, message: 'Data panel rusak.' }); }
 
     // Validasi opsional
+    if (embedDescription && embedDescription.length > 4096)
+        return res.json({ success: false, message: 'Embed description exceeds the maximum of 4096 characters.' });
+    if (plainText && plainText.length > 2000)
+        return res.json({ success: false, message: 'Plain text message exceeds the maximum of 2000 characters.' });
     if (embedColor && !/^#?[0-9A-Fa-f]{6}$/.test(embedColor.trim()))
         return res.json({ success: false, message: 'Invalid color format. Use hex format, e.g.: #5865F2' });
     const urlOk = v => !v || v === '' || /^https?:\/\/.+\..+/.test(v);
@@ -1067,6 +1091,11 @@ router.post('/guild/:guildId/autorole-reaction/:name', requireLogin, requireMana
     if (!urlOk(embedImage))     return res.json({ success: false, message: 'Invalid image URL.' });
     if (!urlOk(embedThumbnail)) return res.json({ success: false, message: 'Invalid thumbnail URL.' });
 
+    if (embedDescription && embedDescription.length > 4096)
+        return res.json({ success: false, message: 'Embed description exceeds the maximum of 4096 characters.' });
+    if (plainText && plainText.length > 2000)
+        return res.json({ success: false, message: 'Plain text message exceeds the maximum of 2000 characters.' });
+
     if (mode)             panel.mode             = mode;
     if (embedTitle       !== undefined) panel.embedTitle       = embedTitle.trim();
     if (embedDescription !== undefined) panel.embedDescription = embedDescription.trim();
@@ -1353,8 +1382,11 @@ router.post('/guild/:guildId/ticket/panel-embed', requireLogin, requireManageGui
     const guildId = req.params.guildId;
     const { embedTitle, embedDesc, embedColor, btnLabel } = req.body;
 
+    if (embedDesc && embedDesc.length > 4096)
+        return res.json({ success: false, message: 'Embed description exceeds the maximum of 4096 characters.' });
+
     if (embedTitle) db.set(`ticket-embed-title-${guildId}`, embedTitle.slice(0, 256));
-    if (embedDesc)  db.set(`ticket-embed-desc-${guildId}`,  embedDesc.slice(0, 4000));
+    if (embedDesc)  db.set(`ticket-embed-desc-${guildId}`,  embedDesc.slice(0, 4096));
     if (embedColor && /^#?[0-9A-Fa-f]{6}$/.test(embedColor.trim())) {
         db.set(`ticket-embed-color-${guildId}`, embedColor.startsWith('#') ? embedColor : `#${embedColor}`);
     }
@@ -2118,6 +2150,12 @@ router.put('/guild/:guildId/youtube/channels/:ytChannelId', requireLogin, requir
         liveEnabled,  liveChannelId,  liveMessage,
     } = req.body;
 
+    const MSG_MAX = 3500;
+    for (const [label, msg] of [['Video', videoMessage], ['Short', shortMessage], ['Live', liveMessage]]) {
+        if (msg && msg.length > MSG_MAX)
+            return res.json({ success: false, message: `${label} message exceeds the maximum of ${MSG_MAX} characters.` });
+    }
+
     const REQUIRED_PERMS = [
         PermissionsBitField.Flags.ViewChannel,
         PermissionsBitField.Flags.SendMessages,
@@ -2339,6 +2377,12 @@ router.put('/guild/:guildId/tiktok/accounts/:username', requireLogin, requireMan
             liveEnabled,  liveChannelId,  liveMessage  } = req.body;
     const guild = req.botGuild;
 
+    const MSG_MAX = 3500;
+    for (const [label, msg] of [['Video', videoMessage], ['Live', liveMessage]]) {
+        if (msg && msg.length > MSG_MAX)
+            return res.json({ success: false, message: `${label} message exceeds the maximum of ${MSG_MAX} characters.` });
+    }
+
     const REQUIRED_PERMS = [
         PermissionsBitField.Flags.ViewChannel,
         PermissionsBitField.Flags.SendMessages,
@@ -2537,6 +2581,10 @@ router.put('/guild/:guildId/twitch/accounts/:userId', requireLogin, requireManag
     const accounts = getTwAccounts(db, guildId);
     const idx = accounts.findIndex(a => a.userId === userId);
     if (idx === -1) return res.json({ success: false, message: 'Account not found.' });
+
+    const MSG_MAX = 3500;
+    if (message && message.length > MSG_MAX)
+        return res.json({ success: false, message: `Message exceeds the maximum of ${MSG_MAX} characters.` });
 
     if (enabled && !channelId)
         return res.json({ success: false, message: 'Notification is enabled but no Discord channel has been selected.' });
@@ -2781,6 +2829,10 @@ router.put('/guild/:guildId/kick/accounts/:slug', requireLogin, requireManageGui
 
     const { enabled, channelId, message } = req.body;
     const guild = req.botGuild;
+
+    const MSG_MAX = 3500;
+    if (message && message.length > MSG_MAX)
+        return res.json({ success: false, message: `Message exceeds the maximum of ${MSG_MAX} characters.` });
 
     if (enabled && !channelId)
         return res.json({ success: false, message: 'Notification is enabled but no Discord channel has been selected.' });
