@@ -95,15 +95,15 @@
             <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;">
                 <div class="form-group">
                     <label class="label"><%= t('level.xp_min') %></label>
-                    <input type="number" id="levelXpMin" class="input" value="<%= levelData.xpMin %>" min="1" max="100">
+                    <input type="number" id="levelXpMin" class="input num-only" value="<%= levelData.xpMin %>" min="1" max="100">
                 </div>
                 <div class="form-group">
                     <label class="label"><%= t('level.xp_max') %></label>
-                    <input type="number" id="levelXpMax" class="input" value="<%= levelData.xpMax %>" min="1" max="100">
+                    <input type="number" id="levelXpMax" class="input num-only" value="<%= levelData.xpMax %>" min="1" max="100">
                 </div>
                 <div class="form-group">
                     <label class="label"><%= t('level.cooldown') %></label>
-                    <input type="number" id="levelCooldown" class="input" value="<%= levelData.cooldown %>" min="0" max="3600">
+                    <input type="number" id="levelCooldown" class="input num-only" value="<%= levelData.cooldown %>" min="1" max="3600">
                 </div>
             </div>
 
@@ -115,19 +115,26 @@
             <h2><%= t('level.role_rewards_title') %></h2>
             <p class="section-desc" style="margin-bottom:1rem;"><%= t('level.role_rewards_desc') %></p>
 
+            <input type="hidden" id="rrChangeMarker" value="0">
+
             <div id="roleRewardsList">
                 <% levelData.roleRewards.forEach(function(rr, i) { %>
                 <div class="rr-row" data-idx="<%= i %>">
-                    <span style="color:var(--text-muted);font-size:.875rem;"><%= t('level.level_col') %></span>
-                    <input type="number" class="input rr-level" value="<%= rr.level %>" min="1" max="999" style="width:80px;">
-                    <span style="color:var(--text-muted);font-size:.875rem;"><%= t('level.arrow') %></span>
-                    <select class="select rr-role" style="flex:1;min-width:0;">
-                        <option value=""><%= t('level.select_role') %></option>
-                        <% roles.forEach(function(r) { %>
-                            <option value="<%= r.id %>" <%= rr.roleId === r.id ? 'selected' : '' %> style="color:<%= r.color %>">@<%= r.name %></option>
-                        <% }); %>
-                    </select>
-                    <button class="btn btn-danger btn-sm rr-del" onclick="removeReward(this)"><i data-lucide="trash-2" style="width:14px;height:14px;"></i></button>
+                    <div class="rr-level-wrap">
+                        <span class="rr-label"><%= t('level.level_col') %></span>
+                        <input type="number" class="input rr-level num-only" value="<%= rr.level %>" min="1" max="999">
+                    </div>
+                    <div class="rr-arrow"><i data-lucide="arrow-right" style="width:16px;height:16px;"></i></div>
+                    <div class="rr-role-wrap">
+                        <span class="rr-label">Role</span>
+                        <select class="select rr-role">
+                            <option value=""><%= t('level.select_role') %></option>
+                            <% roles.forEach(function(r) { %>
+                                <option value="<%= r.id %>" <%= rr.roleId === r.id ? 'selected' : '' %> style="color:<%= r.color %>">@<%= r.name %></option>
+                            <% }); %>
+                        </select>
+                    </div>
+                    <button class="btn btn-icon rr-del" onclick="removeReward(this)" title="Remove"><i data-lucide="trash-2" style="width:15px;height:15px;"></i></button>
                 </div>
                 <% }); %>
             </div>
@@ -176,11 +183,95 @@
 
 <style>
 .rr-row {
-    display: flex; align-items: center; gap: .5rem; margin-bottom: .5rem;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: auto 28px 1fr 36px;
+    align-items: center;
+    gap: .625rem;
+    padding: .6rem .875rem;
+    background: rgba(255,255,255,.03);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: .5rem;
 }
-@media (max-width: 600px) {
+.rr-level-wrap {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    flex-shrink: 0;
+}
+.rr-level-wrap .rr-level {
+    width: 72px;
+    flex-shrink: 0;
+}
+.rr-role-wrap {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    min-width: 0;
+    flex: 1;
+}
+.rr-role-wrap .rr-role {
+    flex: 1;
+    min-width: 0;
+}
+.rr-label {
+    color: var(--text-muted);
+    font-size: .8125rem;
+    font-weight: 500;
+    white-space: nowrap;
+    flex-shrink: 0;
+    min-width: 38px;
+}
+.rr-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    flex-shrink: 0;
+}
+.btn-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border-radius: 6px;
+    background: rgba(237,66,69,.12);
+    color: #ED4245;
+    border: 1px solid rgba(237,66,69,.25);
+    cursor: pointer;
+    transition: background .15s, border-color .15s;
+    flex-shrink: 0;
+}
+.btn-icon:hover {
+    background: rgba(237,66,69,.22);
+    border-color: rgba(237,66,69,.45);
+}
+@media (max-width: 640px) {
     [style*="grid-template-columns:1fr 1fr 1fr"] { grid-template-columns: 1fr !important; }
+
+    .rr-row {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        gap: .5rem;
+        padding: .75rem .875rem;
+        padding-right: 3rem;
+    }
+    .rr-arrow { display: none; }
+    .rr-level-wrap { width: 100%; }
+    .rr-level-wrap .rr-level { flex: 1; width: auto; }
+    .rr-role-wrap  { width: 100%; }
+    .rr-role-wrap .rr-role { flex: 1; }
+    .rr-del {
+        position: absolute;
+        top: 50%;
+        right: .625rem;
+        transform: translateY(-50%);
+        width: 32px;
+        height: 32px;
+    }
 }
 </style>
 
@@ -205,46 +296,112 @@ async function apiFetch(path, method, body) {
 
 const ROLES = <%- JSON.stringify(roles) %>;
 
+document.addEventListener('keydown', function(e) {
+    if (!e.target.classList.contains('num-only')) return;
+    const allowed = ['Backspace','Delete','ArrowLeft','ArrowRight','Tab','Home','End'];
+    if (allowed.includes(e.key)) return;
+    if (/^\d$/.test(e.key)) return;
+    e.preventDefault();
+});
+document.addEventListener('paste', function(e) {
+    if (!e.target.classList.contains('num-only')) return;
+    e.preventDefault();
+    const text = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '');
+    if (text) document.execCommand('insertText', false, text);
+});
+
+function markRrDirty() {
+    document.getElementById('rrChangeMarker').value = Date.now();
+    if (window._floatDirty) window._floatDirty();
+}
+
 function addReward() {
     const list = document.getElementById('roleRewardsList');
     const div  = document.createElement('div');
     div.className = 'rr-row';
     div.innerHTML = `
-        <span style="color:var(--text-muted);font-size:.875rem;">Level</span>
-        <input type="number" class="input rr-level" value="1" min="1" max="999" style="width:80px;">
-        <span style="color:var(--text-muted);font-size:.875rem;">→ Role</span>
-        <select class="select rr-role" style="flex:1;min-width:0;">
-            <option value="">— Select Role —</option>
-            ${ROLES.map(r => `<option value="${r.id}" style="color:${r.color}">@${r.name}</option>`).join('')}
-        </select>
-        <button class="btn btn-danger btn-sm rr-del" onclick="removeReward(this)"><i data-lucide="trash-2" style="width:14px;height:14px;"></i></button>`;
+        <div class="rr-level-wrap">
+            <span class="rr-label">Level</span>
+            <input type="number" class="input rr-level num-only" value="1" min="1" max="999">
+        </div>
+        <div class="rr-arrow"><i data-lucide="arrow-right" style="width:16px;height:16px;"></i></div>
+        <div class="rr-role-wrap">
+            <span class="rr-label">Role</span>
+            <select class="select rr-role">
+                <option value="">— Select Role —</option>
+                ${ROLES.map(r => `<option value="${r.id}" style="color:${r.color}">@${r.name}</option>`).join('')}
+            </select>
+        </div>
+        <button class="btn btn-icon rr-del" onclick="removeReward(this)" title="Remove"><i data-lucide="trash-2" style="width:15px;height:15px;"></i></button>`;
     list.appendChild(div);
     if (window.lucide) lucide.createIcons();
+    markRrDirty();
 }
 
-function removeReward(btn) {
+async function removeReward(btn) {
     btn.closest('.rr-row').remove();
+    const rrMsg = document.getElementById('roleRewardMsg');
+    const rewards = getRewards().filter(r => r.roleId);
+    const data = await apiFetch('/level', 'POST', {
+        enabled:     document.getElementById('levelEnabled').checked,
+        channelId:   document.getElementById('levelChannel').value || null,
+        message:     document.getElementById('levelMessage').value.trim(),
+        xpMin:       parseInt(document.getElementById('levelXpMin').value, 10)    || 15,
+        xpMax:       parseInt(document.getElementById('levelXpMax').value, 10)    || 25,
+        cooldown:    parseInt(document.getElementById('levelCooldown').value, 10) || 60,
+        roleRewards: rewards,
+    });
+    showMsg(rrMsg, data.message, data.success ? 'success' : 'error');
 }
 
 function getRewards() {
     return [...document.querySelectorAll('#roleRewardsList .rr-row')].map(row => ({
-        level:  parseInt(row.querySelector('.rr-level').value) || 1,
+        level:  parseInt(row.querySelector('.rr-level').value, 10),
         roleId: row.querySelector('.rr-role').value,
-    })).filter(r => r.roleId);
+    }));
 }
 
 async function saveConfig() {
-    const msg  = document.getElementById('levelCfgMsg');
+    const rrMsg = document.getElementById('roleRewardMsg');
+    const rewards = getRewards();
+    const emptyRole = rewards.find(r => !r.roleId);
+    if (emptyRole) {
+        showMsg(rrMsg, 'Please select a role for all reward entries, or remove the empty ones.', 'error');
+        return;
+    }
+    const invalidLevel = rewards.find(r => isNaN(r.level) || r.level < 1);
+    if (invalidLevel) {
+        showMsg(rrMsg, 'Level must be at least 1.', 'error');
+        return;
+    }
+
+    const msg     = document.getElementById('levelCfgMsg');
+    const xpMin   = parseInt(document.getElementById('levelXpMin').value, 10);
+    const xpMax   = parseInt(document.getElementById('levelXpMax').value, 10);
+    const cooldown= parseInt(document.getElementById('levelCooldown').value, 10);
+
+    if (isNaN(xpMin) || xpMin < 1 || xpMin > 100) {
+        showMsg(msg, 'XP Min must be between 1 and 100.', 'error'); return;
+    }
+    if (isNaN(xpMax) || xpMax < 1 || xpMax > 100) {
+        showMsg(msg, 'XP Max must be between 1 and 100.', 'error'); return;
+    }
+    if (xpMin > xpMax) {
+        showMsg(msg, 'XP Min cannot be greater than XP Max.', 'error'); return;
+    }
+    if (isNaN(cooldown) || cooldown < 1 || cooldown > 3600) {
+        showMsg(msg, 'Cooldown must be between 1 and 3600 seconds.', 'error'); return;
+    }
+
     const data = await apiFetch('/level', 'POST', {
         enabled:   document.getElementById('levelEnabled').checked,
         channelId: document.getElementById('levelChannel').value || null,
         message:   document.getElementById('levelMessage').value.trim(),
-        xpMin:     parseInt(document.getElementById('levelXpMin').value)    || 15,
-        xpMax:     parseInt(document.getElementById('levelXpMax').value)    || 25,
-        cooldown:  parseInt(document.getElementById('levelCooldown').value) || 60,
-        roleRewards: getRewards(),
+        xpMin, xpMax, cooldown,
+        roleRewards: rewards,
     });
     showMsg(msg, data.message, data.success ? 'success' : 'error');
+    if (rrMsg.textContent) { rrMsg.textContent = ''; rrMsg.className = 'form-message'; }
 }
 
 window._floatSave = () => saveConfig();

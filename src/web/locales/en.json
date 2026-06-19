@@ -24,7 +24,9 @@
     "manage": "Manage",
     "invite": "Invite",
     "no_servers": "You have no servers with Manage Guild permission.",
-    "no_results": "No servers match your search."
+    "no_results": "No servers match your search.",
+    "other_servers": "Other Servers ({{count}})",
+    "no_permission": "No Permission"
   },
   "home": {
     "welcome_sub": "Welcome to the dashboard — manage your server from here.",

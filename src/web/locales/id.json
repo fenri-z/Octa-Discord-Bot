@@ -24,7 +24,9 @@
     "manage": "Kelola",
     "invite": "Undang",
     "no_servers": "Kamu tidak punya server dengan izin Manage Guild.",
-    "no_results": "Tidak ada server yang cocok dengan pencarianmu."
+    "no_results": "Tidak ada server yang cocok dengan pencarianmu.",
+    "other_servers": "Server Lainnya ({{count}})",
+    "no_permission": "Tidak Ada Izin"
   },
   "home": {
     "welcome_sub": "Selamat datang di dashboard — kelola server dari sini.",

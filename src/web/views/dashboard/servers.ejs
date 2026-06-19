@@ -74,6 +74,50 @@
             <p><%= t('servers.no_results') %></p>
         </div>
     </div>
+
+    <% if (otherGuilds && otherGuilds.length > 0) { %>
+    <!-- Server Lainnya (collapsible, hidden by default) -->
+    <div class="srv-other-wrap" id="otherWrap">
+        <button class="srv-other-toggle" id="otherToggle" aria-expanded="false">
+            <i data-lucide="chevron-right" class="srv-other-chevron" id="otherChevron"></i>
+            <%= t('servers.other_servers', { count: otherGuilds.length }) %>
+        </button>
+        <div class="srv-grid srv-other-grid" id="otherGrid" style="display:none">
+            <% otherGuilds.forEach(guild => { %>
+            <div class="srv-card srv-card-other" data-other-name="<%= guild.name.toLowerCase() %>">
+                <!-- Banner -->
+                <div class="srv-card-banner<%- guild.bannerURL ? ' srv-banner-img' : '' %>" <%- guild.bannerURL ? `style="background-image:url('${guild.bannerURL}')"` : '' %>>
+                    <div class="srv-card-overlay"></div>
+                </div>
+                <!-- Icon -->
+                <div class="srv-card-icon-wrap">
+                    <% if (guild.iconURL) { %>
+                        <img src="<%= guild.iconURL %>" alt="<%= guild.name %>" class="srv-card-icon srv-card-icon-dim">
+                    <% } else { %>
+                        <div class="srv-card-icon srv-card-icon-ph srv-card-icon-dim"><%= guild.name.charAt(0).toUpperCase() %></div>
+                    <% } %>
+                </div>
+                <!-- Body -->
+                <div class="srv-card-body">
+                    <div class="srv-card-text">
+                        <div class="srv-card-name srv-card-name-dim"><%= guild.name %></div>
+                        <div class="srv-card-meta">
+                            <% if (guild.memberCount !== null) { %>
+                                <span class="srv-dot green"></span>
+                                <span><%= guild.memberCount.toLocaleString() %> <%= t('servers.members') %></span>
+                            <% } else { %>
+                                <span class="srv-dot green"></span>
+                                <span><%= t('servers.bot_active') %></span>
+                            <% } %>
+                        </div>
+                    </div>
+                    <span class="srv-badge-nomgmt"><%= t('servers.no_permission') %></span>
+                </div>
+            </div>
+            <% }) %>
+        </div>
+    </div>
+    <% } %>
 </div>
 
 <style>
@@ -212,6 +256,39 @@
 .srv-btn-invite { background: transparent; color: var(--text-muted); border: 1px solid var(--border); }
 .srv-btn-invite:hover { border-color: var(--accent); color: var(--accent); }
 
+/* ── Server Lainnya ──────────────────────────────────── */
+.srv-other-wrap { margin-top: 1.75rem; }
+.srv-other-toggle {
+    display: flex; align-items: center; gap: .4rem;
+    background: none; border: none; cursor: pointer;
+    color: var(--text-muted); font-size: .85rem; font-weight: 600;
+    padding: .35rem .1rem; letter-spacing: .02em;
+    transition: color .15s;
+    font-family: inherit;
+}
+.srv-other-toggle:hover { color: var(--text); }
+.srv-other-chevron {
+    width: 15px; height: 15px; flex-shrink: 0;
+    transition: transform .2s ease;
+}
+.srv-other-toggle[aria-expanded="true"] .srv-other-chevron { transform: rotate(90deg); }
+.srv-other-grid { margin-top: .85rem; }
+.srv-card-other { opacity: .72; }
+.srv-card-other:hover { opacity: 1; }
+.srv-card-icon-dim { filter: grayscale(40%); }
+.srv-card-name-dim { color: var(--text-muted); }
+.srv-badge-nomgmt {
+    flex-shrink: 0;
+    padding: .28rem .65rem;
+    border-radius: 6px;
+    font-size: .74rem; font-weight: 600;
+    background: rgba(255,255,255,.05);
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+    white-space: nowrap;
+    cursor: default;
+}
+
 /* ── Responsive ──────────────────────────────────────── */
 @media (max-width: 680px) {
     .srv-grid { grid-template-columns: repeat(2, 1fr); gap: .75rem; }
@@ -247,6 +324,36 @@ document.getElementById('srvSearch').addEventListener('input', function () {
 
 document.getElementById('refreshBtn').addEventListener('click', function () {
     this.classList.add('spinning');
+});
+
+// Toggle "Server Lainnya"
+const otherToggle = document.getElementById('otherToggle');
+const otherGrid   = document.getElementById('otherGrid');
+if (otherToggle && otherGrid) {
+    otherToggle.addEventListener('click', function () {
+        const expanded = this.getAttribute('aria-expanded') === 'true';
+        this.setAttribute('aria-expanded', String(!expanded));
+        otherGrid.style.display = expanded ? 'none' : 'grid';
+    });
+}
+
+// Extend search to also filter "Server Lainnya" cards
+document.getElementById('srvSearch').addEventListener('input', function () {
+    const q = this.value.toLowerCase().trim();
+    if (!otherGrid) return;
+    const otherCards = otherGrid.querySelectorAll('.srv-card-other');
+    otherCards.forEach(c => {
+        const match = !q || (c.dataset.otherName || '').includes(q);
+        c.style.display = match ? '' : 'none';
+    });
+    // Auto-expand when searching if there are results
+    if (q && otherToggle && otherGrid.style.display === 'none') {
+        const anyVisible = [...otherCards].some(c => c.style.display !== 'none');
+        if (anyVisible) {
+            otherToggle.setAttribute('aria-expanded', 'true');
+            otherGrid.style.display = 'grid';
+        }
+    }
 });
 </script>
 

@@ -1,6 +1,202 @@
 <%- include('../partials/head') %>
 <%- include('../partials/navbar') %>
 
+<style>
+/* ── Chip / Tag ─────────────────────────────────────────────────────────── */
+.am-word-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+    padding: .25rem .5rem .25rem .6rem;
+    background: var(--bg-3, rgba(255,255,255,.05));
+    border: 1px solid var(--border, rgba(255,255,255,.1));
+    border-radius: 6px;
+    font-size: .82rem;
+    line-height: 1.4;
+    max-width: 100%;
+    word-break: break-all;
+}
+.am-chip-del {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 0 2px;
+    font-size: 1rem;
+    line-height: 1;
+    border-radius: 3px;
+    transition: color .15s, background .15s;
+    flex-shrink: 0;
+}
+.am-chip-del:hover {
+    color: #ED4245;
+    background: rgba(237,66,69,.1);
+}
+
+/* ── General Configuration ──────────────────────────────────────────────── */
+.am-cfg-group {
+    flex: 1;
+    min-width: 200px;
+}
+
+/* ── Spam / Raid number inputs ──────────────────────────────────────────── */
+.am-num-row {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    margin-top: .75rem;
+}
+.am-num-group {
+    flex: 1;
+    min-width: 160px;
+}
+.am-num-input {
+    max-width: 120px;
+    width: 100%;
+}
+
+/* ── Kata Terlarang input row ───────────────────────────────────────────── */
+.am-words-add-row {
+    display: flex;
+    gap: .75rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+.am-words-input {
+    flex: 1;
+    min-width: 160px;
+    max-width: 260px;
+}
+
+/* ── Whitelist ──────────────────────────────────────────────────────────── */
+.am-wl-row {
+    display: flex;
+    flex-wrap: wrap;
+}
+.am-wl-col {
+    flex: 1;
+    min-width: 220px;
+}
+.am-wl-add-row {
+    display: flex;
+    gap: .6rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+.am-wl-select {
+    flex: 1;
+    min-width: 140px;
+}
+
+/* ── Tablet (≤ 900px) ───────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+    .am-cfg-row {
+        flex-direction: column !important;
+        gap: 1rem !important;
+    }
+    .am-cfg-group {
+        flex: none !important;
+        width: 100% !important;
+        min-width: unset !important;
+    }
+    .am-cfg-group .select,
+    .am-cfg-group .csel {
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+}
+
+/* ── Mobile (≤ 600px) ───────────────────────────────────────────────────── */
+@media (max-width: 600px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: .6rem !important;
+    }
+
+    /* Spam / Raid / Mention number inputs: stack vertikal */
+    .am-num-row {
+        flex-direction: column !important;
+        gap: .75rem !important;
+    }
+    .am-num-group {
+        min-width: unset !important;
+        width: 100% !important;
+    }
+    .am-num-input {
+        max-width: 100% !important;
+        width: 100% !important;
+    }
+
+    /* Kata terlarang: input full-width, button full-width */
+    .am-words-add-row {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: .6rem !important;
+    }
+    .am-words-input {
+        max-width: 100% !important;
+        width: 100% !important;
+        min-width: unset !important;
+    }
+    .am-words-btn {
+        width: 100% !important;
+        justify-content: center !important;
+    }
+
+    /* Whitelist: stack channel & role kolom */
+    .am-wl-row {
+        flex-direction: column !important;
+        gap: 1.5rem !important;
+    }
+    .am-wl-col {
+        flex: none !important;
+        width: 100% !important;
+        min-width: unset !important;
+    }
+    .am-wl-add-row {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: .5rem !important;
+    }
+    .am-wl-select {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: unset !important;
+    }
+    .am-wl-add-row .btn {
+        width: 100% !important;
+        justify-content: center !important;
+    }
+
+    /* Settings card padding sedikit dikurangi */
+    .settings-card {
+        padding: 1rem !important;
+    }
+    .settings-card h2 {
+        font-size: 1rem !important;
+    }
+
+    /* Page header: deskripsi jangan overflow */
+    .page-header p {
+        word-break: break-word;
+    }
+}
+
+/* ── Small mobile (≤ 420px): stats jadi 1 kolom ────────────────────────── */
+@media (max-width: 420px) {
+    .stats-grid {
+        grid-template-columns: 1fr !important;
+        gap: .5rem !important;
+    }
+    .stat-card {
+        padding: .85rem .9rem !important;
+    }
+}
+</style>
+
 <div class="dash-layout">
     <%- include('../partials/sidebar', { activePage: 'automod' }) %>
 
@@ -345,184 +541,6 @@
     <%- include('../partials/dash-footer') %>
     </main>
 </div>
-
-<style>
-/* ── Chip / Tag ─────────────────────────────────────────────────────────── */
-.am-word-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: .3rem;
-    padding: .25rem .5rem .25rem .6rem;
-    background: var(--bg-3, rgba(255,255,255,.05));
-    border: 1px solid var(--border, rgba(255,255,255,.1));
-    border-radius: 6px;
-    font-size: .82rem;
-    line-height: 1.4;
-    max-width: 100%;
-    word-break: break-all;
-}
-.am-chip-del {
-    background: none;
-    border: none;
-    color: var(--text-muted);
-    cursor: pointer;
-    padding: 0 2px;
-    font-size: 1rem;
-    line-height: 1;
-    border-radius: 3px;
-    transition: color .15s, background .15s;
-    flex-shrink: 0;
-}
-.am-chip-del:hover {
-    color: #ED4245;
-    background: rgba(237,66,69,.1);
-}
-
-/* ── General Configuration ──────────────────────────────────────────────── */
-.am-cfg-group {
-    flex: 1;
-    min-width: 200px;
-}
-
-/* ── Spam / Raid number inputs ──────────────────────────────────────────── */
-.am-num-row {
-    display: flex;
-    gap: 1.5rem;
-    flex-wrap: wrap;
-    margin-top: .75rem;
-}
-.am-num-group {
-    flex: 1;
-    min-width: 160px;
-}
-.am-num-input {
-    max-width: 120px;
-    width: 100%;
-}
-
-/* ── Kata Terlarang input row ───────────────────────────────────────────── */
-.am-words-add-row {
-    display: flex;
-    gap: .75rem;
-    align-items: center;
-    flex-wrap: wrap;
-}
-.am-words-input {
-    flex: 1;
-    min-width: 160px;
-    max-width: 260px;
-}
-
-/* ── Whitelist ──────────────────────────────────────────────────────────── */
-.am-wl-row {
-    display: flex;
-    flex-wrap: wrap;
-}
-.am-wl-col {
-    flex: 1;
-    min-width: 220px;
-}
-.am-wl-add-row {
-    display: flex;
-    gap: .6rem;
-    align-items: center;
-    flex-wrap: wrap;
-}
-.am-wl-select {
-    flex: 1;
-    min-width: 140px;
-}
-
-/* ── Tablet (≤ 900px) ───────────────────────────────────────────────────── */
-@media (max-width: 900px) {
-    .stats-grid {
-        grid-template-columns: repeat(2, 1fr) !important;
-    }
-    .am-cfg-row {
-        flex-direction: column !important;
-        gap: 1rem !important;
-    }
-    .am-cfg-group {
-        flex: none !important;
-        width: 100% !important;
-        min-width: unset !important;
-    }
-    .am-cfg-group .select {
-        width: 100% !important;
-        max-width: 100% !important;
-    }
-}
-
-/* ── Mobile (≤ 600px) ───────────────────────────────────────────────────── */
-@media (max-width: 600px) {
-    .stats-grid {
-        grid-template-columns: repeat(2, 1fr) !important;
-        gap: .6rem !important;
-    }
-
-    /* Spam / Raid / Mention number inputs: stack vertikal */
-    .am-num-row {
-        flex-direction: column !important;
-        gap: .75rem !important;
-    }
-    .am-num-group {
-        min-width: unset !important;
-        width: 100% !important;
-    }
-    .am-num-input {
-        max-width: 100% !important;
-        width: 100% !important;
-    }
-
-    /* Kata terlarang: input full-width, button full-width */
-    .am-words-add-row {
-        flex-direction: column !important;
-        align-items: stretch !important;
-        gap: .6rem !important;
-    }
-    .am-words-input {
-        max-width: 100% !important;
-        width: 100% !important;
-        min-width: unset !important;
-    }
-    .am-words-btn {
-        width: 100% !important;
-        justify-content: center !important;
-    }
-
-    /* Whitelist: stack channel & role kolom */
-    .am-wl-row {
-        flex-direction: column !important;
-        gap: 1.5rem !important;
-    }
-    .am-wl-col {
-        flex: none !important;
-        width: 100% !important;
-        min-width: unset !important;
-    }
-    .am-wl-add-row {
-        flex-direction: column !important;
-        align-items: stretch !important;
-        gap: .5rem !important;
-    }
-    .am-wl-select {
-        width: 100% !important;
-        max-width: 100% !important;
-    }
-    .am-wl-add-row .btn {
-        width: 100% !important;
-        justify-content: center !important;
-    }
-
-    /* Settings card padding sedikit dikurangi */
-    .settings-card {
-        padding: 1rem !important;
-    }
-    .settings-card h2 {
-        font-size: 1rem !important;
-    }
-}
-</style>
 
 <script>
 const GUILD_ID = '<%= guild.id %>';

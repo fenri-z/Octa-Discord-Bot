@@ -265,14 +265,14 @@
                 </div>
             </div>
             <!-- Hasil lookup -->
-            <div id="ytLookupResult" style="display:none;margin-top:1rem;padding:.85rem;background:var(--bg3);border-radius:10px;border:1px solid var(--border);">
+            <div id="ytLookupResult" style="display:none;margin-top:1rem;padding:.85rem;background:var(--card-2,rgba(255,255,255,.04));border-radius:10px;border:1px solid var(--border,rgba(255,255,255,.06));">
                 <div class="yt-lookup-result-inner" style="display:flex;align-items:center;gap:.75rem;">
                     <img id="ytLookupThumb" src="" alt="" referrerpolicy="no-referrer"
-                         style="width:42px;height:42px;border-radius:50%;object-fit:cover;flex-shrink:0;background:#333;"
+                         style="width:42px;height:42px;border-radius:50%;object-fit:cover;flex-shrink:0;background:#111;"
                          onerror="this.style.display='none'">
                     <div style="flex:1;min-width:0;">
                         <div id="ytLookupName" style="font-weight:600;font-size:.95rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></div>
-                        <div id="ytLookupId" style="display:none;"></div>
+                        <div id="ytLookupId" style="font-size:.78rem;color:var(--text-muted);"></div>
                     </div>
                     <button class="btn btn-success" onclick="addYtChannel()" style="flex-shrink:0;">
                         <i data-lucide="plus" style="width:14px;height:14px;"></i> <%= t('youtube.add_btn') %>
@@ -740,7 +740,7 @@ async function lookupYtChannel() {
 
         _lookupData = data.channel;
         document.getElementById('ytLookupName').textContent = data.channel.name;
-        document.getElementById('ytLookupId').textContent   = data.channel.id;
+        document.getElementById('ytLookupId').textContent   = data.channel.handle || data.channel.id;
         const thumb = document.getElementById('ytLookupThumb');
         thumb.src = data.channel.thumbnail || '';
         thumb.style.display = data.channel.thumbnail ? '' : 'none';

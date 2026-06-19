@@ -13,7 +13,8 @@ try {
 }
 
 const POLL_INTERVAL_MS         = 5 * 60 * 1000;   // Video: 5 menit via yt-dlp
-const LIVE_POLL_INTERVAL_MS    = 2 * 60 * 1000;   // Live: 2 menit via WebSocket
+const LIVE_POLL_INTERVAL_MS    = 60 * 1000;        // Live: 1 menit via WebSocket
+const LIVE_CACHE_MS            = 30 * 1000;        // Cache per-username antar guild (harus < LIVE_POLL_INTERVAL_MS)
 const HEALTH_INTERVAL_MS       = 30 * 60 * 1000;  // Health check: 30 menit
 const HEALTH_FAIL_THRESHOLD    = 3;               // Alert setelah 3x gagal berturut-turut
 const LIVE_FAIL_THRESHOLD      = 3;               // Hapus liveKey setelah 3x gagal (bukan 2x)
@@ -526,7 +527,7 @@ class TikTokNotifier {
         if (cached && cached.expiresAt > Date.now()) return cached.result;
 
         const result = await this._isLiveRaw(username);
-        this._isLiveCache.set(username, { result, expiresAt: Date.now() + 2 * 60 * 1000 });
+        this._isLiveCache.set(username, { result, expiresAt: Date.now() + LIVE_CACHE_MS });
 
         // Bersihkan entry yang sudah expired agar Map tidak tumbuh tak terbatas
         if (this._isLiveCache.size > 200) {

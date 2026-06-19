@@ -82,15 +82,20 @@ module.exports = new Event({
             }
 
             if (cfg.rolesRaw) {
-                const rewards = JSON.parse(cfg.rolesRaw);
-                const member  = guild.members.cache.get(userId)
-                    ?? await guild.members.fetch(userId).catch(() => null);
-                if (member) {
-                    for (const rr of rewards) {
-                        if (rr.level <= newLevel) {
-                            const role = guild.roles.cache.get(rr.roleId);
-                            if (role && !member.roles.cache.has(rr.roleId))
-                                await member.roles.add(role).catch(err => logError('[onMessageXP] role reward add failed:', err));
+                let rewards;
+                try { rewards = JSON.parse(cfg.rolesRaw); } catch { rewards = []; }
+                if (rewards.length) {
+                    const member = message.member
+                        ?? guild.members.cache.get(userId)
+                        ?? await guild.members.fetch(userId).catch(() => null);
+                    if (member) {
+                        for (const rr of rewards) {
+                            if (rr.level <= newLevel && !member.roles.cache.has(rr.roleId)) {
+                                const role = guild.roles.cache.get(rr.roleId)
+                                    ?? await guild.roles.fetch(rr.roleId).catch(() => null);
+                                if (role && !role.managed)
+                                    await member.roles.add(role).catch(err => logError('[onMessageXP] role reward add failed:', err));
+                            }
                         }
                     }
                 }

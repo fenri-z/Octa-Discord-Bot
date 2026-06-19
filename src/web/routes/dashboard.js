@@ -178,10 +178,10 @@ function getDbBool(db, key, defaultVal = false) {
     return true;
 }
 
-// GET /dashboard/refresh — re-fetch daftar guild dari Discord API
-router.get('/refresh', requireLogin, async (req, res) => {
+// Helper: fetch guilds dari Discord API dan simpan ke session
+async function _refreshUserGuilds(req) {
     const token = req.user?._accessToken;
-    if (!token) return res.redirect('/dashboard');
+    if (!token) return;
     try {
         const resp = await fetch('https://discord.com/api/v10/users/@me/guilds', {
             headers: { Authorization: `Bearer ${token}` }
@@ -189,14 +189,27 @@ router.get('/refresh', requireLogin, async (req, res) => {
         if (resp.ok) {
             const guilds = await resp.json();
             req.user.guilds = guilds;
+            req.user._guildsLastFetched = Date.now();
             await new Promise((resolve) => req.session.save(resolve));
         }
-    } catch (_) { /* abaikan error, tetap redirect */ }
+    } catch (_) { /* abaikan error */ }
+}
+
+// GET /dashboard/refresh — re-fetch daftar guild dari Discord API
+router.get('/refresh', requireLogin, async (req, res) => {
+    await _refreshUserGuilds(req);
     res.redirect('/dashboard');
 });
 
 // GET /dashboard
-router.get('/', requireLogin, (req, res) => {
+const GUILD_TTL = 5 * 60 * 1000; // 5 menit
+router.get('/', requireLogin, async (req, res) => {
+    // Auto-refresh guilds jika belum pernah di-fetch atau sudah stale (> 5 menit)
+    const lastFetched = req.user?._guildsLastFetched || 0;
+    if (Date.now() - lastFetched > GUILD_TTL) {
+        await _refreshUserGuilds(req);
+    }
+
     const userGuilds = req.user?.guilds || [];
 
     const manageableGuilds = userGuilds.filter(canManageGuild);
@@ -213,9 +226,24 @@ router.get('/', requireLogin, (req, res) => {
         };
     });
 
+    // Server lainnya: user ada di server yang sama dengan bot, tapi tidak punya permission Manage Guild
+    const otherGuilds = userGuilds
+        .filter(g => !canManageGuild(g) && req.discordClient?.guilds.cache.has(g.id))
+        .map(g => {
+            const botGuild = req.discordClient.guilds.cache.get(g.id);
+            return {
+                ...g,
+                name:        botGuild?.name ?? g.name,
+                iconURL:     botGuild?.iconURL({ size: 256 }) ?? (g.icon ? `https://cdn.discordapp.com/icons/${g.id}/${g.icon}.png?size=256` : null),
+                bannerURL:   botGuild?.bannerURL({ size: 480 }) ?? (g.banner ? `https://cdn.discordapp.com/banners/${g.id}/${g.banner}.png?size=480` : null),
+                memberCount: botGuild?.memberCount ?? null,
+            };
+        });
+
     res.render('dashboard/servers', {
         title: 'Dashboard',
         guilds: guildsWithStatus,
+        otherGuilds,
         hasSidebar: false
     });
 });
@@ -1441,7 +1469,7 @@ router.get('/:guildId/level', requireLogin, requireManageGuild, async (req, res)
 
         const botRolePosition = guild.members.me?.roles.highest.position || 0;
         const roles = [...guild.roles.cache.values()]
-            .filter(r => r.id !== guild.id && r.position < botRolePosition)
+            .filter(r => !r.managed && r.id !== guild.id && r.position < botRolePosition)
             .map(r => ({ id: r.id, name: r.name, color: r.hexColor === '#000000' ? '#99aab5' : r.hexColor }))
             .sort((a, b) => a.name.localeCompare(b.name));
 
