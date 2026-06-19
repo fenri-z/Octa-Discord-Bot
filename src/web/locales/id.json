@@ -731,7 +731,7 @@
     "confirm_yes": "Ya, Hapus Semua",
     "confirm_cancel": "Batal",
     "setup_first": "Lakukan Setup terlebih dahulu",
-    "setup_will_create": "<strong style=\"color:#5865F2;\">Yang akan dibuat:</strong><br>📁 1 Category &nbsp;·&nbsp; 👥 Total Members Channel &nbsp;·&nbsp; 👤 Users Channel &nbsp;·&nbsp; 🤖 Bots Channel",
+    "setup_will_create": "<strong style=\"color:var(--accent);\">Yang akan dibuat:</strong><br>📁 1 Category &nbsp;·&nbsp; 👥 Total Members Channel &nbsp;·&nbsp; 👤 Users Channel &nbsp;·&nbsp; 🤖 Bots Channel",
     "how_to_use": "Cara Penggunaan",
     "step1_title": "Klik Setup",
     "step1_desc": "Klik <strong>Buat Saluran Statistik</strong> untuk otomatis membuat kategori dengan tiga saluran statistik di servermu.",
@@ -1363,9 +1363,9 @@
     "config_title": "Konfigurasi Starboard",
     "enable_label": "Aktifkan Starboard",
     "select_channel": "— Pilih Channel —",
-    "emoji_label": "Emoji Reaksi",
+    "emoji_label": "Emoji",
     "emoji_hint": "Gunakan emoji default Discord (⭐, 🌟, dll.) atau emoji custom server.",
-    "threshold_label": "Minimum Bintang",
+    "threshold_label": "Min. Reaction",
     "threshold_hint": "Jumlah reaksi minimum agar pesan masuk starboard."
   },
   "custom_commands": {

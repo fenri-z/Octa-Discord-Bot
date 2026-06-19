@@ -2183,38 +2183,6 @@ router.put('/guild/:guildId/youtube/channels/:ytChannelId', requireLogin, requir
     res.json({ success: true, message: 'Notification settings saved successfully.' });
 });
 
-// POST /api/guild/:guildId/youtube/channels/:ytChannelId/refresh-profile — refresh profile channel
-router.post('/guild/:guildId/youtube/channels/:ytChannelId/refresh-profile', requireLogin, requireManageGuild, async (req, res) => {
-    const db      = req.discordClient?.database;
-    const guildId = req.params.guildId;
-    const ytId    = req.params.ytChannelId;
-    if (!db) return res.status(500).json({ success: false, message: 'Database not available.' });
-
-    const channels = getYtChannels(db, guildId);
-    const idx      = channels.findIndex(c => c.id === ytId);
-    if (idx === -1) return res.json({ success: false, message: 'Channel not found.' });
-
-    const notifier = req.discordClient?.youtubeNotifier;
-    if (!notifier) return res.json({ success: false, message: 'YouTubeNotifier is not available.' });
-
-    try {
-        const info = await notifier.lookupChannel(ytId);
-        channels[idx] = {
-            ...channels[idx],
-            name:      info.name      || channels[idx].name,
-            thumbnail: info.thumbnail || channels[idx].thumbnail,
-            handle:    info.handle    || channels[idx].handle,
-        };
-        setYtChannels(db, guildId, channels);
-        res.json({
-            success: true,
-            message: 'Profile updated successfully.',
-            channel: { name: info.name, thumbnail: info.thumbnail, handle: info.handle },
-        });
-    } catch (err) {
-        res.json({ success: false, message: `Failed to refresh: ${err.message}` });
-    }
-});
 
 // POST /api/guild/:guildId/youtube/channels/:ytChannelId/test — kirim test notif
 router.post('/guild/:guildId/youtube/channels/:ytChannelId/test', requireLogin, requireManageGuild, async (req, res) => {

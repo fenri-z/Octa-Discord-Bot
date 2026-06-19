@@ -31,10 +31,11 @@ const BROWSER_HEADERS = {
 
 class YouTubeNotifier {
     constructor(client) {
-        this.client      = client;
-        this._pollTimer  = null;
-        this._liveTimer  = null;
-        this._renewTimer = null;
+        this.client        = client;
+        this._pollTimer    = null;
+        this._liveTimer    = null;
+        this._renewTimer   = null;
+        this._profileTimer = null;
 
         this._secret   = process.env.YOUTUBE_WEBSUB_SECRET || '';
         this._baseUrl  = (process.env.BASE_URL || '').replace(/\/$/, '');
@@ -72,13 +73,45 @@ class YouTubeNotifier {
         // langsung ter-mark, tidak perlu tunggu interval pertama di T+3 yang bisa terlewat window
         setTimeout(() => this._pollLive(), 30_000);
         this._liveTimer = setInterval(() => this._pollLive(), LIVE_POLL_INTERVAL_MS);
+
+        // Auto-refresh profil channel (nama, thumbnail, handle) setiap 24 jam
+        this._profileTimer = setInterval(() => this._refreshAllProfiles(), 24 * 60 * 60 * 1000);
     }
 
     stop() {
-        if (this._pollTimer)  clearInterval(this._pollTimer);
-        if (this._liveTimer)  clearInterval(this._liveTimer);
-        if (this._renewTimer) clearInterval(this._renewTimer);
-        this._pollTimer = this._liveTimer = this._renewTimer = null;
+        if (this._pollTimer)    clearInterval(this._pollTimer);
+        if (this._liveTimer)    clearInterval(this._liveTimer);
+        if (this._renewTimer)   clearInterval(this._renewTimer);
+        if (this._profileTimer) clearInterval(this._profileTimer);
+        this._pollTimer = this._liveTimer = this._renewTimer = this._profileTimer = null;
+    }
+
+    async _refreshAllProfiles() {
+        const db = this.client.database;
+        if (!db) return;
+        const DAY_MS = 24 * 60 * 60 * 1000;
+        const now    = Date.now();
+        for (const guild of this.client.guilds.cache.values()) {
+            let channels;
+            try { channels = JSON.parse(db.get(`youtube-channels-${guild.id}`) || '[]'); }
+            catch { continue; }
+            if (!Array.isArray(channels) || channels.length === 0) continue;
+            let changed = false;
+            for (const ch of channels) {
+                if (ch.profileLastUpdated && now - ch.profileLastUpdated < DAY_MS) continue;
+                try {
+                    const info = await this.lookupChannel(ch.id);
+                    ch.name               = info.name      || ch.name;
+                    ch.thumbnail          = info.thumbnail || ch.thumbnail;
+                    ch.handle             = info.handle    || ch.handle;
+                    ch.profileLastUpdated = now;
+                    changed = true;
+                } catch (err) {
+                    warn(`[YouTube] Auto profile refresh failed for ${ch.name}: ${err.message}`);
+                }
+            }
+            if (changed) db.set(`youtube-channels-${guild.id}`, JSON.stringify(channels));
+        }
     }
 
     // Force poll untuk satu guild (dipanggil dari API)
@@ -90,11 +123,15 @@ class YouTubeNotifier {
     }
 
     // Seed liveNotified untuk 5 video terbaru saat channel baru ditambahkan,
-    // agar _checkLive tidak mengirim notif untuk stream lama yang sudah berakhir
+    // agar _checkLive tidak mengirim notif untuk stream lama yang sudah berakhir.
+    // Jika channel sedang live saat ditambahkan, skip seeding agar notif live bisa dikirim.
     async seedLiveNotified(guildId, channelId) {
         const db = this.client.database;
         if (!db) return;
         try {
+            const livePage = await this._checkLivePage(channelId);
+            if (livePage.isLive) return; // biarkan _pollGuildLive kirim notif live nanti
+
             const rssRes = await fetch(`${RSS_BASE}${channelId}`, {
                 signal:  AbortSignal.timeout(10_000),
                 headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' },
@@ -460,10 +497,23 @@ class YouTubeNotifier {
             : videoUrl;
 
         // Cegah double notifikasi live dari _checkLive + RSS poll
-        if (type === 'live' && db) {
+        if (db) {
             const notifKey = `youtube-liveNotified-${guild.id}-${entry.id}`;
-            if (db.get(notifKey)) return;
-            db.set(notifKey, String(Date.now()));
+            if (type === 'live') {
+                if (db.get(notifKey)) return;
+                db.set(notifKey, String(Date.now()));
+            } else {
+                // Untuk video/short: skip jika _checkLive sudah kirim live notif duluan
+                if (db.get(notifKey)) return;
+
+                // InnerTube kadang belum update status live saat stream baru mulai.
+                // Verifikasi via /live page sebelum kirim notif video/short.
+                const livePage = await this._checkLivePage(ytCh.id);
+                if (livePage.isLive && (!livePage.videoId || livePage.videoId === entry.id)) {
+                    // Video ini adalah live stream — biarkan _checkLive yang handle
+                    return;
+                }
+            }
         }
 
         info(`[YouTube/RSS] ${type.toUpperCase()} | ${title} → guild ${guild.name}`);
@@ -621,9 +671,16 @@ class YouTubeNotifier {
 
     async _checkLivePage(channelId) {
         const LIVE_SIGNAL = '"is_viewed_live","value":"True"';
-        const VID_PREFIX  = '"videoDetails":{"videoId":"';
-        const TAIL        = 512;
-        const MAX_BYTES   = 800_000;
+        // Dua pattern untuk video ID: ytInitialPlayerResponse (watch page) atau ytInitialData (channel page)
+        const VID_PATTERNS = [
+            '"videoDetails":{"videoId":"',          // ytInitialPlayerResponse (watch page)
+            '"status":"LIKE","target":{"videoId":"', // ytInitialData like button → current video
+        ];
+        const TAIL           = 512;
+        const MAX_BYTES      = 800_000;
+        const MAX_BYTES_LIVE = 1_500_000;
+        // Title muncul ~6KB sebelum LIKE target — simpan cukup konteks agar tidak ter-trim
+        const LIVE_CTX       = 8_000;
 
         const controller = new AbortController();
         const timerId    = setTimeout(() => controller.abort(), 15_000);
@@ -653,11 +710,17 @@ class YouTubeNotifier {
                     bytesRead += value.byteLength;
 
                     if (!isLive) {
+                        // Ambil title dari og:title sebelum buffer di-trim (tersedia di awal halaman)
+                        if (!title) {
+                            const tm = buf.match(/<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']+)["']/i)
+                                    || buf.match(/<title>([^<]+)<\/title>/i);
+                            if (tm) title = tm[1].replace(/\s*[-–|]\s*YouTube\s*$/i, '').trim();
+                        }
+
                         if (buf.includes(LIVE_SIGNAL)) {
                             isLive = true;
-                            // Mulai dari videoDetails jika sudah ada di buffer, atau simpan tail
-                            const vi = buf.indexOf(VID_PREFIX);
-                            buf = vi !== -1 ? buf.slice(vi) : buf.slice(-TAIL);
+                            // Simpan LIVE_CTX bytes: cukup untuk title (~6KB) + pattern overlap
+                            buf = buf.slice(-LIVE_CTX);
                         } else {
                             if (buf.length > TAIL * 2) buf = buf.slice(-TAIL);
                             if (bytesRead > MAX_BYTES) break;
@@ -665,28 +728,30 @@ class YouTubeNotifier {
                         }
                     }
 
-                    // isLive = true dari sini, cari videoId dan title
-                    const vi = buf.indexOf(VID_PREFIX);
-                    if (vi !== -1) {
-                        const after = buf.slice(vi + VID_PREFIX.length);
-                        const m = after.match(/^([a-zA-Z0-9_-]{11})"/);
-                        if (m) {
-                            videoId = m[1];
-                            // Coba ambil title dari section terdekat
-                            const section = buf.slice(vi, vi + 2000);
-                            const ti = section.indexOf('"title":"');
-                            if (ti !== -1) {
-                                const ta  = section.slice(ti + 9);
-                                const tm  = ta.match(/^((?:[^"\\]|\\.)*?)"/);
-                                if (tm) {
-                                    try { title = JSON.parse('"' + tm[1] + '"'); } catch { title = tm[1]; }
+                    // isLive = true — cari videoId dengan semua pattern yang ada
+                    for (const prefix of VID_PATTERNS) {
+                        const pi = buf.indexOf(prefix);
+                        if (pi !== -1) {
+                            const m = buf.slice(pi + prefix.length).match(/^([a-zA-Z0-9_-]{11})"/);
+                            if (m) {
+                                videoId = m[1];
+                                // Ambil title dari konteks sekitar (title muncul ~7KB sebelum LIKE target)
+                                if (!title) {
+                                    const win = buf.slice(0, pi + prefix.length + 12);
+                                    const tr  = win.match(/"title":\{"runs":\[\{"text":"((?:[^"\\]|\\.)*)"/);
+                                    const ts  = win.match(/"title":\{"simpleText":"((?:[^"\\]|\\.)*)"/);
+                                    const raw = tr?.[1] ?? ts?.[1];
+                                    if (raw) try { title = JSON.parse('"' + raw + '"'); } catch { title = raw; }
                                 }
+                                break;
                             }
-                            break; // Dapat semua yang dibutuhkan
                         }
                     }
+                    if (videoId) break;
 
-                    if (bytesRead > MAX_BYTES) break;
+                    // Pertahankan LIVE_CTX bytes untuk konteks title di chunk berikutnya
+                    if (buf.length > LIVE_CTX * 2) buf = buf.slice(-LIVE_CTX);
+                    if (bytesRead > MAX_BYTES_LIVE) break;
                 }
             } finally {
                 reader.cancel().catch(() => {});

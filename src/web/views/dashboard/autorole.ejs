@@ -18,9 +18,9 @@
         <div id="tab-join" class="ar-tab-content">
 
             <!-- ── How to Use: Join ──────────────────────────────────────────────── -->
-            <div class="settings-card" style="margin-bottom:1.5rem;--guide-accent:#5865F2;">
+            <div class="settings-card" style="margin-bottom:1.5rem;">
                 <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.25rem;">
-                    <i data-lucide="book-open" style="color:#5865F2;width:18px;height:18px;flex-shrink:0;"></i>
+                    <i data-lucide="book-open" style="color:var(--accent);width:18px;height:18px;flex-shrink:0;"></i>
                     <h2 style="margin:0;font-size:1rem;font-weight:600;"><%= t('autorole.join_how_to_use') %></h2>
                 </div>
                 <div class="guide-grid">
@@ -111,9 +111,9 @@
         <div id="tab-booster" class="ar-tab-content" style="display:none;">
 
             <!-- ── How to Use: Booster ───────────────────────────────────────────── -->
-            <div class="settings-card" style="margin-bottom:1.5rem;--guide-accent:#FF73FA;">
+            <div class="settings-card" style="margin-bottom:1.5rem;">
                 <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.25rem;">
-                    <i data-lucide="book-open" style="color:#FF73FA;width:18px;height:18px;flex-shrink:0;"></i>
+                    <i data-lucide="book-open" style="color:var(--accent);width:18px;height:18px;flex-shrink:0;"></i>
                     <h2 style="margin:0;font-size:1rem;font-weight:600;"><%= t('autorole.ar_boost_how_to_use') %></h2>
                 </div>
                 <div class="guide-grid">
@@ -191,14 +191,14 @@
             <!-- ── Stats cards ── -->
             <div class="stats-grid" style="margin-bottom:1.5rem;">
                 <div class="stat-card">
-                    <div class="stat-icon" style="color:#5865F2;"><i data-lucide="circle-dot"></i></div>
+                    <div class="stat-icon stat-icon-comm"><i data-lucide="circle-dot"></i></div>
                     <div class="stat-info">
                         <div class="stat-value"><%= panels.length %></div>
                         <div class="stat-label">Total Panels</div>
                     </div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-icon" style="color:#57F287;"><i data-lucide="hash"></i></div>
+                    <div class="stat-icon stat-icon-comm"><i data-lucide="hash"></i></div>
                     <div class="stat-info">
                         <div class="stat-value"><%= panels.filter(p => p.channelId).length %></div>
                         <div class="stat-label">With Channel</div>
@@ -214,9 +214,9 @@
             </div>
 
             <!-- ── How to Use: Button ────────────────────────────────────────────── -->
-            <div class="settings-card" style="margin-bottom:1.5rem;--guide-accent:#5865F2;">
+            <div class="settings-card" style="margin-bottom:1.5rem;">
                 <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.25rem;">
-                    <i data-lucide="book-open" style="color:#5865F2;width:18px;height:18px;flex-shrink:0;"></i>
+                    <i data-lucide="book-open" style="color:var(--accent);width:18px;height:18px;flex-shrink:0;"></i>
                     <h2 style="margin:0;font-size:1rem;font-weight:600;"><%= t('autorole.button_how_to_use') %></h2>
                 </div>
                 <div class="guide-grid">
@@ -561,14 +561,14 @@
             <!-- ── Stats cards ── -->
             <div class="stats-grid" style="margin-bottom:1.5rem;">
                 <div class="stat-card">
-                    <div class="stat-icon" style="color:#57F287;"><i data-lucide="smile"></i></div>
+                    <div class="stat-icon stat-icon-comm"><i data-lucide="smile"></i></div>
                     <div class="stat-info">
                         <div class="stat-value"><%= reactPanels.length %></div>
                         <div class="stat-label">Total Panels</div>
                     </div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-icon" style="color:#5865F2;"><i data-lucide="hash"></i></div>
+                    <div class="stat-icon stat-icon-comm"><i data-lucide="hash"></i></div>
                     <div class="stat-info">
                         <div class="stat-value"><%= reactPanels.filter(p => p.channelId).length %></div>
                         <div class="stat-label">With Channel</div>
@@ -584,9 +584,9 @@
             </div>
 
             <!-- ── How to Use: Reaction ──────────────────────────────────────────── -->
-            <div class="settings-card" style="margin-bottom:1.5rem;--guide-accent:#57F287;">
+            <div class="settings-card" style="margin-bottom:1.5rem;">
                 <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.25rem;">
-                    <i data-lucide="book-open" style="color:#57F287;width:18px;height:18px;flex-shrink:0;"></i>
+                    <i data-lucide="book-open" style="color:var(--accent);width:18px;height:18px;flex-shrink:0;"></i>
                     <h2 style="margin:0;font-size:1rem;font-weight:600;"><%= t('autorole.react_how_to_use') %></h2>
                 </div>
                 <div class="guide-grid">
@@ -804,7 +804,7 @@
                                 <div style="margin-bottom:.4rem;"><i data-lucide="smile" style="width:2rem;height:2rem;color:var(--text-muted);"></i></div>
                                 <div style="font-size:.85rem;"><%- t('autorole.no_inline_react_hint') %></div>
                             </div>
-                            <div style="margin-top:.75rem;padding:.6rem .75rem;background:rgba(88,101,242,.08);border-radius:8px;border:1px solid rgba(88,101,242,.2);font-size:.78rem;color:var(--text-muted);line-height:1.6;">
+                            <div style="margin-top:.75rem;padding:.6rem .75rem;background:color-mix(in srgb,var(--accent) 8%,transparent);border-radius:8px;border:1px solid color-mix(in srgb,var(--accent) 20%,transparent);font-size:.78rem;color:var(--text-muted);line-height:1.6;">
                                 💡 <strong style="color:var(--text);">Tips:</strong>
                                 <%- t('autorole.react_tips_body') %>
                             </div>
@@ -1133,7 +1133,7 @@
 }
 .btn-card:hover {
     border-color: var(--accent);
-    box-shadow: 0 0 0 1px rgba(88,101,242,.12), 0 4px 14px rgba(0,0,0,.15);
+    box-shadow: 0 0 0 1px color-mix(in srgb,var(--accent) 12%,transparent), 0 4px 14px rgba(0,0,0,.15);
 }
 .btn-card.has-duplicate {
     border-color: var(--red) !important;
@@ -1346,7 +1346,7 @@
 }
 .react-editor-card:hover {
     border-color: var(--accent);
-    box-shadow: 0 0 0 1px rgba(88,101,242,.15), 0 4px 14px rgba(0,0,0,.18);
+    box-shadow: 0 0 0 1px color-mix(in srgb,var(--accent) 15%,transparent), 0 4px 14px rgba(0,0,0,.18);
 }
 .react-num-badge {
     width: 22px; height: 22px;
@@ -1375,12 +1375,12 @@
 }
 .react-emoji-bubble:hover {
     border-color: var(--accent);
-    background: rgba(88,101,242,.08);
+    background: color-mix(in srgb,var(--accent) 8%,transparent);
     transform: scale(1.05);
 }
 .react-emoji-bubble.has-emoji {
-    border: 2px solid rgba(88,101,242,.5);
-    background: rgba(88,101,242,.08);
+    border: 2px solid color-mix(in srgb,var(--accent) 50%,transparent);
+    background: color-mix(in srgb,var(--accent) 8%,transparent);
     transform: scale(1.05);
 }
 .react-emoji-bubble.has-emoji:hover { transform: scale(1.12); }
@@ -1446,10 +1446,10 @@
 .react-select { cursor: pointer; }
 .react-select:focus, .react-input:focus {
     border-color: var(--accent);
-    box-shadow: 0 0 0 2px rgba(88,101,242,.18);
+    box-shadow: 0 0 0 2px color-mix(in srgb,var(--accent) 18%,transparent);
 }
 .react-select:hover, .react-input:hover {
-    border-color: rgba(88,101,242,.5);
+    border-color: color-mix(in srgb,var(--accent) 50%,transparent);
 }
 .react-select option { background: var(--bg2); color: var(--text); }
 

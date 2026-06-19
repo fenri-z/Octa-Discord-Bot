@@ -15,28 +15,28 @@
         <!-- ── Stats Overview ──────────────────────────────────────────── -->
         <div class="stats-grid">
             <div class="stat-card">
-                <div class="stat-icon"><i data-lucide="link"></i></div>
+                <div class="stat-icon stat-icon-comm"><i data-lucide="link"></i></div>
                 <div class="stat-info">
                     <div class="stat-value" id="statTotal"><%= invites.length %></div>
                     <div class="stat-label"><%= t('invites.total_invite') %></div>
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon" style="color:#57F287;"><i data-lucide="trending-up"></i></div>
+                <div class="stat-icon stat-icon-comm"><i data-lucide="trending-up"></i></div>
                 <div class="stat-info">
                     <div class="stat-value" id="statUses"><%= totalUses %></div>
                     <div class="stat-label"><%= t('invites.total_uses') %></div>
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon" style="color:#5865F2;"><i data-lucide="user"></i></div>
+                <div class="stat-icon stat-icon-comm"><i data-lucide="user"></i></div>
                 <div class="stat-info">
                     <div class="stat-value" id="statInviters"><%= uniqueInviters %></div>
                     <div class="stat-label"><%= t('invites.unique_inviters') %></div>
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon" style="color:#FEE75C;"><i data-lucide="crown"></i></div>
+                <div class="stat-icon stat-icon-comm"><i data-lucide="crown"></i></div>
                 <div class="stat-info">
                     <div class="stat-value" id="statTop" style="font-size:.95rem;">
                         <% if (invites.length > 0) { %><%= invites[0].inviterTag %><% } else { %>—<% } %>
@@ -197,12 +197,6 @@
 @media (max-width: 680px) {
     .dash-main      { padding: 1.25rem 1rem 1.5rem !important; }
 
-    /* Stats */
-    .stats-grid     { grid-template-columns: 1fr 1fr !important; }
-    .stats-grid .stat-card { min-width: 0; padding: .75rem; gap: .5rem; }
-    .stats-grid .stat-info { min-width: 0; overflow: hidden; }
-    .stats-grid .stat-label { white-space: normal; line-height: 1.3; }
-
     /* Header bar: judul + refresh wrap */
     .inv-header-row { flex-wrap: wrap; gap: .5rem; }
 
@@ -220,14 +214,6 @@
 
 @media (max-width: 480px) {
     .dash-main      { padding: 1rem .75rem 1.5rem !important; }
-
-    /* Stats lebih kompak */
-    .stats-grid .stat-card  { padding: .6rem .5rem; gap: .4rem; }
-    .stats-grid .stat-icon  { width: 30px !important; height: 30px !important; border-radius: 7px !important; flex-shrink: 0; }
-    .stats-grid .stat-icon svg,
-    .stats-grid .stat-icon i { width: 14px !important; height: 14px !important; }
-    .stats-grid .stat-value { font-size: 1.1rem; }
-    .stats-grid .stat-label { font-size: .63rem; }
 
     /* Header & filter bar padding */
     .inv-header-row { padding: .75rem 1rem; }
@@ -259,11 +245,6 @@
 /* ── Mobile kecil (≤ 390px): sembunyikan juga kolom Channel ─────────────── */
 @media (max-width: 390px) {
     .dash-main      { padding: 1rem .75rem 1.5rem !important; }
-    .stats-grid     { grid-template-columns: 1fr 1fr !important; }
-    .stats-grid .stat-card  { padding: .6rem .5rem; gap: .4rem; }
-    .stats-grid .stat-icon  { width: 30px !important; height: 30px !important; border-radius: 7px !important; }
-    .stats-grid .stat-value { font-size: 1.1rem; }
-    .stats-grid .stat-label { font-size: .63rem; }
     .inv-col-channel { display: none; }
 }
 </style>

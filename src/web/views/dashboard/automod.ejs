@@ -90,9 +90,6 @@
 
 /* ── Tablet (≤ 900px) ───────────────────────────────────────────────────── */
 @media (max-width: 900px) {
-    .stats-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    }
     .am-cfg-row {
         flex-direction: column !important;
         gap: 1rem !important;
@@ -111,11 +108,6 @@
 
 /* ── Mobile (≤ 600px) ───────────────────────────────────────────────────── */
 @media (max-width: 600px) {
-    .stats-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-        gap: .6rem !important;
-    }
-
     /* Spam / Raid / Mention number inputs: stack vertikal */
     .am-num-row {
         flex-direction: column !important;
@@ -185,16 +177,6 @@
     }
 }
 
-/* ── Small mobile (≤ 420px): stats jadi 1 kolom ────────────────────────── */
-@media (max-width: 420px) {
-    .stats-grid {
-        grid-template-columns: 1fr !important;
-        gap: .5rem !important;
-    }
-    .stat-card {
-        padding: .85rem .9rem !important;
-    }
-}
 </style>
 
 <div class="dash-layout">
@@ -212,28 +194,28 @@
         <!-- ── Stats Overview ──────────────────────────────────────────────────── -->
         <div class="stats-grid">
             <div class="stat-card">
-                <div class="stat-icon" style="color:#5865F2;"><i data-lucide="shield-check"></i></div>
+                <div class="stat-icon stat-icon-comm"><i data-lucide="shield-check"></i></div>
                 <div class="stat-info">
                     <div class="stat-value"><%= activeCount %></div>
                     <div class="stat-label"><%= t('automod.active_protection') %></div>
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon" style="color:#ED4245;"><i data-lucide="ban"></i></div>
+                <div class="stat-icon stat-icon-comm"><i data-lucide="ban"></i></div>
                 <div class="stat-info">
                     <div class="stat-value"><%= automodData.words.length %></div>
                     <div class="stat-label"><%= t('automod.banned_words') %></div>
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon" style="color:#FEE75C;"><i data-lucide="hash"></i></div>
+                <div class="stat-icon stat-icon-comm"><i data-lucide="hash"></i></div>
                 <div class="stat-info">
                     <div class="stat-value"><%= automodData.wlChannels.length %></div>
                     <div class="stat-label"><%= t('automod.channel_whitelist') %></div>
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon" style="color:#57F287;"><i data-lucide="users"></i></div>
+                <div class="stat-icon stat-icon-comm"><i data-lucide="users"></i></div>
                 <div class="stat-info">
                     <div class="stat-value"><%= automodData.wlRoles.length %></div>
                     <div class="stat-label"><%= t('automod.role_whitelist') %></div>
@@ -242,9 +224,9 @@
         </div>
 
         <!-- ── How to Use ──────────────────────────────────────────────────────────── -->
-        <div class="settings-card" style="margin-bottom:1.5rem;--guide-accent:#5865F2;">
+        <div class="settings-card" style="margin-bottom:1.5rem;">
             <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.25rem;">
-                <i data-lucide="book-open" style="color:#5865F2;width:18px;height:18px;flex-shrink:0;"></i>
+                <i data-lucide="book-open" style="color:var(--accent);width:18px;height:18px;flex-shrink:0;"></i>
                 <h2 style="margin:0;font-size:1rem;font-weight:600;"><%= t('automod.how_to_use') %></h2>
             </div>
             <div class="guide-grid">

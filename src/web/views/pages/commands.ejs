@@ -130,7 +130,7 @@
             <div class="cmd-cat-label">
                 <div class="cat-dot" style="background:#57F287;"></div>
                 <%= t('commands.cat_notification') %>
-                <span class="cmd-count">4</span>
+                <span class="cmd-count">3</span>
             </div>
             <div class="cmd-grid">
                 <div class="cmd-card" data-name="/welcome">
@@ -146,11 +146,6 @@
                 <div class="cmd-card" data-name="/booster">
                     <div class="cmd-card-name"><code>/booster</code></div>
                     <div class="cmd-card-desc"><%= t('commands.cmd_booster') %></div>
-                    <div><span class="cmd-perm-badge admin">Manage Guild</span></div>
-                </div>
-                <div class="cmd-card" data-name="/ticket">
-                    <div class="cmd-card-name"><code>/ticket</code></div>
-                    <div class="cmd-card-desc"><%= t('commands.cmd_ticket') %></div>
                     <div><span class="cmd-perm-badge admin">Manage Guild</span></div>
                 </div>
             </div>
@@ -243,9 +238,14 @@
             <div class="cmd-cat-label">
                 <div class="cat-dot" style="background:#F0A032;"></div>
                 Utility
-                <span class="cmd-count">8</span>
+                <span class="cmd-count">9</span>
             </div>
             <div class="cmd-grid">
+                <div class="cmd-card" data-name="/ticket">
+                    <div class="cmd-card-name"><code>/ticket</code></div>
+                    <div class="cmd-card-desc"><%= t('commands.cmd_ticket') %></div>
+                    <div><span class="cmd-perm-badge admin">Manage Guild</span></div>
+                </div>
                 <div class="cmd-card" data-name="/ping">
                     <div class="cmd-card-name"><code>/ping</code></div>
                     <div class="cmd-card-desc"><%= t('commands.cmd_ping') %></div>

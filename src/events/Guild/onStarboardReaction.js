@@ -24,7 +24,7 @@ async function handleReaction(client, reaction, user, isAdd) {
     if (reaction.emoji.name !== emoji && reaction.emoji.toString() !== emoji) return;
     if (message.channel.id === sbChannelId) return; // jangan re-star pesan starboard
 
-    const count = isAdd ? reaction.count : reaction.count;
+    const count = reaction.count;
 
     const existingKey = `starboard-msg-${guildId}-${message.id}`;
     const existingId  = db.get(existingKey);

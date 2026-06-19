@@ -731,7 +731,7 @@
     "confirm_yes": "Yes, Delete All",
     "confirm_cancel": "Cancel",
     "setup_first": "Complete Setup first",
-    "setup_will_create": "<strong style=\"color:#5865F2;\">Will be created:</strong><br>📁 1 Category &nbsp;·&nbsp; 👥 Total Members Channel &nbsp;·&nbsp; 👤 Users Channel &nbsp;·&nbsp; 🤖 Bots Channel",
+    "setup_will_create": "<strong style=\"color:var(--accent);\">Will be created:</strong><br>📁 1 Category &nbsp;·&nbsp; 👥 Total Members Channel &nbsp;·&nbsp; 👤 Users Channel &nbsp;·&nbsp; 🤖 Bots Channel",
     "how_to_use": "How to Use",
     "step1_title": "Click Setup",
     "step1_desc": "Click <strong>Create Stats Channels</strong> to automatically create a category with three stat channels in your server.",
@@ -1363,9 +1363,9 @@
     "config_title": "Starboard Configuration",
     "enable_label": "Enable Starboard",
     "select_channel": "— Select Channel —",
-    "emoji_label": "Reaction Emoji",
+    "emoji_label": "Emoji",
     "emoji_hint": "Use a default Discord emoji (⭐, 🌟, etc.) or a custom server emoji.",
-    "threshold_label": "Minimum Stars",
+    "threshold_label": "Min. Reaction",
     "threshold_hint": "Minimum number of reactions needed for a message to appear in the starboard."
   },
   "custom_commands": {

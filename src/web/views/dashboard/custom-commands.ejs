@@ -16,21 +16,21 @@
         <!-- Stats -->
         <div class="stats-grid">
             <div class="stat-card">
-                <div class="stat-icon" style="color:#5865F2;"><i data-lucide="terminal"></i></div>
+                <div class="stat-icon stat-icon-comm"><i data-lucide="terminal"></i></div>
                 <div class="stat-info">
                     <div class="stat-value"><%= commands.length %></div>
                     <div class="stat-label"><%= t('custom_commands.total_commands') %></div>
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon" style="color:#57F287;"><i data-lucide="check-circle"></i></div>
+                <div class="stat-icon stat-icon-comm"><i data-lucide="check-circle"></i></div>
                 <div class="stat-info">
                     <div class="stat-value"><%= commands.filter(c => c.enabled).length %></div>
                     <div class="stat-label"><%= t('custom_commands.active_commands') %></div>
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon" style="color:<%= commands.length >= 10 ? '#ed4245' : '#FEE75C' %>;"><i data-lucide="layers"></i></div>
+                <div class="stat-icon<%= commands.length >= 10 ? '' : ' stat-icon-comm' %>"<%= commands.length >= 10 ? ' style="color:#ed4245;background:rgba(237,66,69,.12);"' : '' %>><i data-lucide="layers"></i></div>
                 <div class="stat-info">
                     <div class="stat-value" style="<%= commands.length >= 10 ? 'color:#ed4245;' : '' %>"><%= commands.length %>/10</div>
                     <div class="stat-label">Slots Used</div>
@@ -41,7 +41,7 @@
         <!-- How to Use -->
         <div class="settings-card" style="margin-bottom:1.5rem;">
             <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.25rem;">
-                <i data-lucide="book-open" style="color:#5865F2;width:18px;height:18px;flex-shrink:0;"></i>
+                <i data-lucide="book-open" style="color:var(--accent);width:18px;height:18px;flex-shrink:0;"></i>
                 <h2 style="margin:0;font-size:1rem;font-weight:600;"><%= t('custom_commands.how_to_use') %></h2>
             </div>
             <div class="guide-grid">

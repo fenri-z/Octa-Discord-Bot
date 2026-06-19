@@ -1,6 +1,9 @@
 ﻿<%- include('../partials/head') %>
 <%- include('../partials/navbar') %>
 <style nonce="<%= typeof locals.nonce !== 'undefined' ? locals.nonce : '' %>">
+/* ── Override accent → Twitch purple ────────────────────────────────────── */
+:root { --accent: #9146FF; --accent-h: #7b2ff7; --accent-rgb: 145,70,255; }
+
 /* ── Layout 2 kolom (sama pola TikTok/YouTube) ───────────────────────────── */
 .tw-panel-layout {
     display: grid;
@@ -65,27 +68,15 @@
 .tw-dot-row span:nth-child(2) { animation-delay:.2s; }
 .tw-dot-row span:nth-child(3) { animation-delay:.4s; }
 
-/* ── Stats grid ──────────────────────────────────────────────────────────── */
-.tw-stats-grid { grid-template-columns: repeat(3,1fr) !important; }
-
 /* ── Responsive ──────────────────────────────────────────────────────────── */
 @media (max-width: 860px) {
     .tw-panel-layout  { grid-template-columns: 1fr; }
     .tw-preview-col   { position: static; }
-    /* Stats: 2 kolom di tablet */
-    .tw-stats-grid    { grid-template-columns: 1fr 1fr !important; }
-    .tw-stats-grid .stat-card { min-width: 0; }
-    .tw-stats-grid .stat-info { min-width: 0; overflow: hidden; }
-    .tw-stats-grid .stat-label { white-space: normal; line-height: 1.3; }
 }
 @media (max-width: 680px) {
     .dash-main        { padding: 1.25rem 1rem 1.5rem !important; }
     .settings-card    { padding: 1rem !important; }
     .tw-channel-card  { padding: .9rem; }
-    .tw-stats-grid    { grid-template-columns: 1fr 1fr !important; }
-    .tw-stats-grid .stat-card { min-width: 0; padding: .75rem; gap: .5rem; }
-    .tw-stats-grid .stat-info { min-width: 0; overflow: hidden; }
-    .tw-stats-grid .stat-label { white-space: normal; line-height: 1.3; }
     .tw-card-header   { gap: .6rem; }
     .tw-card-avatar,
     .tw-card-avatar-placeholder { width: 38px; height: 38px; }
@@ -99,11 +90,6 @@
 @media (max-width: 480px) {
     .dash-main        { padding: 1rem .75rem 1.5rem !important; }
     .tw-channel-card  { padding: .75rem; }
-    .tw-stats-grid .stat-card { padding: .6rem .5rem; gap: .4rem; }
-    .tw-stats-grid .stat-icon { width: 30px !important; height: 30px !important; border-radius: 7px !important; flex-shrink: 0; }
-    .tw-stats-grid .stat-icon svg { width: 14px !important; height: 14px !important; }
-    .tw-stats-grid .stat-value { font-size: 1.1rem; }
-    .tw-stats-grid .stat-label { font-size: .63rem; }
     .tw-card-header .btn-sm { padding: .3rem .45rem; }
     .label-with-picker { flex-wrap: wrap; gap: .35rem; }
 }
@@ -164,9 +150,9 @@
         <% } %>
 
         <!-- Stats -->
-        <div class="stats-grid tw-stats-grid" style="margin-bottom:1.5rem;">
+        <div class="stats-grid" style="margin-bottom:1.5rem;">
             <div class="stat-card">
-                <div class="stat-icon" style="color:#9146FF;">
+                <div class="stat-icon stat-icon-comm">
                     <svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"/></svg>
                 </div>
                 <div class="stat-info">
@@ -175,7 +161,7 @@
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon" style="color:#57F287;">
+                <div class="stat-icon stat-icon-comm">
                     <i data-lucide="radio"></i>
                 </div>
                 <div class="stat-info">

@@ -1,5 +1,36 @@
 <%- include('../partials/head') %>
 <%- include('../partials/navbar') %>
+<style>
+.sb-config-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto 120px;
+    gap: 1rem;
+    align-items: flex-end;
+}
+.sb-emoji-group { display: flex; flex-direction: column; }
+.sb-emoji-bubble {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 47px;
+    height: 47px;
+    border-radius: 8px;
+    border: 2px dashed var(--border);
+    background: var(--bg-secondary, rgba(255,255,255,.04));
+    font-size: 1.4rem;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: border-color .15s, background .15s;
+    user-select: none;
+}
+.sb-emoji-bubble:hover { border-color: var(--accent, #5865F2); background: rgba(88,101,242,.08); }
+.sb-emoji-bubble.has-emoji { border-style: solid; border-color: var(--border); }
+.sb-emoji-empty { font-size: .75rem; opacity: .4; }
+@media (max-width: 600px) {
+    .sb-config-row { grid-template-columns: auto 1fr; align-items: start; }
+    .sb-channel-group { grid-column: 1 / -1; }
+}
+</style>
 
 <div class="dash-layout">
     <%- include('../partials/sidebar', { activePage: 'starboard' }) %>
@@ -9,21 +40,21 @@
         <%- include('../partials/perm-notice') %>
 
         <div class="page-header">
-            <h1>⭐ <%= t('starboard.page_title') %></h1>
+            <h1><%= t('starboard.page_title') %></h1>
             <p><%= t('starboard.page_desc') %></p>
         </div>
 
         <!-- Stats -->
         <div class="stats-grid">
             <div class="stat-card">
-                <div class="stat-icon" style="color:#FEE75C;"><i data-lucide="star"></i></div>
+                <div class="stat-icon stat-icon-comm"><i data-lucide="star"></i></div>
                 <div class="stat-info">
                     <div class="stat-value"><%= starboardData.enabled ? t('starboard.status_active') : t('starboard.status_inactive') %></div>
                     <div class="stat-label"><%= t('starboard.status_label') %></div>
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon" style="color:#F0A032;"><i data-lucide="hash"></i></div>
+                <div class="stat-icon stat-icon-comm"><i data-lucide="hash"></i></div>
                 <div class="stat-info">
                     <div class="stat-value">
                         <% if (starboardData.channelId) { %>
@@ -35,7 +66,7 @@
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon" style="color:#FEE75C;"><i data-lucide="award"></i></div>
+                <div class="stat-icon stat-icon-comm"><i data-lucide="award"></i></div>
                 <div class="stat-info">
                     <div class="stat-value"><%= starboardData.threshold %> ⭐</div>
                     <div class="stat-label"><%= t('starboard.min_stars') %></div>
@@ -46,7 +77,7 @@
         <!-- How to Use -->
         <div class="settings-card" style="margin-bottom:1.5rem;">
             <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.25rem;">
-                <i data-lucide="book-open" style="color:#FEE75C;width:18px;height:18px;flex-shrink:0;"></i>
+                <i data-lucide="book-open" style="color:var(--accent);width:18px;height:18px;flex-shrink:0;"></i>
                 <h2 style="margin:0;font-size:1rem;font-weight:600;"><%= t('starboard.how_to_use') %></h2>
             </div>
             <div class="guide-grid">
@@ -81,26 +112,41 @@
                 </label>
             </div>
 
-            <div class="form-group">
-                <label class="label"><%= t('starboard.channel_label') %></label>
-                <select id="sbChannel" class="select">
-                    <option value=""><%= t('starboard.select_channel') %></option>
-                    <% channels.forEach(function(ch) { %>
-                        <option value="<%= ch.id %>" <%= starboardData.channelId === ch.id ? 'selected' : '' %>>#<%= ch.name %></option>
-                    <% }); %>
-                </select>
-            </div>
-
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
-                <div class="form-group">
-                    <label class="label"><%= t('starboard.emoji_label') %></label>
-                    <input type="text" id="sbEmoji" class="input" value="<%= starboardData.emoji %>" placeholder="⭐" maxlength="10">
-                    <p class="section-desc" style="margin-top:.35rem;"><%= t('starboard.emoji_hint') %></p>
+            <div class="sb-config-row">
+                <div class="form-group sb-channel-group">
+                    <label class="label"><%= t('starboard.channel_label') %></label>
+                    <select id="sbChannel" class="select">
+                        <option value=""><%= t('starboard.select_channel') %></option>
+                        <% channels.forEach(function(ch) { %>
+                            <option value="<%= ch.id %>" <%= starboardData.channelId === ch.id ? 'selected' : '' %>>#<%= ch.name %></option>
+                        <% }); %>
+                    </select>
                 </div>
-                <div class="form-group">
+
+                <div class="form-group sb-emoji-group">
+                    <label class="label"><%= t('starboard.emoji_label') %></label>
+                    <input type="hidden" id="sbEmoji" value="<%= starboardData.emoji %>">
+                    <div class="sb-emoji-bubble <%= starboardData.emoji ? 'has-emoji' : '' %>"
+                         id="sbEmojiBubble"
+                         onclick="openSbEmojiPicker(this)"
+                         title="Click to pick emoji">
+                        <%
+                            const em = starboardData.emoji;
+                            if (em && em.includes(':')) {
+                                const parts = em.split(':');
+                        %>
+                            <img src="https://cdn.discordapp.com/emojis/<%= parts[1] %>.webp?size=64" alt=":<%= parts[0] %>:" style="width:30px;height:30px;object-fit:contain;border-radius:4px;">
+                        <% } else if (em) { %>
+                            <%= em %>
+                        <% } else { %>
+                            <span class="sb-emoji-empty">✨</span>
+                        <% } %>
+                    </div>
+                </div>
+
+                <div class="form-group sb-threshold-group">
                     <label class="label"><%= t('starboard.threshold_label') %></label>
-                    <input type="number" id="sbThreshold" class="input" value="<%= starboardData.threshold %>" min="1" max="50">
-                    <p class="section-desc" style="margin-top:.35rem;"><%= t('starboard.threshold_hint') %></p>
+                    <input type="number" id="sbThreshold" class="input num-only" value="<%= starboardData.threshold %>" min="1" max="50">
                 </div>
             </div>
 
@@ -110,12 +156,6 @@
     </div><!-- /.dash-content-wide -->
     </main>
 </div><!-- /.dash-layout -->
-
-<style>
-@media (max-width: 600px) {
-    [style*="grid-template-columns:1fr 1fr"] { grid-template-columns: 1fr !important; }
-}
-</style>
 
 <script>
 const GUILD_ID = '<%= guild.id %>';
@@ -136,18 +176,67 @@ async function apiFetch(path, method, body) {
     return res.json();
 }
 
+function openSbEmojiPicker(anchorEl) {
+    EmojiPicker.open(anchorEl, function(value) {
+        document.getElementById('sbEmoji').value = value;
+        const bubble = document.getElementById('sbEmojiBubble');
+        bubble.classList.add('has-emoji');
+        bubble.title = 'Click to change emoji';
+        if (value.includes(':')) {
+            const [name, id] = value.split(':');
+            bubble.innerHTML = `<img src="https://cdn.discordapp.com/emojis/${id}.webp?size=64" alt=":${name}:" style="width:30px;height:30px;object-fit:contain;border-radius:4px;">`;
+        } else {
+            bubble.textContent = value;
+        }
+        if (window._floatDirty) window._floatDirty();
+    });
+}
+
 async function saveConfig() {
-    const msg  = document.getElementById('sbMsg');
+    const msg       = document.getElementById('sbMsg');
+    const threshold = parseInt(document.getElementById('sbThreshold').value, 10);
+    if (isNaN(threshold) || threshold < 1 || threshold > 50) {
+        showMsg(msg, 'Minimum Reaction must be between 1 and 50.', 'error');
+        return;
+    }
     const data = await apiFetch('/starboard', 'POST', {
         enabled:   document.getElementById('sbEnabled').checked,
         channelId: document.getElementById('sbChannel').value || null,
         emoji:     document.getElementById('sbEmoji').value.trim() || '⭐',
-        threshold: parseInt(document.getElementById('sbThreshold').value) || 3,
+        threshold,
     });
     showMsg(msg, data.message, data.success ? 'success' : 'error');
 }
 
+document.addEventListener('keydown', function(e) {
+    if (!e.target.classList.contains('num-only')) return;
+    const allowed = ['Backspace','Delete','ArrowLeft','ArrowRight','Tab','Home','End'];
+    if (allowed.includes(e.key) || /^\d$/.test(e.key)) return;
+    e.preventDefault();
+});
+document.addEventListener('paste', function(e) {
+    if (!e.target.classList.contains('num-only')) return;
+    e.preventDefault();
+    const text = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '');
+    if (text) document.execCommand('insertText', false, text);
+});
+
 window._floatSave = () => saveConfig();
+
+document.addEventListener('DOMContentLoaded', function() {
+    const input  = document.getElementById('sbThreshold');
+    const bubble = document.getElementById('sbEmojiBubble');
+    if (input && bubble) {
+        const h = input.offsetHeight;
+        bubble.style.height = h + 'px';
+        bubble.style.width  = h + 'px';
+    }
+});
+</script>
+
+<script src="/js/emoji-picker.js"></script>
+<script>
+EmojiPicker.init(<%- JSON.stringify(guildEmojis || []) %>);
 </script>
 
 <%- include('../partials/footer') %>

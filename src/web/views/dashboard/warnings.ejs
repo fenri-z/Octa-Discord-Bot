@@ -16,21 +16,21 @@
         <!-- ── Stats ─────────────────────────────────────────────────────────── -->
         <div class="stats-grid">
             <div class="stat-card">
-                <div class="stat-icon" style="color:#FEE75C;"><i data-lucide="triangle-alert"></i></div>
+                <div class="stat-icon stat-icon-comm"><i data-lucide="triangle-alert"></i></div>
                 <div class="stat-info">
                     <div class="stat-value"><%= warnLog.length %></div>
                     <div class="stat-label"><%= t('warnings.total_warns') %></div>
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon" style="color:#5865F2;"><i data-lucide="shield-alert"></i></div>
+                <div class="stat-icon stat-icon-comm"><i data-lucide="shield-alert"></i></div>
                 <div class="stat-info">
                     <div class="stat-value"><%= activeThresholds %></div>
                     <div class="stat-label"><%= t('warnings.active_threshold') %></div>
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon" style="color:#ED4245;"><i data-lucide="users"></i></div>
+                <div class="stat-icon stat-icon-comm"><i data-lucide="users"></i></div>
                 <div class="stat-info">
                     <div class="stat-value" id="statUniqueUsers">—</div>
                     <div class="stat-label"><%= t('warnings.unique_users') %></div>
@@ -39,9 +39,9 @@
         </div>
 
         <!-- ── How to Use ──────────────────────────────────────────────────────────── -->
-        <div class="settings-card" style="margin-bottom:1.5rem;--guide-accent:#FEE75C;">
+        <div class="settings-card" style="margin-bottom:1.5rem;">
             <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.25rem;">
-                <i data-lucide="book-open" style="color:#FEE75C;width:18px;height:18px;flex-shrink:0;"></i>
+                <i data-lucide="book-open" style="color:var(--accent);width:18px;height:18px;flex-shrink:0;"></i>
                 <h2 style="margin:0;font-size:1rem;font-weight:600;"><%= t('warnings.how_to_use') %></h2>
             </div>
             <div class="guide-grid">
@@ -373,7 +373,6 @@
 
 /* ── Tablet (≤ 900px) ───────────────────────────────────────────────────── */
 @media (max-width: 900px) {
-    .stats-grid            { grid-template-columns: repeat(2, 1fr) !important; }
     .wn-threshold-grid     { grid-template-columns: 1fr; }
     .wn-cfg-row            { flex-direction: column !important; gap: .6rem !important; }
     .wn-count-group,
@@ -385,8 +384,6 @@
 
 /* ── Mobile (≤ 600px) ───────────────────────────────────────────────────── */
 @media (max-width: 600px) {
-    .stats-grid { grid-template-columns: repeat(2, 1fr) !important; gap: .6rem !important; }
-
     .settings-card    { padding: 1rem !important; }
     .settings-card h2 { font-size: 1rem !important; }
 

@@ -15,21 +15,21 @@
         <!-- ── Stats Overview ──────────────────────────────────────────── -->
         <div class="stats-grid">
             <div class="stat-card">
-                <div class="stat-icon"><i data-lucide="users"></i></div>
+                <div class="stat-icon stat-icon-comm"><i data-lucide="users"></i></div>
                 <div class="stat-info">
                     <div class="stat-value"><%= totalCount %></div>
                     <div class="stat-label"><%= t('serverstats.total_member') %></div>
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon" style="color:#57F287;"><i data-lucide="user"></i></div>
+                <div class="stat-icon stat-icon-comm"><i data-lucide="user"></i></div>
                 <div class="stat-info">
                     <div class="stat-value"><%= humanCount %></div>
                     <div class="stat-label"><%= t('serverstats.user_label') %></div>
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon" style="color:#5865F2;"><i data-lucide="bot"></i></div>
+                <div class="stat-icon stat-icon-comm"><i data-lucide="bot"></i></div>
                 <div class="stat-info">
                     <div class="stat-value"><%= botCount %></div>
                     <div class="stat-label"><%= t('serverstats.bot_label') %></div>
@@ -45,9 +45,9 @@
         </div>
 
         <!-- ── How to Use ──────────────────────────────────────────────────────────── -->
-        <div class="settings-card" style="margin-bottom:1.5rem;--guide-accent:#5865F2;">
+        <div class="settings-card" style="margin-bottom:1.5rem;">
             <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.25rem;">
-                <i data-lucide="book-open" style="color:#5865F2;width:18px;height:18px;flex-shrink:0;"></i>
+                <i data-lucide="book-open" style="color:var(--accent);width:18px;height:18px;flex-shrink:0;"></i>
                 <h2 style="margin:0;font-size:1rem;font-weight:600;"><%= t('serverstats.how_to_use') %></h2>
             </div>
             <div class="guide-grid">
@@ -149,7 +149,7 @@
         <div class="settings-card">
             <h2><%= t('serverstats.setup_title') %></h2>
             <p class="section-desc" style="margin-bottom:1.25rem;"><%= t('serverstats.setup_desc') %></p>
-            <div style="background:rgba(88,101,242,.08);border:1px solid rgba(88,101,242,.25);border-radius:8px;padding:.9rem 1rem;margin-bottom:1.2rem;">
+            <div style="background:color-mix(in srgb,var(--accent) 8%,transparent);border:1px solid color-mix(in srgb,var(--accent) 25%,transparent);border-radius:8px;padding:.9rem 1rem;margin-bottom:1.2rem;">
                 <div style="font-size:.85rem;color:var(--text-secondary);line-height:1.6;">
                     <%- t('serverstats.setup_will_create') %>
                 </div>

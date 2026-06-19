@@ -1517,9 +1517,14 @@ router.get('/:guildId/starboard', requireLogin, requireManageGuild, async (req, 
             .map(c => ({ id: c.id, name: c.name }))
             .sort((a, b) => a.name.localeCompare(b.name));
 
+        const guildEmojis = [...guild.emojis.cache.values()].map(e => ({
+            id: e.id, name: e.name, animated: e.animated,
+            url: `https://cdn.discordapp.com/emojis/${e.id}.${e.animated ? 'gif' : 'webp'}?size=32`,
+        }));
+
         res.render('dashboard/starboard', {
             title: 'Starboard',
-            guild, channels, starboardData,
+            guild, channels, starboardData, guildEmojis,
             missingPerms: getMissingPerms(guild),
             activePage: 'starboard',
             hasSidebar: true,

@@ -15,21 +15,21 @@
         <!-- Stats -->
         <div class="stats-grid">
             <div class="stat-card">
-                <div class="stat-icon" style="color:#5865F2;"><i data-lucide="layout-template"></i></div>
+                <div class="stat-icon stat-icon-comm"><i data-lucide="layout-template"></i></div>
                 <div class="stat-info">
                     <div class="stat-value"><%= templates.length %></div>
                     <div class="stat-label"><%= t('message_builder.total_templates') %></div>
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon" style="color:#57F287;"><i data-lucide="hash"></i></div>
+                <div class="stat-icon stat-icon-comm"><i data-lucide="hash"></i></div>
                 <div class="stat-info">
                     <div class="stat-value"><%= templates.filter(tmpl => tmpl.channelId).length %></div>
                     <div class="stat-label"><%= t('message_builder.with_channel') %></div>
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon" style="color:<%= templates.length >= 20 ? '#ed4245' : '#FEE75C' %>;"><i data-lucide="layers"></i></div>
+                <div class="stat-icon<%= templates.length >= 20 ? '' : ' stat-icon-comm' %>"<%= templates.length >= 20 ? ' style="color:#ed4245;background:rgba(237,66,69,.12);"' : '' %>><i data-lucide="layers"></i></div>
                 <div class="stat-info">
                     <div class="stat-value" style="<%= templates.length >= 20 ? 'color:#ed4245;' : '' %>"><%= templates.length %>/20</div>
                     <div class="stat-label"><%= t('message_builder.slots_used') %></div>
@@ -40,7 +40,7 @@
         <!-- How to Use -->
         <div class="settings-card" style="margin-bottom:1.5rem;">
             <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.25rem;">
-                <i data-lucide="book-open" style="color:#5865F2;width:18px;height:18px;flex-shrink:0;"></i>
+                <i data-lucide="book-open" style="color:var(--accent);width:18px;height:18px;flex-shrink:0;"></i>
                 <h2 style="margin:0;font-size:1rem;font-weight:600;"><%= t('message_builder.how_to_use') %></h2>
             </div>
             <div class="guide-grid">
@@ -60,7 +60,7 @@
                     <div class="guide-desc"><%- t('message_builder.step3_desc') %></div>
                 </div>
             </div>
-            <div class="guide-tip"><i data-lucide="lightbulb" style="width:14px;height:14px;vertical-align:-.15em;margin-right:.3rem;color:#FEE75C;"></i> <%- t('message_builder.tip') %></div>
+            <div class="guide-tip">💡 <%- t('message_builder.tip') %></div>
         </div>
 
         <!-- Form card -->
@@ -400,10 +400,6 @@
 </div>
 
 <style>
-/* ── Stats ── */
-.stats-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; margin-bottom:1.5rem; }
-@media(max-width:600px){ .stats-grid { grid-template-columns:1fr 1fr; } }
-
 /* ── Slot badge ── */
 .mb-slot-badge {
     font-size:.72rem; padding:.2rem .6rem; border-radius:999px;
@@ -561,16 +557,13 @@
     .mb-row-right { width:100%; justify-content:flex-end; }
     .mb-row-preview { max-width:none; }
     .settings-card { padding:1rem; }
-    .stats-grid { grid-template-columns:1fr 1fr; }
 }
 @media (max-width:420px) {
-    .stats-grid { grid-template-columns:1fr; }
     .mb-section-head { padding:.4rem .65rem; }
     .mb-section-body { padding:.65rem; }
     .ee-section { padding:.65rem .75rem; }
     .ph-toggle-btn { font-size:.68rem; padding:2px 7px; }
     .mb-char-count { font-size:.68rem; }
-    .stat-card { padding:.75rem 1rem; }
 }
 </style>
 

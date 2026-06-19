@@ -9,28 +9,28 @@
         <%- include('../partials/perm-notice') %>
 
         <div class="page-header">
-            <h1>📋 <%= t('extlog.page_title') %></h1>
+            <h1><%= t('extlog.page_title') %></h1>
             <p><%= t('extlog.page_desc') %></p>
         </div>
 
         <!-- Stats -->
         <div class="stats-grid">
             <div class="stat-card">
-                <div class="stat-icon" style="color:#5865F2;"><i data-lucide="book-open"></i></div>
+                <div class="stat-icon stat-icon-comm"><i data-lucide="book-open"></i></div>
                 <div class="stat-info">
                     <div class="stat-value"><%= extlogData.enabled ? t('extlog.status_active') : t('extlog.status_inactive') %></div>
                     <div class="stat-label"><%= t('extlog.status_label') %></div>
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon" style="color:#57F287;"><i data-lucide="check-circle"></i></div>
+                <div class="stat-icon stat-icon-comm"><i data-lucide="check-circle"></i></div>
                 <div class="stat-info">
                     <div class="stat-value"><%= enabledCount %> / 5</div>
                     <div class="stat-label"><%= t('extlog.active_events') %></div>
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon" style="color:#FEE75C;"><i data-lucide="hash"></i></div>
+                <div class="stat-icon stat-icon-comm"><i data-lucide="hash"></i></div>
                 <div class="stat-info">
                     <div class="stat-value">
                         <% if (extlogData.channelId) { %>
@@ -48,7 +48,7 @@
         <!-- How to Use -->
         <div class="settings-card" style="margin-bottom:1.5rem;">
             <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.25rem;">
-                <i data-lucide="book-open" style="color:#5865F2;width:18px;height:18px;flex-shrink:0;"></i>
+                <i data-lucide="book-open" style="color:var(--accent);width:18px;height:18px;flex-shrink:0;"></i>
                 <h2 style="margin:0;font-size:1rem;font-weight:600;"><%= t('extlog.how_to_use') %></h2>
             </div>
             <div class="guide-grid">
@@ -146,7 +146,7 @@
 
         <!-- Info Box -->
         <div class="ml-info-box">
-            <i data-lucide="info" style="flex-shrink:0;color:#5865F2;margin-top:2px;width:18px;height:18px;"></i>
+            <i data-lucide="info" style="flex-shrink:0;color:var(--accent);margin-top:2px;width:18px;height:18px;"></i>
             <div>
                 <strong><%= t('extlog.info_title') %></strong> <%- t('extlog.info_body') %>
             </div>
@@ -159,7 +159,7 @@
 <style>
 .ml-info-box {
     display: flex; gap: .75rem; align-items: flex-start;
-    background: rgba(88,101,242,.08); border: 1px solid rgba(88,101,242,.2);
+    background: color-mix(in srgb,var(--accent) 8%,transparent); border: 1px solid color-mix(in srgb,var(--accent) 20%,transparent);
     border-radius: 10px; padding: 1rem; margin-top: .5rem;
     font-size: .875rem; color: var(--text-muted); line-height: 1.55;
 }

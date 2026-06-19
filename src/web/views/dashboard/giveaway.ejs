@@ -51,10 +51,6 @@
     padding: 0;
 }
 
-/* ── Stats ───────────────────────────────────────────────────────────────── */
-.gw-stats { grid-template-columns: repeat(3, 1fr) !important; margin-bottom: 1.5rem; }
-@media (max-width: 600px) { .gw-stats { grid-template-columns: 1fr 1fr !important; } }
-
 /* ── Section label ───────────────────────────────────────────────────────── */
 .gw-section-label {
     font-size: .72rem; font-weight: 700; color: var(--text-muted);
@@ -62,33 +58,12 @@
     margin: 1.5rem 0 .6rem;
 }
 
-/* ── Cara penggunaan ─────────────────────────────────────────────────────── */
-.gw-guide-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: .85rem; margin-top: .75rem; }
-.gw-guide-step {
-    background: var(--bg3);
-    border: 1px solid var(--border);
-    border-radius: 8px; padding: .85rem 1rem;
-}
-.gw-guide-num {
-    width: 26px; height: 26px; border-radius: 50%;
-    background: rgba(240,160,50,.2); color: #F0A032;
-    font-weight: 700; font-size: .82rem;
-    display: flex; align-items: center; justify-content: center;
-    margin-bottom: .5rem;
-}
-.gw-guide-title { font-weight: 600; font-size: .85rem; margin-bottom: .25rem; }
-.gw-guide-desc  { font-size: .78rem; color: var(--text-muted); line-height: 1.5; }
-
 /* ── Responsive: Tablet (≤ 860px) ───────────────────────────────────────── */
 @media (max-width: 860px) {
-    .gw-guide-grid { grid-template-columns: 1fr 1fr; }
-}
 
 /* ── Responsive: Tablet kecil (≤ 680px) ─────────────────────────────────── */
 @media (max-width: 680px) {
     .dash-main        { padding: 1.25rem 1rem 1.5rem !important; }
-    .gw-guide-grid    { grid-template-columns: 1fr; }
-    .gw-stats         { grid-template-columns: 1fr 1fr !important; }
     .gw-form-grid     { grid-template-columns: 1fr !important; }
 
     /* Card: sembunyikan icon, actions pindah ke bawah body */
@@ -110,16 +85,9 @@
 /* ── Responsive: Mobile (≤ 480px) ───────────────────────────────────────── */
 @media (max-width: 480px) {
     .dash-main        { padding: 1rem .75rem 1.5rem !important; }
-    .gw-stats .stat-card  { padding: .6rem .5rem; gap: .4rem; }
-    .gw-stats .stat-icon  { width: 30px !important; height: 30px !important; border-radius: 7px !important; flex-shrink: 0; }
-    .gw-stats .stat-icon svg { width: 14px !important; height: 14px !important; }
-    .gw-stats .stat-value { font-size: 1.1rem; }
-    .gw-stats .stat-label { font-size: .63rem; }
     .gw-prize         { font-size: .9rem; }
     .gw-meta          { font-size: .74rem; gap: .3rem .6rem; }
     .gw-section-label { font-size: .68rem; margin: 1.1rem 0 .5rem; }
-    .gw-guide-step    { padding: .7rem .85rem; }
-    .gw-guide-title   { font-size: .82rem; }
     .settings-card    { padding: .9rem !important; }
 }
 </style>
@@ -137,16 +105,16 @@
         </div>
 
         <!-- Stats -->
-        <div class="stats-grid gw-stats">
+        <div class="stats-grid">
             <div class="stat-card">
-                <div class="stat-icon" style="color:#F0A032;background:rgba(240,160,50,.15);"><i data-lucide="gift"></i></div>
+                <div class="stat-icon stat-icon-comm"><i data-lucide="gift"></i></div>
                 <div class="stat-info">
                     <div class="stat-value"><%= giveaways.filter(g => !g.ended && !g.cancelled).length %></div>
                     <div class="stat-label"><%= t('giveaway.stat_active') %></div>
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon" style="color:#5865F2;background:rgba(88,101,242,.15);"><i data-lucide="trophy"></i></div>
+                <div class="stat-icon stat-icon-comm"><i data-lucide="trophy"></i></div>
                 <div class="stat-info">
                     <div class="stat-value"><%= giveaways.filter(g => g.ended && !g.cancelled).length %></div>
                     <div class="stat-label"><%= t('giveaway.stat_ended') %></div>
@@ -164,29 +132,27 @@
         <!-- How to Use -->
         <div class="settings-card" style="margin-bottom:1.5rem;">
             <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.25rem;">
-                <i data-lucide="book-open" style="color:#F0A032;width:18px;height:18px;flex-shrink:0;"></i>
+                <i data-lucide="book-open" style="color:var(--accent);width:18px;height:18px;flex-shrink:0;"></i>
                 <h2 style="margin:0;font-size:1rem;font-weight:600;"><%= t('giveaway.how_to_use') %></h2>
             </div>
-            <div class="gw-guide-grid">
-                <div class="gw-guide-step">
-                    <div class="gw-guide-num">1</div>
-                    <div class="gw-guide-title"><%= t('giveaway.step1_title') %></div>
-                    <div class="gw-guide-desc"><%= t('giveaway.step1_desc') %></div>
+            <div class="guide-grid">
+                <div class="guide-step">
+                    <div class="guide-num">1</div>
+                    <div class="guide-title"><%= t('giveaway.step1_title') %></div>
+                    <div class="guide-desc"><%= t('giveaway.step1_desc') %></div>
                 </div>
-                <div class="gw-guide-step">
-                    <div class="gw-guide-num">2</div>
-                    <div class="gw-guide-title"><%= t('giveaway.step2_title') %></div>
-                    <div class="gw-guide-desc"><%= t('giveaway.step2_desc') %></div>
+                <div class="guide-step">
+                    <div class="guide-num">2</div>
+                    <div class="guide-title"><%= t('giveaway.step2_title') %></div>
+                    <div class="guide-desc"><%= t('giveaway.step2_desc') %></div>
                 </div>
-                <div class="gw-guide-step">
-                    <div class="gw-guide-num">3</div>
-                    <div class="gw-guide-title"><%= t('giveaway.step3_title') %></div>
-                    <div class="gw-guide-desc"><%= t('giveaway.step3_desc') %></div>
+                <div class="guide-step">
+                    <div class="guide-num">3</div>
+                    <div class="guide-title"><%= t('giveaway.step3_title') %></div>
+                    <div class="guide-desc"><%= t('giveaway.step3_desc') %></div>
                 </div>
             </div>
-            <div style="margin-top:.75rem;padding:.6rem .85rem;background:rgba(240,160,50,.07);border-radius:7px;border:1px solid rgba(240,160,50,.2);font-size:.8rem;color:var(--text-muted);">
-                💡 <%- t('giveaway.tip') %>
-            </div>
+            <div class="guide-tip">💡 <%- t('giveaway.tip') %></div>
         </div>
 
         <!-- Form Buat Giveaway -->
