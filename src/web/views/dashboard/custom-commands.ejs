@@ -18,21 +18,21 @@
             <div class="stat-card">
                 <div class="stat-icon stat-icon-comm"><i data-lucide="terminal"></i></div>
                 <div class="stat-info">
-                    <div class="stat-value"><%= commands.length %></div>
+                    <div class="stat-value" id="statTotal"><%= commands.length %></div>
                     <div class="stat-label"><%= t('custom_commands.total_commands') %></div>
                 </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon stat-icon-comm"><i data-lucide="check-circle"></i></div>
                 <div class="stat-info">
-                    <div class="stat-value"><%= commands.filter(c => c.enabled).length %></div>
+                    <div class="stat-value" id="statActive"><%= commands.filter(c => c.enabled).length %></div>
                     <div class="stat-label"><%= t('custom_commands.active_commands') %></div>
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon<%= commands.length >= 10 ? '' : ' stat-icon-comm' %>"<%= commands.length >= 10 ? ' style="color:#ed4245;background:rgba(237,66,69,.12);"' : '' %>><i data-lucide="layers"></i></div>
+                <div id="statSlotsIcon" class="stat-icon<%= commands.length >= 10 ? '' : ' stat-icon-comm' %>"<%= commands.length >= 10 ? ' style="color:#ed4245;background:rgba(237,66,69,.12);"' : '' %>><i data-lucide="layers"></i></div>
                 <div class="stat-info">
-                    <div class="stat-value" style="<%= commands.length >= 10 ? 'color:#ed4245;' : '' %>"><%= commands.length %>/10</div>
+                    <div class="stat-value" id="statSlots" style="<%= commands.length >= 10 ? 'color:#ed4245;' : '' %>"><%= commands.length %>/10</div>
                     <div class="stat-label">Slots Used</div>
                 </div>
             </div>
@@ -732,6 +732,21 @@ function renderEmbedFields() {
     if (window.lucide) lucide.createIcons();
 }
 
+function refreshCcStats() {
+    const total  = commands.length;
+    const active = commands.filter(c => c.enabled).length;
+    const full   = total >= 10;
+    document.getElementById('statTotal').textContent  = total;
+    document.getElementById('statActive').textContent = active;
+    document.getElementById('statSlots').textContent  = `${total}/10`;
+    document.getElementById('statSlots').style.color  = full ? '#ed4245' : '';
+    const icon = document.getElementById('statSlotsIcon');
+    if (icon) {
+        icon.className = full ? 'stat-icon' : 'stat-icon stat-icon-comm';
+        icon.style.cssText = full ? 'color:#ed4245;background:rgba(237,66,69,.12);' : '';
+    }
+}
+
 async function saveCommands() {
     const msg  = document.getElementById('ccListMsg');
     const data = await apiFetch('/custom-commands', 'POST', { commands });
@@ -739,6 +754,7 @@ async function saveCommands() {
     if (data.success) {
         savedCommands = JSON.parse(JSON.stringify(commands));
         document.getElementById('cmdCount').textContent = commands.length;
+        refreshCcStats();
     }
     return data.success;
 }
@@ -878,11 +894,15 @@ function addCommandFromForm() {
     return true;
 }
 
-function deleteCommand(btn) {
-    const idx = parseInt(btn.closest('.cc-row').dataset.idx);
+async function deleteCommand(btn) {
+    const row     = btn.closest('.cc-row');
+    const idx     = parseInt(row.dataset.idx);
+    const trigger = commands[idx]?.trigger || '';
+    if (!confirm(`Delete command "${trigger}"?`)) return;
     commands.splice(idx, 1);
     renderList();
-    window._floatDirty?.();
+    refreshCcStats();
+    await saveCommands();
 }
 
 function renderList() {

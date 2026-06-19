@@ -109,21 +109,21 @@
             <div class="stat-card">
                 <div class="stat-icon stat-icon-comm"><i data-lucide="gift"></i></div>
                 <div class="stat-info">
-                    <div class="stat-value"><%= giveaways.filter(g => !g.ended && !g.cancelled).length %></div>
+                    <div class="stat-value" id="statGwActive"><%= giveaways.filter(g => !g.ended && !g.cancelled).length %></div>
                     <div class="stat-label"><%= t('giveaway.stat_active') %></div>
                 </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon stat-icon-comm"><i data-lucide="trophy"></i></div>
                 <div class="stat-info">
-                    <div class="stat-value"><%= giveaways.filter(g => g.ended && !g.cancelled).length %></div>
+                    <div class="stat-value" id="statGwEnded"><%= giveaways.filter(g => g.ended && !g.cancelled).length %></div>
                     <div class="stat-label"><%= t('giveaway.stat_ended') %></div>
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon" style="color:#80848e;background:rgba(128,132,142,.12);"><i data-lucide="list"></i></div>
+                <div class="stat-icon stat-icon-comm"><i data-lucide="list"></i></div>
                 <div class="stat-info">
-                    <div class="stat-value"><%= giveaways.length %></div>
+                    <div class="stat-value" id="statGwTotal"><%= giveaways.length %></div>
                     <div class="stat-label"><%= t('giveaway.stat_total') %></div>
                 </div>
             </div>
@@ -216,7 +216,7 @@
         <% if (activeGws.length > 0) { %>
         <div class="gw-section-label"><%= t('giveaway.section_active') %></div>
         <% activeGws.forEach(function(gw) { %>
-        <div class="gw-card" id="gwRow-<%= gw.id %>">
+        <div class="gw-card" id="gwRow-<%= gw.id %>" data-state="active">
             <div class="gw-card-icon active">🎉</div>
             <div class="gw-card-body">
                 <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;">
@@ -251,7 +251,7 @@
         <% if (endedGws.length > 0) { %>
         <div class="gw-section-label"><%= t('giveaway.section_ended') %></div>
         <% endedGws.forEach(function(gw) { %>
-        <div class="gw-card" id="gwRow-<%= gw.id %>">
+        <div class="gw-card" id="gwRow-<%= gw.id %>" data-state="ended">
             <div class="gw-card-icon ended">🏆</div>
             <div class="gw-card-body">
                 <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;">
@@ -291,7 +291,7 @@
         <% if (cancelGws.length > 0) { %>
         <div class="gw-section-label" style="color:var(--text-muted);"><%= t('giveaway.section_cancelled') %></div>
         <% cancelGws.forEach(function(gw) { %>
-        <div class="gw-card" id="gwRow-<%= gw.id %>" style="opacity:.6;">
+        <div class="gw-card" id="gwRow-<%= gw.id %>" data-state="cancelled" style="opacity:.6;">
             <div class="gw-card-icon cancelled">🚫</div>
             <div class="gw-card-body">
                 <div style="display:flex;align-items:center;gap:.5rem;">
@@ -426,6 +426,13 @@ async function rerollGiveaway(id) {
     showMsg(msgEl, data.message, data.success ? 'success' : 'error');
 }
 
+function refreshGwStats() {
+    const cards = document.querySelectorAll('.gw-card');
+    document.getElementById('statGwActive').textContent = document.querySelectorAll('.gw-card[data-state="active"]').length;
+    document.getElementById('statGwEnded').textContent  = document.querySelectorAll('.gw-card[data-state="ended"]').length;
+    document.getElementById('statGwTotal').textContent  = cards.length;
+}
+
 // ── Delete from history ───────────────────────────────────────────────────────
 async function deleteGiveaway(id) {
     if (!confirm(I18N_GW_CONFIRM_DEL)) return;
@@ -436,6 +443,7 @@ async function deleteGiveaway(id) {
     if (data.success) {
         const row = document.getElementById(`gwRow-${id}`);
         if (row) row.remove();
+        refreshGwStats();
     } else {
         showMsg(msgEl, data.message, 'error');
     }

@@ -10,9 +10,12 @@
 :root:not([data-theme="light"]) .btn-primary:hover { color: #111111 !important; }
 :root:not([data-theme="light"]) .toggle-input:checked + .toggle-slider::after { background: #111111 !important; }
 
-/* ── Stat icon background: hitam pekat (dark) / abu terang (light) ───────── */
-:root:not([data-theme="light"]) .stat-icon.tt-brand-icon { background: #000000 !important; }
-[data-theme="light"] .stat-icon.tt-brand-icon             { background: #e0e0e0 !important; }
+/* ── Float save bar: ikut TikTok accent tapi fix warna teks agar kontras ── */
+.flt-btn-save { background: var(--accent) !important; }
+:root:not([data-theme="light"]) .flt-btn-save { color: #111111 !important; }
+
+/* ── Stat icon background: selalu hitam pekat (TikTok brand) ────────────── */
+.stat-icon.tt-brand-icon { background: #111111 !important; color: #ffffff !important; }
 
 /* ── Layout 2 kolom per card (sama pola YouTube) ───────────────────────── */
 .tt-panel-layout {
@@ -218,21 +221,21 @@
             <div class="stat-card">
                 <div class="stat-icon tt-brand-icon stat-icon-comm"><i data-lucide="video"></i></div>
                 <div class="stat-info">
-                    <div class="stat-value"><%= ttAccounts.filter(a => a.videoEnabled).length %></div>
+                    <div class="stat-value" id="statVideoEnabled"><%= ttAccounts.filter(a => a.videoEnabled).length %></div>
                     <div class="stat-label"><%= t('tiktok.stat_video') %></div>
                 </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon tt-brand-icon stat-icon-comm"><i data-lucide="radio"></i></div>
                 <div class="stat-info">
-                    <div class="stat-value"><%= ttAccounts.filter(a => a.liveEnabled).length %></div>
+                    <div class="stat-value" id="statLiveEnabled"><%= ttAccounts.filter(a => a.liveEnabled).length %></div>
                     <div class="stat-label"><%= t('tiktok.stat_live') %></div>
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon" style="color:#80848e;"><i data-lucide="list"></i></div>
+                <div class="stat-icon tt-brand-icon stat-icon-comm"><i data-lucide="list"></i></div>
                 <div class="stat-info">
-                    <div class="stat-value"><%= maxAccounts - ttAccounts.length %></div>
+                    <div class="stat-value" id="statSlots"><%= maxAccounts - ttAccounts.length %></div>
                     <div class="stat-label"><%= t('tiktok.stat_slots') %></div>
                 </div>
             </div>
@@ -835,6 +838,7 @@ async function saveAccount(username, quiet = false) {
     });
     const data = await r.json();
     if (!quiet || !data.success) showMsg(msgEl, data.message, data.success ? 'success' : 'error');
+    if (data.success) refreshTtStats();
     return data;
 }
 
@@ -1016,6 +1020,18 @@ document.addEventListener('DOMContentLoaded', () => {
         mbUpdateCount(ta.id, ta.id.replace('Message', 'Count'));
     });
 });
+
+async function refreshTtStats() {
+    try {
+        const r = await fetch(`/api/guild/${GUILD_ID}/tiktok/stats`);
+        const d = await r.json();
+        if (!d.success) return;
+        document.getElementById('statAccounts').textContent     = d.accounts;
+        document.getElementById('statVideoEnabled').textContent = d.videoEnabled;
+        document.getElementById('statLiveEnabled').textContent  = d.liveEnabled;
+        document.getElementById('statSlots').textContent        = d.slots;
+    } catch {}
+}
 
 const _ttAllUsers = <%- JSON.stringify(ttAccounts.map(a => a.username)) %>;
 window._floatSave = async function () {

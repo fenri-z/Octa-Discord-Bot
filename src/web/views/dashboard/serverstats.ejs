@@ -36,9 +36,9 @@
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon" style="color:<%= serverstatsData.enabled ? '#57F287' : '#ED4245' %>;"><i data-lucide="<%= serverstatsData.enabled ? 'check-circle' : 'x-circle' %>"></i></div>
+                <div id="statStatusIcon" class="stat-icon" style="color:<%= serverstatsData.enabled ? '#57F287' : '#ED4245' %>;"><i data-lucide="<%= serverstatsData.enabled ? 'check-circle' : 'x-circle' %>"></i></div>
                 <div class="stat-info">
-                    <div class="stat-value" style="font-size:1rem;color:<%= serverstatsData.enabled ? '#57F287' : '#ED4245' %>"><%= serverstatsData.enabled ? t('serverstats.status_active') : t('serverstats.status_inactive') %></div>
+                    <div class="stat-value" id="statStatusValue" style="font-size:1rem;color:<%= serverstatsData.enabled ? '#57F287' : '#ED4245' %>"><%= serverstatsData.enabled ? t('serverstats.status_active') : t('serverstats.status_inactive') %></div>
                     <div class="stat-label"><%= t('serverstats.status_label') %></div>
                 </div>
             </div>
@@ -191,6 +191,16 @@ const GUILD_ID   = '<%= guild.id %>';
 const TOTAL_C    = <%= totalCount %>;
 const HUMAN_C    = <%= humanCount %>;
 const BOT_C      = <%= botCount %>;
+const I18N_SS_ACTIVE   = '<%- t("serverstats.status_active") %>';
+const I18N_SS_INACTIVE = '<%- t("serverstats.status_inactive") %>';
+
+function updateStatusCard(enabled) {
+    const icon  = document.getElementById('statStatusIcon');
+    const value = document.getElementById('statStatusValue');
+    const color = enabled ? '#57F287' : '#ED4245';
+    if (icon)  { icon.style.color = color; icon.innerHTML = `<i data-lucide="${enabled ? 'check-circle' : 'x-circle'}"></i>`; if (window.lucide) lucide.createIcons({ nodes: [icon] }); }
+    if (value) { value.style.color = color; value.textContent = enabled ? I18N_SS_ACTIVE : I18N_SS_INACTIVE; }
+}
 
 function parseLabel(tpl, count) {
     return tpl.replace(/\{count\}/g, String(count));
@@ -225,7 +235,8 @@ document.getElementById('ssEnabled')?.addEventListener('change', async function(
     });
     const data = await res.json();
     showMsg(msg, data.message, data.success ? 'success' : 'error');
-    if (!data.success) this.checked = !checked;
+    if (data.success) updateStatusCard(checked);
+    else this.checked = !checked;
 });
 
 // ── Save labels ──────────────────────────────────────────────────────

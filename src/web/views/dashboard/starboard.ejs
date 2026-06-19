@@ -49,14 +49,14 @@
             <div class="stat-card">
                 <div class="stat-icon stat-icon-comm"><i data-lucide="star"></i></div>
                 <div class="stat-info">
-                    <div class="stat-value"><%= starboardData.enabled ? t('starboard.status_active') : t('starboard.status_inactive') %></div>
+                    <div class="stat-value" id="statSbStatus"><%= starboardData.enabled ? t('starboard.status_active') : t('starboard.status_inactive') %></div>
                     <div class="stat-label"><%= t('starboard.status_label') %></div>
                 </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon stat-icon-comm"><i data-lucide="hash"></i></div>
                 <div class="stat-info">
-                    <div class="stat-value">
+                    <div class="stat-value" id="statSbChannel">
                         <% if (starboardData.channelId) { %>
                             <% var sbCh = guild.channels.cache.get(starboardData.channelId); %>
                             <%= sbCh ? '#' + sbCh.name : t('common.channel_deleted') %>
@@ -68,7 +68,7 @@
             <div class="stat-card">
                 <div class="stat-icon stat-icon-comm"><i data-lucide="award"></i></div>
                 <div class="stat-info">
-                    <div class="stat-value"><%= starboardData.threshold %> ⭐</div>
+                    <div class="stat-value" id="statSbThreshold"><%= starboardData.threshold %> ⭐</div>
                     <div class="stat-label"><%= t('starboard.min_stars') %></div>
                 </div>
             </div>
@@ -158,7 +158,19 @@
 </div><!-- /.dash-layout -->
 
 <script>
-const GUILD_ID = '<%= guild.id %>';
+const GUILD_ID       = '<%= guild.id %>';
+const I18N_SB_ACTIVE   = '<%- t("starboard.status_active") %>';
+const I18N_SB_INACTIVE = '<%- t("starboard.status_inactive") %>';
+
+function refreshSbStats() {
+    const enabled   = document.getElementById('sbEnabled')?.checked;
+    const threshold = document.getElementById('sbThreshold')?.value;
+    const chSel     = document.getElementById('sbChannel');
+    const chText    = chSel?.value ? (chSel.options[chSel.selectedIndex]?.text || '—') : '—';
+    document.getElementById('statSbStatus').textContent    = enabled ? I18N_SB_ACTIVE : I18N_SB_INACTIVE;
+    document.getElementById('statSbChannel').textContent   = chText !== '—' ? `#${chText.replace(/^#/, '')}` : '—';
+    document.getElementById('statSbThreshold').textContent = `${threshold} ⭐`;
+}
 
 function showMsg(el, text, type) {
     if (!el) return;
@@ -206,6 +218,7 @@ async function saveConfig() {
         threshold,
     });
     showMsg(msg, data.message, data.success ? 'success' : 'error');
+    if (data.success) refreshSbStats();
 }
 
 document.addEventListener('keydown', function(e) {

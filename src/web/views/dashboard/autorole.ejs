@@ -205,7 +205,7 @@
                     </div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-icon" style="color:<%= panels.length >= 20 ? '#ed4245' : '#FEE75C' %>;"><i data-lucide="layers"></i></div>
+                    <div class="stat-icon <%= panels.length >= 20 ? '' : 'stat-icon-comm' %>" style="<%= panels.length >= 20 ? 'color:#ed4245;background:rgba(237,66,69,.12);' : '' %>"><i data-lucide="layers"></i></div>
                     <div class="stat-info">
                         <div class="stat-value" style="<%= panels.length >= 20 ? 'color:#ed4245;' : '' %>"><%= panels.length %>/20</div>
                         <div class="stat-label">Slots Used</div>
@@ -578,7 +578,7 @@
                     </div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-icon" style="color:<%= reactPanels.length >= 20 ? '#ed4245' : '#FEE75C' %>;"><i data-lucide="layers"></i></div>
+                    <div class="stat-icon <%= reactPanels.length >= 20 ? '' : 'stat-icon-comm' %>" style="<%= reactPanels.length >= 20 ? 'color:#ed4245;background:rgba(237,66,69,.12);' : '' %>"><i data-lucide="layers"></i></div>
                     <div class="stat-info">
                         <div class="stat-value" style="<%= reactPanels.length >= 20 ? 'color:#ed4245;' : '' %>"><%= reactPanels.length %>/20</div>
                         <div class="stat-label">Slots Used</div>

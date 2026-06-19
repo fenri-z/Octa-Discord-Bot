@@ -165,16 +165,16 @@
                     <i data-lucide="radio"></i>
                 </div>
                 <div class="stat-info">
-                    <div class="stat-value"><%= twAccounts.filter(a => a.enabled).length %></div>
+                    <div class="stat-value" id="statActive"><%= twAccounts.filter(a => a.enabled).length %></div>
                     <div class="stat-label"><%= t('twitch.stat_active') %></div>
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon" style="color:#80848e;">
+                <div class="stat-icon stat-icon-comm">
                     <i data-lucide="list"></i>
                 </div>
                 <div class="stat-info">
-                    <div class="stat-value"><%= maxAccounts - twAccounts.length %></div>
+                    <div class="stat-value" id="statSlots"><%= maxAccounts - twAccounts.length %></div>
                     <div class="stat-label"><%= t('twitch.stat_slots') %></div>
                 </div>
             </div>
@@ -540,6 +540,7 @@ async function saveStreamer(userId, quiet = false) {
     });
     const data = await r.json();
     if (!quiet || !data.success) showMsg(msgEl, data.message, data.success ? 'success' : 'error');
+    if (data.success) refreshTwStats();
     return data;
 }
 
@@ -736,6 +737,17 @@ document.addEventListener('DOMContentLoaded', () => {
         mbUpdateCount(ta.id, ta.id.replace('twMessage', 'twCount'));
     });
 });
+
+async function refreshTwStats() {
+    try {
+        const r = await fetch(`/api/guild/${GUILD_ID}/twitch/stats`);
+        const d = await r.json();
+        if (!d.success) return;
+        document.getElementById('statAccounts').textContent = d.accounts;
+        document.getElementById('statActive').textContent   = d.active;
+        document.getElementById('statSlots').textContent    = d.slots;
+    } catch {}
+}
 
 const _twAllIds = <%- JSON.stringify(twAccounts.map(a => a.userId)) %>;
 window._floatSave = async function () {

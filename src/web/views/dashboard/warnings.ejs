@@ -18,14 +18,14 @@
             <div class="stat-card">
                 <div class="stat-icon stat-icon-comm"><i data-lucide="triangle-alert"></i></div>
                 <div class="stat-info">
-                    <div class="stat-value"><%= warnLog.length %></div>
+                    <div class="stat-value" id="statTotalWarns"><%= warnLog.length %></div>
                     <div class="stat-label"><%= t('warnings.total_warns') %></div>
                 </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon stat-icon-comm"><i data-lucide="shield-alert"></i></div>
                 <div class="stat-info">
-                    <div class="stat-value"><%= activeThresholds %></div>
+                    <div class="stat-value" id="statActiveThresholds"><%= activeThresholds %></div>
                     <div class="stat-label"><%= t('warnings.active_threshold') %></div>
                 </div>
             </div>
@@ -474,6 +474,10 @@ async function saveThresholds() {
         },
     });
     showMsg(msg, data.message, data.success ? 'success' : 'error');
+    if (data.success) {
+        const actions = ['t1Action','t2Action'].map(id => document.getElementById(id)?.value);
+        document.getElementById('statActiveThresholds').textContent = actions.filter(a => a && a !== 'none').length;
+    }
 }
 
 // ── Search ────────────────────────────────────────────────────────────────

@@ -179,21 +179,21 @@
             <div class="stat-card">
                 <div class="stat-icon stat-icon-comm"><i data-lucide="video"></i></div>
                 <div class="stat-info">
-                    <div class="stat-value"><%= ytChannels.filter(c => c.videoEnabled).length %></div>
+                    <div class="stat-value" id="statVideoEnabled"><%= ytChannels.filter(c => c.videoEnabled).length %></div>
                     <div class="stat-label"><%= t('youtube.stat_video_enabled') %></div>
                 </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon stat-icon-comm"><i data-lucide="film"></i></div>
                 <div class="stat-info">
-                    <div class="stat-value"><%= ytChannels.filter(c => c.shortEnabled).length %></div>
+                    <div class="stat-value" id="statShortEnabled"><%= ytChannels.filter(c => c.shortEnabled).length %></div>
                     <div class="stat-label"><%= t('youtube.stat_short_enabled') %></div>
                 </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon stat-icon-comm"><i data-lucide="radio"></i></div>
                 <div class="stat-info">
-                    <div class="stat-value"><%= ytChannels.filter(c => c.liveEnabled).length %></div>
+                    <div class="stat-value" id="statLiveEnabled"><%= ytChannels.filter(c => c.liveEnabled).length %></div>
                     <div class="stat-label"><%= t('youtube.stat_live_enabled') %></div>
                 </div>
             </div>
@@ -921,6 +921,7 @@ async function saveYtSettings(chId, quiet = false) {
         });
         const data = await r.json();
         if (!quiet || !data.success) showMsg(null, data.message, data.success ? 'success' : 'error');
+        if (data.success) refreshYtStats();
         return data;
     } catch {
         showMsg(null, I18N_YT_ERR_CONN, 'error');
@@ -937,8 +938,7 @@ async function deleteYtChannel(chId, chName) {
         if (data.success) {
             const card = document.getElementById(`ytCard-${chId}`);
             if (card) card.remove();
-            const stat = document.getElementById('statChannels');
-            if (stat) stat.textContent = Math.max(0, parseInt(stat.textContent) - 1);
+            refreshYtStats();
             if (!document.querySelector('.yt-channel-card')) { queueToast(data.message, 'success'); location.reload(); }
             else showMsg(null, data.message, 'success');
         } else {
@@ -1067,6 +1067,18 @@ function _buildMentionDd(dd, ta) {
     }
 }
 
+
+async function refreshYtStats() {
+    try {
+        const r = await fetch(`/api/guild/${GUILD_ID}/youtube/stats`);
+        const d = await r.json();
+        if (!d.success) return;
+        document.getElementById('statChannels').textContent     = d.channels;
+        document.getElementById('statVideoEnabled').textContent = d.videoEnabled;
+        document.getElementById('statShortEnabled').textContent = d.shortEnabled;
+        document.getElementById('statLiveEnabled').textContent  = d.liveEnabled;
+    } catch {}
+}
 
 const _ytAllChIds = <%- JSON.stringify(ytChannels.map(c => c.id)) %>;
 window._floatSave = async function () {

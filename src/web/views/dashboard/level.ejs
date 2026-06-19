@@ -18,7 +18,7 @@
             <div class="stat-card">
                 <div class="stat-icon stat-icon-comm"><i data-lucide="star"></i></div>
                 <div class="stat-info">
-                    <div class="stat-value"><%= levelData.enabled ? t('level.status_active') : t('level.status_inactive') %></div>
+                    <div class="stat-value" id="statLvStatus"><%= levelData.enabled ? t('level.status_active') : t('level.status_inactive') %></div>
                     <div class="stat-label"><%= t('level.status_label') %></div>
                 </div>
             </div>
@@ -32,7 +32,7 @@
             <div class="stat-card">
                 <div class="stat-icon stat-icon-comm"><i data-lucide="award"></i></div>
                 <div class="stat-info">
-                    <div class="stat-value"><%= levelData.roleRewards.length %></div>
+                    <div class="stat-value" id="statLvRewards"><%= levelData.roleRewards.length %></div>
                     <div class="stat-label"><%= t('level.role_rewards') %></div>
                 </div>
             </div>
@@ -276,7 +276,16 @@
 </style>
 
 <script>
-const GUILD_ID = '<%= guild.id %>';
+const GUILD_ID       = '<%= guild.id %>';
+const I18N_LV_ACTIVE   = '<%- t("level.status_active") %>';
+const I18N_LV_INACTIVE = '<%- t("level.status_inactive") %>';
+
+function refreshLvStats() {
+    const enabled = document.getElementById('levelEnabled')?.checked;
+    const rewards = getRewards().length;
+    document.getElementById('statLvStatus').textContent  = enabled ? I18N_LV_ACTIVE : I18N_LV_INACTIVE;
+    document.getElementById('statLvRewards').textContent = rewards;
+}
 
 function showMsg(el, text, type) {
     if (!el) return;
@@ -401,6 +410,7 @@ async function saveConfig() {
         roleRewards: rewards,
     });
     showMsg(msg, data.message, data.success ? 'success' : 'error');
+    if (data.success) refreshLvStats();
     if (rrMsg.textContent) { rrMsg.textContent = ''; rrMsg.className = 'form-message'; }
 }
 

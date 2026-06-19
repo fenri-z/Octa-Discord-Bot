@@ -18,21 +18,21 @@
             <div class="stat-card">
                 <div class="stat-icon stat-icon-comm"><i data-lucide="book-open"></i></div>
                 <div class="stat-info">
-                    <div class="stat-value"><%= extlogData.enabled ? t('extlog.status_active') : t('extlog.status_inactive') %></div>
+                    <div class="stat-value" id="statElStatus"><%= extlogData.enabled ? t('extlog.status_active') : t('extlog.status_inactive') %></div>
                     <div class="stat-label"><%= t('extlog.status_label') %></div>
                 </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon stat-icon-comm"><i data-lucide="check-circle"></i></div>
                 <div class="stat-info">
-                    <div class="stat-value"><%= enabledCount %> / 5</div>
+                    <div class="stat-value" id="statElEvents"><%= enabledCount %> / 5</div>
                     <div class="stat-label"><%= t('extlog.active_events') %></div>
                 </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon stat-icon-comm"><i data-lucide="hash"></i></div>
                 <div class="stat-info">
-                    <div class="stat-value">
+                    <div class="stat-value" id="statElChannel">
                         <% if (extlogData.channelId) { %>
                             <% var logCh = guild.channels.cache.get(extlogData.channelId); %>
                             <%= logCh ? '#' + logCh.name : t('extlog.channel_deleted') %>
@@ -169,7 +169,21 @@
 </style>
 
 <script>
-const GUILD_ID = '<%= guild.id %>';
+const GUILD_ID         = '<%= guild.id %>';
+const I18N_EL_ACTIVE   = '<%- t("extlog.status_active") %>';
+const I18N_EL_INACTIVE = '<%- t("extlog.status_inactive") %>';
+
+function refreshElStats() {
+    const enabled = document.getElementById('extlogEnabled')?.checked;
+    const chSel   = document.getElementById('extlogChannel');
+    const chVal   = chSel?.value;
+    const chText  = chVal ? (chSel.options[chSel.selectedIndex]?.text || '—') : '—';
+    const events  = ['evtMessageEdit','evtMessageDelete','evtVoiceActivity','evtNicknameChange','evtRoleChange']
+                      .filter(id => document.getElementById(id)?.checked).length;
+    document.getElementById('statElStatus').textContent  = enabled ? I18N_EL_ACTIVE : I18N_EL_INACTIVE;
+    document.getElementById('statElEvents').textContent  = `${events} / 5`;
+    document.getElementById('statElChannel').textContent = chVal ? `#${chText.replace(/^#/, '')}` : '—';
+}
 
 function showMsg(el, text, type) {
     if (!el) return;
@@ -205,6 +219,7 @@ async function saveConfig() {
     const msg  = document.getElementById('cfgMsg');
     const data = await apiFetch('/extlog', 'POST', getPayload());
     showMsg(msg, data.message, data.success ? 'success' : 'error');
+    if (data.success) refreshElStats();
 }
 
 ['evtMessageEdit','evtMessageDelete','evtVoiceActivity','evtNicknameChange','evtRoleChange'].forEach(id => {
@@ -212,7 +227,7 @@ async function saveConfig() {
         const msg  = document.getElementById('evtMsg');
         const data = await apiFetch('/extlog', 'POST', getPayload());
         showMsg(msg, data.message, data.success ? 'success' : 'error');
-        if (!data.success) this.checked = !this.checked;
+        if (data.success) refreshElStats(); else this.checked = !this.checked;
     });
 });
 

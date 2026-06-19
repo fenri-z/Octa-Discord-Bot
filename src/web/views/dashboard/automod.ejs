@@ -196,28 +196,28 @@
             <div class="stat-card">
                 <div class="stat-icon stat-icon-comm"><i data-lucide="shield-check"></i></div>
                 <div class="stat-info">
-                    <div class="stat-value"><%= activeCount %></div>
+                    <div class="stat-value" id="statAmActive"><%= activeCount %></div>
                     <div class="stat-label"><%= t('automod.active_protection') %></div>
                 </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon stat-icon-comm"><i data-lucide="ban"></i></div>
                 <div class="stat-info">
-                    <div class="stat-value"><%= automodData.words.length %></div>
+                    <div class="stat-value" id="statAmWords"><%= automodData.words.length %></div>
                     <div class="stat-label"><%= t('automod.banned_words') %></div>
                 </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon stat-icon-comm"><i data-lucide="hash"></i></div>
                 <div class="stat-info">
-                    <div class="stat-value"><%= automodData.wlChannels.length %></div>
+                    <div class="stat-value" id="statAmChannels"><%= automodData.wlChannels.length %></div>
                     <div class="stat-label"><%= t('automod.channel_whitelist') %></div>
                 </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon stat-icon-comm"><i data-lucide="users"></i></div>
                 <div class="stat-info">
-                    <div class="stat-value"><%= automodData.wlRoles.length %></div>
+                    <div class="stat-value" id="statAmRoles"><%= automodData.wlRoles.length %></div>
                     <div class="stat-label"><%= t('automod.role_whitelist') %></div>
                 </div>
             </div>
@@ -531,6 +531,16 @@ const I18N_WL_NONE     = '<%= t("automod.whitelist_none") %>';
 const I18N_AM_ERR_CH   = '<%= t("automod.err_select_channel") %>';
 const I18N_AM_ERR_ROLE = '<%= t("automod.err_select_role") %>';
 
+function refreshAmStats() {
+    const toggleIds = ['toggleAntilink','toggleAntiinvite','toggleAttachments','spamEnabled','mentionEnabled','raidEnabled'];
+    const active = toggleIds.filter(id => document.getElementById(id)?.checked).length
+                 + (document.querySelectorAll('#wordsList .am-word-chip').length > 0 ? 1 : 0);
+    document.getElementById('statAmActive').textContent   = active;
+    document.getElementById('statAmWords').textContent    = document.querySelectorAll('#wordsList .am-word-chip').length;
+    document.getElementById('statAmChannels').textContent = document.querySelectorAll('#wlChannelList .am-word-chip').length;
+    document.getElementById('statAmRoles').textContent    = document.querySelectorAll('#wlRoleList .am-word-chip').length;
+}
+
 // ── Util ──────────────────────────────────────────────────────────────────────
 function showMsg(el, text, type) {
     if (!el) return;
@@ -565,21 +575,21 @@ document.getElementById('toggleAntilink')?.addEventListener('change', async func
     const msg  = document.getElementById('toggleMsg');
     const data = await apiFetch('/automod/antilink', 'POST', { enabled: this.checked });
     showMsg(msg, data.message, data.success ? 'success' : 'error');
-    if (!data.success) this.checked = !this.checked;
+    if (data.success) refreshAmStats(); else this.checked = !this.checked;
 });
 
 document.getElementById('toggleAntiinvite')?.addEventListener('change', async function () {
     const msg  = document.getElementById('toggleMsg');
     const data = await apiFetch('/automod/antiinvite', 'POST', { enabled: this.checked });
     showMsg(msg, data.message, data.success ? 'success' : 'error');
-    if (!data.success) this.checked = !this.checked;
+    if (data.success) refreshAmStats(); else this.checked = !this.checked;
 });
 
 document.getElementById('toggleAttachments')?.addEventListener('change', async function () {
     const msg  = document.getElementById('toggleMsg');
     const data = await apiFetch('/automod/attachments', 'POST', { enabled: this.checked });
     showMsg(msg, data.message, data.success ? 'success' : 'error');
-    if (!data.success) this.checked = !this.checked;
+    if (data.success) refreshAmStats(); else this.checked = !this.checked;
 });
 
 // ── Anti-Spam ─────────────────────────────────────────────────────────────────
@@ -595,6 +605,7 @@ async function saveSpam(quiet = false) {
         interval: parseInt(document.getElementById('spamInterval')?.value) || 5,
     });
     if (!quiet || !data.success) showMsg(msg, data.message, data.success ? 'success' : 'error');
+    if (data.success) refreshAmStats();
     return data;
 }
 
@@ -610,6 +621,7 @@ async function saveMassMention(quiet = false) {
         limit:   parseInt(document.getElementById('mentionLimit')?.value) || 5,
     });
     if (!quiet || !data.success) showMsg(msg, data.message, data.success ? 'success' : 'error');
+    if (data.success) refreshAmStats();
     return data;
 }
 
@@ -626,6 +638,7 @@ async function saveAntiRaid(quiet = false) {
         interval:  parseInt(document.getElementById('raidInterval')?.value)  || 10,
     });
     if (!quiet || !data.success) showMsg(msg, data.message, data.success ? 'success' : 'error');
+    if (data.success) refreshAmStats();
     return data;
 }
 
@@ -664,6 +677,7 @@ async function addWord() {
     if (empty) empty.remove();
     list.appendChild(renderWordChip(data.word));
     updateWordCount(data.total);
+    refreshAmStats();
 }
 
 async function deleteWord(word) {
@@ -675,6 +689,7 @@ async function deleteWord(word) {
     const chip = document.querySelector(`.am-word-chip[data-word="${CSS.escape(word)}"]`);
     if (chip) chip.remove();
     updateWordCount(data.total);
+    refreshAmStats();
     if (data.total === 0) {
         const list  = document.getElementById('wordsList');
         const empty = document.createElement('span');
@@ -720,6 +735,7 @@ async function addWhitelistChannel() {
     if (empty) empty.remove();
     list.appendChild(renderWlChannelChip(data.id, data.name));
     sel.value = '';
+    refreshAmStats();
 }
 
 async function addWhitelistRole() {
@@ -737,6 +753,7 @@ async function addWhitelistRole() {
     if (empty) empty.remove();
     list.appendChild(renderWlRoleChip(data.id, data.name, data.color));
     sel.value = '';
+    refreshAmStats();
 }
 
 async function removeWhitelist(type, id) {
@@ -751,6 +768,7 @@ async function removeWhitelist(type, id) {
 
     const chip = document.querySelector(`#${listId} .am-word-chip[data-id="${id}"]`);
     if (chip) chip.remove();
+    refreshAmStats();
 
     const remaining = document.querySelectorAll(`#${listId} .am-word-chip`).length;
     if (remaining === 0) {

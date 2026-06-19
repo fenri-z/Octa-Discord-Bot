@@ -18,21 +18,21 @@
             <div class="stat-card">
                 <div class="stat-icon stat-icon-comm"><i data-lucide="scroll-text"></i></div>
                 <div class="stat-info">
-                    <div class="stat-value"><%= logChannelId ? t('modlog.status_active') : t('modlog.status_inactive') %></div>
+                    <div class="stat-value" id="statMlStatus"><%= logChannelId ? t('modlog.status_active') : t('modlog.status_inactive') %></div>
                     <div class="stat-label"><%= t('modlog.status_label') %></div>
                 </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon stat-icon-comm"><i data-lucide="check-circle"></i></div>
                 <div class="stat-info">
-                    <div class="stat-value"><%= enabledCount %> / 5</div>
+                    <div class="stat-value" id="statMlEvents"><%= enabledCount %> / 5</div>
                     <div class="stat-label"><%= t('modlog.active_events') %></div>
                 </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon stat-icon-comm"><i data-lucide="hash"></i></div>
                 <div class="stat-info">
-                    <div class="stat-value">
+                    <div class="stat-value" id="statMlChannel">
                         <% if (logChannelId) { %>
                             <% var logCh = guild.channels.cache.get(logChannelId); %>
                             <%= logCh ? '#' + logCh.name : t('modlog.channel_deleted') %>
@@ -173,7 +173,19 @@
 </style>
 
 <script>
-const GUILD_ID = '<%= guild.id %>';
+const GUILD_ID         = '<%= guild.id %>';
+const I18N_ML_ACTIVE   = '<%- t("modlog.status_active") %>';
+const I18N_ML_INACTIVE = '<%- t("modlog.status_inactive") %>';
+
+function refreshMlStats() {
+    const chSel  = document.getElementById('mlChannel');
+    const chVal  = chSel?.value;
+    const chText = chVal ? (chSel.options[chSel.selectedIndex]?.text || '—') : '—';
+    const events = ['evtBan','evtUnban','evtKick','evtTimeout','evtWarn'].filter(id => document.getElementById(id)?.checked).length;
+    document.getElementById('statMlStatus').textContent  = chVal ? I18N_ML_ACTIVE : I18N_ML_INACTIVE;
+    document.getElementById('statMlEvents').textContent  = `${events} / 5`;
+    document.getElementById('statMlChannel').textContent = chVal ? `#${chText.replace(/^#/, '')}` : '—';
+}
 
 function showMsg(el, text, type) {
     if (!el) return;
@@ -205,6 +217,7 @@ async function saveConfig() {
         },
     });
     showMsg(msg, data.message, data.success ? 'success' : 'error');
+    if (data.success) refreshMlStats();
 }
 
 // ── Toggle handlers (simpan langsung saat diubah) ──────────────────────────────
@@ -226,7 +239,7 @@ function getEvents() {
             events: getEvents(),
         });
         showMsg(msg, data.message, data.success ? 'success' : 'error');
-        if (!data.success) this.checked = !this.checked;
+        if (data.success) refreshMlStats(); else this.checked = !this.checked;
     });
 });
 

@@ -16,6 +16,13 @@
 .site-footer-brand-head {
     display: flex; align-items: center; gap: .85rem;
     margin-bottom: .85rem;
+    text-decoration: none; color: inherit;
+}
+.site-footer-brand-head:hover .site-footer-avatar {
+    border-color: rgba(var(--accent-rgb),.7);
+}
+.site-footer-brand-head:hover .site-footer-name {
+    color: var(--accent);
 }
 .site-footer-avatar {
     width: 52px; height: 52px; border-radius: 50%;
@@ -96,7 +103,7 @@
 
         <!-- Brand -->
         <div class="site-footer-brand">
-            <div class="site-footer-brand-head">
+            <a href="/" class="site-footer-brand-head">
                 <img class="site-footer-avatar"
                      src="<%- locals.botNavAvatar || 'https://cdn.discordapp.com/embed/avatars/0.png' %>"
                      alt="<%- locals.botNavName || 'Bot' %>"
@@ -112,7 +119,7 @@
                         </span>
                     </div>
                 </div>
-            </div>
+            </a>
             <p class="site-footer-desc">
                 <%- locals.botNavName || 'Bot' %> <%= t('footer.bot_desc') %>
             </p>
@@ -160,7 +167,7 @@
     <div class="site-footer-bottom">
         <div class="site-footer-copy">
             &copy; <!-- 2026 &ndash; --> <%= new Date().getFullYear() %>
-            <a href="https://fenri-hoshimori.my.id/" target="_blank" rel="noopener"><%- locals.botNavName || 'Bot' %></a>
+            <a href="/"><%- locals.botNavName || 'Bot' %></a>
             &middot; <%= t('footer.all_rights') %>
         </div>
     </div>

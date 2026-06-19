@@ -17,21 +17,21 @@
             <div class="stat-card">
                 <div class="stat-icon stat-icon-comm"><i data-lucide="layout-template"></i></div>
                 <div class="stat-info">
-                    <div class="stat-value"><%= templates.length %></div>
+                    <div class="stat-value" id="statMbTotal"><%= templates.length %></div>
                     <div class="stat-label"><%= t('message_builder.total_templates') %></div>
                 </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon stat-icon-comm"><i data-lucide="hash"></i></div>
                 <div class="stat-info">
-                    <div class="stat-value"><%= templates.filter(tmpl => tmpl.channelId).length %></div>
+                    <div class="stat-value" id="statMbWithChannel"><%= templates.filter(tmpl => tmpl.channelId).length %></div>
                     <div class="stat-label"><%= t('message_builder.with_channel') %></div>
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon<%= templates.length >= 20 ? '' : ' stat-icon-comm' %>"<%= templates.length >= 20 ? ' style="color:#ed4245;background:rgba(237,66,69,.12);"' : '' %>><i data-lucide="layers"></i></div>
+                <div id="statMbSlotsIcon" class="stat-icon<%= templates.length >= 20 ? '' : ' stat-icon-comm' %>"<%= templates.length >= 20 ? ' style="color:#ed4245;background:rgba(237,66,69,.12);"' : '' %>><i data-lucide="layers"></i></div>
                 <div class="stat-info">
-                    <div class="stat-value" style="<%= templates.length >= 20 ? 'color:#ed4245;' : '' %>"><%= templates.length %>/20</div>
+                    <div class="stat-value" id="statMbSlots" style="<%= templates.length >= 20 ? 'color:#ed4245;' : '' %>"><%= templates.length %>/20</div>
                     <div class="stat-label"><%= t('message_builder.slots_used') %></div>
                 </div>
             </div>
@@ -873,14 +873,31 @@ async function saveTemplate() {
     location.reload();
 }
 
+function refreshMbStats() {
+    const total       = document.querySelectorAll('.mb-row').length;
+    const withChannel = document.querySelectorAll('.mb-row[data-channel-id]:not([data-channel-id=""])').length;
+    const full        = total >= 20;
+    document.getElementById('statMbTotal').textContent       = total;
+    document.getElementById('statMbWithChannel').textContent = withChannel;
+    document.getElementById('statMbSlots').textContent       = `${total}/20`;
+    document.getElementById('statMbSlots').style.color       = full ? '#ed4245' : '';
+    const icon = document.getElementById('statMbSlotsIcon');
+    if (icon) {
+        icon.className = full ? 'stat-icon' : 'stat-icon stat-icon-comm';
+        icon.style.cssText = full ? 'color:#ed4245;background:rgba(237,66,69,.12);' : '';
+    }
+}
+
 // ── Delete template ───────────────────────────────────────────────────────
 async function deleteTemplate(name) {
     if (!confirm(I18N_MB_CONFIRM_DEL.replace('{{name}}', name))) return;
     const res  = await fetch(`/api/guild/${GUILD_ID}/message-builder/${encodeURIComponent(name)}`, { method: 'DELETE' });
     const data = await res.json();
-    if (!data.success) return alert('Failed: ' + data.message);
+    if (!data.success) { showMsg(document.getElementById('mbListMsg'), data.message, 'error'); return; }
     const row = document.querySelector(`.mb-row[data-name="${name}"]`);
     if (row) row.remove();
+    showMsg(document.getElementById('mbListMsg'), data.message, 'success');
+    refreshMbStats();
     const list    = document.getElementById('mbList');
     const count   = document.querySelectorAll('.mb-row').length;
     const countEl = document.getElementById('mbTmplCount');
@@ -932,9 +949,10 @@ async function sendTemplate() {
 
 // ── Utility ───────────────────────────────────────────────────────────────
 function showMsg(el, text, type) {
+    if (!el) return;
     el.textContent = text;
     el.className   = `form-message msg-${type}`;
-    if (type === 'error') setTimeout(() => { el.textContent = ''; el.className = 'form-message'; }, 3500);
+    setTimeout(() => { el.textContent = ''; el.className = 'form-message'; }, 3500);
 }
 
 function togglePicker(id, event) {

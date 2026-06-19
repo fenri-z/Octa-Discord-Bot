@@ -152,7 +152,7 @@
                     <svg viewBox="0 0 24 24" fill="currentColor"><path d="M2.664 0v24h5.227v-8.01l2.557-2.503 5.186 10.513H21l-7.527-14.6L20.188 3.54h-5.753L8.083 9.872 7.89 9.68V0z"/></svg>
                 </div>
                 <div class="stat-info">
-                    <div class="stat-value"><%= kickAccounts.length %></div>
+                    <div class="stat-value" id="statAccounts"><%= kickAccounts.length %></div>
                     <div class="stat-label"><%= t('kick.stat_monitored') %></div>
                 </div>
             </div>
@@ -161,16 +161,16 @@
                     <i data-lucide="radio"></i>
                 </div>
                 <div class="stat-info">
-                    <div class="stat-value"><%= kickAccounts.filter(a => a.enabled).length %></div>
+                    <div class="stat-value" id="statActive"><%= kickAccounts.filter(a => a.enabled).length %></div>
                     <div class="stat-label"><%= t('kick.stat_active') %></div>
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon" style="color:#80848e;">
+                <div class="stat-icon stat-icon-comm">
                     <i data-lucide="list"></i>
                 </div>
                 <div class="stat-info">
-                    <div class="stat-value"><%= maxAccounts - kickAccounts.length %></div>
+                    <div class="stat-value" id="statSlots"><%= maxAccounts - kickAccounts.length %></div>
                     <div class="stat-label"><%= t('kick.stat_slots') %></div>
                 </div>
             </div>
@@ -535,6 +535,7 @@ async function saveKickStreamer(slug, key, quiet = false) {
         });
         const data = await r.json();
         if (!quiet || !data.success) showMsg(msgEl, data.message, data.success ? 'success' : 'error');
+        if (data.success) refreshKkStats();
         return data;
     } catch {
         showMsg(msgEl, I18N_KK_ERR_CONNECT, 'error');
@@ -738,6 +739,17 @@ document.addEventListener('DOMContentLoaded', () => {
         mbUpdateCount(ta.id, ta.id.replace('kkMessage', 'kkCount'));
     });
 });
+
+async function refreshKkStats() {
+    try {
+        const r = await fetch(`/api/guild/${GUILD_ID}/kick/stats`);
+        const d = await r.json();
+        if (!d.success) return;
+        document.getElementById('statAccounts').textContent = d.accounts;
+        document.getElementById('statActive').textContent   = d.active;
+        document.getElementById('statSlots').textContent    = d.slots;
+    } catch {}
+}
 
 const _kkAllAccounts = <%- JSON.stringify(kickAccounts.map(a => ({ slug: a.slug, key: a.slug.replace(/[^a-zA-Z0-9]/g,'_') }))) %>;
 window._floatSave = async function () {

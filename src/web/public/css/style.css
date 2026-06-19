@@ -331,7 +331,7 @@ code {
 .feature-card p  { font-size: .85rem; color: var(--text-muted); line-height: 1.5; }
 
 /* ── Page container (generic) ────────────────────────────────────────────── */
-.page-container { max-width: 1440px; margin: 0 auto; padding: 2rem 2.5rem 5rem; width: 100%; align-self: stretch; }
+.page-container { max-width: 1440px; margin: 0 auto; padding: 2rem 2.5rem 5rem; width: 100%; align-self: stretch; min-height: calc(100vh - var(--navbar-h)); }
 .page-header    { margin-bottom: 1.75rem; }
 .page-header h1 { font-size: clamp(1.4rem, 5vw, 1.8rem); font-weight: 700; }
 .page-header p  { color: var(--text-muted); margin-top: .3rem; font-size: .9rem; }
@@ -864,8 +864,8 @@ code {
 .ov-feat-card:hover .ov-feat-arrow { opacity: 1; transform: translateX(3px); }
 
 /* TikTok icon: white on dark, black on light */
-.ov-feat-icon-tiktok { background: rgba(255,255,255,.1); color: #ffffff; }
-[data-theme="light"] .ov-feat-icon-tiktok { background: rgba(0,0,0,.08); color: #000000; }
+.ov-feat-icon-tiktok { background: #111111; color: #ffffff; }
+[data-theme="light"] .ov-feat-icon-tiktok { background: #111111; color: #ffffff; }
 
 @media (hover: none) {
     .ov-feat-arrow { opacity: .4; }
@@ -1273,8 +1273,10 @@ code {
 /* ── Tablet & Mobile (≤ 1024px): sidebar jadi drawer ─────────────────────── */
 @media (max-width: 1024px) {
     /* Gunakan 100dvh (dynamic viewport) agar grid 1fr dihitung dari area yang
-       benar-benar terlihat, bukan 100vh yang mencakup chrome browser. */
-    body { height: 100dvh; }
+       benar-benar terlihat, bukan 100vh yang mencakup chrome browser.
+       Hanya halaman dengan sidebar yang perlu height tetap — halaman lain (servers, landing)
+       harus bisa tumbuh sesuai konten agar footer tidak menimpa konten. */
+    body.has-sidebar { height: 100dvh; }
     .dash-layout { min-height: calc(100dvh - var(--navbar-h)); }
 
     /* Halaman tanpa sidebar: sembunyikan hamburger saja */
@@ -1486,6 +1488,57 @@ code {
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
+   CROSS-DOCUMENT VIEW TRANSITIONS (page navigation)
+   Support: Chrome 111+, Edge 111+ — browser lain fallback ke navigasi normal
+   ══════════════════════════════════════════════════════════════════════════ */
+
+@view-transition {
+    navigation: auto;
+}
+
+/* Elemen persisten: diberi nama unik agar tidak ikut animasi root */
+.navbar         { view-transition-name: navbar; }
+.sidebar        { view-transition-name: sidebar; }
+.dash-main      { view-transition-name: dash-main; }
+.page-container { view-transition-name: page-content; }
+
+/* Root: nonaktifkan — elemen bernama sudah menangani segalanya */
+::view-transition-old(root),
+::view-transition-new(root) {
+    animation: none;
+}
+
+/* Navbar & Sidebar: tidak bergerak sama sekali */
+::view-transition-old(navbar), ::view-transition-new(navbar),
+::view-transition-old(sidebar), ::view-transition-new(sidebar) {
+    animation: none;
+    mix-blend-mode: normal;
+}
+
+/* Konten utama: fade-out cepat, fade-in lambat dengan easing spring */
+::view-transition-old(dash-main),
+::view-transition-old(page-content) {
+    animation: 120ms ease-in forwards vt-out;
+}
+::view-transition-new(dash-main),
+::view-transition-new(page-content) {
+    animation: 380ms cubic-bezier(0.16, 1, 0.3, 1) forwards vt-in;
+}
+
+@keyframes vt-out {
+    to { opacity: 0; }
+}
+@keyframes vt-in {
+    from { opacity: 0; transform: translateY(6px); }
+}
+
+/* Hormati preferensi reduced-motion user */
+@media (prefers-reduced-motion: reduce) {
+    ::view-transition-old(*),
+    ::view-transition-new(*) { animation-duration: 0.01ms !important; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
    THEME SYSTEM — Light / Dark / Auto + Accent Colors
    ══════════════════════════════════════════════════════════════════════════ */
 
@@ -1494,8 +1547,12 @@ html.theme-transitioning,
 html.theme-transitioning *,
 html.theme-transitioning *::before,
 html.theme-transitioning *::after {
-    transition: background-color .15s ease, border-color .15s ease,
-                color .15s ease, box-shadow .15s ease !important;
+    transition: background-color .35s cubic-bezier(.4,0,.2,1),
+                border-color .35s cubic-bezier(.4,0,.2,1),
+                color .35s cubic-bezier(.4,0,.2,1),
+                box-shadow .35s cubic-bezier(.4,0,.2,1),
+                fill .35s cubic-bezier(.4,0,.2,1),
+                stroke .35s cubic-bezier(.4,0,.2,1) !important;
 }
 
 /* ── Light mode variables ──────────────────────────────────────────────── */

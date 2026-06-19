@@ -2080,6 +2080,24 @@ function setYtChannels(db, guildId, channels) {
     db.set(`youtube-channels-${guildId}`, JSON.stringify(channels));
 }
 
+// GET /api/guild/:guildId/youtube/stats — realtime stat counts
+router.get('/guild/:guildId/youtube/stats', requireLogin, requireManageGuild, (req, res) => {
+    const db = req.discordClient?.database;
+    const guildId = req.params.guildId;
+    if (!db) return res.json({ success: false });
+    let ytChannels = [];
+    try { ytChannels = JSON.parse(db.get(`youtube-channels-${guildId}`) || '[]'); } catch {}
+    const max = 10;
+    res.json({
+        success: true,
+        channels:     ytChannels.length,
+        videoEnabled: ytChannels.filter(c => c.videoEnabled).length,
+        shortEnabled: ytChannels.filter(c => c.shortEnabled).length,
+        liveEnabled:  ytChannels.filter(c => c.liveEnabled).length,
+        slots:        max - ytChannels.length,
+    });
+});
+
 // POST /api/guild/:guildId/youtube/lookup — cari channel YouTube dari ID / handle
 router.post('/guild/:guildId/youtube/lookup', requireLogin, requireManageGuild, async (req, res) => {
     const { input } = req.body;
@@ -2310,6 +2328,23 @@ function setTtAccounts(db, guildId, accounts) {
     db.set(`tiktok-accounts-${guildId}`, JSON.stringify(accounts));
 }
 
+// GET /api/guild/:guildId/tiktok/stats — realtime stat counts
+router.get('/guild/:guildId/tiktok/stats', requireLogin, requireManageGuild, (req, res) => {
+    const db = req.discordClient?.database;
+    const guildId = req.params.guildId;
+    if (!db) return res.json({ success: false });
+    let ttAccounts = [];
+    try { ttAccounts = JSON.parse(db.get(`tiktok-accounts-${guildId}`) || '[]'); } catch {}
+    const max = 10;
+    res.json({
+        success: true,
+        accounts:     ttAccounts.length,
+        videoEnabled: ttAccounts.filter(a => a.videoEnabled).length,
+        liveEnabled:  ttAccounts.filter(a => a.liveEnabled).length,
+        slots:        max - ttAccounts.length,
+    });
+});
+
 // POST /api/guild/:guildId/tiktok/lookup
 router.post('/guild/:guildId/tiktok/lookup', requireLogin, requireManageGuild, async (req, res) => {
     const { input } = req.body;
@@ -2522,6 +2557,22 @@ function getTwAccounts(db, guildId) {
 function setTwAccounts(db, guildId, accounts) {
     db.set(`twitch-accounts-${guildId}`, JSON.stringify(accounts));
 }
+
+// GET /api/guild/:guildId/twitch/stats — realtime stat counts
+router.get('/guild/:guildId/twitch/stats', requireLogin, requireManageGuild, (req, res) => {
+    const db = req.discordClient?.database;
+    const guildId = req.params.guildId;
+    if (!db) return res.json({ success: false });
+    let twAccounts = [];
+    try { twAccounts = JSON.parse(db.get(`twitch-accounts-${guildId}`) || '[]'); } catch {}
+    const max = 10;
+    res.json({
+        success: true,
+        accounts: twAccounts.length,
+        active:   twAccounts.filter(a => a.enabled).length,
+        slots:    max - twAccounts.length,
+    });
+});
 
 // POST /api/guild/:guildId/twitch/lookup
 router.post('/guild/:guildId/twitch/lookup', requireLogin, requireManageGuild, async (req, res) => {
@@ -2770,6 +2821,22 @@ function getKickAccounts(db, guildId) {
 function setKickAccounts(db, guildId, accounts) {
     db.set(`kick-accounts-${guildId}`, JSON.stringify(accounts));
 }
+
+// GET /api/guild/:guildId/kick/stats — realtime stat counts
+router.get('/guild/:guildId/kick/stats', requireLogin, requireManageGuild, (req, res) => {
+    const db = req.discordClient?.database;
+    const guildId = req.params.guildId;
+    if (!db) return res.json({ success: false });
+    let kickAccounts = [];
+    try { kickAccounts = JSON.parse(db.get(`kick-accounts-${guildId}`) || '[]'); } catch {}
+    const max = 10;
+    res.json({
+        success: true,
+        accounts: kickAccounts.length,
+        active:   kickAccounts.filter(a => a.enabled).length,
+        slots:    max - kickAccounts.length,
+    });
+});
 
 // POST /api/guild/:guildId/kick/lookup — cari channel Kick
 router.post('/guild/:guildId/kick/lookup', requireLogin, requireManageGuild, async (req, res) => {
