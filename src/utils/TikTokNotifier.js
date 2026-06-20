@@ -251,7 +251,11 @@ class TikTokNotifier {
             }
         }
 
+        let firstPoll = true;
         for (const [username, guildEntries] of usernameMap) {
+            // Delay antar request agar tidak kena rate limit tikwm (1 req/detik)
+            if (!firstPoll) await new Promise(r => setTimeout(r, 1200));
+            firstPoll = false;
             try {
                 const { entries } = await this._fetchVideos(username, 5);
                 if (entries.length === 0) continue;
