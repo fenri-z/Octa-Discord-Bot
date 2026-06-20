@@ -46,6 +46,8 @@ class YouTubeNotifier {
         // Cache hasil _checkLivePage() selama 2.5 menit — share hasil antar guild & antar jalur
         this._livePageCache   = new Map(); // channelId → { result, expiresAt }
         this._livePagePending = new Map(); // channelId → Promise — cegah duplicate fetch paralel
+        // Cache URL thumbnail terbaik per videoId (TTL 1 jam)
+        this._thumbCache    = new Map(); // videoId → { url, expiresAt }
     }
 
     // ─── Lifecycle ─────────────────────────────────────────────────────────────
@@ -150,7 +152,7 @@ class YouTubeNotifier {
 
             for (let i = 0; i < Math.min(entries.length, 5); i++) {
                 if (i === 0 && skipFirst) continue;
-                const notifKey = `youtube-liveNotified-${guildId}-${entries[i].id}`;
+                const notifKey = `youtube-liveNotified-${guildId}-${channelId}-${entries[i].id}`;
                 if (!db.get(notifKey)) db.set(notifKey, String(Date.now()));
             }
         } catch { /* noop */ }
@@ -329,7 +331,7 @@ class YouTubeNotifier {
 
             // Jika live, cek dulu apakah sudah pernah dikirim (cegah double dari live poll)
             if (type === 'live') {
-                const notifKey = `youtube-liveNotified-${guild.id}-${videoId}`;
+                const notifKey = `youtube-liveNotified-${guild.id}-${channelId}-${videoId}`;
                 if (db.get(notifKey)) continue;
                 db.set(notifKey, String(Date.now()));
             }
@@ -496,7 +498,7 @@ class YouTubeNotifier {
         // Cleanup liveNotified keys > 7 hari (jalan di setiap RSS poll, bukan hanya fallback)
         const cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
         for (const entry of entries) {
-            const notifKey = `youtube-liveNotified-${guild.id}-${entry.id}`;
+            const notifKey = `youtube-liveNotified-${guild.id}-${ytCh.id}-${entry.id}`;
             const ts = parseInt(db.get(notifKey) || '0', 10);
             if (ts && ts < cutoff) db.delete(notifKey);
         }
@@ -529,7 +531,7 @@ class YouTubeNotifier {
 
         // Cegah double notifikasi live dari _checkLive + RSS poll
         if (db) {
-            const notifKey = `youtube-liveNotified-${guild.id}-${entry.id}`;
+            const notifKey = `youtube-liveNotified-${guild.id}-${ytCh.id}-${entry.id}`;
             if (type === 'live') {
                 if (db.get(notifKey)) return;
                 db.set(notifKey, String(Date.now()));
@@ -864,7 +866,7 @@ class YouTubeNotifier {
         const livePage = await this._checkLivePageCached(ytCh.id);
 
         if (livePage.isLive && livePage.videoId) {
-            const notifKey = `youtube-liveNotified-${guild.id}-${livePage.videoId}`;
+            const notifKey = `youtube-liveNotified-${guild.id}-${ytCh.id}-${livePage.videoId}`;
             if (!db.get(notifKey)) {
                 db.set(notifKey, String(Date.now()));
                 const videoUrl  = `https://www.youtube.com/watch?v=${livePage.videoId}`;
@@ -895,7 +897,7 @@ class YouTubeNotifier {
         const recent  = entries.slice(0, 5);
 
         for (const entry of recent) {
-            const notifKey = `youtube-liveNotified-${guild.id}-${entry.id}`;
+            const notifKey = `youtube-liveNotified-${guild.id}-${ytCh.id}-${entry.id}`;
             if (db.get(notifKey)) continue;
 
             const liveInfo = await this._isLive(entry.id);
@@ -924,6 +926,34 @@ class YouTubeNotifier {
     }
 
     // ─── Notification ──────────────────────────────────────────────────────────
+
+    async _getBestThumbnail(videoId) {
+        const cached = this._thumbCache.get(videoId);
+        if (cached && cached.expiresAt > Date.now()) return cached.url;
+
+        const candidates = [
+            `https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg`,
+            `https://i.ytimg.com/vi/${videoId}/hq720.jpg`,
+        ];
+        let url = `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
+        for (const candidate of candidates) {
+            try {
+                const res = await fetch(candidate, {
+                    method: 'HEAD',
+                    signal: AbortSignal.timeout(3_000),
+                });
+                if (res.ok) { url = candidate; break; }
+            } catch { /* coba kandidat berikutnya */ }
+        }
+
+        this._thumbCache.set(videoId, { url, expiresAt: Date.now() + 60 * 60 * 1000 });
+        if (this._thumbCache.size > 200) {
+            const now = Date.now();
+            for (const [k, v] of this._thumbCache)
+                if (v.expiresAt <= now) this._thumbCache.delete(k);
+        }
+        return url;
+    }
 
     async _sendNotification(guild, ytCh, type, data) {
         const map = {
@@ -977,7 +1007,7 @@ class YouTubeNotifier {
             { name: fields[type], value: `[${data.title}](${data.url})`, inline: false },
             { name: '🔗 Link',    value: `[Click Me ▶](${data.url})`, inline: false },
         );
-        if (data.thumbnail) embed.setImage(data.thumbnail);
+        if (data.videoId) embed.setImage(await this._getBestThumbnail(data.videoId));
 
         const footerOpts = { text: footerTexts[type] };
         if (this._baseUrl) footerOpts.iconURL = `${this._baseUrl}/img/youtube.png`;

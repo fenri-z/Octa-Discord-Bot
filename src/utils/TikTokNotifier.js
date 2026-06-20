@@ -17,7 +17,7 @@ const LIVE_POLL_INTERVAL_MS    = 60 * 1000;        // Live: 1 menit via WebSocke
 const LIVE_CACHE_MS            = 30 * 1000;        // Cache per-username antar guild (harus < LIVE_POLL_INTERVAL_MS)
 const HEALTH_INTERVAL_MS       = 30 * 60 * 1000;  // Health check: 30 menit
 const HEALTH_FAIL_THRESHOLD    = 3;               // Alert setelah 3x gagal berturut-turut
-const LIVE_FAIL_THRESHOLD      = 3;               // Hapus liveKey setelah 3x gagal (bukan 2x)
+const LIVE_FAIL_THRESHOLD      = 10;              // ~10 menit offline sebelum live dianggap benar-benar berakhir
 const LIVE_NOTIF_COOLDOWN_MS   = 2 * 60 * 60 * 1000; // Cooldown 2 jam antar notif live
 const AVATAR_CHECK_INTERVAL_MS = 60 * 60 * 1000;     // Cek avatar basi tiap 1 jam
 const AVATAR_STALE_MS          = 24 * 60 * 60 * 1000; // Avatar dianggap basi setelah 24 jam
@@ -294,7 +294,9 @@ class TikTokNotifier {
         if (lastId === latestId) return false;
 
         const lastIdx    = entries.findIndex(e => e.id === lastId);
-        const newEntries = lastIdx === -1 ? entries.slice(0, 3) : entries.slice(0, lastIdx);
+        // Jika lastId tidak ada di top-5 (video dihapus/geser dari window), hanya kirim
+        // video paling baru saja — jangan spam slice(0,3) yang bisa kirim video lama.
+        const newEntries = lastIdx === -1 ? [entries[0]] : entries.slice(0, lastIdx);
 
         db.set(lastKey, latestId);
         for (const entry of [...newEntries].reverse()) {
@@ -473,7 +475,7 @@ class TikTokNotifier {
         if (lastId === latestId) return;
 
         const lastIdx   = entries.findIndex(e => e.id === lastId);
-        const newEntries = lastIdx === -1 ? entries.slice(0, 3) : entries.slice(0, lastIdx);
+        const newEntries = lastIdx === -1 ? [entries[0]] : entries.slice(0, lastIdx);
 
         db.set(lastKey, latestId);
         for (const entry of [...newEntries].reverse()) {
@@ -486,12 +488,22 @@ class TikTokNotifier {
     // ─── Live Polling ──────────────────────────────────────────────────────────
 
     async _pollLive() {
-        const db = this.client.database;
-        if (!db) return;
-        for (const guild of this.client.guilds.cache.values()) {
-            this._pollGuildLive(guild, db).catch(err =>
-                warn(`[TikTok/Live] Poll error guild ${guild.id}: ${err.message}`)
-            );
+        if (this._livePolling) return; // cegah tumpang tindih jika siklus sebelumnya belum selesai
+        this._livePolling = true;
+        try {
+            const db = this.client.database;
+            if (!db) return;
+            const tasks = [];
+            for (const guild of this.client.guilds.cache.values()) {
+                tasks.push(
+                    this._pollGuildLive(guild, db).catch(err =>
+                        warn(`[TikTok/Live] Poll error guild ${guild.id}: ${err.message}`)
+                    )
+                );
+            }
+            await Promise.all(tasks);
+        } finally {
+            this._livePolling = false;
         }
     }
 

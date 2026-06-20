@@ -2336,6 +2336,7 @@ router.delete('/guild/:guildId/youtube/channels/:ytChannelId', requireLogin, req
 
     setYtChannels(db, guildId, channels.filter(c => c.id !== ytId));
     db.delete(`youtube-lastVideo-${guildId}-${ytId}`);
+    db.deleteLike(`youtube-liveNotified-${guildId}-${ytId}-%`);
 
     // WebSub: unsubscribe hanya jika tidak ada guild lain yang masih pantau channel ini
     const notifier = req.discordClient?.youtubeNotifier;
@@ -2587,6 +2588,9 @@ router.delete('/guild/:guildId/tiktok/accounts/:username', requireLogin, require
 
     setTtAccounts(db, guildId, accounts.filter(a => a.username !== username));
     db.delete(`tiktok-lastVideo-${guildId}-${username}`);
+    db.delete(`tiktok-liveActive-${guildId}-${username}`);
+    db.delete(`tiktok-liveNotifAt-${guildId}-${username}`);
+    db.delete(`tiktok-liveFail-${guildId}-${username}`);
     res.json({ success: true, message: `Account "${username}" deleted successfully.` });
 });
 
