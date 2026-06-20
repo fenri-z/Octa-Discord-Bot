@@ -9,7 +9,7 @@
 /* 2-kolom: form kiri | preview kanan */
 .yt-panel-layout {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 3fr 2fr;
     gap: 1.25rem;
     align-items: start;
 }
@@ -340,7 +340,21 @@
                     </div>
                     <div class="form-group">
                         <div class="label-with-picker">
-                            <label class="label" style="margin-bottom:0;"><%= t('youtube.additional_msg') %></label>
+                            <label class="label" style="margin-bottom:0;"><%= t('youtube.plain_msg_label') %></label>
+                            <div class="ph-picker-anchor">
+                                <button type="button" class="ph-toggle-btn" onclick="togglePicker('ytVideoPlainPicker-<%= ytCh.id %>',event)"><%= t('youtube.placeholder_btn') %></button>
+                                <div class="ph-dropdown" id="ytVideoPlainPicker-<%= ytCh.id %>" style="display:none;"></div>
+                            </div>
+                        </div>
+                        <textarea class="textarea mb-auto-resize" id="videoPlainMessage-<%= ytCh.id %>" rows="2"
+                                  maxlength="2000"
+                                  placeholder="<%= t('youtube.plain_msg_ph').replace('{channel}', ytCh.name) %>"
+                                  oninput="mbResizeArea(this);mbUpdateCount('videoPlainMessage-<%= ytCh.id %>','videoPlainCount-<%= ytCh.id %>');updateYtPreview('<%= ytCh.id %>','video')"><%= ytCh.videoPlainMessage || '' %></textarea>
+                        <div class="mb-char-count" id="videoPlainCount-<%= ytCh.id %>">0 / 2000</div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label-with-picker">
+                            <label class="label" style="margin-bottom:0;"><%= t('youtube.additional_msg') %> <span style="color:#ed4245;">*</span></label>
                             <div class="ph-picker-anchor">
                                 <button type="button" class="ph-toggle-btn" onclick="togglePicker('ytVideoPicker-<%= ytCh.id %>',event)"><%= t('youtube.placeholder_btn') %></button>
                                 <div class="ph-dropdown" id="ytVideoPicker-<%= ytCh.id %>" style="display:none;"></div>
@@ -379,6 +393,7 @@
                                     </span>
                                     <span class="dc-timestamp">Today at 12:00 PM</span>
                                 </div>
+                                <div class="yt-prev-plain dc-plain-msg" style="display:none;"></div>
                                 <div class="dc-embed">
                                     <div class="dc-embed-pill yt-prev-pill" style="background:#FF0000;"></div>
                                     <div class="dc-embed-body">
@@ -452,7 +467,21 @@
                     </div>
                     <div class="form-group">
                         <div class="label-with-picker">
-                            <label class="label" style="margin-bottom:0;"><%= t('youtube.additional_msg') %></label>
+                            <label class="label" style="margin-bottom:0;"><%= t('youtube.plain_msg_label') %></label>
+                            <div class="ph-picker-anchor">
+                                <button type="button" class="ph-toggle-btn" onclick="togglePicker('ytShortPlainPicker-<%= ytCh.id %>',event)"><%= t('youtube.placeholder_btn') %></button>
+                                <div class="ph-dropdown" id="ytShortPlainPicker-<%= ytCh.id %>" style="display:none;"></div>
+                            </div>
+                        </div>
+                        <textarea class="textarea mb-auto-resize" id="shortPlainMessage-<%= ytCh.id %>" rows="2"
+                                  maxlength="2000"
+                                  placeholder="<%= t('youtube.plain_msg_ph').replace('{channel}', ytCh.name) %>"
+                                  oninput="mbResizeArea(this);mbUpdateCount('shortPlainMessage-<%= ytCh.id %>','shortPlainCount-<%= ytCh.id %>');updateYtPreview('<%= ytCh.id %>','short')"><%= ytCh.shortPlainMessage || '' %></textarea>
+                        <div class="mb-char-count" id="shortPlainCount-<%= ytCh.id %>">0 / 2000</div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label-with-picker">
+                            <label class="label" style="margin-bottom:0;"><%= t('youtube.additional_msg') %> <span style="color:#ed4245;">*</span></label>
                             <div class="ph-picker-anchor">
                                 <button type="button" class="ph-toggle-btn" onclick="togglePicker('ytShortPicker-<%= ytCh.id %>',event)"><%= t('youtube.placeholder_btn') %></button>
                                 <div class="ph-dropdown" id="ytShortPicker-<%= ytCh.id %>" style="display:none;"></div>
@@ -490,6 +519,7 @@
                                     </span>
                                     <span class="dc-timestamp">Today at 12:00 PM</span>
                                 </div>
+                                <div class="yt-prev-plain dc-plain-msg" style="display:none;"></div>
                                 <div class="dc-embed">
                                     <div class="dc-embed-pill yt-prev-pill" style="background:#FF6B35;"></div>
                                     <div class="dc-embed-body">
@@ -563,7 +593,21 @@
                     </div>
                     <div class="form-group">
                         <div class="label-with-picker">
-                            <label class="label" style="margin-bottom:0;"><%= t('youtube.additional_msg') %></label>
+                            <label class="label" style="margin-bottom:0;"><%= t('youtube.plain_msg_label') %></label>
+                            <div class="ph-picker-anchor">
+                                <button type="button" class="ph-toggle-btn" onclick="togglePicker('ytLivePlainPicker-<%= ytCh.id %>',event)"><%= t('youtube.placeholder_btn') %></button>
+                                <div class="ph-dropdown" id="ytLivePlainPicker-<%= ytCh.id %>" style="display:none;"></div>
+                            </div>
+                        </div>
+                        <textarea class="textarea mb-auto-resize" id="livePlainMessage-<%= ytCh.id %>" rows="2"
+                                  maxlength="2000"
+                                  placeholder="<%= t('youtube.plain_msg_ph').replace('{channel}', ytCh.name) %>"
+                                  oninput="mbResizeArea(this);mbUpdateCount('livePlainMessage-<%= ytCh.id %>','livePlainCount-<%= ytCh.id %>');updateYtPreview('<%= ytCh.id %>','live')"><%= ytCh.livePlainMessage || '' %></textarea>
+                        <div class="mb-char-count" id="livePlainCount-<%= ytCh.id %>">0 / 2000</div>
+                    </div>
+                    <div class="form-group">
+                        <div class="label-with-picker">
+                            <label class="label" style="margin-bottom:0;"><%= t('youtube.additional_msg') %> <span style="color:#ed4245;">*</span></label>
                             <div class="ph-picker-anchor">
                                 <button type="button" class="ph-toggle-btn" onclick="togglePicker('ytLivePicker-<%= ytCh.id %>',event)"><%= t('youtube.placeholder_btn') %></button>
                                 <div class="ph-dropdown" id="ytLivePicker-<%= ytCh.id %>" style="display:none;"></div>
@@ -601,6 +645,7 @@
                                     </span>
                                     <span class="dc-timestamp">Today at 12:00 PM</span>
                                 </div>
+                                <div class="yt-prev-plain dc-plain-msg" style="display:none;"></div>
                                 <div class="dc-embed">
                                     <div class="dc-embed-pill yt-prev-pill" style="background:#CC0000;"></div>
                                     <div class="dc-embed-body">
@@ -752,13 +797,13 @@ function discordMd(raw) {
     if (!raw) return '';
     const _t = []; const _T = i => `\x00${i}\x00`;
     let _src = raw
-        .replace(/<a:(\w+):(\d+)>/g, (_, name, id) => { _t.push(`<img src="https://cdn.discordapp.com/emojis/${id}.gif" class="dc-emoji" alt=":${name}:">`);  return _T(_t.length-1); })
-        .replace(/<:(\w+):(\d+)>/g,  (_, name, id) => { _t.push(`<img src="https://cdn.discordapp.com/emojis/${id}.webp" class="dc-emoji" alt=":${name}:">`); return _T(_t.length-1); })
+        .replace(/<a:(\w+):(\d+)>/g, (_, name, id) => { _t.push(`<img src="https://cdn.discordapp.com/emojis/${id}.gif" class="dc-emoji" alt=":${name}:" onerror="this.style.display='none'">`);  return _T(_t.length-1); })
+        .replace(/<:(\w+):(\d+)>/g,  (_, name, id) => { _t.push(`<img src="https://cdn.discordapp.com/emojis/${id}.webp" class="dc-emoji" alt=":${name}:" onerror="this.style.display='none'">`); return _T(_t.length-1); })
         .replace(/<@&(\d+)>/g,  (_, id) => { const r=ROLES_MAP[id],c=r?.color||'#5865F2'; _t.push(`<span class="dc-mention" style="color:${c};background:${c}1a;">@${r?r.name:id}</span>`); return _T(_t.length-1); })
         .replace(/<@!?(\d+)>/g, (_, id) => { _t.push(`<span class="dc-mention">@${id}</span>`); return _T(_t.length-1); })
         .replace(/<#(\d+)>/g,   (_, id) => { const ch=CHANNELS_MAP[id]; _t.push(`<span class="dc-mention">#${ch?ch.name:id}</span>`); return _T(_t.length-1); })
-        .replace(/@everyone\b/g, () => { _t.push('<span class="dc-mention">@everyone</span>'); return _T(_t.length-1); })
-        .replace(/@here\b/g,     () => { _t.push('<span class="dc-mention">@here</span>');    return _T(_t.length-1); });
+        .replace(/@everyone/g, () => { _t.push('<span class="dc-mention">@everyone</span>'); return _T(_t.length-1); })
+        .replace(/@here/g,     () => { _t.push('<span class="dc-mention">@here</span>');    return _T(_t.length-1); });
     let s = _src
         .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
@@ -783,7 +828,7 @@ function discordMd(raw) {
     // Masked links [text](url)
     s = s.replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, '<a href="$2" onclick="return false;" style="color:#00b0f4;text-decoration:none">$1</a>');
     // URLs sebagai link
-    s = s.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" style="color:#00b0f4;text-decoration:none">$1</a>');
+    s = s.replace(/(https?:\/\/[^\s<\x00]+)/g, '<a href="$1" target="_blank" style="color:#00b0f4;text-decoration:none">$1</a>');
     // Blockquote
     s = s.replace(/^&gt; (.+)$/gm, '<span style="border-left:3px solid #4e5058;padding-left:.5em;color:#b5bac1;display:block">$1</span>');
     // Line breaks
@@ -805,8 +850,22 @@ function updateYtPreview(chId, type) {
         : 'select-channel';
     prevEl.querySelector('.yt-prev-ch-name').textContent = chName;
 
-    // Custom message dengan Discord markdown
-    const ytChName  = document.querySelector(`#ytCard-${chId} .yt-card-name`)?.textContent?.trim() || 'Channel';
+    // Plain text preview (di atas embed)
+    const ytChName   = document.querySelector(`#ytCard-${chId} .yt-card-name`)?.textContent?.trim() || 'Channel';
+    const plainArea  = document.getElementById(`${type}PlainMessage-${chId}`);
+    const plainEl    = prevEl.querySelector('.yt-prev-plain');
+    const rawPlain   = plainArea?.value?.trim() || '';
+    const fillText   = s => (s || '')
+        .replace(/{channel}/g, ytChName)
+        .replace(/{title}/g,   'Example Video Title')
+        .replace(/{url}/g,     'https://youtube.com/watch?v=dQw4w9WgXcQ')
+        .replace(/{id}/g,      'dQw4w9WgXcQ');
+    if (plainEl) {
+        if (rawPlain) { plainEl.innerHTML = discordMd(fillText(rawPlain)); plainEl.style.display = ''; }
+        else plainEl.style.display = 'none';
+    }
+
+    // Embed description
     const msgArea   = document.getElementById(`${type}Message-${chId}`);
     const customEl  = prevEl.querySelector('.yt-prev-msg:not(.yt-prev-desc)');
     const defaultEl = prevEl.querySelector('.yt-prev-desc');
@@ -819,11 +878,7 @@ function updateYtPreview(chId, type) {
     };
 
     if (rawMsg) {
-        const filled = rawMsg
-            .replace(/{channel}/g, ytChName)
-            .replace(/{title}/g,   'Example Video Title')
-            .replace(/{url}/g,     'https://youtube.com/watch?v=dQw4w9WgXcQ')
-            .replace(/{id}/g,      'dQw4w9WgXcQ');
+        const filled = fillText(rawMsg);
         if (customEl)  { customEl.innerHTML = discordMd(filled); customEl.style.display = ''; }
         if (defaultEl) defaultEl.style.display = 'none';
     } else {
@@ -892,6 +947,9 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.yt-channel-card').forEach(card => {
         const chId = card.id.replace('ytCard-', '');
         updateYtPreview(chId, 'video');
+        mbUpdateCount(`videoPlainMessage-${chId}`, `videoPlainCount-${chId}`);
+        mbUpdateCount(`shortPlainMessage-${chId}`, `shortPlainCount-${chId}`);
+        mbUpdateCount(`livePlainMessage-${chId}`,  `livePlainCount-${chId}`);
         mbUpdateCount(`videoMessage-${chId}`, `videoCount-${chId}`);
         mbUpdateCount(`shortMessage-${chId}`, `shortCount-${chId}`);
         mbUpdateCount(`liveMessage-${chId}`,  `liveCount-${chId}`);
@@ -902,15 +960,18 @@ document.addEventListener('DOMContentLoaded', () => {
 // ── Save settings ──────────────────────────────────────────────────────────────
 async function saveYtSettings(chId, quiet = false) {
     const body = {
-        videoEnabled:   document.getElementById(`videoEnabled-${chId}`)?.checked  ?? false,
-        videoChannelId: document.getElementById(`videoChannel-${chId}`)?.value    ?? '',
-        videoMessage:   document.getElementById(`videoMessage-${chId}`)?.value    ?? '',
-        shortEnabled:   document.getElementById(`shortEnabled-${chId}`)?.checked  ?? false,
-        shortChannelId: document.getElementById(`shortChannel-${chId}`)?.value    ?? '',
-        shortMessage:   document.getElementById(`shortMessage-${chId}`)?.value    ?? '',
-        liveEnabled:    document.getElementById(`liveEnabled-${chId}`)?.checked   ?? false,
-        liveChannelId:  document.getElementById(`liveChannel-${chId}`)?.value     ?? '',
-        liveMessage:    document.getElementById(`liveMessage-${chId}`)?.value     ?? '',
+        videoEnabled:        document.getElementById(`videoEnabled-${chId}`)?.checked       ?? false,
+        videoChannelId:      document.getElementById(`videoChannel-${chId}`)?.value         ?? '',
+        videoPlainMessage:   document.getElementById(`videoPlainMessage-${chId}`)?.value    ?? '',
+        videoMessage:        document.getElementById(`videoMessage-${chId}`)?.value         ?? '',
+        shortEnabled:        document.getElementById(`shortEnabled-${chId}`)?.checked       ?? false,
+        shortChannelId:      document.getElementById(`shortChannel-${chId}`)?.value         ?? '',
+        shortPlainMessage:   document.getElementById(`shortPlainMessage-${chId}`)?.value    ?? '',
+        shortMessage:        document.getElementById(`shortMessage-${chId}`)?.value         ?? '',
+        liveEnabled:         document.getElementById(`liveEnabled-${chId}`)?.checked        ?? false,
+        liveChannelId:       document.getElementById(`liveChannel-${chId}`)?.value          ?? '',
+        livePlainMessage:    document.getElementById(`livePlainMessage-${chId}`)?.value     ?? '',
+        liveMessage:         document.getElementById(`liveMessage-${chId}`)?.value          ?? '',
     };
 
     try {
@@ -977,6 +1038,35 @@ document.querySelectorAll('.ph-dropdown[id^="ytVideo"], .ph-dropdown[id^="ytShor
                 textarea.value = textarea.value.slice(0, s) + ph.key + textarea.value.slice(e);
                 textarea.selectionStart = textarea.selectionEnd = s + ph.key.length;
                 textarea.focus();
+            }
+            dd.style.display = 'none';
+        };
+        dd.appendChild(btn);
+    });
+});
+
+// Placeholder picker untuk plain text (Message) textarea
+document.querySelectorAll('.ph-dropdown[id^="ytVideoPlainPicker"], .ph-dropdown[id^="ytShortPlainPicker"], .ph-dropdown[id^="ytLivePlainPicker"]').forEach(dd => {
+    let type;
+    if (dd.id.startsWith('ytVideoPlainPicker')) type = 'video';
+    else if (dd.id.startsWith('ytShortPlainPicker')) type = 'short';
+    else if (dd.id.startsWith('ytLivePlainPicker'))  type = 'live';
+    else return;
+    const chId = dd.id.replace(/^yt(Video|Short|Live)PlainPicker-/, '');
+
+    YT_PLACEHOLDERS.forEach(ph => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'ph-item';
+        btn.innerHTML = `<code>${ph.key}</code><span>${ph.desc}</span>`;
+        btn.onclick = () => {
+            const textarea = document.getElementById(`${type}PlainMessage-${chId}`);
+            if (textarea) {
+                const s = textarea.selectionStart, e = textarea.selectionEnd;
+                textarea.value = textarea.value.slice(0, s) + ph.key + textarea.value.slice(e);
+                textarea.selectionStart = textarea.selectionEnd = s + ph.key.length;
+                textarea.focus();
+                textarea.dispatchEvent(new Event('input', { bubbles: true }));
             }
             dd.style.display = 'none';
         };

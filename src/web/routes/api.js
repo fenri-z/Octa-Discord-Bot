@@ -17,6 +17,51 @@ const router  = express.Router();
 const HEX_COLOR   = /^#[0-9A-Fa-f]{6}$/;
 const SNOWFLAKE   = /^\d{17,20}$/;
 
+// Parse a button label that may contain Discord emoji syntax <:name:id> or <a:name:id>.
+// Returns { text, emoji } where emoji is the first emoji object found (or null).
+// Discord buttons only support one emoji (before the text); extra emoji codes are stripped.
+function parseBtnLabel(rawLabel) {
+    const re = /<(a?):([^:>]+):(\d+)>/g;
+    let firstEmoji = null;
+    const text = rawLabel.replace(re, (_, anim, name, id) => {
+        if (!firstEmoji) firstEmoji = { id, name, animated: anim === 'a' };
+        return '';
+    }).trim();
+    return { text, emoji: firstEmoji };
+}
+
+// Build ActionRow[] from an array of button data.
+// useEmoji=false strips emoji (fallback for deleted/unknown server emoji).
+function _buildBtnRows({ ButtonBuilder, ActionRowBuilder, ButtonStyle }, buttons, customIdFn, useEmoji = true) {
+    const rows = [];
+    let rowIdx = 0, colIdx = 0;
+    let currentRow = new ActionRowBuilder();
+    for (const btn of buttons) {
+        if (colIdx === 5) { rows.push(currentRow); currentRow = new ActionRowBuilder(); rowIdx++; colIdx = 0; }
+        if (rowIdx >= 5) break;
+        const { text, emoji } = parseBtnLabel(btn.label);
+        const b = new ButtonBuilder()
+            .setCustomId(customIdFn(btn))
+            .setStyle(btn.style || ButtonStyle.Primary);
+        if (useEmoji && emoji) b.setEmoji(emoji);
+        if (text) b.setLabel(text);
+        currentRow.addComponents(b);
+        colIdx++;
+    }
+    if (colIdx > 0) rows.push(currentRow);
+    return rows;
+}
+
+// Send/edit with emoji, auto-retry without emoji if Discord rejects (Unknown Emoji: 10014).
+async function _withEmojiRetry(actionFn, noEmojiFn) {
+    try {
+        return await actionFn();
+    } catch (err) {
+        if (err.code === 10014) return await noEmojiFn();
+        throw err;
+    }
+}
+
 // ── Reusable validator sets ───────────────────────────────────────────────────
 const vChannelId = body('channelId')
     .notEmpty().withMessage('Target channel is required.')
@@ -658,6 +703,10 @@ router.post('/guild/:guildId/autorole-button/:name', requireLogin, requireManage
         embedTitleUrl, embedFooterIcon, embedTimestamp, embedFields,
     } = req.body;
 
+    // Panel name is locked — reject if body tries to rename
+    if (req.body.name && req.body.name.trim().toLowerCase() !== name)
+        return res.json({ success: false, message: 'Panel name cannot be changed after creation.' });
+
     const raw = db?.get(`autobtn-${guildId}-${name}`);
     if (!raw) return res.json({ success: false, message: 'Panel not found.' });
 
@@ -675,7 +724,11 @@ router.post('/guild/:guildId/autorole-button/:name', requireLogin, requireManage
     if (!urlOk(embedImage))     return res.json({ success: false, message: 'Invalid image URL.' });
     if (!urlOk(embedThumbnail)) return res.json({ success: false, message: 'Invalid thumbnail URL.' });
 
-    if (mode)             panel.mode             = mode;
+    // Lock mode & channelId once the panel has been sent
+    const sentRaw = db?.get(`autobtn-sent-${guildId}-${name}`);
+    if (mode && !sentRaw)             panel.mode      = mode;
+    if (channelId !== undefined && !sentRaw) panel.channelId = (channelId || '').trim();
+
     if (embedTitle       !== undefined) panel.embedTitle       = embedTitle.trim();
     if (embedDescription !== undefined) panel.embedDescription = embedDescription.trim();
     if (embedFooter      !== undefined) panel.embedFooter      = embedFooter.trim();
@@ -691,14 +744,12 @@ router.post('/guild/:guildId/autorole-button/:name', requireLogin, requireManage
     if (Array.isArray(embedFields))    panel.embedFields      = embedFields.filter(f=>f.name&&f.value);
     if (messageType !== undefined) panel.messageType = ['plain','both'].includes(messageType) ? messageType : 'embed';
     if (plainText   !== undefined) panel.plainText   = plainText.trim();
-    if (channelId   !== undefined) panel.channelId   = (channelId || '').trim();
     panel.updatedAt = Date.now();
     db.set(`autobtn-${guildId}-${name}`, JSON.stringify(panel));
 
     // Jika sudah terkirim, update embed + components di Discord secara langsung
     let liveUpdate = '';
     try {
-        const sentRaw = db?.get(`autobtn-sent-${guildId}-${name}`);
         if (sentRaw) {
             const { EmbedBuilder, ButtonBuilder, ActionRowBuilder, ButtonStyle } = require('discord.js');
             const sent    = JSON.parse(sentRaw);
@@ -719,30 +770,20 @@ router.post('/guild/:guildId/autorole-button/:name', requireLogin, requireManage
                     _applyEmbedExtras(embed, panel);
 
                     // Bangun components (sinkron dengan buildButtonRows di command)
-                    const rows = [];
-                    let rowIdx = 0, colIdx = 0;
-                    let currentRow = new ActionRowBuilder();
-                    for (const btn of panel.buttons) {
-                        if (colIdx === 5) { rows.push(currentRow); currentRow = new ActionRowBuilder(); rowIdx++; colIdx = 0; }
-                        if (rowIdx >= 5) break;
-                        currentRow.addComponents(
-                            new ButtonBuilder()
-                                .setCustomId(`autobtn:${panel.mode}:${panel.name}:${btn.roleId}`)
-                                .setLabel(btn.label)
-                                .setStyle(btn.style || ButtonStyle.Primary)
-                        );
-                        colIdx++;
-                    }
-                    if (colIdx > 0) rows.push(currentRow);
-
-                    const comps = panel.buttons.length > 0 ? rows : [];
-                    if (panel.messageType === 'both') {
-                        await discordMsg.edit({ content: (panel.plainText || '').slice(0, 2000), embeds: [embed], components: comps });
-                    } else if (panel.messageType === 'plain') {
-                        await discordMsg.edit({ content: (panel.plainText || '').slice(0, 2000), embeds: [], components: comps });
-                    } else {
-                        await discordMsg.edit({ embeds: [embed], content: null, components: comps });
-                    }
+                    const _djsCtx1 = { ButtonBuilder, ActionRowBuilder, ButtonStyle };
+                    const _cidFn1  = btn => `autobtn:${panel.mode}:${panel.name}:${btn.roleId}`;
+                    const _doEdit1 = (rows) => {
+                        const comps = panel.buttons.length > 0 ? rows : [];
+                        if (panel.messageType === 'both')
+                            return discordMsg.edit({ content: (panel.plainText || '').slice(0, 2000), embeds: [embed], components: comps });
+                        if (panel.messageType === 'plain')
+                            return discordMsg.edit({ content: (panel.plainText || '').slice(0, 2000), embeds: [], components: comps });
+                        return discordMsg.edit({ embeds: [embed], content: null, components: comps });
+                    };
+                    await _withEmojiRetry(
+                        () => _doEdit1(_buildBtnRows(_djsCtx1, panel.buttons, _cidFn1, true)),
+                        () => _doEdit1(_buildBtnRows(_djsCtx1, panel.buttons, _cidFn1, false))
+                    );
                     liveUpdate = ' Discord message updated live.';
                 }
             }
@@ -821,32 +862,13 @@ router.post('/guild/:guildId/autorole-button/:name/buttons', requireLogin, requi
                 const discordMsg = await channel.messages.fetch(sent.messageId).catch(() => null);
                 if (discordMsg) {
                     // Bangun components — customId sinkron: autobtn:<mode>:<panelName>:<roleId>
-                    const rows = [];
-                    let rowIdx = 0, colIdx = 0;
-                    let currentRow = new ActionRowBuilder();
-                    for (const btn of panel.buttons) {
-                        if (colIdx === 5) { rows.push(currentRow); currentRow = new ActionRowBuilder(); rowIdx++; colIdx = 0; }
-                        if (rowIdx >= 5) break;
-                        currentRow.addComponents(
-                            new ButtonBuilder()
-                                .setCustomId(`autobtn:${panel.mode}:${panel.name}:${btn.roleId}`)
-                                .setLabel(btn.label)
-                                .setStyle(btn.style || ButtonStyle.Primary)
-                        );
-                        colIdx++;
-                    }
-                    if (colIdx > 0) rows.push(currentRow);
-                    const components = panel.buttons.length > 0 ? rows : [];
-
-                    if (panel.messageType === 'plain') {
-                        // Tipe teks biasa: update content saja, hapus embeds
-                        await discordMsg.edit({
-                            content:    (panel.plainText || '').slice(0, 2000),
-                            embeds:     [],
-                            components,
-                        });
-                    } else {
-                        // Tipe embed: bangun embed dari field panel
+                    const _djsCtx2 = { ButtonBuilder, ActionRowBuilder, ButtonStyle };
+                    const _cidFn2  = btn => `autobtn:${panel.mode}:${panel.name}:${btn.roleId}`;
+                    const _doEdit2 = async (rows) => {
+                        const components = panel.buttons.length > 0 ? rows : [];
+                        if (panel.messageType === 'plain') {
+                            return discordMsg.edit({ content: (panel.plainText || '').slice(0, 2000), embeds: [], components });
+                        }
                         const colorHex = panel.embedColor && /^#?[0-9A-Fa-f]{6}$/.test(panel.embedColor.trim())
                             ? (panel.embedColor.startsWith('#') ? panel.embedColor : `#${panel.embedColor}`)
                             : '#5865F2';
@@ -856,8 +878,12 @@ router.post('/guild/:guildId/autorole-button/:name/buttons', requireLogin, requi
                         if (panel.embedFooter)      embed.setFooter({ text: panel.embedFooter.slice(0, 2048) });
                         if (panel.embedImage)       embed.setImage(panel.embedImage);
                         if (panel.embedThumbnail)   embed.setThumbnail(panel.embedThumbnail);
-                        await discordMsg.edit({ embeds: [embed], content: null, components });
-                    }
+                        return discordMsg.edit({ embeds: [embed], content: null, components });
+                    };
+                    await _withEmojiRetry(
+                        () => _doEdit2(_buildBtnRows(_djsCtx2, panel.buttons, _cidFn2, true)),
+                        () => _doEdit2(_buildBtnRows(_djsCtx2, panel.buttons, _cidFn2, false))
+                    );
                 }
             }
         }
@@ -932,31 +958,21 @@ router.post('/guild/:guildId/autorole-button/:name/send', requireLogin, requireM
         _applyEmbedExtras(embed, panel);
 
         // Bangun rows tombol — customId sinkron: autobtn:<mode>:<panelName>:<roleId>
-        const rows = [];
-        let rowIdx = 0, colIdx = 0;
-        let currentRow = new ActionRowBuilder();
-        for (const btn of panel.buttons) {
-            if (colIdx === 5) { rows.push(currentRow); currentRow = new ActionRowBuilder(); rowIdx++; colIdx = 0; }
-            if (rowIdx >= 5) break;
-            currentRow.addComponents(
-                new ButtonBuilder()
-                    .setCustomId(`autobtn:${panel.mode || 'multi'}:${name}:${btn.roleId}`)
-                    .setLabel(btn.label)
-                    .setStyle(btn.style || ButtonStyle.Primary)
-            );
-            colIdx++;
-        }
-        if (colIdx > 0) rows.push(currentRow);
-
-        let sent;
-        if (panel.messageType === 'both') {
-            sent = await channel.send({ content: (panel.plainText || '').slice(0, 2000), embeds: [embed], components: rows });
-        } else if (panel.messageType === 'plain') {
-            if (!panel.plainText) return res.json({ success: false, message: 'Plain text message content is still empty.' });
-            sent = await channel.send({ content: panel.plainText.slice(0, 2000), components: rows });
-        } else {
-            sent = await channel.send({ embeds: [embed], components: rows });
-        }
+        if (!panel.plainText && panel.messageType === 'plain')
+            return res.json({ success: false, message: 'Plain text message content is still empty.' });
+        const _djsCtx3 = { ButtonBuilder, ActionRowBuilder, ButtonStyle };
+        const _cidFn3  = btn => `autobtn:${panel.mode || 'multi'}:${name}:${btn.roleId}`;
+        const _doSend3 = (rows) => {
+            if (panel.messageType === 'both')
+                return channel.send({ content: (panel.plainText || '').slice(0, 2000), embeds: [embed], components: rows });
+            if (panel.messageType === 'plain')
+                return channel.send({ content: panel.plainText.slice(0, 2000), components: rows });
+            return channel.send({ embeds: [embed], components: rows });
+        };
+        const sent = await _withEmojiRetry(
+            () => _doSend3(_buildBtnRows(_djsCtx3, panel.buttons, _cidFn3, true)),
+            () => _doSend3(_buildBtnRows(_djsCtx3, panel.buttons, _cidFn3, false))
+        );
         db?.set(`autobtn-sent-${guildId}-${name}`, JSON.stringify({ messageId: sent.id, channelId: channel.id }));
 
         res.json({ success: true, message: `Panel successfully sent to #${channel.name}!` });
@@ -1079,6 +1095,10 @@ router.post('/guild/:guildId/autorole-reaction/:name', requireLogin, requireMana
         embedTitleUrl, embedFooterIcon, embedTimestamp, embedFields,
     } = req.body;
 
+    // Panel name is locked — reject if body tries to rename
+    if (req.body.name && req.body.name.trim().toLowerCase() !== name)
+        return res.json({ success: false, message: 'Panel name cannot be changed after creation.' });
+
     const raw = db?.get(`autoreact-${guildId}-${name}`);
     if (!raw) return res.json({ success: false, message: 'Panel not found.' });
 
@@ -1096,7 +1116,11 @@ router.post('/guild/:guildId/autorole-reaction/:name', requireLogin, requireMana
     if (plainText && plainText.length > 2000)
         return res.json({ success: false, message: 'Plain text message exceeds the maximum of 2000 characters.' });
 
-    if (mode)             panel.mode             = mode;
+    // Lock mode & channelId once the panel has been sent
+    const sentRaw = db?.get(`autoreact-sent-${guildId}-${name}`);
+    if (mode && !sentRaw)             panel.mode      = mode;
+    if (channelId !== undefined && !sentRaw) panel.channelId = (channelId || '').trim();
+
     if (embedTitle       !== undefined) panel.embedTitle       = embedTitle.trim();
     if (embedDescription !== undefined) panel.embedDescription = embedDescription.trim();
     if (embedFooter      !== undefined) panel.embedFooter      = embedFooter.trim();
@@ -1112,13 +1136,11 @@ router.post('/guild/:guildId/autorole-reaction/:name', requireLogin, requireMana
     if (Array.isArray(embedFields))    panel.embedFields      = embedFields.filter(f=>f.name&&f.value);
     if (messageType !== undefined) panel.messageType = ['plain','both'].includes(messageType) ? messageType : 'embed';
     if (plainText   !== undefined) panel.plainText   = plainText.trim();
-    if (channelId   !== undefined) panel.channelId   = (channelId || '').trim();
     panel.updatedAt = Date.now();
     db.set(`autoreact-${guildId}-${name}`, JSON.stringify(panel));
 
     let liveUpdate = '';
     try {
-        const sentRaw = db?.get(`autoreact-sent-${guildId}-${name}`);
         if (sentRaw) {
             const { EmbedBuilder } = require('discord.js');
             const sent    = JSON.parse(sentRaw);
@@ -1427,11 +1449,17 @@ router.post('/guild/:guildId/ticket/send-panel', requireLogin, requireManageGuil
         const color    = colorRaw.startsWith('#') ? colorRaw : `#${colorRaw}`;
 
         const embed = new EmbedBuilder().setColor(color).setTitle(title).setDescription(desc);
-        const row   = new ActionRowBuilder().addComponents(
-            new ButtonBuilder().setCustomId('ticket-open').setLabel(btnLabel).setStyle(ButtonStyle.Primary)
+        const { text: ticketBtnText, emoji: ticketBtnEmoji } = parseBtnLabel(btnLabel);
+        const _buildTicketRow = (useEmoji) => {
+            const b = new ButtonBuilder().setCustomId('ticket-open').setStyle(ButtonStyle.Primary);
+            if (useEmoji && ticketBtnEmoji) b.setEmoji(ticketBtnEmoji);
+            if (ticketBtnText) b.setLabel(ticketBtnText);
+            return new ActionRowBuilder().addComponents(b);
+        };
+        const sent = await _withEmojiRetry(
+            () => channel.send({ embeds: [embed], components: [_buildTicketRow(true)] }),
+            () => channel.send({ embeds: [embed], components: [_buildTicketRow(false)] })
         );
-
-        const sent = await channel.send({ embeds: [embed], components: [row] });
         db?.set(`ticket-panel-msg-${guildId}`, JSON.stringify({ messageId: sent.id, channelId: channel.id }));
         db?.set(`ticket-panel-channel-${guildId}`, channel.id);
 
@@ -1658,6 +1686,11 @@ router.get('/guild/:guildId/message-builder/:name', requireLogin, requireManageG
     const name = req.params.name.trim().toLowerCase();
     const template = mbGetTemplate(db, guildId, name);
     if (!template) return res.json({ success: false, message: 'Template not found.' });
+    // Expose sent record info (same pattern as autorole-button/reaction)
+    const sentRaw = db?.get(`pesan-unik-sent-${guildId}-${name}`);
+    template.isSent        = !!sentRaw;
+    try { template.sentChannelId = sentRaw ? (JSON.parse(sentRaw)?.channelId || '') : ''; }
+    catch { template.sentChannelId = ''; }
     res.json({ success: true, template });
 });
 
@@ -2163,15 +2196,20 @@ router.put('/guild/:guildId/youtube/channels/:ytChannelId', requireLogin, requir
 
     const guild = req.botGuild;
     const {
-        videoEnabled, videoChannelId, videoMessage,
-        shortEnabled, shortChannelId, shortMessage,
-        liveEnabled,  liveChannelId,  liveMessage,
+        videoEnabled, videoChannelId, videoMessage, videoPlainMessage,
+        shortEnabled, shortChannelId, shortMessage, shortPlainMessage,
+        liveEnabled,  liveChannelId,  liveMessage,  livePlainMessage,
     } = req.body;
 
-    const MSG_MAX = 3500;
+    const MSG_MAX   = 3500;
+    const PLAIN_MAX = 2000;
     for (const [label, msg] of [['Video', videoMessage], ['Short', shortMessage], ['Live', liveMessage]]) {
         if (msg && msg.length > MSG_MAX)
-            return res.json({ success: false, message: `${label} message exceeds the maximum of ${MSG_MAX} characters.` });
+            return res.json({ success: false, message: `${label} description exceeds the maximum of ${MSG_MAX} characters.` });
+    }
+    for (const [label, msg] of [['Video', videoPlainMessage], ['Short', shortPlainMessage], ['Live', livePlainMessage]]) {
+        if (msg && msg.length > PLAIN_MAX)
+            return res.json({ success: false, message: `${label} message exceeds the maximum of ${PLAIN_MAX} characters.` });
     }
 
     const REQUIRED_PERMS = [
@@ -2212,9 +2250,9 @@ router.put('/guild/:guildId/youtube/channels/:ytChannelId', requireLogin, requir
 
     channels[idx] = {
         ...channels[idx],
-        videoEnabled: !!videoEnabled, videoChannelId: videoChannelId || '', videoMessage: videoMessage || '',
-        shortEnabled: !!shortEnabled, shortChannelId: shortChannelId || '', shortMessage: shortMessage || '',
-        liveEnabled:  !!liveEnabled,  liveChannelId:  liveChannelId  || '', liveMessage:  liveMessage  || '',
+        videoEnabled: !!videoEnabled, videoChannelId: videoChannelId || '', videoMessage: videoMessage || '', videoPlainMessage: videoPlainMessage || '',
+        shortEnabled: !!shortEnabled, shortChannelId: shortChannelId || '', shortMessage: shortMessage || '', shortPlainMessage: shortPlainMessage || '',
+        liveEnabled:  !!liveEnabled,  liveChannelId:  liveChannelId  || '', liveMessage:  liveMessage  || '', livePlainMessage:  livePlainMessage  || '',
     };
     setYtChannels(db, guildId, channels);
 
@@ -2408,14 +2446,19 @@ router.put('/guild/:guildId/tiktok/accounts/:username', requireLogin, requireMan
     const idx      = accounts.findIndex(a => a.username === username);
     if (idx === -1) return res.json({ success: false, message: 'Account not found.' });
 
-    const { videoEnabled, videoChannelId, videoMessage,
-            liveEnabled,  liveChannelId,  liveMessage  } = req.body;
+    const { videoEnabled, videoChannelId, videoMessage, videoPlainMessage,
+            liveEnabled,  liveChannelId,  liveMessage,  livePlainMessage  } = req.body;
     const guild = req.botGuild;
 
-    const MSG_MAX = 3500;
+    const MSG_MAX   = 3500;
+    const PLAIN_MAX = 2000;
     for (const [label, msg] of [['Video', videoMessage], ['Live', liveMessage]]) {
         if (msg && msg.length > MSG_MAX)
             return res.json({ success: false, message: `${label} message exceeds the maximum of ${MSG_MAX} characters.` });
+    }
+    for (const [label, msg] of [['Video', videoPlainMessage], ['Live', livePlainMessage]]) {
+        if (msg && msg.length > PLAIN_MAX)
+            return res.json({ success: false, message: `${label} plain message exceeds the maximum of ${PLAIN_MAX} characters.` });
     }
 
     const REQUIRED_PERMS = [
@@ -2440,12 +2483,14 @@ router.put('/guild/:guildId/tiktok/accounts/:username', requireLogin, requireMan
 
     accounts[idx] = {
         ...accounts[idx],
-        videoEnabled:   !!videoEnabled,
-        videoChannelId: videoChannelId || '',
-        videoMessage:   videoMessage   || '',
-        liveEnabled:    !!liveEnabled,
-        liveChannelId:  liveChannelId  || '',
-        liveMessage:    liveMessage    || '',
+        videoEnabled:      !!videoEnabled,
+        videoChannelId:    videoChannelId    || '',
+        videoMessage:      videoMessage      || '',
+        videoPlainMessage: videoPlainMessage || '',
+        liveEnabled:       !!liveEnabled,
+        liveChannelId:     liveChannelId     || '',
+        liveMessage:       liveMessage       || '',
+        livePlainMessage:  livePlainMessage  || '',
     };
     setTtAccounts(db, guildId, accounts);
 
@@ -2494,9 +2539,10 @@ router.post('/guild/:guildId/tiktok/accounts/:username/test', requireLogin, requ
 
     try {
         await notifier._sendNotification(req.botGuild, account, type, {
-            id:    '0000000000000000000',
-            url:   `https://www.tiktok.com/${username}/video/0000000000000000000`,
-            title: `[TEST] Example ${type === 'live' ? 'Live' : 'Video'} Notification from ${account.name || username}`,
+            id:        '0000000000000000000',
+            url:       `https://www.tiktok.com/${username}/video/0000000000000000000`,
+            title:     `[TEST] Example ${type === 'live' ? 'Live' : 'Video'} Notification from ${account.name || username}`,
+            thumbnail: account.thumbnail || null,
         });
         res.json({ success: true, message: `${type === 'live' ? 'Live' : 'Video'} test notification sent successfully!` });
     } catch (err) {
@@ -2628,7 +2674,7 @@ router.put('/guild/:guildId/twitch/accounts/:userId', requireLogin, requireManag
     const userId  = req.params.userId;
     if (!db) return res.status(500).json({ success: false, message: 'Database not available.' });
 
-    const { enabled, channelId, message } = req.body;
+    const { enabled, channelId, message, plainMessage } = req.body;
     const accounts = getTwAccounts(db, guildId);
     const idx = accounts.findIndex(a => a.userId === userId);
     if (idx === -1) return res.json({ success: false, message: 'Account not found.' });
@@ -2636,15 +2682,18 @@ router.put('/guild/:guildId/twitch/accounts/:userId', requireLogin, requireManag
     const MSG_MAX = 3500;
     if (message && message.length > MSG_MAX)
         return res.json({ success: false, message: `Message exceeds the maximum of ${MSG_MAX} characters.` });
+    if (plainMessage && plainMessage.length > 2000)
+        return res.json({ success: false, message: 'Plain text message exceeds the maximum of 2000 characters.' });
 
     if (enabled && !channelId)
         return res.json({ success: false, message: 'Notification is enabled but no Discord channel has been selected.' });
 
     accounts[idx] = {
         ...accounts[idx],
-        enabled:   !!enabled,
-        channelId: channelId || '',
-        message:   (message || '').trim(),
+        enabled:      !!enabled,
+        channelId:    channelId || '',
+        plainMessage: (plainMessage || '').trim(),
+        message:      (message || '').trim(),
     };
     setTwAccounts(db, guildId, accounts);
     res.json({ success: true, message: 'Settings saved successfully.' });
@@ -2894,12 +2943,14 @@ router.put('/guild/:guildId/kick/accounts/:slug', requireLogin, requireManageGui
     const idx      = accounts.findIndex(a => a.slug === slug);
     if (idx === -1) return res.json({ success: false, message: 'Account not found.' });
 
-    const { enabled, channelId, message } = req.body;
+    const { enabled, channelId, message, plainMessage } = req.body;
     const guild = req.botGuild;
 
     const MSG_MAX = 3500;
     if (message && message.length > MSG_MAX)
         return res.json({ success: false, message: `Message exceeds the maximum of ${MSG_MAX} characters.` });
+    if (plainMessage && plainMessage.length > 2000)
+        return res.json({ success: false, message: 'Plain text message exceeds the maximum of 2000 characters.' });
 
     if (enabled && !channelId)
         return res.json({ success: false, message: 'Notification is enabled but no Discord channel has been selected.' });
@@ -2916,7 +2967,7 @@ router.put('/guild/:guildId/kick/accounts/:slug', requireLogin, requireManageGui
             return res.json({ success: false, message: `Bot lacks permission:\n${missing.map(p => `• ${p}`).join('\n')}` });
     }
 
-    accounts[idx] = { ...accounts[idx], enabled: !!enabled, channelId: channelId || '', message: message || '' };
+    accounts[idx] = { ...accounts[idx], enabled: !!enabled, channelId: channelId || '', plainMessage: (plainMessage || '').trim(), message: message || '' };
     setKickAccounts(db, guildId, accounts);
 
     // Auto-refresh thumbnail di background

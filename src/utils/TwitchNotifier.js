@@ -480,8 +480,9 @@ class TwitchNotifier {
             .replace(/{title}/g,    streamData?.title      || '')
             .replace(/{viewers}/g,  String(streamData?.viewerCount ?? 0));
 
-        const defaultDesc = `Hey, **${displayName}** is **LIVE** on Twitch right now!\nCome join and watch the stream~ 🎉`;
-        const description = fill(account.message || '').trim() || defaultDesc;
+        const plainContent = fill(account.plainMessage || '').trim();
+        const defaultDesc  = `Hey, **${displayName}** is **LIVE** on Twitch right now!\nCome join and watch the stream~ 🎉`;
+        const description  = fill(account.message || '').trim() || defaultDesc;
 
         const embed = new EmbedBuilder()
             .setColor(0x9146FF)
@@ -504,7 +505,7 @@ class TwitchNotifier {
         embed.setFooter(_twFooter).setTimestamp();
 
         try {
-            await channel.send({ embeds: [embed] });
+            await channel.send({ content: plainContent || undefined, embeds: [embed] });
         } catch (err) {
             warn(`[Twitch] Failed to send notification to #${channel.name} (${guild.name}): ${err.message}`);
         }

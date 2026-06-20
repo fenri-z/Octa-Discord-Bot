@@ -48,7 +48,7 @@
 
                 <!-- Member -->
                 <div class="ar-section">
-                    <div class="ar-section-title">Member</div>
+                    <div class="ar-section-title">Member <span style="color:#ed4245;">*</span></div>
                     <div class="form-group">
                         <label class="toggle-label">
                             <input type="checkbox" id="joinMemberEnabled" class="toggle-input"
@@ -76,7 +76,7 @@
 
                 <!-- Bot -->
                 <div class="ar-section">
-                    <div class="ar-section-title">Bot</div>
+                    <div class="ar-section-title">Bot <span style="color:#ed4245;">*</span></div>
                     <div class="form-group">
                         <label class="toggle-label">
                             <input type="checkbox" id="joinBotEnabled" class="toggle-input"
@@ -150,7 +150,7 @@
                         </label>
                     </div>
                     <div class="form-group">
-                        <label class="label"><%= t('autorole.role_for_booster') %></label>
+                        <label class="label"><%= t('autorole.role_for_booster') %> <span style="color:#ed4245;">*</span></label>
                         <select id="boosterAutoroleRole" class="select">
                             <option value=""><%= t('common.select_role') %></option>
                             <% roles.forEach(role => { %>
@@ -255,13 +255,13 @@
                     <div class="mb-editor-form">
 
                         <div class="form-group">
-                            <label class="label"><%= t('autorole.panel_name_label') %></label>
+                            <label class="label"><%= t('autorole.panel_name_label') %> <span style="color:#ed4245;">*</span></label>
                             <input type="text" id="panelName" class="input" placeholder="e.g.: choose-role" maxlength="32">
                             <div class="hint"><%- t('autorole.panel_name_hint') %></div>
                         </div>
 
                         <div class="form-group" id="panelChannelGroup" style="display:none;">
-                            <label class="label">Channel <span style="font-size:.75rem;color:var(--text-muted);font-weight:400;">(optional — select to send after saving)</span></label>
+                            <label class="label">Channel <span style="color:#ed4245;">*</span></label>
                             <select id="panelSendPreviewChannel" class="select" data-flt-ignore onchange="updatePanelPreviewChannel()">
                                 <option value="">— Select channel —</option>
                                 <% channels.forEach(c => { %>
@@ -282,7 +282,7 @@
                         <div id="panelPlainPanel">
                             <div class="mb-section">
                                 <div class="mb-section-head">
-                                    <span class="mb-section-title"><i data-lucide="message-square" style="width:14px;height:14px;vertical-align:middle;margin-right:.3rem;"></i> <%= t('common.plain_text_message') %></span>
+                                    <span class="mb-section-title"><i data-lucide="message-square" style="width:13px;height:13px;color:var(--accent);flex-shrink:0;"></i> <%= t('common.plain_text_message') %> <span style="color:#ed4245;">*</span> <span style="font-size:.7rem;font-weight:400;color:var(--text-muted);">(<%= t('common.or_embed') %>)</span></span>
                                     <div class="ph-btn-group">
                                         <div class="ph-picker-anchor">
                                             <button type="button" class="ph-toggle-btn" onclick="togglePicker('panelPlainPhPicker',event)">{…} Placeholder</button>
@@ -308,7 +308,7 @@
                         <div id="panelEmbedPanel">
                         <div class="mb-section">
                             <div class="mb-section-head">
-                                <span class="mb-section-title"><i data-lucide="layers" style="width:14px;height:14px;vertical-align:middle;margin-right:.3rem;"></i> Embed Builder</span>
+                                <span class="mb-section-title"><i data-lucide="layers" style="width:13px;height:13px;color:var(--accent);flex-shrink:0;"></i> <%= t('common.embed_builder') %></span>
                                 <div style="display:flex;align-items:center;gap:.45rem;">
                                     <span style="font-size:.75rem;color:var(--text-muted);"><%= t('message_builder.label_accent') %></span>
                                     <input type="color" id="panelColorPicker" value="#5865F2" class="mb-color-pk"
@@ -428,7 +428,7 @@
                             <div class="ar-divider"></div>
                             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem;flex-wrap:wrap;gap:.5rem;">
                                 <div style="display:flex;align-items:center;gap:.5rem;">
-                                    <span style="font-size:.8rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;display:flex;align-items:center;gap:.3rem;"><i data-lucide="circle-dot" style="width:13px;height:13px;"></i> Role Buttons</span>
+                                    <span style="font-size:.8rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;display:flex;align-items:center;gap:.3rem;"><i data-lucide="circle-dot" style="width:13px;height:13px;"></i> Role Buttons <span style="color:#ed4245;">*</span></span>
                                     <span id="inlineBtnCounter" style="font-size:.72rem;padding:.15rem .45rem;border-radius:999px;background:var(--bg2);border:1px solid var(--border);color:var(--text-muted);">0/25</span>
                                 </div>
                                 <button type="button" class="btn btn-primary btn-sm" onclick="addInlineBtnRow()" style="gap:.3rem;">
@@ -448,7 +448,7 @@
                         👁 Show Preview
                     </button>
                     <div class="mb-editor-preview" data-form="btn">
-                        <div class="preview-label">Preview</div>
+                        <div class="preview-label"><%- t('common.preview') %></div>
                         <div class="dc-window">
                             <div id="apPreviewChannel" class="dc-channel-bar">
                                 <span style="opacity:.5;font-weight:700;font-size:.85rem;flex-shrink:0;">#</span>preview
@@ -502,15 +502,14 @@
                     <span class="footer-spacer" style="flex:1;"></span>
                     <button class="btn btn-outline" onclick="closePanelModal()"><%= t('common.cancel') %></button>
                     <button class="btn btn-outline" onclick="savePanel()"><i data-lucide="save" style="width:14px;height:14px;vertical-align:middle;margin-right:.3rem;"></i><%= t('common.save') %></button>
-                    <button id="panelBtnSend" class="btn btn-primary" onclick="saveAndSendPanel()" style="display:none;"><i data-lucide="send" style="width:14px;height:14px;vertical-align:middle;margin-right:.3rem;"></i>Send</button>
+                    <button id="panelBtnSend" class="btn btn-primary" onclick="saveAndSendPanel()" style="display:none;"><i data-lucide="send" style="width:14px;height:14px;vertical-align:middle;margin-right:.3rem;"></i><%= t('autorole.send_btn') %></button>
                 </div>
             </div>
 
             <!-- Grid panel -->
-            <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.75rem;">
-                <span style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);white-space:nowrap;">Saved Panels</span>
-                <div style="flex:1;height:1px;background:var(--border);"></div>
-                <span style="font-size:.75rem;color:var(--text-muted);"><%= panels.length %> panel<%= panels.length !== 1 ? 's' : '' %></span>
+            <div class="ar-saved-header">
+                <span class="ar-saved-label">Saved Panels</span>
+                <div class="ar-saved-line"></div>
                 <% if (panels.length < 20) { %>
                 <button class="btn btn-primary btn-sm" onclick="openCreatePanel()" style="flex-shrink:0;gap:.3rem;">
                     <i data-lucide="plus" style="width:13px;height:13px;"></i> New Panel
@@ -539,6 +538,8 @@
                     <div class="ar-panel-card" data-name="<%= p.name %>" data-channel-id="<%= p.channelId || '' %>">
                         <div class="ar-panel-row-left">
                             <span class="ar-panel-name"><i data-lucide="circle-dot" style="width:13px;height:13px;"></i><%= p.name %></span>
+                            <% const chBtn = channels.find(c => c.id === (sentP ? sentP.channelId : p.channelId)); %>
+                            <% if (chBtn) { %><span class="ar-panel-channel"><i data-lucide="hash" style="width:11px;height:11px;"></i><%= chBtn.name %></span><% } %>
                             <span class="ar-panel-mode <%= p.mode === 'single' ? 'mode-single' : 'mode-multi' %>"><%= p.mode === 'single' ? 'Single' : 'Multi' %></span>
                         </div>
                         <div class="ar-panel-row-right">
@@ -546,7 +547,7 @@
                             <% if (sentP) { %>
                                 <a class="btn btn-outline btn-sm" href="https://discord.com/channels/<%= guild.id %>/<%= sentP.channelId %>/<%= sentP.messageId %>" target="_blank"><i data-lucide="external-link" style="width:13px;height:13px;vertical-align:middle;margin-right:.2rem;"></i> View</a>
                             <% } else { %>
-                                <button class="btn btn-outline btn-sm" onclick="openSendPanel('<%= p.name %>')"><i data-lucide="send" style="width:13px;height:13px;vertical-align:middle;margin-right:.2rem;"></i> Send</button>
+                                <button class="btn btn-outline btn-sm" onclick="openSendPanel('<%= p.name %>')"><i data-lucide="send" style="width:13px;height:13px;vertical-align:middle;margin-right:.2rem;"></i> <%= t('autorole.send_btn') %></button>
                             <% } %>
                             <button class="btn btn-sm ar-btn-delete" onclick="deletePanel('<%= p.name %>')"><i data-lucide="trash-2"></i></button>
                         </div>
@@ -627,13 +628,13 @@
                     <div class="mb-editor-form">
 
                         <div class="form-group">
-                            <label class="label"><%= t('autorole.panel_name_label') %></label>
+                            <label class="label"><%= t('autorole.panel_name_label') %> <span style="color:#ed4245;">*</span></label>
                             <input type="text" id="reactPanelName" class="input" placeholder="e.g.: choose-role" maxlength="32">
                             <div class="hint"><%- t('autorole.panel_name_hint') %></div>
                         </div>
 
                         <div class="form-group" id="reactPanelChannelGroup" style="display:none;">
-                            <label class="label">Channel <span style="font-size:.75rem;color:var(--text-muted);font-weight:400;">(optional — select to send after saving)</span></label>
+                            <label class="label">Channel <span style="color:#ed4245;">*</span></label>
                             <select id="reactSendPreviewChannel" class="select" data-flt-ignore onchange="updateReactPanelPreviewChannel()">
                                 <option value="">— Select channel —</option>
                                 <% channels.forEach(c => { %>
@@ -653,7 +654,7 @@
                         <div id="reactPanelPlainPanel">
                             <div class="mb-section">
                                 <div class="mb-section-head">
-                                    <span class="mb-section-title"><i data-lucide="message-square" style="width:14px;height:14px;vertical-align:middle;margin-right:.3rem;"></i> <%= t('common.plain_text_message') %></span>
+                                    <span class="mb-section-title"><i data-lucide="message-square" style="width:13px;height:13px;color:var(--accent);flex-shrink:0;"></i> <%= t('common.plain_text_message') %> <span style="color:#ed4245;">*</span> <span style="font-size:.7rem;font-weight:400;color:var(--text-muted);">(<%= t('common.or_embed') %>)</span></span>
                                     <div class="ph-btn-group">
                                         <div class="ph-picker-anchor">
                                             <button type="button" class="ph-toggle-btn" onclick="togglePicker('reactPlainPhPicker',event)">{…} Placeholder</button>
@@ -678,7 +679,7 @@
                         <div id="reactPanelEmbedPanel">
                         <div class="mb-section">
                             <div class="mb-section-head">
-                                <span class="mb-section-title"><i data-lucide="layers" style="width:14px;height:14px;vertical-align:middle;margin-right:.3rem;"></i> Embed Builder</span>
+                                <span class="mb-section-title"><i data-lucide="layers" style="width:14px;height:14px;vertical-align:middle;margin-right:.3rem;"></i> <%= t('common.embed_builder') %></span>
                                 <div style="display:flex;align-items:center;gap:.45rem;">
                                     <span style="font-size:.75rem;color:var(--text-muted);"><%= t('message_builder.label_accent') %></span>
                                     <input type="color" id="reactPanelColorPicker" value="#5865F2" class="mb-color-pk"
@@ -798,7 +799,7 @@
                             <div class="ar-divider"></div>
                             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem;flex-wrap:wrap;gap:.5rem;">
                                 <div style="display:flex;align-items:center;gap:.5rem;">
-                                    <span style="font-size:.8rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;display:flex;align-items:center;gap:.3rem;"><i data-lucide="smile" style="width:13px;height:13px;"></i> Emoji Reactions</span>
+                                    <span style="font-size:.8rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;display:flex;align-items:center;gap:.3rem;"><i data-lucide="smile" style="width:13px;height:13px;"></i> Emoji Reactions <span style="color:#ed4245;">*</span></span>
                                     <span id="inlineReactCounter" style="font-size:.72rem;padding:.15rem .45rem;border-radius:999px;background:var(--bg2);border:1px solid var(--border);color:var(--text-muted);">0/20</span>
                                 </div>
                                 <button type="button" class="btn btn-primary btn-sm" onclick="addInlineReactRow()" style="gap:.3rem;">
@@ -823,7 +824,7 @@
                         👁 Show Preview
                     </button>
                     <div class="mb-editor-preview" data-form="react">
-                        <div class="preview-label">Preview</div>
+                        <div class="preview-label"><%- t('common.preview') %></div>
                         <div class="dc-window">
                             <div id="rpPreviewChannel" class="dc-channel-bar">
                                 <span style="opacity:.5;font-weight:700;font-size:.85rem;flex-shrink:0;">#</span>preview
@@ -876,15 +877,14 @@
                     <span class="footer-spacer" style="flex:1;"></span>
                     <button class="btn btn-outline" onclick="closeReactPanelModal()"><%= t('common.cancel') %></button>
                     <button class="btn btn-outline" onclick="saveReactPanel()"><i data-lucide="save" style="width:14px;height:14px;vertical-align:middle;margin-right:.3rem;"></i><%= t('common.save') %></button>
-                    <button id="reactPanelBtnSend" class="btn btn-primary" onclick="saveAndSendReactPanel()" style="display:none;"><i data-lucide="send" style="width:14px;height:14px;vertical-align:middle;margin-right:.3rem;"></i>Send</button>
+                    <button id="reactPanelBtnSend" class="btn btn-primary" onclick="saveAndSendReactPanel()" style="display:none;"><i data-lucide="send" style="width:14px;height:14px;vertical-align:middle;margin-right:.3rem;"></i><%= t('autorole.send_btn') %></button>
                 </div>
             </div>
 
             <!-- Grid panel reaction -->
-            <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.75rem;">
-                <span style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);white-space:nowrap;">Saved Panels</span>
-                <div style="flex:1;height:1px;background:var(--border);"></div>
-                <span style="font-size:.75rem;color:var(--text-muted);"><%= reactPanels.length %> panel<%= reactPanels.length !== 1 ? 's' : '' %></span>
+            <div class="ar-saved-header">
+                <span class="ar-saved-label">Saved Panels</span>
+                <div class="ar-saved-line"></div>
                 <% if (reactPanels.length < 20) { %>
                 <button class="btn btn-primary btn-sm" onclick="openCreateReactPanel()" style="flex-shrink:0;gap:.3rem;">
                     <i data-lucide="plus" style="width:13px;height:13px;"></i> New Panel
@@ -913,6 +913,8 @@
                     <div class="ar-panel-card" data-name="<%= p.name %>" data-type="reaction" data-channel-id="<%= p.channelId || '' %>">
                         <div class="ar-panel-row-left">
                             <span class="ar-panel-name"><i data-lucide="smile" style="width:13px;height:13px;"></i><%= p.name %></span>
+                            <% const chReact = channels.find(c => c.id === (sentRP ? sentRP.channelId : p.channelId)); %>
+                            <% if (chReact) { %><span class="ar-panel-channel"><i data-lucide="hash" style="width:11px;height:11px;"></i><%= chReact.name %></span><% } %>
                             <span class="ar-panel-mode <%= p.mode === 'single' ? 'mode-single' : 'mode-multi' %>"><%= p.mode === 'single' ? 'Single' : 'Multi' %></span>
                         </div>
                         <div class="ar-panel-row-right">
@@ -920,7 +922,7 @@
                             <% if (sentRP) { %>
                                 <a class="btn btn-outline btn-sm" href="https://discord.com/channels/<%= guild.id %>/<%= sentRP.channelId %>/<%= sentRP.messageId %>" target="_blank"><i data-lucide="external-link" style="width:13px;height:13px;vertical-align:middle;margin-right:.2rem;"></i><%= t('autorole.view_btn') %></a>
                             <% } else { %>
-                                <button class="btn btn-outline btn-sm" onclick="openSendReactPanel('<%= p.name %>')"><i data-lucide="send" style="width:13px;height:13px;vertical-align:middle;margin-right:.2rem;"></i> Send</button>
+                                <button class="btn btn-outline btn-sm" onclick="openSendReactPanel('<%= p.name %>')"><i data-lucide="send" style="width:13px;height:13px;vertical-align:middle;margin-right:.2rem;"></i> <%= t('autorole.send_btn') %></button>
                             <% } %>
                             <button class="btn btn-sm ar-btn-delete" onclick="deleteReactPanel('<%= p.name %>')"><i data-lucide="trash-2"></i></button>
                         </div>
@@ -1027,7 +1029,7 @@
     <div class="mb-modal-footer">
         <div style="display:flex;gap:.75rem;justify-content:flex-end;">
             <button class="btn btn-outline" onclick="closeSendPanel()"><%= t('common.cancel') %></button>
-            <button class="btn btn-primary" onclick="doSendPanel()">Send</button>
+            <button class="btn btn-primary" onclick="doSendPanel()"><%= t('autorole.send_btn') %></button>
         </div>
     </div>
 </div>
@@ -1051,7 +1053,33 @@
     <div class="mb-modal-footer">
         <div style="display:flex;gap:.75rem;justify-content:flex-end;">
             <button class="btn btn-outline" onclick="closeSendReactPanel()"><%= t('common.cancel') %></button>
-            <button class="btn btn-primary" onclick="doSendReactPanel()">Send</button>
+            <button class="btn btn-primary" onclick="doSendReactPanel()"><%= t('autorole.send_btn') %></button>
+        </div>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     MODAL: Delete Confirm (shared)
+══════════════════════════════════════ -->
+<div class="mb-modal-backdrop" id="deletePanelBackdrop" onclick="closeDeleteConfirm()"></div>
+<div class="mb-modal mb-modal-sm" id="deletePanelModal" data-flt-ignore>
+    <div class="mb-modal-header">
+        <h2><i data-lucide="trash-2" style="width:16px;height:16px;vertical-align:middle;margin-right:.4rem;color:#da373c;"></i>Delete Panel</h2>
+        <button class="mb-modal-close" onclick="closeDeleteConfirm()">✕</button>
+    </div>
+    <div class="mb-modal-body">
+        <p style="color:var(--text-muted);font-size:.9rem;margin:0;">
+            Delete panel <strong id="deletePanelNameLabel"></strong>?
+        </p>
+        <p id="deletePanelWarning" style="display:none;color:#da373c;font-size:.82rem;margin-top:.6rem;background:rgba(218,55,60,.1);border-radius:6px;padding:.5rem .75rem;">
+            <i data-lucide="alert-triangle" style="width:13px;height:13px;vertical-align:middle;margin-right:.3rem;"></i>
+            The message already sent on Discord will also be permanently deleted.
+        </p>
+    </div>
+    <div class="mb-modal-footer">
+        <div style="display:flex;gap:.75rem;justify-content:flex-end;">
+            <button class="btn btn-outline" onclick="closeDeleteConfirm()"><%= t('common.cancel') %></button>
+            <button class="btn btn-danger" onclick="doDeleteConfirm()"><i data-lucide="trash-2" style="width:14px;height:14px;vertical-align:middle;margin-right:.3rem;"></i>Delete</button>
         </div>
     </div>
 </div>
@@ -1094,16 +1122,25 @@
 }
 .mode-single { background:rgba(254,231,92,.15); color:#FEE75C; }
 .mode-multi  { background:rgba(87,242,135,.15); color:#57F287; }
+[data-theme="light"] .mode-single { background:rgba(180,130,0,.12); color:#8a6200; }
+[data-theme="light"] .mode-multi  { background:rgba(0,140,70,.10);  color:#1a7a4c; }
+.ar-panel-channel {
+    font-size:.72rem; color:#5865F2; display:inline-flex; align-items:center;
+    gap:.2rem; white-space:nowrap; flex-shrink:0;
+    background:rgba(88,101,242,.12); padding:2px 7px; border-radius:12px;
+}
 .ar-btn-chip {
-    font-size:.75rem; padding:2px 8px; border-radius:6px;
+    font-size:.875rem; padding:0 1rem; height:32px; line-height:32px;
+    border-radius:5px; font-weight:500;
     display:inline-flex; align-items:center; gap:.3rem; white-space:nowrap;
+    cursor:default; user-select:none;
 }
 .ar-btn-chip .ar-btn-role { opacity:.65; font-size:.7rem; }
 /* ButtonStyle: 1=Primary(blue), 2=Secondary(grey), 3=Success(green), 4=Danger(red) */
-.ar-btn-1 { background:rgba(88,101,242,.25); color:#7289da; }
-.ar-btn-3 { background:rgba(87,242,135,.2);  color:#57F287; }
-.ar-btn-4 { background:rgba(237,66,69,.2);   color:#ED4245; }
-.ar-btn-2 { background:var(--bg2); color:var(--text-muted); }
+.ar-btn-1 { background:#5865F2; color:#fff; }
+.ar-btn-3 { background:#248046; color:#fff; }
+.ar-btn-4 { background:#da373c; color:#fff; }
+.ar-btn-2 { background:#4e5058; color:#fff; }
 .ar-react-chip {
     font-size:.75rem; padding:2px 8px; border-radius:6px;
     background:rgba(88,101,242,.15); color:#7289da;
@@ -1122,8 +1159,16 @@
     display:flex; align-items:center; justify-content:center;
 }
 .ar-btn-delete:hover { background:rgba(237,66,69,.1); border-color:var(--red); }
-@media(max-width:400px) {
-    .ar-panel-mode { display:none; }
+@media(max-width:520px) {
+    .ar-panel-mode, .ar-panel-channel { display:none; }
+}
+.ar-saved-header { display:flex; align-items:center; gap:.75rem; margin-bottom:.75rem; }
+.ar-saved-label  { font-size:.75rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--text-muted); white-space:nowrap; }
+.ar-saved-line   { flex:1; height:1px; background:var(--border); }
+@media(max-width:520px) {
+    .ar-saved-header { justify-content:space-between; }
+    .ar-saved-label  { white-space:normal; line-height:1.3; max-width:72px; }
+    .ar-saved-line   { display:none; }
 }
 
 /* ══════════════════════════════════════
@@ -1164,25 +1209,30 @@
     flex-shrink: 0;
 }
 .btn-preview-chip {
-    font-size: .8rem;
-    padding: .3rem .8rem;
-    border-radius: 6px;
+    font-size: .875rem;
+    padding: 0 1rem;
+    height: 32px;
+    line-height: 32px;
+    border-radius: 5px;
     font-weight: 500;
     max-width: 220px;
     min-width: 60px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    transition: background .2s, color .2s, border-color .2s;
+    transition: filter .15s;
     flex-shrink: 1;
     cursor: default;
     user-select: none;
+    border: none;
+    display: inline-flex;
+    align-items: center;
 }
-.btn-preview-chip.style-1 { background:rgba(88,101,242,.2);  color:#949cf7; border:1px solid rgba(88,101,242,.35); }
-.btn-preview-chip.style-2 { background:rgba(79,84,92,.3);    color:#b5bac1; border:1px solid rgba(79,84,92,.5); }
-.btn-preview-chip.style-3 { background:rgba(87,242,135,.15); color:#57F287; border:1px solid rgba(87,242,135,.35); }
-.btn-preview-chip.style-4 { background:rgba(237,66,69,.18);  color:#f27f81; border:1px solid rgba(237,66,69,.35); }
-.btn-preview-chip.style-empty { background:var(--bg2); color:var(--text-muted); border:1px dashed var(--border); font-style:italic; }
+.btn-preview-chip.style-1 { background: #5865F2; color: #fff; }
+.btn-preview-chip.style-2 { background: #4e5058; color: #fff; }
+.btn-preview-chip.style-3 { background: #248046; color: #fff; }
+.btn-preview-chip.style-4 { background: #da373c; color: #fff; }
+.btn-preview-chip.style-empty { background: var(--bg2); color: var(--text-muted); border: 1px dashed var(--border); font-style: italic; border-radius: 5px; }
 
 /* ── Card fields: 3-column grid ── */
 .btn-card-fields {
@@ -1788,6 +1838,7 @@ async function _fetchChannel(id){if(_cCache[id]!==undefined)return;_cCache[id]='
 function resolveHtmlMentions(html){
     if(!html) return '';
     return html
+        .replace(/&lt;(a?):([^:&]+):(\d+)&gt;/g,(_,anim,name,id)=>{const ext=anim==='a'?'gif':'webp';return `<img src="https://cdn.discordapp.com/emojis/${id}.${ext}?size=32" class="dc-emoji" alt=":${name}:" onerror="this.style.display='none'">`;})
         .replace(/&lt;@&amp;(\d+)&gt;/g,(_,id)=>{const s=ROLES_MAP[id];if(s)return _badge(s.color,'@'+s.name);const c=_rCache[id];if(c===undefined)_fetchRole(id);return c&&c!=='f'?_badge(c.color,'@'+c.name):_badge('#99aab5',c===null?'@unknown-role':'@...');})
         .replace(/&lt;@!?(\d+)&gt;/g,(_,id)=>{const c=_mCache[id];if(c===undefined)_fetchMember(id);return _badge('#7289da',c&&c!=='f'?'@'+c:c===null?'@unknown-user':'@...','rgba(88,101,242,.15)');})
         .replace(/&lt;#(\d+)&gt;/g,(_,id)=>{if(CHANNELS[id])return _badge('#7289da','#'+CHANNELS[id],'rgba(88,101,242,.15)');const c=_cCache[id];if(c===undefined)_fetchChannel(id);return c&&c!=='f'?_badge('#7289da','#'+c.name,'rgba(88,101,242,.15)'):_badge('#7289da',c===null?'#unknown':'#...','rgba(88,101,242,.15)');})
@@ -1855,6 +1906,15 @@ function showMsg(el, text, type) {
     el.textContent = text;
     el.className   = `form-message msg-${type}`;
     setTimeout(() => { el.textContent = ''; el.className = 'form-message'; }, 3500);
+}
+
+function setCselDisabled(selectEl, disabled) {
+    selectEl.disabled = disabled;
+    const wrap = selectEl.closest('.csel');
+    if (!wrap) return;
+    wrap.classList.toggle('disabled', disabled);
+    const trigger = wrap.querySelector('.csel-trigger');
+    if (trigger) trigger.tabIndex = disabled ? -1 : 0;
 }
 
 // ── Color picker sync ─────────────────────────────────────────────────────────
@@ -1965,13 +2025,13 @@ function updatePanelPreview() {
             } else { authorEl.style.display = 'none'; }
         }
 
-        // Title
+        // Title — Discord embed titles do not support emoji or mentions, render as plain markdown only
         const titleEl = document.getElementById('apModalPreviewTitle');
         if (titleEl) {
             if (title) {
                 titleEl.innerHTML = validUrl(titleUrl)
-                    ? `<a href="${titleUrl}" target="_blank" style="color:#00b0f4;">${resolveHtmlMentions(mdToHtml(title))}</a>`
-                    : resolveHtmlMentions(mdToHtml(title));
+                    ? `<a href="${titleUrl}" target="_blank" style="color:#00b0f4;">${mdToHtml(title)}</a>`
+                    : mdToHtml(title);
                 titleEl.style.display = '';
             } else { titleEl.style.display = 'none'; }
         }
@@ -2052,7 +2112,9 @@ function _fillPanelForm(panel) {
         ? panel.embedColor : '#5865F2';
     document.getElementById('panelEmbedColor').value  = color;
     document.getElementById('panelColorPicker').value = color;
-    document.getElementById('panelMode').value        = panel.mode || 'multi';
+    const modeEl = document.getElementById('panelMode');
+    modeEl.value = panel.mode || 'multi';
+    modeEl.dispatchEvent(new Event('change'));
     document.getElementById('panelPlainText').value = panel.plainText || '';
     updatePanelPreview();
     apResizeAll();
@@ -2077,6 +2139,8 @@ function _resetPanelForm() {
     if (el('panelEmbedTitleUrl'))    el('panelEmbedTitleUrl').value    = '';
     if (el('panelEmbedFooterIcon'))  el('panelEmbedFooterIcon').value  = '';
     if (el('panelEmbedTimestamp'))   el('panelEmbedTimestamp').checked = false;
+    setCselDisabled(el('panelMode'), false);
+    setCselDisabled(el('panelSendPreviewChannel'), false);
     apEmbedFields = [];
     renderApFields();
     _inlineBtns = [];
@@ -2131,12 +2195,21 @@ async function openEditPanel(name, isSent = false) {
                 roleId: b.roleId, label: b.label, style: b.style || 1,
             }));
             renderInlineBtnTable();
-            if (data.panel.sentChannelId) {
-                document.getElementById('panelSendPreviewChannel').value = data.panel.sentChannelId;
-                document.getElementById('panelSendPreviewChannel').disabled = true;
+            const chSelBtn  = document.getElementById('panelSendPreviewChannel');
+            const modeSelBtn = document.getElementById('panelMode');
+            const isSentNow  = !!data.panel.sentChannelId;
+            if (isSentNow) {
+                chSelBtn.value = data.panel.sentChannelId;
+                setCselDisabled(chSelBtn, true);
+                setCselDisabled(modeSelBtn, true);
+                document.getElementById('panelBtnSend').style.display = 'none';
             } else {
-                document.getElementById('panelSendPreviewChannel').disabled = false;
+                chSelBtn.value = data.panel.channelId || '';
+                setCselDisabled(chSelBtn, false);
+                setCselDisabled(modeSelBtn, false);
+                document.getElementById('panelBtnSend').style.display = '';
             }
+            chSelBtn.dispatchEvent(new Event('change'));
             updatePanelPreviewChannel();
         }
     } catch(e) { console.error(e); }
@@ -2182,10 +2255,18 @@ async function savePanel() {
     if (!urlOk(rawThumb)) { showMsg(msg, 'Invalid thumbnail URL. Must start with https://...', 'error'); throw new Error(); }
     if (!/^#[0-9A-Fa-f]{6}$/.test(embedColor)) { showMsg(msg, 'Invalid embed color. Example: #5865F2', 'error'); throw new Error(); }
 
+    const channelId = document.getElementById('panelSendPreviewChannel').value;
+    if (!channelId) { showMsg(msg, 'Please select a channel to send this panel.', 'error'); throw new Error(); }
+
+    if (!panelPlainText && !embedTitle && !embedDescription) {
+        showMsg(msg, 'Fill in at least a Plain Text message or Embed title/description.', 'error'); throw new Error();
+    }
+
+    const validBtns = _inlineBtns.filter(b => b.roleId && b.label);
+    if (validBtns.length === 0) { showMsg(msg, 'Add at least 1 role button before saving.', 'error'); throw new Error(); }
+
     if (!originalName) {
         if (<%= panels.length %> >= 20) { showMsg(msg, 'Panel limit reached (20/20). Delete an existing panel first.', 'error'); throw new Error(); }
-        const validBtns = _inlineBtns.filter(b => b.roleId && b.label);
-        if (validBtns.length === 0) { showMsg(msg, 'Add at least 1 role button before saving the panel.', 'error'); throw new Error(); }
     }
 
     const el = id => document.getElementById(id);
@@ -2194,7 +2275,7 @@ async function savePanel() {
         mode,
         messageType: isPlainType && hasEmbedContent ? 'both' : isPlainType ? 'plain' : 'embed',
         plainText:   panelPlainText,
-        channelId:   el('panelSendPreviewChannel')?.value || '',
+        channelId:   channelId,
         embedTitle,
         embedDescription,
         embedFooter,
@@ -2286,6 +2367,21 @@ function resetPanelToOriginal() {
 // ══════════════════════════════════════════════════════════════════════════════
 let _inlineBtns = [];
 
+function parseBtnLabel(label) {
+    if (!label) return '';
+    const re = /<(a?):([^:>]+):(\d+)>/g;
+    const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    let firstEmoji = null;
+    const text = label.replace(re, (_, anim, name, id) => {
+        if (!firstEmoji) {
+            const ext = anim === 'a' ? 'gif' : 'webp';
+            firstEmoji = `<img src="https://cdn.discordapp.com/emojis/${id}.${ext}?size=32" class="dc-emoji" alt=":${name}:" onerror="this.style.display='none'">`;
+        }
+        return '';
+    }).trim();
+    return (firstEmoji || '') + esc(text);
+}
+
 function renderInlineBtnTable() {
     const table   = document.getElementById('inlineBtnTable');
     const empty   = document.getElementById('inlineBtnEmpty');
@@ -2306,6 +2402,7 @@ function renderInlineBtnTable() {
         <div class="btn-card" id="inrow-${i}">
             <div class="btn-card-top">
                 <span class="btn-num-badge">${i + 1}</span>
+                <span id="inrow-preview-${i}" class="btn-preview-chip ${label ? `style-${style}` : 'style-empty'}">${label ? parseBtnLabel(label) : 'no label'}</span>
                 <span style="flex:1;"></span>
                 <button class="ar-btn-delete" onclick="removeInlineBtn(${i})" title="Delete">${trashSvg}</button>
             </div>
@@ -2335,6 +2432,11 @@ function updateInlineBtn(i) {
         label,
         style,
     };
+    const previewEl = document.getElementById(`inrow-preview-${i}`);
+    if (previewEl) {
+        previewEl.className = `btn-preview-chip ${label ? `style-${style}` : 'style-empty'}`;
+        previewEl.innerHTML = label ? parseBtnLabel(label) : 'no label';
+    }
     document.getElementById('inlineBtnCounter').textContent = `${_inlineBtns.length}/25`;
     updatePanelPreviewBtns();
 }
@@ -2357,22 +2459,33 @@ function updatePanelPreviewBtns() {
     const styleClass = { 1: 'ar-btn-1', 2: 'ar-btn-2', 3: 'ar-btn-3', 4: 'ar-btn-4' };
     container.innerHTML = _inlineBtns
         .filter(b => b.label)
-        .map(b => `<span class="ar-btn-chip ${styleClass[b.style] || 'ar-btn-1'}">${b.label}</span>`)
+        .map(b => `<span class="ar-btn-chip ${styleClass[b.style] || 'ar-btn-1'}">${parseBtnLabel(b.label)}</span>`)
         .join('');
 }
 
+let _deleteConfirmCallback = null;
+function openDeleteConfirm(name, isSent, callback) {
+    document.getElementById('deletePanelNameLabel').textContent = `"${name}"`;
+    document.getElementById('deletePanelWarning').style.display = isSent ? '' : 'none';
+    _deleteConfirmCallback = callback;
+    openModal('deletePanelBackdrop', 'deletePanelModal');
+    if (window.lucide) lucide.createIcons();
+}
+function closeDeleteConfirm() { closeModal('deletePanelBackdrop', 'deletePanelModal'); _deleteConfirmCallback = null; }
+async function doDeleteConfirm() {
+    closeDeleteConfirm();
+    if (_deleteConfirmCallback) await _deleteConfirmCallback();
+}
+
 async function deletePanel(name) {
-    // Cek apakah panel ini sudah pernah dikirim
     const card   = document.querySelector(`.ar-panel-card[data-name="${name}"]`);
     const isSent = card?.querySelector('.status-sent') !== null;
-    const msg    = isSent
-        ? `Delete panel "${name}"?\n\n⚠️ The message already sent on Discord will also be permanently deleted.`
-        : `Delete panel "${name}"?`;
-    if (!confirm(msg)) return;
-    const res  = await fetch(`/api/guild/${GUILD_ID}/autorole-button/${encodeURIComponent(name)}`, { method: 'DELETE' });
-    const data = await res.json();
-    if (data.success) _reloadKeepHash(data.message, 'success');
-    else alert(data.message);
+    openDeleteConfirm(name, isSent, async () => {
+        const res  = await fetch(`/api/guild/${GUILD_ID}/autorole-button/${encodeURIComponent(name)}`, { method: 'DELETE' });
+        const data = await res.json();
+        if (data.success) _reloadKeepHash(data.message, 'success');
+        else alert(data.message);
+    });
 }
 
 // ── Kirim panel ──────────────────────────────────────────────────────────────
@@ -2616,13 +2729,13 @@ function updateReactPanelPreview() {
             } else { authorEl.style.display = 'none'; }
         }
 
-        // Title
+        // Title — Discord embed titles do not support emoji or mentions, render as plain markdown only
         const titleEl = document.getElementById('rpModalPreviewTitle');
         if (titleEl) {
             if (title) {
                 titleEl.innerHTML = validUrl(titleUrl)
-                    ? `<a href="${titleUrl}" target="_blank" style="color:#00b0f4;">${resolveHtmlMentions(mdToHtml(title))}</a>`
-                    : resolveHtmlMentions(mdToHtml(title));
+                    ? `<a href="${titleUrl}" target="_blank" style="color:#00b0f4;">${mdToHtml(title)}</a>`
+                    : mdToHtml(title);
                 titleEl.style.display = '';
             } else { titleEl.style.display = 'none'; }
         }
@@ -2699,7 +2812,9 @@ function _fillReactPanelForm(panel) {
     const color = panel.embedColor && /^#[0-9A-Fa-f]{6}$/.test(panel.embedColor) ? panel.embedColor : '#5865F2';
     el('reactPanelEmbedColor').value  = color;
     el('reactPanelColorPicker').value = color;
-    el('reactPanelMode').value        = panel.mode || 'multi';
+    const reactModeEl = el('reactPanelMode');
+    reactModeEl.value = panel.mode || 'multi';
+    reactModeEl.dispatchEvent(new Event('change'));
     el('reactPanelPlainText').value = panel.plainText || '';
     updateReactPanelPreview();
     apResizeAll();
@@ -2724,6 +2839,8 @@ function _resetReactPanelForm() {
     if (el('reactPanelEmbedTitleUrl'))    el('reactPanelEmbedTitleUrl').value    = '';
     if (el('reactPanelEmbedFooterIcon'))  el('reactPanelEmbedFooterIcon').value  = '';
     if (el('reactPanelEmbedTimestamp'))   el('reactPanelEmbedTimestamp').checked = false;
+    setCselDisabled(el('reactPanelMode'), false);
+    setCselDisabled(el('reactSendPreviewChannel'), false);
     rpEmbedFields = [];
     renderRpFields();
     _inlineReacts = [];
@@ -2776,12 +2893,21 @@ async function openEditReactPanel(name, isSent = false) {
             _fillReactPanelForm(data.panel);
             _inlineReacts = (data.panel.reactions || []).map(r => ({ emoji: r.emoji, roleId: r.roleId }));
             renderInlineReactTable();
-            if (data.panel.sentChannelId) {
-                document.getElementById('reactSendPreviewChannel').value    = data.panel.sentChannelId;
-                document.getElementById('reactSendPreviewChannel').disabled = true;
+            const chSelReact   = document.getElementById('reactSendPreviewChannel');
+            const modeSelReact = document.getElementById('reactPanelMode');
+            const isSentNowR   = !!data.panel.sentChannelId;
+            if (isSentNowR) {
+                chSelReact.value = data.panel.sentChannelId;
+                setCselDisabled(chSelReact, true);
+                setCselDisabled(modeSelReact, true);
+                document.getElementById('reactPanelBtnSend').style.display = 'none';
             } else {
-                document.getElementById('reactSendPreviewChannel').disabled = false;
+                chSelReact.value = data.panel.channelId || '';
+                setCselDisabled(chSelReact, false);
+                setCselDisabled(modeSelReact, false);
+                document.getElementById('reactPanelBtnSend').style.display = '';
             }
+            chSelReact.dispatchEvent(new Event('change'));
             updateReactPanelPreviewChannel();
         }
     } catch(e) { console.error(e); }
@@ -2823,10 +2949,18 @@ async function saveReactPanel() {
     if (!urlOk(rawThumb)) { showMsg(msg, 'Invalid thumbnail URL. Must start with https://...', 'error'); throw new Error(); }
     if (!/^#[0-9A-Fa-f]{6}$/.test(embedColor)) { showMsg(msg, 'Invalid embed color. Example: #5865F2', 'error'); throw new Error(); }
 
+    const reactChannelId = document.getElementById('reactSendPreviewChannel').value;
+    if (!reactChannelId) { showMsg(msg, 'Please select a channel to send this panel.', 'error'); throw new Error(); }
+
+    if (!panelPlainText && !embedTitle && !embedDescription) {
+        showMsg(msg, 'Fill in at least a Plain Text message or Embed title/description.', 'error'); throw new Error();
+    }
+
+    const validReacts = _inlineReacts.filter(r => r.emoji && r.roleId);
+    if (validReacts.length === 0) { showMsg(msg, 'Add at least 1 reaction before saving.', 'error'); throw new Error(); }
+
     if (!originalName) {
         if (<%= reactPanels.length %> >= 20) { showMsg(msg, 'Panel limit reached (20/20). Delete an existing panel first.', 'error'); throw new Error(); }
-        const validReacts = _inlineReacts.filter(r => r.emoji && r.roleId);
-        if (validReacts.length === 0) { showMsg(msg, 'Add at least 1 reaction before saving the panel.', 'error'); throw new Error(); }
     }
 
     const rEl = id => document.getElementById(id);
@@ -2834,7 +2968,7 @@ async function saveReactPanel() {
         name, mode,
         messageType: isPlainType && hasEmbedContent ? 'both' : isPlainType ? 'plain' : 'embed',
         plainText: panelPlainText,
-        channelId: rEl('reactSendPreviewChannel')?.value || '',
+        channelId: reactChannelId,
         embedTitle, embedDescription, embedFooter, embedColor,
         embedImage:     rawImage === '-' ? '' : rawImage,
         embedThumbnail: rawThumb === '-' ? '' : rawThumb,
@@ -2982,7 +3116,7 @@ function _emojiDisplayFromStored(stored) {
     if (!stored) return '';
     if (stored.includes(':')) {
         const [name, id] = stored.split(':');
-        return `<img src="https://cdn.discordapp.com/emojis/${id}.webp?size=64" alt=":${name}:" style="width:30px;height:30px;object-fit:contain;border-radius:4px;">`;
+        return `<img src="https://cdn.discordapp.com/emojis/${id}.webp?size=64" alt=":${name}:" style="width:30px;height:30px;object-fit:contain;border-radius:4px;" onerror="this.style.display='none'">`;
     }
     const isEmoji = /\p{Emoji}/u.test(stored) && !/^[a-zA-Z0-9\s]+$/.test(stored);
     if (!isEmoji) return `<span style="font-size:1rem;opacity:.4;">?</span>`;
@@ -3020,7 +3154,7 @@ function updateReactPanelPreviewReacts() {
             let display;
             if (isCustom) {
                 const [name, id] = r.emoji.split(':');
-                display = `<img src="https://cdn.discordapp.com/emojis/${id}.webp?size=32" alt=":${name}:" style="width:18px;height:18px;object-fit:contain;vertical-align:middle;">`;
+                display = `<img src="https://cdn.discordapp.com/emojis/${id}.webp?size=32" alt=":${name}:" style="width:18px;height:18px;object-fit:contain;vertical-align:middle;" onerror="this.style.display='none'">`;
             } else {
                 display = r.emoji;
             }
@@ -3031,14 +3165,12 @@ function updateReactPanelPreviewReacts() {
 async function deleteReactPanel(name) {
     const card   = document.querySelector(`.ar-panel-card[data-type="reaction"][data-name="${name}"]`);
     const isSent = card?.querySelector('.status-sent') !== null;
-    const msg    = isSent
-        ? `Delete panel "${name}"?\n\n⚠️ The message already sent on Discord will also be permanently deleted.`
-        : `Delete panel "${name}"?`;
-    if (!confirm(msg)) return;
-    const res  = await fetch(`/api/guild/${GUILD_ID}/autorole-reaction/${encodeURIComponent(name)}`, { method: 'DELETE' });
-    const data = await res.json();
-    if (data.success) _reloadKeepHash(data.message, 'success');
-    else alert(data.message);
+    openDeleteConfirm(name, isSent, async () => {
+        const res  = await fetch(`/api/guild/${GUILD_ID}/autorole-reaction/${encodeURIComponent(name)}`, { method: 'DELETE' });
+        const data = await res.json();
+        if (data.success) _reloadKeepHash(data.message, 'success');
+        else alert(data.message);
+    });
 }
 
 let _sendReactPanelName = '';

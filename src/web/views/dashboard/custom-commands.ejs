@@ -75,13 +75,13 @@
                 </button>
             </div>
 
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+            <div class="cc-two-col" style="gap:1rem;">
                 <div class="form-group">
-                    <label class="label"><%= t('custom_commands.trigger_label') %></label>
+                    <label class="label"><%= t('custom_commands.trigger_label') %> <span style="color:#ed4245;">*</span></label>
                     <input type="text" id="ccTrigger" class="input" data-flt-ignore placeholder="<%= t('custom_commands.trigger_placeholder') %>" maxlength="50" oninput="onFormInput()">
                 </div>
                 <div class="form-group">
-                    <label class="label"><%= t('custom_commands.mode_label') %></label>
+                    <label class="label"><%= t('custom_commands.mode_label') %> <span style="color:#ed4245;">*</span></label>
                     <select id="ccMode" class="select" data-flt-ignore onchange="syncFloatBar()">
                         <option value="prefix"><%= t('custom_commands.mode_prefix') %></option>
                         <option value="exact"><%= t('custom_commands.mode_exact') %></option>
@@ -96,7 +96,7 @@
                         <div class="mb-section-head">
                             <span class="mb-section-title" style="display:flex;align-items:center;gap:.4rem;">
                                 <i data-lucide="message-square" style="width:13px;height:13px;color:var(--accent);flex-shrink:0;"></i>
-                                <%= t('custom_commands.plain_label') %>
+                                <%= t('common.plain_text_message') %> <span style="color:#ed4245;">*</span> <span style="font-size:.7rem;font-weight:400;color:var(--text-muted);">(<%= t('common.or_embed') %>)</span>
                             </span>
                             <div class="ph-btn-group">
                                 <div class="ph-picker-anchor">
@@ -124,7 +124,7 @@
                         <div class="mb-section-head">
                             <span class="mb-section-title" style="display:flex;align-items:center;gap:.4rem;">
                                 <i data-lucide="layers" style="width:13px;height:13px;color:var(--accent,#5865F2);flex-shrink:0;"></i>
-                                <%= t('custom_commands.ee_builder') %>
+                                <%= t('common.embed_builder') %>
                             </span>
                             <div style="display:flex;align-items:center;gap:.45rem;">
                                 <span style="font-size:.75rem;color:var(--text-muted);"><%= t('custom_commands.ee_accent') %></span>
@@ -142,7 +142,7 @@
                                     <input type="text" id="ccEmbedAuthor" class="input" data-flt-ignore
                                            placeholder="<%= t('custom_commands.ee_author_name_ph') %>" maxlength="256" oninput="updatePreview()">
                                 </div>
-                                <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;">
+                                <div class="cc-two-col" style="gap:.5rem;">
                                     <textarea id="ccEmbedAuthorUrl" class="input input-sm mb-url-area" data-flt-ignore rows="1"
                                            placeholder="<%= t('custom_commands.ee_author_url_ph') %>"
                                            data-url-label="Author URL"
@@ -262,9 +262,7 @@
 
                 <!-- Right: Discord-style preview -->
                 <div class="preview-panel">
-                    <div class="preview-label" onclick="toggleCcPreview()" style="cursor:pointer;user-select:none;" title="Toggle preview">
-                        <i id="ccPreviewEyeIcon" data-lucide="eye" style="width:13px;height:13px;flex-shrink:0;"></i> PREVIEW
-                    </div>
+                    <div class="preview-label"><%- t('common.preview') %></div>
                     <div class="dc-window">
                         <div class="dc-channel-bar">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
@@ -322,29 +320,36 @@
 
         <!-- Command List -->
         <div class="settings-card">
-            <h2><%= t('custom_commands.list_title') %> (<span id="cmdCount"><%= commands.length %></span>)</h2>
+            <div class="ar-saved-header">
+                <span class="ar-saved-label"><%= t('custom_commands.list_title') %></span>
+                <div class="ar-saved-line"></div>
+                <span style="font-size:.72rem;color:var(--text-muted);white-space:nowrap;">(<span id="cmdCount"><%= commands.length %></span>/10)</span>
+            </div>
 
             <div id="ccList">
                 <% if (!commands.length) { %>
                 <p style="color:var(--text-muted);font-size:.875rem;text-align:center;padding:1.5rem 0;"><%= t('custom_commands.empty') %></p>
                 <% } %>
                 <% commands.forEach(function(cmd, i) { %>
-                <div class="cc-row" data-idx="<%= i %>">
-                    <div class="cc-row-left">
-                        <span class="cc-trigger"><code><%= cmd.trigger %></code></span>
+                <div class="ar-panel-card cc-row" data-idx="<%= i %>">
+                    <div class="ar-panel-row-left">
+                        <span class="ar-panel-name">
+                            <i data-lucide="terminal" style="width:13px;height:13px;flex-shrink:0;"></i>
+                            <%= cmd.trigger %>
+                        </span>
                         <span class="cc-badge cc-badge-<%= cmd.mode %>"><%= cmd.mode === 'exact' ? t('custom_commands.badge_exact') : t('custom_commands.badge_prefix') %></span>
                         <span class="cc-badge" style="background:rgba(88,101,242,.15);color:#5865F2;"><%= cmd.responseType === 'embed' ? t('custom_commands.badge_embed') : cmd.responseType === 'both' ? t('custom_commands.badge_both') : t('custom_commands.badge_plain') %></span>
                     </div>
-                    <div class="cc-row-right">
+                    <div class="ar-panel-row-right">
                         <label class="toggle-label" style="gap:.35rem;">
                             <input type="checkbox" class="toggle-input cc-enabled" data-flt-ignore <%= cmd.enabled ? 'checked' : '' %> onchange="toggleCmd(this)">
                             <span class="toggle-slider"></span>
                         </label>
-                        <button class="btn btn-sm cc-btn-edit" onclick="loadCommandForEdit(parseInt(this.closest('.cc-row').dataset.idx))" title="Edit command">
-                            <i data-lucide="pencil" style="width:13px;height:13px;"></i>
+                        <button class="btn btn-outline btn-sm cc-btn-edit" onclick="loadCommandForEdit(parseInt(this.closest('.cc-row').dataset.idx))">
+                            <i data-lucide="pencil" style="width:13px;height:13px;vertical-align:middle;margin-right:.25rem;"></i>Edit
                         </button>
-                        <button class="btn btn-danger btn-sm" onclick="deleteCommand(this)" title="Delete command">
-                            <i data-lucide="trash-2" style="width:14px;height:14px;"></i>
+                        <button class="btn btn-sm ar-btn-delete" onclick="deleteCommand(this)">
+                            <i data-lucide="trash-2" style="width:13px;height:13px;"></i>
                         </button>
                     </div>
                 </div>
@@ -378,8 +383,31 @@
 [data-theme="light"] .cc-badge-exact  { background: rgba(40,140,70,.12);  color: #1c7a3f; }
 [data-theme="light"] .cc-badge-prefix { background: rgba(180,140,0,.12);  color: #7a5a00; }
 
-@media (max-width: 600px) {
-    [style*="grid-template-columns:1fr 1fr"] { grid-template-columns: 1fr !important; }
+/* Responsive 2-column grid — collapses to 1 column on small screens */
+.cc-two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-width: 0;
+}
+.cc-two-col > * { min-width: 0; }
+@media (max-width: 640px) {
+    .cc-two-col      { grid-template-columns: 1fr; }
+    .mb-section-head { flex-wrap: wrap; gap: .4rem; }
+    .ph-btn-group    { flex-wrap: wrap; }
+    /* Dropdown picker jangan sampai melampaui lebar viewport */
+    .ph-dropdown     { min-width: 0; width: min(300px, calc(100vw - 2rem)); right: 0; }
+}
+@media (max-width: 500px) {
+    .settings-card   { padding: 1rem; }
+}
+@media (max-width: 420px) {
+    .mb-section-head { padding: .4rem .65rem; }
+    .mb-section-body { padding: .65rem; }
+    .ee-section      { padding: .65rem .75rem; }
+    .ph-toggle-btn   { font-size: .68rem; padding: 2px 7px; }
+    .mb-char-count   { font-size: .68rem; }
+    .cc-row          { flex-wrap: wrap; gap: .4rem; }
+    .cc-row-right    { width: 100%; justify-content: flex-end; }
 }
 
 /* ── Preview panel width override (lebih lebar dari default 420px) ── */
@@ -477,6 +505,41 @@
 /* ── Field cards inside embed builder ───────────────────────────── */
 .ee-body .cc-field-row { background: var(--bg2, rgba(255,255,255,.02)); }
 .ee-body .cc-field-inline-row input[type="checkbox"] { accent-color: #5865F2; }
+
+/* ── Panel-card shared styles ── */
+.ar-panel-card {
+    display:flex; align-items:center; gap:.6rem;
+    background:var(--bg3); border:1px solid var(--border);
+    border-radius:8px; padding:.5rem .75rem;
+    margin-bottom:.4rem; transition:border-color .15s;
+}
+.ar-panel-card:hover { border-color:var(--accent); }
+.ar-panel-row-left  { display:flex; align-items:center; gap:.4rem; flex-wrap:wrap; flex:1; min-width:0; }
+.ar-panel-row-right { display:flex; align-items:center; gap:.3rem; flex-shrink:0; margin-left:auto; }
+.ar-panel-name {
+    font-weight:600; font-size:.875rem; display:flex; align-items:center; gap:.3rem;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0;
+}
+.ar-panel-row-right .btn {
+    min-height:28px !important; padding:.25rem .55rem !important;
+    font-size:.78rem !important; line-height:1.2;
+}
+.ar-btn-delete {
+    background:transparent; border:1.5px solid var(--border);
+    color:#ed4245; border-radius:var(--radius,8px); cursor:pointer;
+    transition:all .15s; min-height:28px !important; padding:.2rem .45rem;
+    display:flex; align-items:center; justify-content:center;
+}
+.ar-btn-delete:hover { background:rgba(237,66,69,.1); border-color:#ed4245; }
+.ar-saved-header { display:flex; align-items:center; gap:.75rem; margin-bottom:.75rem; }
+.ar-saved-label  { font-size:.75rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--text-muted); white-space:nowrap; }
+.ar-saved-line   { flex:1; height:1px; background:var(--border); }
+@media(max-width:520px) {
+    .ar-saved-header { justify-content:space-between; }
+    .ar-saved-label  { white-space:normal; line-height:1.3; max-width:72px; }
+    .ar-saved-line   { display:none; }
+    .cc-badge { display:none; }
+}
 
 /* ── Edit button ─────────────────────────────────────────────────── */
 .cc-btn-edit {
@@ -913,22 +976,25 @@ function renderList() {
         return;
     }
     container.innerHTML = commands.map((cmd, i) => `
-        <div class="cc-row" data-idx="${i}">
-            <div class="cc-row-left">
-                <span class="cc-trigger"><code>${escHtml(cmd.trigger)}</code></span>
+        <div class="ar-panel-card cc-row" data-idx="${i}">
+            <div class="ar-panel-row-left">
+                <span class="ar-panel-name">
+                    <i data-lucide="terminal" style="width:13px;height:13px;flex-shrink:0;"></i>
+                    ${escHtml(cmd.trigger)}
+                </span>
                 <span class="cc-badge cc-badge-${cmd.mode}">${cmd.mode === 'exact' ? i18n.badge_exact : i18n.badge_prefix}</span>
                 <span class="cc-badge" style="background:rgba(88,101,242,.15);color:#5865F2;">${cmd.responseType === 'embed' ? i18n.badge_embed : cmd.responseType === 'both' ? i18n.badge_both : i18n.badge_plain}</span>
             </div>
-            <div class="cc-row-right">
+            <div class="ar-panel-row-right">
                 <label class="toggle-label" style="gap:.35rem;">
                     <input type="checkbox" class="toggle-input cc-enabled" data-flt-ignore ${cmd.enabled ? 'checked' : ''} onchange="toggleCmd(this)">
                     <span class="toggle-slider"></span>
                 </label>
-                <button class="btn btn-sm cc-btn-edit" onclick="loadCommandForEdit(${i})" title="Edit command">
-                    <i data-lucide="pencil" style="width:13px;height:13px;"></i>
+                <button class="btn btn-outline btn-sm cc-btn-edit" onclick="loadCommandForEdit(${i})">
+                    <i data-lucide="pencil" style="width:13px;height:13px;vertical-align:middle;margin-right:.25rem;"></i>Edit
                 </button>
-                <button class="btn btn-danger btn-sm" onclick="deleteCommand(this)" title="Delete command">
-                    <i data-lucide="trash-2" style="width:14px;height:14px;"></i>
+                <button class="btn btn-sm ar-btn-delete" onclick="deleteCommand(this)">
+                    <i data-lucide="trash-2" style="width:13px;height:13px;"></i>
                 </button>
             </div>
         </div>`).join('');
@@ -1169,6 +1235,10 @@ function resolveCcPreview(text, richMentions = false) {
     if (richMentions) {
         // Discord raw mention syntax (matched after escHtml: < → &lt; > → &gt; & → &amp;)
         s = s
+            .replace(/&lt;(a?):([^:&]+):(\d+)&gt;/g, (_, anim, name, id) => {
+                const ext = anim === 'a' ? 'gif' : 'webp';
+                return `<img src="https://cdn.discordapp.com/emojis/${id}.${ext}?size=32" class="dc-emoji" alt=":${name}:" onerror="this.style.display='none'">`;
+            })
             .replace(/&lt;@&amp;(\d+)&gt;/g, (_, id) => {
                 const r = CC_ROLES[id];
                 if (!r) return ccMentionBadge('@Unknown Role');
@@ -1184,15 +1254,6 @@ function resolveCcPreview(text, richMentions = false) {
             });
     }
     return applyDiscordMarkdown(s);
-}
-
-/* ── Preview toggle ─────────────────────────────────────────────── */
-function toggleCcPreview() {
-    const panel = document.querySelector('.preview-panel');
-    const icon  = document.getElementById('ccPreviewEyeIcon');
-    const hidden = panel.classList.toggle('dc-preview-hidden');
-    icon.setAttribute('data-lucide', hidden ? 'eye-off' : 'eye');
-    if (window.lucide) lucide.createIcons({ nodes: [icon] });
 }
 
 /* ── Placeholder / Mention picker ───────────────────────────────── */

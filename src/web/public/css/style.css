@@ -294,6 +294,9 @@ code {
 .btn-outline  { background: transparent; color: var(--text); border-color: var(--border); }
 .btn-outline:hover  { background: var(--bg3); }
 .btn-outline:active { opacity: .75; }
+.btn-danger  { background: #da373c; color: #fff; border-color: transparent; }
+.btn-danger:hover  { background: #c0302e; border-color: transparent; }
+.btn-danger:active { opacity: .9; }
 .btn-sm  { padding: .35rem .8rem; font-size: .82rem; }
 .btn-lg  { padding: .75rem 1.8rem; font-size: 1rem; }
 
@@ -896,6 +899,9 @@ code {
 .input:focus, .select:focus, .textarea:focus {
     outline: none; border-color: var(--accent);
 }
+.input:disabled, .textarea:disabled {
+    opacity: .5; cursor: not-allowed; pointer-events: none;
+}
 /* arrow custom untuk select */
 .select {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23a3a6aa' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
@@ -941,7 +947,7 @@ code {
 }
 .csel-trigger:focus { outline: none; }
 .csel.open .csel-trigger, .csel-trigger:focus { border-color: var(--accent); }
-.csel.disabled .csel-trigger { opacity: .5; cursor: not-allowed; }
+.csel.disabled .csel-trigger { opacity: .5; cursor: not-allowed; pointer-events: none; }
 .csel-popup {
     position: absolute; left: 0; right: 0; top: calc(100% + 6px);
     background: var(--bg2); border: 1px solid var(--border); border-radius: 8px;
@@ -1621,7 +1627,8 @@ html.theme-transitioning *::after {
     box-shadow: 0 8px 28px rgba(0,0,0,.14);
 }
 [data-theme="light"] .ph-item:hover { background: rgba(0,0,0,.06); border-color: #d4d7dc; }
-[data-theme="light"] .ph-item code  { color: var(--accent); }
+[data-theme="light"] .ph-item code              { color: var(--accent); }
+[data-theme="light"] .ph-item code:only-child   { color: #5865F2; }
 [data-theme="light"] .ph-item span,
 [data-theme="light"] .ph-group-label { color: var(--text-muted); }
 [data-theme="light"] .mention-search-input {
@@ -1726,10 +1733,14 @@ html.theme-transitioning *::after {
     font-size:.68rem; font-weight:700; color:var(--text-muted);
     text-transform:uppercase; letter-spacing:.1em;
     display:flex; align-items:center; gap:.35rem; margin-bottom:.55rem;
+    cursor:pointer; user-select:none;
 }
 .preview-label:hover { color:var(--text); }
+.preview-label:hover .preview-eye-icon { opacity:1; }
+.preview-eye-icon { opacity:.6; flex-shrink:0; transition:opacity .15s; }
 
-/* Toggle animasi preview (dipakai di custom-commands & message-builder) */
+/* Toggle animasi preview — global, semua halaman dashboard */
+.dc-window { transition:opacity .18s ease, transform .18s ease, max-height .18s ease; }
 .dc-preview-hidden .dc-window {
     opacity:0; pointer-events:none; transform:scaleY(0.92);
     max-height:0; overflow:hidden; margin:0; border:none;
@@ -1864,6 +1875,7 @@ html.theme-transitioning *::after {
 
 /* Discord mention badge */
 .dc-mention { background:rgba(88,101,242,.3); color:#c0c7ff; border-radius:3px; padding:0 2px; font-weight:500; }
+[data-theme="light"] .dc-mention { background:rgba(88,101,242,.15); color:#4752c4; }
 
 @media (max-width:640px) {
     .dc-embed-footer { flex-wrap:nowrap; overflow:hidden; }

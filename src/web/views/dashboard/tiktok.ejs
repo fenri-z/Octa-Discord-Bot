@@ -20,7 +20,7 @@
 /* ── Layout 2 kolom per card (sama pola YouTube) ───────────────────────── */
 .tt-panel-layout {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 3fr 2fr;
     gap: 1.25rem;
     align-items: start;
 }
@@ -407,9 +407,24 @@
                                 <% }) %>
                             </select>
                         </div>
+                        <div class="form-group">
+                            <div class="label-with-picker">
+                                <label class="label" style="margin-bottom:0;"><%= t('tiktok.plain_msg_label') %></label>
+                                <div class="ph-picker-anchor">
+                                    <button type="button" class="ph-toggle-btn" onclick="togglePicker('vidPlainPicker-<%= key %>',event)">{…} Placeholder</button>
+                                    <div class="ph-dropdown" id="vidPlainPicker-<%= key %>" style="display:none;"></div>
+                                </div>
+                            </div>
+                            <textarea class="textarea mb-auto-resize" rows="2" id="vidPlainMessage-<%= key %>"
+                                      style="font-size:.82rem;" maxlength="2000"
+                                      placeholder="<%= t('tiktok.plain_msg_ph_video') %>"
+                                      oninput="mbResizeArea(this);mbUpdateCount('vidPlainMessage-<%= key %>','vidPlainCount-<%= key %>');updatePreview('<%= key %>')"
+                            ><%= acc.videoPlainMessage || '' %></textarea>
+                            <div class="mb-char-count" id="vidPlainCount-<%= key %>">0 / 2000</div>
+                        </div>
                         <div class="form-group" style="margin-bottom:0;">
                             <div class="label-with-picker">
-                                <label class="label" style="margin-bottom:0;"><%= t('tiktok.additional_msg') %></label>
+                                <label class="label" style="margin-bottom:0;"><%= t('tiktok.additional_msg') %> <span style="color:#ed4245;">*</span></label>
                                 <div class="ph-picker-anchor">
                                     <button type="button" class="ph-toggle-btn" onclick="togglePicker('vidPicker-<%= key %>',event)">{…} Placeholder</button>
                                     <div class="ph-dropdown" id="vidPicker-<%= key %>" style="display:none;"></div>
@@ -450,9 +465,27 @@
                                 <% }) %>
                             </select>
                         </div>
+                        <div class="form-group">
+                            <div class="label-with-picker">
+                                <label class="label" style="margin-bottom:0;"><%= t('tiktok.plain_msg_label') %></label>
+                                <% if (liveSupported) { %>
+                                <div class="ph-picker-anchor">
+                                    <button type="button" class="ph-toggle-btn" onclick="togglePicker('livePlainPicker-<%= key %>',event)">{…} Placeholder</button>
+                                    <div class="ph-dropdown" id="livePlainPicker-<%= key %>" style="display:none;"></div>
+                                </div>
+                                <% } %>
+                            </div>
+                            <textarea class="textarea mb-auto-resize" rows="2" id="livePlainMessage-<%= key %>"
+                                      style="font-size:.82rem;" maxlength="2000"
+                                      placeholder="<%= t('tiktok.plain_msg_ph_live') %>"
+                                      <%= !liveSupported?'disabled':'' %>
+                                      oninput="mbResizeArea(this);mbUpdateCount('livePlainMessage-<%= key %>','livePlainCount-<%= key %>');updatePreview('<%= key %>')"
+                            ><%= acc.livePlainMessage || '' %></textarea>
+                            <div class="mb-char-count" id="livePlainCount-<%= key %>">0 / 2000</div>
+                        </div>
                         <div class="form-group" style="margin-bottom:0;">
                             <div class="label-with-picker">
-                                <label class="label" style="margin-bottom:0;"><%= t('tiktok.additional_msg') %></label>
+                                <label class="label" style="margin-bottom:0;"><%= t('tiktok.additional_msg') %> <span style="color:#ed4245;">*</span></label>
                                 <% if (liveSupported) { %>
                                 <div class="ph-picker-anchor">
                                     <button type="button" class="ph-toggle-btn" onclick="togglePicker('livePicker-<%= key %>',event)">{…} Placeholder</button>
@@ -481,7 +514,7 @@
 
                 <!-- Kanan: preview -->
                 <div class="tt-preview-col">
-                    <div class="preview-label">Preview</div>
+                    <div class="preview-label"><%- t('common.preview') %></div>
 
                     <!-- Video tab preview -->
                     <div class="dc-window" id="prev-video-<%= key %>">
@@ -503,6 +536,7 @@
                                     </span>
                                     <span class="dc-timestamp">Today at 12:00 PM</span>
                                 </div>
+                                <div id="prevVideoPlain-<%= key %>" class="dc-plain-msg" style="display:none;"></div>
                                 <div class="dc-embed">
                                     <div class="dc-embed-pill" style="background:#010101;"></div>
                                     <div class="dc-embed-body">
@@ -565,6 +599,7 @@
                                     </span>
                                     <span class="dc-timestamp">Today at 12:00 PM</span>
                                 </div>
+                                <div id="prevLivePlain-<%= key %>" class="dc-plain-msg" style="display:none;"></div>
                                 <div class="dc-embed">
                                     <div class="dc-embed-pill" style="background:#FE2C55;"></div>
                                     <div class="dc-embed-body">
@@ -573,6 +608,10 @@
                                                 <div class="dc-embed-title">🔴 <%= acc.name||acc.username %> is Live Now!</div>
                                                 <div class="dc-embed-desc" id="prevLiveDesc-<%= key %>" style="margin-top:.15rem;">Hey, <strong><%= acc.name||acc.username %></strong> is <strong>LIVE</strong> on TikTok right now!<br>Come join and watch the stream~ 🎉</div>
                                                 <div style="margin-top:.35rem;">
+                                                    <div style="margin-bottom:.3rem;">
+                                                        <div class="dc-field-name">🎙️ Stream Title</div>
+                                                        <div class="dc-field-value">Live Stream Title Example</div>
+                                                    </div>
                                                     <div>
                                                         <div class="dc-field-name">🔗 Link</div>
                                                         <div class="dc-field-value">Click Me ▶</div>
@@ -717,13 +756,13 @@ function discordMd(raw) {
     if (!raw) return '';
     const _t=[]; const _T=i=>`\x00${i}\x00`;
     let _src = raw
-        .replace(/<a:(\w+):(\d+)>/g, (_,name,id)=>{ _t.push(`<img src="https://cdn.discordapp.com/emojis/${id}.gif" class="dc-emoji" alt=":${name}:">`);  return _T(_t.length-1); })
-        .replace(/<:(\w+):(\d+)>/g,  (_,name,id)=>{ _t.push(`<img src="https://cdn.discordapp.com/emojis/${id}.webp" class="dc-emoji" alt=":${name}:">`); return _T(_t.length-1); })
+        .replace(/<a:(\w+):(\d+)>/g, (_,name,id)=>{ _t.push(`<img src="https://cdn.discordapp.com/emojis/${id}.gif" class="dc-emoji" alt=":${name}:" onerror="this.style.display='none'">`);  return _T(_t.length-1); })
+        .replace(/<:(\w+):(\d+)>/g,  (_,name,id)=>{ _t.push(`<img src="https://cdn.discordapp.com/emojis/${id}.webp" class="dc-emoji" alt=":${name}:" onerror="this.style.display='none'">`); return _T(_t.length-1); })
         .replace(/<@&(\d+)>/g,  (_,id)=>{ const r=ROLES_MAP[id],c=r?.color||'#5865F2'; _t.push(`<span class="dc-mention" style="color:${c};background:${c}1a;">@${r?r.name:id}</span>`); return _T(_t.length-1); })
         .replace(/<@!?(\d+)>/g, (_,id)=>{ _t.push(`<span class="dc-mention">@${id}</span>`); return _T(_t.length-1); })
         .replace(/<#(\d+)>/g,   (_,id)=>{ const ch=CHANNELS_MAP[id]; _t.push(`<span class="dc-mention">#${ch?ch.name:id}</span>`); return _T(_t.length-1); })
-        .replace(/@everyone\b/g,()=>{ _t.push('<span class="dc-mention">@everyone</span>'); return _T(_t.length-1); })
-        .replace(/@here\b/g,    ()=>{ _t.push('<span class="dc-mention">@here</span>'); return _T(_t.length-1); });
+        .replace(/@everyone/g,()=>{ _t.push('<span class="dc-mention">@everyone</span>'); return _T(_t.length-1); })
+        .replace(/@here/g,    ()=>{ _t.push('<span class="dc-mention">@here</span>'); return _T(_t.length-1); });
     let s = _src.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     s = s.replace(/^### (.+)$/gm, '<span style="font-size:.88em;font-weight:700;line-height:1.6;display:block">$1</span>');
     s = s.replace(/^## (.+)$/gm,  '<span style="font-size:1em;font-weight:700;line-height:1.75;display:block">$1</span>');
@@ -736,7 +775,7 @@ function discordMd(raw) {
     s = s.replace(/~~(.+?)~~/g,         '<s>$1</s>');
     s = s.replace(/`([^`]+)`/g, '<code style="background:rgba(255,255,255,.07);padding:0 4px;border-radius:3px;font-size:.83em;font-family:monospace">$1</code>');
     s = s.replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, '<a href="$2" onclick="return false;" style="color:#00b0f4;text-decoration:none">$1</a>');
-    s = s.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" style="color:#00b0f4;text-decoration:none">$1</a>');
+    s = s.replace(/(https?:\/\/[^\s<\x00]+)/g, '<a href="$1" target="_blank" style="color:#00b0f4;text-decoration:none">$1</a>');
     s = s.replace(/^&gt; (.+)$/gm, '<span style="border-left:3px solid #4e5058;padding-left:.5em;color:#b5bac1;display:block">$1</span>');
     s = s.replace(/\n/g, '<br>');
     s = s.replace(/\x00(\d+)\x00/g, (_,i)=>_t[+i]);
@@ -776,6 +815,22 @@ function updatePreview(key) {
         .replace(/{title}/g,    '(Video Title)')
         .replace(/{url}/g,      'https://tiktok.com/...')
         .replace(/{id}/g,       '0000000000');
+
+    // Video plain message preview
+    const vidPlainMsg = (document.getElementById(`vidPlainMessage-${key}`)?.value || '').trim();
+    const vidPlainEl  = document.getElementById(`prevVideoPlain-${key}`);
+    if (vidPlainEl) {
+        if (vidPlainMsg) { vidPlainEl.innerHTML = discordMd(ph(vidPlainMsg)); vidPlainEl.style.display = ''; }
+        else vidPlainEl.style.display = 'none';
+    }
+
+    // Live plain message preview
+    const livePlainMsg = (document.getElementById(`livePlainMessage-${key}`)?.value || '').trim();
+    const livePlainEl  = document.getElementById(`prevLivePlain-${key}`);
+    if (livePlainEl) {
+        if (livePlainMsg) { livePlainEl.innerHTML = discordMd(ph(livePlainMsg)); livePlainEl.style.display = ''; }
+        else livePlainEl.style.display = 'none';
+    }
 
     // Video desc — jika kosong tampilkan default
     const videoMsg   = (document.getElementById(`vidMessage-${key}`)?.value || '').trim();
@@ -827,10 +882,12 @@ async function saveAccount(username, quiet = false) {
     const payload = {
         videoEnabled,
         videoChannelId,
-        videoMessage:  document.getElementById(`vidMessage-${key}`)?.value?.trim() || '',
+        videoPlainMessage: document.getElementById(`vidPlainMessage-${key}`)?.value?.trim() || '',
+        videoMessage:      document.getElementById(`vidMessage-${key}`)?.value?.trim() || '',
         liveEnabled,
         liveChannelId,
-        liveMessage:   document.getElementById(`liveMessage-${key}`)?.value?.trim() || '',
+        livePlainMessage:  document.getElementById(`livePlainMessage-${key}`)?.value?.trim() || '',
+        liveMessage:       document.getElementById(`liveMessage-${key}`)?.value?.trim() || '',
     };
     const r    = await fetch(`/api/guild/${GUILD_ID}/tiktok/accounts/${encodeURIComponent(username)}`, {
         method: 'PUT', headers: { 'Content-Type': 'application/json' },
@@ -910,10 +967,22 @@ const PH_LIVE = [
 ];
 
 function buildPickers() {
+    document.querySelectorAll('[id^="vidPlainPicker-"]').forEach(el => {
+        const key    = el.id.replace('vidPlainPicker-','');
+        el.innerHTML = PH_VIDEO.map(([ph, desc]) =>
+            `<button type="button" class="ph-item" onclick="insertPh('vidPlainMessage-${key}','${ph}')"><code>${ph}</code><span>${desc}</span></button>`
+        ).join('');
+    });
     document.querySelectorAll('[id^="vidPicker-"]').forEach(el => {
         const key    = el.id.replace('vidPicker-','');
         el.innerHTML = PH_VIDEO.map(([ph, desc]) =>
             `<button type="button" class="ph-item" onclick="insertPh('vidMessage-${key}','${ph}')"><code>${ph}</code><span>${desc}</span></button>`
+        ).join('');
+    });
+    document.querySelectorAll('[id^="livePlainPicker-"]').forEach(el => {
+        const key    = el.id.replace('livePlainPicker-','');
+        el.innerHTML = PH_LIVE.map(([ph, desc]) =>
+            `<button type="button" class="ph-item" onclick="insertPh('livePlainMessage-${key}','${ph}')"><code>${ph}</code><span>${desc}</span></button>`
         ).join('');
     });
     document.querySelectorAll('[id^="livePicker-"]').forEach(el => {

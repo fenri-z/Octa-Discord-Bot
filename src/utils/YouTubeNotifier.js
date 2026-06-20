@@ -513,13 +513,7 @@ class YouTubeNotifier {
         let type = 'video';
         const liveInfo = await this._isLive(entry.id);
         if (liveInfo.isUpcoming) return 'upcoming';
-        if (liveInfo.isLiveContent && !liveInfo.live) {
-            // VOD setelah live stream — sudah dinotif saat live, skip.
-            // Tapi kalau tidak ada liveNotified key = premiere VOD yang tidak tertangkap
-            // saat premiere berlangsung → lanjut dan notif sebagai video biasa.
-            const notifKey = `youtube-liveNotified-${guild.id}-${entry.id}`;
-            if (db?.get(notifKey)) return;
-        }
+        if (liveInfo.isLiveContent && !liveInfo.live) return;
         if (liveInfo.live) {
             type = 'live';
         } else {
@@ -933,9 +927,9 @@ class YouTubeNotifier {
 
     async _sendNotification(guild, ytCh, type, data) {
         const map = {
-            video: { flag: 'videoEnabled', ch: 'videoChannelId', msg: 'videoMessage' },
-            short: { flag: 'shortEnabled', ch: 'shortChannelId', msg: 'shortMessage' },
-            live:  { flag: 'liveEnabled',  ch: 'liveChannelId',  msg: 'liveMessage'  },
+            video: { flag: 'videoEnabled', ch: 'videoChannelId', msg: 'videoMessage', plain: 'videoPlainMessage' },
+            short: { flag: 'shortEnabled', ch: 'shortChannelId', msg: 'shortMessage', plain: 'shortPlainMessage' },
+            live:  { flag: 'liveEnabled',  ch: 'liveChannelId',  msg: 'liveMessage',  plain: 'livePlainMessage'  },
         };
         const cfg = map[type];
         if (!ytCh[cfg.flag] || !ytCh[cfg.ch]) return;
@@ -990,7 +984,8 @@ class YouTubeNotifier {
         embed.setFooter(footerOpts);
         embed.setTimestamp();
 
-        await discordCh.send({ embeds: [embed] }).catch(err =>
+        const plainContent = fill(ytCh[cfg.plain] || '').trim() || null;
+        await discordCh.send({ content: plainContent, embeds: [embed] }).catch(err =>
             warn(`[YouTube] Failed to send notification: ${err.message}`)
         );
     }

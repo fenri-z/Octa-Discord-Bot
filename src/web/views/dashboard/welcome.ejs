@@ -51,7 +51,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label class="label"><%= t('common.channel') %></label>
+                    <label class="label"><%= t('common.channel') %> <span style="color:#ed4245;">*</span></label>
                     <select id="welcomeChannel" class="select">
                         <option value=""><%= t('common.select_channel') %></option>
                         <% (locals.channels || []).forEach(ch => { %>
@@ -66,14 +66,14 @@
                     <label class="label"><%= t('common.message_type') %></label>
                     <div style="display:flex;gap:.75rem;">
                         <label class="radio-label" style="display:flex;align-items:center;gap:.5rem;cursor:pointer;">
-                            <input type="radio" name="welcomeMessageType" id="typeEmbed" value="embed"
-                                   <%= (welcomeData.messageType || 'plain') === 'embed' ? 'checked' : '' %>>
-                            <span><%= t('common.embed') %></span>
-                        </label>
-                        <label class="radio-label" style="display:flex;align-items:center;gap:.5rem;cursor:pointer;">
                             <input type="radio" name="welcomeMessageType" id="typePlain" value="plain"
                                    <%= (welcomeData.messageType || 'plain') === 'plain' ? 'checked' : '' %>>
                             <span><%= t('common.plain_text') %></span>
+                        </label>
+                        <label class="radio-label" style="display:flex;align-items:center;gap:.5rem;cursor:pointer;">
+                            <input type="radio" name="welcomeMessageType" id="typeEmbed" value="embed"
+                                   <%= (welcomeData.messageType || 'plain') === 'embed' ? 'checked' : '' %>>
+                            <span><%= t('common.embed') %></span>
                         </label>
                     </div>
                 </div>
@@ -653,8 +653,8 @@ function resolveHtmlMentions(html) {
     const guildId = '<%= guild.id %>';
     return html
         // ── Custom emoji: <a:name:id> animated & <:name:id> static ────────
-        .replace(/&lt;a:(\w+):(\d+)&gt;/g, (_, name, id) => `<img src="https://cdn.discordapp.com/emojis/${id}.gif" class="dc-emoji" alt=":${name}:">`)
-        .replace(/&lt;:(\w+):(\d+)&gt;/g,  (_, name, id) => `<img src="https://cdn.discordapp.com/emojis/${id}.webp" class="dc-emoji" alt=":${name}:">`)
+        .replace(/&lt;a:(\w+):(\d+)&gt;/g, (_, name, id) => `<img src="https://cdn.discordapp.com/emojis/${id}.gif" class="dc-emoji" alt=":${name}:" onerror="this.style.display='none'">`)
+        .replace(/&lt;:(\w+):(\d+)&gt;/g,  (_, name, id) => `<img src="https://cdn.discordapp.com/emojis/${id}.webp" class="dc-emoji" alt=":${name}:" onerror="this.style.display='none'">`)
         // ── Marker {member} → badge ────────────────────────────────────────
         .replace(/\x00MENTION_MEMBER\x00/g, mentionBadge('#7289da', SAMPLE.member, 'rgba(88,101,242,.15)'))
         // ── Discord mention: <@&ID> role — harus dicek SEBELUM <@ID> user ──

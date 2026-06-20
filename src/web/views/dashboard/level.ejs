@@ -87,22 +87,22 @@
             </div>
 
             <div class="form-group">
-                <label class="label"><%= t('level.message_label') %></label>
+                <label class="label"><%= t('level.message_label') %> <span style="color:#ed4245;">*</span></label>
                 <input type="text" id="levelMessage" class="input" value="<%= levelData.message %>" placeholder="<%= t('level.message_placeholder') %>">
                 <p class="section-desc" style="margin-top:.35rem;"><%- t('level.message_hint') %></p>
             </div>
 
             <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;">
                 <div class="form-group">
-                    <label class="label"><%= t('level.xp_min') %></label>
+                    <label class="label"><%= t('level.xp_min') %> <span style="color:#ed4245;">*</span></label>
                     <input type="number" id="levelXpMin" class="input num-only" value="<%= levelData.xpMin %>" min="1" max="100">
                 </div>
                 <div class="form-group">
-                    <label class="label"><%= t('level.xp_max') %></label>
+                    <label class="label"><%= t('level.xp_max') %> <span style="color:#ed4245;">*</span></label>
                     <input type="number" id="levelXpMax" class="input num-only" value="<%= levelData.xpMax %>" min="1" max="100">
                 </div>
                 <div class="form-group">
-                    <label class="label"><%= t('level.cooldown') %></label>
+                    <label class="label"><%= t('level.cooldown') %> <span style="color:#ed4245;">*</span></label>
                     <input type="number" id="levelCooldown" class="input num-only" value="<%= levelData.cooldown %>" min="1" max="3600">
                 </div>
             </div>

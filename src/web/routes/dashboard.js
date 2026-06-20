@@ -766,7 +766,14 @@ router.get('/:guildId/message-builder', requireLogin, requireManageGuild, async 
                 const raw = db?.get(`pesan-${guildId}-${name}`);
                 if (!raw) return null;
                 const tmpl = { name, ...JSON.parse(raw) };
-                tmpl.isSent = !!db?.get(`pesan-unik-sent-${guildId}-${name}`);
+                const sentRaw = db?.get(`pesan-unik-sent-${guildId}-${name}`);
+                tmpl.isSent = !!sentRaw;
+                // Expose sent channel so the card badge shows it even for slash-command created templates
+                try {
+                    const sentObj = sentRaw ? JSON.parse(sentRaw) : null;
+                    tmpl.sentChannelId = sentObj?.channelId || '';
+                    tmpl.sentMessageId = sentObj?.messageId || '';
+                } catch { tmpl.sentChannelId = ''; tmpl.sentMessageId = ''; }
                 return tmpl;
             } catch { return null; }
         }).filter(Boolean);

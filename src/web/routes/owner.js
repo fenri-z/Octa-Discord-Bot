@@ -268,7 +268,7 @@ router.get('/backup', (req, res) => {
     try {
         if (fs.existsSync(BACKUP_DIR)) {
             files = fs.readdirSync(BACKUP_DIR)
-                .filter(f => f.startsWith('backup-') && f.endsWith('.db'))
+                .filter(f => f.startsWith('backup-') && f.endsWith('.tar.gz'))
                 .map(f => {
                     const full  = path.join(BACKUP_DIR, f);
                     const stat  = fs.statSync(full);
@@ -297,7 +297,7 @@ router.post('/backup/run', async (req, res) => {
 
 router.get('/backup/download/:filename', (req, res) => {
     const filename = path.basename(req.params.filename);
-    if (!filename.startsWith('backup-') || !filename.endsWith('.db'))
+    if (!filename.startsWith('backup-') || !filename.endsWith('.tar.gz'))
         return res.status(400).send('Invalid filename.');
     const fullPath = path.join(BACKUP_DIR, filename);
     if (!fs.existsSync(fullPath)) return res.status(404).send('File not found.');
@@ -306,7 +306,7 @@ router.get('/backup/download/:filename', (req, res) => {
 
 router.post('/backup/delete/:filename', (req, res) => {
     const filename = path.basename(req.params.filename);
-    if (!filename.startsWith('backup-') || !filename.endsWith('.db'))
+    if (!filename.startsWith('backup-') || !filename.endsWith('.tar.gz'))
         return res.json({ success: false, message: 'Invalid filename.' });
     const fullPath = path.join(BACKUP_DIR, filename);
     try {

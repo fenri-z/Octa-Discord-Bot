@@ -537,8 +537,9 @@ class KickNotifier {
             .replace(/{title}/g,     streamData?.stream_title || streamData?.session_title || '')
             .replace(/{viewers}/g,   String(streamData?.viewer_count ?? streamData?.viewers ?? 0));
 
-        const defaultDesc = `Hey, **${displayName}** is **LIVE** on Kick right now!\nCome join and watch the stream~ 🎉`;
-        const description = fill(account.message || '').trim() || defaultDesc;
+        const plainContent = fill(account.plainMessage || '').trim();
+        const defaultDesc  = `Hey, **${displayName}** is **LIVE** on Kick right now!\nCome join and watch the stream~ 🎉`;
+        const description  = fill(account.message || '').trim() || defaultDesc;
 
         const title    = streamData?.stream_title || 'Live Stream';
         const category = streamData?.category?.name || '';
@@ -563,7 +564,7 @@ class KickNotifier {
         embed.setFooter(_kkFooter).setTimestamp();
 
         try {
-            await channel.send({ embeds: [embed] });
+            await channel.send({ content: plainContent || undefined, embeds: [embed] });
         } catch (err) {
             warn(`[Kick] Failed to send notification to #${channel.name} (${guild.name}): ${err.message}`);
         }

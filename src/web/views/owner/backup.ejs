@@ -67,7 +67,7 @@
             <tbody id="bkBody">
             <% files.forEach(function(f, i) { %>
                 <tr id="bkRow<%= i %>">
-                    <td class="bk-cell-file"><i data-lucide="database" class="bk-file-icon"></i> <%= f.name %></td>
+                    <td class="bk-cell-file"><i data-lucide="archive" class="bk-file-icon"></i> <%= f.name %></td>
                     <td class="bk-cell-size"><%= _fmtSize(f.size) %></td>
                     <td class="bk-cell-date"><%= new Date(f.mtime).toLocaleString() %></td>
                     <td class="bk-cell-actions">
@@ -89,7 +89,7 @@
         <% files.forEach(function(f, i) { %>
         <div class="bk-card" id="bkRowM<%= i %>">
             <div class="bk-card-top">
-                <i data-lucide="database" class="bk-file-icon"></i>
+                <i data-lucide="archive" class="bk-file-icon"></i>
                 <span class="bk-card-name"><%= f.name %></span>
             </div>
             <div class="bk-card-meta">

@@ -78,13 +78,13 @@
 
             <div class="mb-top-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:.75rem;">
                 <div class="form-group" style="margin:0;">
-                    <label class="label"><%= t('message_builder.field_name') %></label>
+                    <label class="label"><%= t('message_builder.field_name') %> <span style="color:#ed4245;">*</span></label>
                     <input type="text" id="editName" class="input" data-flt-ignore
                            placeholder="e.g. announcement" maxlength="32" oninput="onFormInput()">
                     <div class="hint"><%- t('message_builder.field_name_hint') %></div>
                 </div>
                 <div class="form-group" style="margin:0;">
-                    <label class="label"><%= t('message_builder.field_channel') %></label>
+                    <label class="label"><%= t('message_builder.field_channel') %> <span style="color:#ed4245;">*</span></label>
                     <select id="editChannelId" class="select" data-flt-ignore onchange="onFormInput()">
                         <option value="">— <%= t('message_builder.no_channel') %> —</option>
                         <% channels.forEach(ch => { %>
@@ -103,7 +103,7 @@
                         <div class="mb-section-head">
                             <span class="mb-section-title" style="display:flex;align-items:center;gap:.4rem;">
                                 <i data-lucide="message-square" style="width:13px;height:13px;color:var(--accent);flex-shrink:0;"></i>
-                                <%= t('message_builder.section_text_message') %>
+                                <%= t('common.plain_text_message') %> <span style="color:#ed4245;">*</span> <span style="font-size:.7rem;font-weight:400;color:var(--text-muted);">(<%= t('common.or_embed') %>)</span>
                             </span>
                             <div class="ph-btn-group">
                                 <div class="ph-picker-anchor">
@@ -132,7 +132,7 @@
                         <div class="mb-section-head">
                             <span class="mb-section-title" style="display:flex;align-items:center;gap:.4rem;">
                                 <i data-lucide="layers" style="width:13px;height:13px;color:var(--accent);flex-shrink:0;"></i>
-                                <%= t('message_builder.section_embed_builder') %>
+                                <%= t('common.embed_builder') %>
                             </span>
                             <div style="display:flex;align-items:center;gap:.45rem;">
                                 <span style="font-size:.75rem;color:var(--text-muted);"><%= t('message_builder.label_accent') %></span>
@@ -260,7 +260,7 @@
                 <!-- Right: Discord preview -->
                 <div class="preview-panel">
                     <div class="preview-label" onclick="toggleMbPreview()" style="cursor:pointer;user-select:none;" title="Toggle preview">
-                        <i id="mbPreviewEyeIcon" data-lucide="eye" style="width:13px;height:13px;flex-shrink:0;"></i> PREVIEW
+                        <svg id="mbPreviewEyeIcon" xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg> PREVIEW
                     </div>
                     <div class="dc-window">
                         <div id="mbPreviewChannel" class="dc-channel-bar">
@@ -319,7 +319,10 @@
 
         <!-- Template list -->
         <div class="settings-card">
-            <h2><%= t('message_builder.list_title') %> (<span id="mbTmplCount"><%= templates.length %></span>/20)</h2>
+            <div class="ar-saved-header">
+                <span class="ar-saved-label"><%= t('message_builder.list_title') %></span>
+                <div class="ar-saved-line"></div>
+            </div>
             <div id="mbList">
                 <% if (!templates.length) { %>
                 <div style="text-align:center;padding:2.5rem 1rem 2rem;">
@@ -329,36 +332,35 @@
                 </div>
                 <% } %>
                 <% templates.forEach(function(tmpl) { %>
-                <% var tmplChannel = tmpl.channelId ? channels.find(function(c){ return c.id === tmpl.channelId; }) : null; %>
-                <div class="mb-row" data-name="<%= tmpl.name %>" data-channel-id="<%= tmpl.channelId || '' %>">
-                    <div class="mb-row-left">
-                        <span class="mb-row-pill" style="background:<%= tmpl.color || '#5865F2' %>"></span>
-                        <code class="mb-row-name"><%= tmpl.name %></code>
+                <% var _effChannelId = tmpl.channelId || tmpl.sentChannelId || ''; %>
+                <% var tmplChannel = _effChannelId ? channels.find(function(c){ return c.id === _effChannelId; }) : null; %>
+                <div class="ar-panel-card mb-row" data-name="<%= tmpl.name %>" data-channel-id="<%= _effChannelId %>">
+                    <div class="ar-panel-row-left">
+                        <span class="ar-panel-name">
+                            <span style="width:10px;height:10px;border-radius:50%;background:<%= tmpl.color || '#5865F2' %>;flex-shrink:0;display:inline-block;"></span>
+                            <%= tmpl.name %>
+                        </span>
                         <% if (tmplChannel) { %>
-                        <span class="mb-badge mb-badge-unik" style="font-size:.72rem;">#<%= tmplChannel.name %></span>
+                        <span class="ar-panel-channel"><i data-lucide="hash" style="width:11px;height:11px;"></i><%= tmplChannel.name %></span>
                         <% } %>
                         <span class="mb-badge mb-badge-type">
                             <%= tmpl.messageType === 'plain' ? t('message_builder.badge_text') : tmpl.messageType === 'both' ? t('message_builder.badge_both') : 'Embed' %>
                         </span>
-                        <% if (tmpl.isSent) { %>
-                        <span class="mb-badge" style="background:rgba(87,242,135,.15);color:#57f287;border:1px solid rgba(87,242,135,.3);"><%= t('message_builder.badge_live') %></span>
-                        <% } %>
-                        <% if (tmpl.title) { %>
-                        <span class="mb-row-preview"><%= tmpl.title.slice(0, 40) %></span>
-                        <% } else if (tmpl.plainText) { %>
-                        <span class="mb-row-preview" style="font-style:italic;"><%= tmpl.plainText.slice(0, 40) %></span>
-                        <% } %>
                     </div>
-                    <div class="mb-row-right">
-                        <button class="btn btn-sm" onclick="editTemplate('<%= tmpl.name %>')" title="Edit">
-                            <i data-lucide="pencil" style="width:13px;height:13px;"></i>
+                    <div class="ar-panel-row-right">
+                        <button class="btn btn-outline btn-sm" onclick="editTemplate('<%= tmpl.name %>')">
+                            <i data-lucide="pencil" style="width:13px;height:13px;vertical-align:middle;margin-right:.25rem;"></i>Edit
                         </button>
-                        <% if (!tmpl.isSent) { %>
-                        <button class="btn btn-sm" onclick="openSendModal('<%= tmpl.name %>')" title="Send">
-                            <i data-lucide="send" style="width:13px;height:13px;"></i>
+                        <% if (tmpl.isSent) { %>
+                        <a class="btn btn-outline btn-sm" href="https://discord.com/channels/<%= guild.id %>/<%= tmpl.sentChannelId %>/<%= tmpl.sentMessageId %>" target="_blank">
+                            <i data-lucide="external-link" style="width:13px;height:13px;vertical-align:middle;margin-right:.2rem;"></i> View
+                        </a>
+                        <% } else { %>
+                        <button class="btn btn-outline btn-sm" onclick="openSendModal('<%= tmpl.name %>')">
+                            <i data-lucide="send" style="width:13px;height:13px;vertical-align:middle;margin-right:.2rem;"></i>Send
                         </button>
                         <% } %>
-                        <button class="btn btn-danger btn-sm" onclick="deleteTemplate('<%= tmpl.name %>')" title="Delete">
+                        <button class="btn btn-sm ar-btn-delete" onclick="deleteTemplate('<%= tmpl.name %>')">
                             <i data-lucide="trash-2" style="width:13px;height:13px;"></i>
                         </button>
                     </div>
@@ -414,6 +416,8 @@
     background:var(--bg3); border:1px solid var(--border);
     border-radius:8px; margin-bottom:.4rem; flex-wrap:wrap;
 }
+/* When using ar-panel-card layout, force single-row — no column stacking */
+.ar-panel-card.mb-row { flex-wrap:nowrap; flex-direction:row; align-items:center; padding:.5rem .75rem; gap:.5rem; }
 .mb-row-left  { display:flex; align-items:center; gap:.5rem; flex-wrap:wrap; min-width:0; }
 .mb-row-right { display:flex; align-items:center; gap:.4rem; flex-shrink:0; }
 .mb-row-pill  { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
@@ -424,7 +428,8 @@
 .mb-badge { font-size:.72rem; padding:.2rem .5rem; border-radius:999px; white-space:nowrap; }
 .mb-badge-unik  { background:rgba(88,101,242,.2); color:var(--accent); }
 .mb-badge-biasa { background:var(--bg3); color:var(--text-muted); border:1px solid var(--border); }
-.mb-badge-type  { background:rgba(87,242,135,.12); color:#57f287; }
+.mb-badge-type  { background:rgba(87,242,135,.12); color:#57f287; border:1px solid rgba(87,242,135,.25); }
+[data-theme="light"] .mb-badge-type { background:rgba(45,120,60,.1); color:#1e6b2e; border-color:rgba(45,120,60,.25); }
 
 /* ── mb-section (Text Message / Embed Builder wrappers) ── */
 .mb-section {
@@ -538,6 +543,46 @@
 .mb-modal-body   { padding:1.25rem; overflow-y:auto; flex:1; }
 .mb-modal-footer { padding:1rem 1.25rem; border-top:1px solid var(--border); flex-shrink:0; }
 
+/* ── Panel-card shared styles ── */
+.ar-panel-card {
+    display:flex; align-items:center; gap:.6rem;
+    background:var(--bg3); border:1px solid var(--border);
+    border-radius:8px; padding:.5rem .75rem;
+    margin-bottom:.4rem; transition:border-color .15s;
+}
+.ar-panel-card:hover { border-color:var(--accent); }
+.ar-panel-row-left  { display:flex; align-items:center; gap:.4rem; flex-wrap:wrap; flex:1; min-width:0; }
+.ar-panel-row-right { display:flex; align-items:center; gap:.3rem; flex-shrink:0; margin-left:auto; }
+.ar-panel-name {
+    font-weight:600; font-size:.875rem; display:flex; align-items:center; gap:.3rem;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0;
+}
+.ar-panel-channel {
+    font-size:.72rem; color:#5865F2; display:inline-flex; align-items:center;
+    gap:.2rem; white-space:nowrap; flex-shrink:0;
+    background:rgba(88,101,242,.12); padding:2px 7px; border-radius:12px;
+}
+.ar-panel-row-right .btn {
+    min-height:28px !important; padding:.25rem .55rem !important;
+    font-size:.78rem !important; line-height:1.2;
+}
+.ar-btn-delete {
+    background:transparent; border:1.5px solid var(--border);
+    color:#ed4245; border-radius:var(--radius,8px); cursor:pointer;
+    transition:all .15s; min-height:28px !important; padding:.2rem .45rem;
+    display:flex; align-items:center; justify-content:center;
+}
+.ar-btn-delete:hover { background:rgba(237,66,69,.1); border-color:#ed4245; }
+.ar-saved-header { display:flex; align-items:center; gap:.75rem; margin-bottom:.75rem; }
+.ar-saved-label  { font-size:.75rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--text-muted); white-space:nowrap; }
+.ar-saved-line   { flex:1; height:1px; background:var(--border); }
+@media(max-width:520px) {
+    .ar-saved-header { justify-content:space-between; }
+    .ar-saved-label  { white-space:normal; line-height:1.3; max-width:72px; }
+    .ar-saved-line   { display:none; }
+    .ar-panel-channel, .mb-badge { display:none; }
+}
+
 /* ── Responsive ── */
 @media (max-width:640px) {
     .mb-top-grid  { grid-template-columns:1fr !important; }
@@ -547,7 +592,7 @@
     .mb-row-preview { max-width:160px; }
 }
 @media (max-width:500px) {
-    .mb-row { flex-direction:column; align-items:flex-start; }
+    .mb-row:not(.ar-panel-card) { flex-direction:column; align-items:flex-start; }
     .mb-row-right { width:100%; justify-content:flex-end; }
     .mb-row-preview { max-width:none; }
     .settings-card { padding:1rem; }
@@ -676,8 +721,11 @@ function toggleMbPreview() {
     const icon  = document.getElementById('mbPreviewEyeIcon');
     panel.classList.toggle('dc-preview-hidden');
     const hidden = panel.classList.contains('dc-preview-hidden');
-    icon.setAttribute('data-lucide', hidden ? 'eye-off' : 'eye');
-    if (window.lucide) lucide.createIcons();
+    if (icon) {
+        icon.innerHTML = hidden
+            ? '<path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/>'
+            : '<path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>';
+    }
 }
 
 // ── URL validation ────────────────────────────────────────────────────────
@@ -719,10 +767,12 @@ function _restoreFromData(t) {
     set('editThumbnail',   t.thumbnail   || '');
     const color = t.color || '#5865F2';
     set('editColor', color); set('editColorPicker', color);
-    set('editChannelId', t.channelId || '');
+
+    // Channel select is intentionally NOT set here — editTemplate() handles it
+    // synchronously after display:'' (matching the autorole pattern).
+
     const ts = document.getElementById('editTimestamp'); if (ts) ts.checked = !!t.timestamp;
     document.getElementById('editName').disabled = true;
-    document.getElementById('editChannelId').disabled = true;
     mbEmbedFields = Array.isArray(t.fields) ? t.fields.map(f => ({ name: f.name || '', value: f.value || '', inline: !!f.inline })) : [];
     renderMbFields(); mbClearUrlWarns();
     mbResizeAll();
@@ -737,7 +787,19 @@ function clearForm() {
      'editTitleUrl','editDescription','editFooter','editFooterIcon',
      'editAuthorName','editAuthorIcon','editAuthorUrl','editImage','editThumbnail'
     ].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
-    document.getElementById('editChannelId').value = '';
+    const chSel = document.getElementById('editChannelId');
+    if (chSel) {
+        chSel.disabled = false;
+        Array.from(chSel.options).forEach(o => { if (o.dataset.fallback) o.remove(); });
+        chSel.selectedIndex = 0;
+        const cselW = chSel.closest('.csel');
+        if (cselW) {
+            const tr = cselW.querySelector('.csel-trigger');
+            if (tr) tr.textContent = chSel.options[0]?.textContent || '';
+            cselW.querySelectorAll('.csel-option').forEach(o => o.classList.remove('active'));
+            cselW.classList.remove('disabled');
+        }
+    }
     document.getElementById('editColor').value = '#5865F2';
     document.getElementById('editColorPicker').value = '#5865F2';
     document.getElementById('editTimestamp').checked = false;
@@ -748,6 +810,52 @@ function clearForm() {
     mbResizeAll();
     mbUpdateCount('editPlainText', 'plainTextCount');
     mbUpdateCount('editDescription', 'descCount');
+}
+
+// ── _applyChannel: set channel value + disabled + lock indicator ─────────────
+function _applyChannel(chId, locked) {
+    const chSel = document.getElementById('editChannelId');
+    if (!chSel) return;
+
+    // Remove stale fallback options
+    Array.from(chSel.options).forEach(o => { if (o.dataset.fallback) o.remove(); });
+
+    // Set value BEFORE disabled — Chromium silently ignores .value on a disabled <select>.
+    if (chId) {
+        chSel.value = chId;
+        if (chSel.value !== chId) {
+            // Option not in guild list — add fallback
+            let found = false;
+            for (let i = 0; i < chSel.options.length; i++) {
+                if (chSel.options[i].value === chId) { chSel.selectedIndex = i; found = true; break; }
+            }
+            if (!found) {
+                const opt = document.createElement('option');
+                opt.value = chId; opt.textContent = `#${chId}`; opt.dataset.fallback = '1';
+                chSel.appendChild(opt);
+                chSel.value = chId;
+            }
+        }
+    } else {
+        chSel.value = '';
+    }
+    chSel.disabled = locked;
+
+    // Sync the .csel custom dropdown visual. dashboard.js wraps every select.select in a
+    // .csel component at DOMContentLoaded — setting .value alone does NOT fire 'change',
+    // so the .csel-trigger text stays stale unless we update it here directly.
+    const cselWrapper = chSel.closest('.csel');
+    if (cselWrapper) {
+        const trigger = cselWrapper.querySelector('.csel-trigger');
+        if (trigger) {
+            const selOpt = chSel.options[chSel.selectedIndex];
+            trigger.textContent = selOpt ? selOpt.textContent : '';
+        }
+        cselWrapper.querySelectorAll('.csel-option').forEach(o => {
+            o.classList.toggle('active', o.dataset.value === chSel.value);
+        });
+        cselWrapper.classList.toggle('disabled', locked);
+    }
 }
 
 // ── Edit template (fill form) ─────────────────────────────────────────────
@@ -761,7 +869,12 @@ async function editTemplate(name, markDirty = true) {
     _savedTemplateData = t;
     document.getElementById('editOriginalName').value = name;
     document.getElementById('editName').value = name;
+
+    const _chId     = String(t.isSent ? (t.sentChannelId || t.channelId || '') : (t.channelId || '')).trim();
+    const _chLocked = !!t.isSent;
+
     _restoreFromData(t);
+    _applyChannel(_chId, _chLocked);
     _mbCaptureBaseline();
 
     document.getElementById('mbFormTitle').textContent = `Edit: ${name}`;
@@ -774,7 +887,16 @@ async function editTemplate(name, markDirty = true) {
     } else {
         setTimeout(() => window._floatCapture?.(), 50);
     }
+
+    // Safety net: re-apply channel after resize rAF fires.
+    requestAnimationFrame(() => { _applyChannel(_chId, _chLocked); });
     if (window.lucide) lucide.createIcons();
+}
+
+// ── New template (clear form, scroll to top) ─────────────────────────────
+function newTemplate() {
+    cancelEdit();
+    document.getElementById('editName').focus();
 }
 
 // ── Cancel edit ───────────────────────────────────────────────────────────
@@ -783,7 +905,6 @@ function cancelEdit() {
     _savedTemplateData = null;
     clearForm();
     document.getElementById('editName').disabled = false;
-    document.getElementById('editChannelId').disabled = false;
     document.getElementById('mbFormTitle').textContent = I18N_MB_NEW_TITLE;
     document.getElementById('mbCancelEdit').style.display = 'none';
     document.getElementById('mbFormMsg').textContent = '';
@@ -886,6 +1007,8 @@ function refreshMbStats() {
         icon.className = full ? 'stat-icon' : 'stat-icon stat-icon-comm';
         icon.style.cssText = full ? 'color:#ed4245;background:rgba(237,66,69,.12);' : '';
     }
+    const newBtn = document.getElementById('mbNewBtn');
+    if (newBtn) newBtn.disabled = full;
 }
 
 // ── Delete template ───────────────────────────────────────────────────────
@@ -1035,6 +1158,10 @@ function mbResolvePreview(text, richMentions = false) {
         .replace(/\{server\.icon\}/g,    mbSubtle(escHtml(MB_SAMPLE.server_icon || '[icon url]')));
     if (richMentions) {
         s = s
+            .replace(/&lt;(a?):([^:&]+):(\d+)&gt;/g, (_, anim, name, id) => {
+                const ext = anim === 'a' ? 'gif' : 'webp';
+                return `<img src="https://cdn.discordapp.com/emojis/${id}.${ext}?size=32" class="dc-emoji" alt=":${name}:" onerror="this.style.display='none'">`;
+            })
             .replace(/&lt;@&amp;(\d+)&gt;/g, (_, id) => {
                 const r = ROLES[id];
                 if (!r) return mbMentionBadge('#99aab5', '@Unknown Role');
@@ -1246,7 +1373,10 @@ function renderMbFields() {
                 <i data-lucide="trash-2" style="width:13px;height:13px;"></i>
             </button>
         </div>`).join('');
-    if (window.lucide) lucide.createIcons();
+    if (window.lucide) {
+        const newIcons = container.querySelectorAll('[data-lucide]');
+        if (newIcons.length) lucide.createIcons({ nodes: [...newIcons] });
+    }
 }
 
 // ── Mention dropdowns ─────────────────────────────────────────────────────
@@ -1300,9 +1430,12 @@ _buildMentionDd(document.getElementById('mbEmbedMentionPicker'),  () => document
 window._floatSave = async () => saveTemplate();
 window._floatReset = () => {
     if (_editingName && _savedTemplateData) {
+        const t = _savedTemplateData;
         document.getElementById('editOriginalName').value = _editingName;
         document.getElementById('editName').value = _editingName;
-        _restoreFromData(_savedTemplateData);
+        _restoreFromData(t);
+        const chId = String(t.isSent ? (t.sentChannelId || t.channelId || '') : (t.channelId || '')).trim();
+        _applyChannel(chId, !!t.isSent);
         _mbCaptureBaseline();
         window._floatClean?.();
         setTimeout(() => window._floatCapture?.(), 50);

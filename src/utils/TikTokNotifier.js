@@ -146,6 +146,29 @@ class TikTokNotifier {
         };
     }
 
+    async _fetchVideosTikwm(username, limit = 5) {
+        const cleanUser = username.replace(/^@/, '');
+        const res = await fetch(
+            `https://www.tikwm.com/api/user/posts?unique_id=${encodeURIComponent(cleanUser)}&count=${limit}&cursor=0`,
+            { signal: AbortSignal.timeout(8_000) }
+        );
+        if (!res.ok) throw new Error(`tikwm HTTP ${res.status}`);
+        const json = await res.json();
+        if (json.code !== 0) throw new Error(`tikwm: ${json.msg || json.code}`);
+        const videos = json.data?.videos;
+        if (!Array.isArray(videos)) throw new Error('tikwm: format tidak dikenal');
+
+        return {
+            entries: videos.slice(0, limit).map(v => ({
+                id:        String(v.video_id || v.id || ''),
+                url:       `https://www.tiktok.com/@${cleanUser}/video/${v.video_id || v.id}`,
+                title:     v.title || '(tanpa judul)',
+                thumbnail: v.origin_cover || v.cover || null,
+            })).filter(e => e.id),
+            channelName: null,
+        };
+    }
+
     _humanizeYtdlpError(username, rawMsg) {
         const msg = rawMsg || '';
         if (/Unable to extract secondary user ID/i.test(msg)) {
@@ -176,6 +199,15 @@ class TikTokNotifier {
     }
 
     async _fetchVideos(username, limit = 5) {
+        try {
+            return await this._fetchVideosTikwm(username, limit);
+        } catch (err) {
+            warn(`[TikTok] tikwm gagal (${username}), fallback ke yt-dlp: ${err.message}`);
+            return this._fetchVideosYtdlp(username, limit);
+        }
+    }
+
+    async _fetchVideosYtdlp(username, limit = 5) {
         const url  = `https://www.tiktok.com/${username}`;
         const data = await this._ytdlp(['--no-warnings', '--flat-playlist', '--playlist-end', String(limit), '-J', url]);
         const rawEntries = data.entries || [];
@@ -604,6 +636,7 @@ class TikTokNotifier {
             .replace(/{url}/g,      entry.url)
             .replace(/{id}/g,       entry.id);
 
+        const plainContent = fill(account.videoPlainMessage || '').trim();
         const customMsg   = fill(account.videoMessage || '').trim();
         const description = customMsg
             || `**${displayName}** just posted a new video on TikTok!\nDon't miss it, watch now! 🎉`;
@@ -628,7 +661,7 @@ class TikTokNotifier {
         if (_ttBase) _ttVideoFooter.iconURL = `${_ttBase}/img/tiktok.png`;
         embed.setFooter(_ttVideoFooter).setTimestamp();
 
-        await discordCh.send({ embeds: [embed] }).catch(err =>
+        await discordCh.send({ content: plainContent || undefined, embeds: [embed] }).catch(err =>
             warn(`[TikTok] Failed to send embed: ${err.message}`)
         );
     }
@@ -647,6 +680,7 @@ class TikTokNotifier {
             .replace(/{username}/g, account.username)
             .replace(/{url}/g,      liveUrl);
 
+        const plainContent = fill(account.livePlainMessage || '').trim();
         const customMsg   = fill(account.liveMessage || '').trim();
         const description = customMsg
             || `Hey, **${displayName}** is **LIVE** on TikTok right now!\nCome join and watch the stream~ 🎉`;
@@ -657,7 +691,7 @@ class TikTokNotifier {
             .setURL(liveUrl)
             .setDescription(description);
 
-        if (live.title) embed.addFields({ name: '🎬 Judul Stream', value: live.title, inline: false });
+        if (live.title) embed.addFields({ name: '🎙️ Stream Title', value: live.title, inline: false });
         embed.addFields({ name: '🔗 Link', value: `[Click Me ▶](${liveUrl})`, inline: false });
 
         if (account.thumbnail) embed.setThumbnail(account.thumbnail);
@@ -670,7 +704,7 @@ class TikTokNotifier {
         if (_ttBase) _ttLiveFooter.iconURL = `${_ttBase}/img/tiktok.png`;
         embed.setFooter(_ttLiveFooter).setTimestamp();
 
-        await discordCh.send({ embeds: [embed] }).catch(err =>
+        await discordCh.send({ content: plainContent || undefined, embeds: [embed] }).catch(err =>
             warn(`[TikTok/Live] Failed to send embed: ${err.message}`)
         );
     }

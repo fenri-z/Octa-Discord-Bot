@@ -73,7 +73,7 @@
             </div>
 
             <div class="form-group" id="panelSendChannelGroup">
-                <label class="label"><%= t('ticket.send_channel_label') %></label>
+                <label class="label"><%= t('ticket.send_channel_label') %> <span style="color:#ed4245;">*</span></label>
                 <select id="panelSendChannel" class="select">
                     <option value=""><%= t('common.select_channel') %></option>
                     <% channels.forEach(c => { %>
@@ -104,7 +104,7 @@
         <div class="settings-card" style="margin-bottom:1rem;">
             <% const validStaffRoles = ticketData.staffRoles.filter(id => roles.find(r => r.id === id)); %>
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.9rem;flex-wrap:wrap;gap:.5rem;">
-                <div style="font-size:.8rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;"><%= t('ticket.staff_roles') %></div>
+                <div style="font-size:.8rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;"><%= t('ticket.staff_roles') %> <span style="color:#ed4245;">*</span></div>
                 <span style="font-size:.72rem;padding:.15rem .45rem;border-radius:999px;background:var(--bg2);border:1px solid var(--border);color:var(--text-muted);" id="staffRoleCounter"><%= validStaffRoles.length %> role</span>
             </div>
             <div id="staffRoleList" style="display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:.75rem;min-height:1.5rem;">
@@ -143,14 +143,14 @@
             <div style="font-size:.8rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.9rem;"><%= t('ticket.panel_appearance') %></div>
 
             <div class="form-group">
-                <label class="label"><%= t('ticket.embed_title_label') %></label>
+                <label class="label"><%= t('ticket.embed_title_label') %> <span style="color:#ed4245;">*</span></label>
                 <input type="text" id="panelTitle" class="input" maxlength="256"
                        value="<%= ticketData.embedTitle %>" placeholder="<%= t('ticket.embed_title_default') %>"
                        oninput="updateTicketPreview()">
             </div>
             <div class="form-group">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.35rem;">
-                    <label class="label" style="margin:0;"><%= t('ticket.description_label') %></label>
+                    <label class="label" style="margin:0;"><%= t('ticket.description_label') %> <span style="color:#ed4245;">*</span></label>
                     <div class="ph-picker-anchor mention-anchor">
                         <button type="button" class="ph-toggle-btn" onclick="togglePicker('ticketDescMentionPicker',event)">@ Mention</button>
                         <div class="ph-dropdown mention-dd" id="ticketDescMentionPicker" style="display:none;"></div>
@@ -173,7 +173,7 @@
                 </div>
             </div>
             <div class="form-group">
-                <label class="label"><%= t('ticket.btn_label') %></label>
+                <label class="label"><%= t('ticket.btn_label') %> <span style="color:#ed4245;">*</span></label>
                 <input type="text" id="panelBtnLabel" class="input" maxlength="80"
                        value="<%= ticketData.btnLabel %>" placeholder="<%= t('ticket.btn_label_default') %>"
                        oninput="updateTicketPreview()">
@@ -345,8 +345,8 @@ function _tkMdToHtml(text) {
 function _tkResolveMentions(html) {
     if (!html) return '';
     return html
-        .replace(/&lt;a:(\w+):(\d+)&gt;/g, (_, name, id) => `<img src="https://cdn.discordapp.com/emojis/${id}.gif" class="dc-emoji" alt=":${name}:">`)
-        .replace(/&lt;:(\w+):(\d+)&gt;/g,  (_, name, id) => `<img src="https://cdn.discordapp.com/emojis/${id}.webp" class="dc-emoji" alt=":${name}:">`)
+        .replace(/&lt;a:(\w+):(\d+)&gt;/g, (_, name, id) => `<img src="https://cdn.discordapp.com/emojis/${id}.gif" class="dc-emoji" alt=":${name}:" onerror="this.style.display='none'">`)
+        .replace(/&lt;:(\w+):(\d+)&gt;/g,  (_, name, id) => `<img src="https://cdn.discordapp.com/emojis/${id}.webp" class="dc-emoji" alt=":${name}:" onerror="this.style.display='none'">`)
         .replace(/&lt;@&amp;(\d+)&gt;/g, (_, id) => { const r=ROLES_MAP[id]; return r ? _tkBadge(r.color,'@'+r.name) : _tkBadge('#99aab5','@unknown-role'); })
         .replace(/&lt;@!?(\d+)&gt;/g,    ()       => _tkBadge('#7289da','@User'))
         .replace(/&lt;#(\d+)&gt;/g,      (_, id)  => { const n=CHANNELS[id]; return n ? _tkBadge('#7289da','#'+n) : _tkBadge('#7289da','#unknown'); })

@@ -114,7 +114,7 @@
 
             <div class="sb-config-row">
                 <div class="form-group sb-channel-group">
-                    <label class="label"><%= t('starboard.channel_label') %></label>
+                    <label class="label"><%= t('starboard.channel_label') %> <span style="color:#ed4245;">*</span></label>
                     <select id="sbChannel" class="select">
                         <option value=""><%= t('starboard.select_channel') %></option>
                         <% channels.forEach(function(ch) { %>
@@ -124,7 +124,7 @@
                 </div>
 
                 <div class="form-group sb-emoji-group">
-                    <label class="label"><%= t('starboard.emoji_label') %></label>
+                    <label class="label"><%= t('starboard.emoji_label') %> <span style="color:#ed4245;">*</span></label>
                     <input type="hidden" id="sbEmoji" value="<%= starboardData.emoji %>">
                     <div class="sb-emoji-bubble <%= starboardData.emoji ? 'has-emoji' : '' %>"
                          id="sbEmojiBubble"
@@ -135,7 +135,7 @@
                             if (em && em.includes(':')) {
                                 const parts = em.split(':');
                         %>
-                            <img src="https://cdn.discordapp.com/emojis/<%= parts[1] %>.webp?size=64" alt=":<%= parts[0] %>:" style="width:30px;height:30px;object-fit:contain;border-radius:4px;">
+                            <img src="https://cdn.discordapp.com/emojis/<%= parts[1] %>.webp?size=64" alt=":<%= parts[0] %>:" style="width:30px;height:30px;object-fit:contain;border-radius:4px;" onerror="this.style.display='none'">
                         <% } else if (em) { %>
                             <%= em %>
                         <% } else { %>
@@ -145,7 +145,7 @@
                 </div>
 
                 <div class="form-group sb-threshold-group">
-                    <label class="label"><%= t('starboard.threshold_label') %></label>
+                    <label class="label"><%= t('starboard.threshold_label') %> <span style="color:#ed4245;">*</span></label>
                     <input type="number" id="sbThreshold" class="input num-only" value="<%= starboardData.threshold %>" min="1" max="50">
                 </div>
             </div>
@@ -196,7 +196,7 @@ function openSbEmojiPicker(anchorEl) {
         bubble.title = 'Click to change emoji';
         if (value.includes(':')) {
             const [name, id] = value.split(':');
-            bubble.innerHTML = `<img src="https://cdn.discordapp.com/emojis/${id}.webp?size=64" alt=":${name}:" style="width:30px;height:30px;object-fit:contain;border-radius:4px;">`;
+            bubble.innerHTML = `<img src="https://cdn.discordapp.com/emojis/${id}.webp?size=64" alt=":${name}:" style="width:30px;height:30px;object-fit:contain;border-radius:4px;" onerror="this.style.display='none'">`;
         } else {
             bubble.textContent = value;
         }
