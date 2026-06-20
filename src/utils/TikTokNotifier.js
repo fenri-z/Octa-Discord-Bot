@@ -293,6 +293,11 @@ class TikTokNotifier {
         if (!lastId) { db.set(lastKey, latestId); return false; }
         if (lastId === latestId) return false;
 
+        // Jika latestId secara numerik ≤ lastId, urutan feed berubah tapi tidak ada video baru.
+        // (TikTok video ID adalah snowflake — selalu meningkat untuk konten yang lebih baru.)
+        // Try-catch untuk toleransi format ID non-numerik (e.g., ID RSS lama saat migrasi).
+        try { if (BigInt(latestId) <= BigInt(lastId)) return false; } catch {}
+
         const lastIdx    = entries.findIndex(e => e.id === lastId);
         // Jika lastId tidak ada di top-5 (video dihapus/geser dari window), hanya kirim
         // video paling baru saja — jangan spam slice(0,3) yang bisa kirim video lama.
@@ -474,6 +479,8 @@ class TikTokNotifier {
         if (!lastId) { db.set(lastKey, latestId); return; }
         if (lastId === latestId) return;
 
+        try { if (BigInt(latestId) <= BigInt(lastId)) return; } catch {}
+
         const lastIdx   = entries.findIndex(e => e.id === lastId);
         const newEntries = lastIdx === -1 ? [entries[0]] : entries.slice(0, lastIdx);
 
@@ -609,6 +616,9 @@ class TikTokNotifier {
             connection.connect()
                 .then(state => {
                     const roomData = state?.roomInfo?.data || {};
+                    // status 2 = live aktif; status 4 = sudah berakhir/offline.
+                    // Jika ada status tapi bukan 2, user tidak sedang live.
+                    if (roomData.status !== undefined && roomData.status !== 2) return done({ isLive: false });
                     const owner    = roomData.owner || {};
                     const ownerAvatar = owner.avatar_large?.url_list?.[0]
                                      || owner.avatar_medium?.url_list?.[0]
