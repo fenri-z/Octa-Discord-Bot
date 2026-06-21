@@ -127,22 +127,31 @@ module.exports = new Event({
         const wasBooster = oldMember.premiumSince !== null;
         const isBooster  = newMember.premiumSince !== null;
 
-        // Tidak ada perubahan status boost → abaikan
-        if (wasBooster === isBooster) return;
+        const justBoosted   = !wasBooster && isBooster;
+        const justUnboosted = wasBooster  && !isBooster;
 
-        const justBoosted   = !wasBooster && isBooster;   // baru mulai boost
-        const justUnboosted = wasBooster  && !isBooster;  // baru berhenti boost
+        // Detect extra boost from member who is already boosting (premiumSince unchanged but count went up)
+        let isExtraBoost = false;
+        if (wasBooster && isBooster) {
+            const countBefore = guild.premiumSubscriptionCount ?? 0;
+            await guild.fetch().catch(() => null);
+            const countAfter = guild.premiumSubscriptionCount ?? 0;
+            isExtraBoost = countAfter > countBefore;
+        }
+
+        if (!justBoosted && !justUnboosted && !isExtraBoost) return;
 
         // ══════════════════════════════════════════════════════════════════
         // ── BOOST ─────────────────────────────────────────────────────────
         // ══════════════════════════════════════════════════════════════════
-        if (justBoosted) {
+        if (justBoosted || isExtraBoost) {
 
             // Fetch fresh guild data so premiumSubscriptionCount reflects the new boost
-            await guild.fetch().catch(() => null);
+            // (for isExtraBoost the fetch was already done above)
+            if (justBoosted) await guild.fetch().catch(() => null);
 
             // ── Autorole: berikan role booster ─────────────────────────────
-            if (cfg.autoroleEnabled && cfg.autoroleRoleId) {
+            if (justBoosted && cfg.autoroleEnabled && cfg.autoroleRoleId) {
                 const role     = guild.roles.cache.get(cfg.autoroleRoleId);
                 const botMember = guild.members.me;
 
