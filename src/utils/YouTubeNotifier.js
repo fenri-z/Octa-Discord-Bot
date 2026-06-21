@@ -735,6 +735,9 @@ class YouTubeNotifier {
             let videoId   = null;
             let title     = null;
 
+            // videoId dari ytInitialPlayerResponse (muncul di awal halaman, sebelum LIVE_SIGNAL)
+            let earlyVideoId = null;
+
             try {
                 while (true) {
                     const { done, value } = await reader.read();
@@ -751,8 +754,19 @@ class YouTubeNotifier {
                             if (tm) title = tm[1].replace(/\s*[-–|]\s*YouTube\s*$/i, '').trim();
                         }
 
+                        // Tangkap videoId dari ytInitialPlayerResponse sebelum buffer di-trim
+                        if (!earlyVideoId) {
+                            const pi = buf.indexOf('"videoDetails":{"videoId":"');
+                            if (pi !== -1) {
+                                const m = buf.slice(pi + '"videoDetails":{"videoId":"'.length).match(/^([a-zA-Z0-9_-]{11})"/);
+                                if (m) earlyVideoId = m[1];
+                            }
+                        }
+
                         if (buf.includes(LIVE_SIGNAL)) {
                             isLive = true;
+                            // Kalau videoId sudah tertangkap dari awal halaman, pakai langsung
+                            if (earlyVideoId) { videoId = earlyVideoId; break; }
                             // Simpan LIVE_CTX bytes: cukup untuk title (~6KB) + pattern overlap
                             buf = buf.slice(-LIVE_CTX);
                         } else {
@@ -762,7 +776,7 @@ class YouTubeNotifier {
                         }
                     }
 
-                    // isLive = true — cari videoId dengan semua pattern yang ada
+                    // isLive = true tapi videoId belum ditemukan — cari di chunk berikutnya
                     for (const prefix of VID_PATTERNS) {
                         const pi = buf.indexOf(prefix);
                         if (pi !== -1) {

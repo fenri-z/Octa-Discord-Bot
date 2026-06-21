@@ -620,9 +620,10 @@ class TikTokNotifier {
             connection.connect()
                 .then(state => {
                     const roomData = state?.roomInfo?.data || {};
-                    // status 2 = live aktif; status 4 = sudah berakhir/offline.
-                    // Jika ada status tapi bukan 2, user tidak sedang live.
-                    if (roomData.status !== undefined && roomData.status !== 2) return done({ isLive: false });
+                    // status 2 = live aktif; status 4 = berakhir/offline.
+                    // Hanya tolak status 4 (offline pasti) — status lain (1=starting, 3=dst) dibiarkan lolos
+                    // agar tidak false-negative saat live baru mulai warming up.
+                    if (roomData.status === 4) return done({ isLive: false });
                     const owner    = roomData.owner || {};
                     const ownerAvatar = owner.avatar_large?.url_list?.[0]
                                      || owner.avatar_medium?.url_list?.[0]
