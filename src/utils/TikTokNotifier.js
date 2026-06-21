@@ -569,7 +569,9 @@ class TikTokNotifier {
             if (fails >= LIVE_FAIL_THRESHOLD) {
                 db.delete(liveKey);
                 db.delete(failKey);
-                db.delete(notifAtKey); // reset cooldown saat live benar-benar berakhir
+                // notifAtKey TIDAK dihapus — cooldown tetap aktif sehingga jika live
+                // reconnect dalam 2 jam (sesi yang sama), notif kedua tidak terkirim.
+                // Cooldown akan expired secara alami setelah 2 jam.
             } else {
                 db.set(failKey, String(fails));
             }
