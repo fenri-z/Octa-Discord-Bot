@@ -200,13 +200,12 @@
         </div>
 
         <!-- ── Add Channel ─────────────────────────────────────────────────── -->
-        <% if (ytChannels.length < maxChannels) { %>
-        <div class="settings-card" style="margin-bottom:1.5rem;">
+        <div id="ytAddCard" class="settings-card" style="margin-bottom:1.5rem;<%- ytChannels.length >= maxChannels ? 'display:none;' : '' %>">
             <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:1rem;">
                 <i data-lucide="plus-circle" style="color:#FF0000;width:18px;height:18px;flex-shrink:0;"></i>
                 <h2 style="margin:0;font-size:1rem;font-weight:600;"><%= t('youtube.add_title') %></h2>
             </div>
-            <p style="font-size:.85rem;color:var(--text-muted);margin:0 0 1rem 0;">
+            <p id="ytAddDesc" style="font-size:.85rem;color:var(--text-muted);margin:0 0 1rem 0;">
                 <%- t('youtube.add_desc', { remaining: maxChannels - ytChannels.length, max: maxChannels }) %>
             </p>
             <div class="form-group" style="margin-bottom:0;">
@@ -236,12 +235,10 @@
                 </div>
             </div>
         </div>
-        <% } else { %>
-        <div class="perm-card perm-warn" style="margin-bottom:1.5rem;">
+        <div id="ytMaxBanner" class="perm-card perm-warn" style="margin-bottom:1.5rem;<%- ytChannels.length < maxChannels ? 'display:none;' : '' %>">
             <i data-lucide="info"></i>
             <span><%- t('youtube.max_reached', { max: maxChannels }) %></span>
         </div>
-        <% } %>
 
 
         <!-- ── Daftar Channel ─────────────────────────────────────────────── -->
@@ -717,6 +714,8 @@ const CHANNELS_MAP  = <%- JSON.stringify(Object.fromEntries((locals.channels||[]
 const I18N_YT_CONFIRM_DELETE = <%- JSON.stringify(t("youtube.confirm_delete")) %>;
 const I18N_YT_ERR_INPUT      = <%- JSON.stringify(t("youtube.err_enter_input")) %>;
 const I18N_YT_ERR_CONN       = <%- JSON.stringify(t("youtube.err_connection")) %>;
+const YT_MAX_CHANNELS        = <%= maxChannels %>;
+const YT_ADD_DESC_TPL        = <%- JSON.stringify(t("youtube.add_desc", { remaining: '__N__', max: maxChannels })) %>;
 const I18N_YT_SENDING        = <%- JSON.stringify(t("youtube.sending")) %>;
 const I18N_YT_DEF_VIDEO      = <%- JSON.stringify(t("youtube.default_video_desc")) %>;
 const I18N_YT_DEF_SHORT      = <%- JSON.stringify(t("youtube.default_short_desc")) %>;
@@ -1006,8 +1005,19 @@ async function deleteYtChannel(chId, chName) {
         if (data.success) {
             const card = document.getElementById(`ytCard-${chId}`);
             if (card) card.remove();
+            const ytIdx = _ytAllChIds.indexOf(chId);
+            if (ytIdx !== -1) _ytAllChIds.splice(ytIdx, 1);
             refreshYtStats();
-            if (!document.querySelector('.yt-channel-card')) { queueToast(data.message, 'success'); location.reload(); }
+            const newCount = document.querySelectorAll('.yt-channel-card').length;
+            if (newCount < YT_MAX_CHANNELS) {
+                const banner  = document.getElementById('ytMaxBanner');
+                const addCard = document.getElementById('ytAddCard');
+                const addDesc = document.getElementById('ytAddDesc');
+                if (banner)  banner.style.display  = 'none';
+                if (addCard) addCard.style.display  = '';
+                if (addDesc) addDesc.innerHTML = YT_ADD_DESC_TPL.replace('__N__', YT_MAX_CHANNELS - newCount);
+            }
+            if (!newCount) { queueToast(data.message, 'success'); location.reload(); }
             else showToast(data.message, 'success');
         } else {
             showAlert(data.message);

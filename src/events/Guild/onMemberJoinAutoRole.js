@@ -10,6 +10,8 @@ function bool(db, key, def = false) {
 function readAutoroleConfig(db, guildId) {
     const g = guildId;
     return {
+        allEnabled:    bool(db, `autorole-all-enabled-${g}`, false),
+        allRole:       db.get(`autorole-all-role-${g}`) ?? null,
         memberEnabled: bool(db, `autorole-member-enabled-${g}`, false),
         memberRole:    db.get(`autorole-member-role-${g}`) ?? null,
         botEnabled:    bool(db, `autorole-bot-enabled-${g}`, false),
@@ -32,21 +34,22 @@ module.exports = new Event({
             cache.set(cfgKey, cfg);
         }
 
-        const enabled = isBot ? cfg.botEnabled : cfg.memberEnabled;
-        if (!enabled) return;
-
-        const roleId = isBot ? cfg.botRole : cfg.memberRole;
-        if (!roleId) return;
-
-        // ── Pastikan role masih ada di server ─────────────────────────────
-        const role = guild.roles.cache.get(roleId);
-        if (!role) return;
-
-        // ── Pastikan bot punya izin untuk assign role ─────────────────────
         const botMember = guild.members.me;
         if (!botMember || !botMember.permissions.has('ManageRoles')) return;
-        if (botMember.roles.highest.comparePositionTo(role) <= 0) return;
 
-        await member.roles.add(role, `Autorole ${isBot ? 'Bot' : 'Member'}`).catch(err => logError('[onMemberJoinAutoRole] roles.add failed:', err));
+        const assignRole = async (roleId, label) => {
+            if (!roleId) return;
+            const role = guild.roles.cache.get(roleId);
+            if (!role) return;
+            if (botMember.roles.highest.comparePositionTo(role) <= 0) return;
+            await member.roles.add(role, `Autorole ${label}`).catch(err => logError('[onMemberJoinAutoRole] roles.add failed:', err));
+        };
+
+        // Role "semua" — berlaku untuk member dan bot
+        if (cfg.allEnabled) await assignRole(cfg.allRole, 'All');
+
+        // Role spesifik member / bot
+        if (isBot  && cfg.botEnabled)    await assignRole(cfg.botRole,    'Bot');
+        if (!isBot && cfg.memberEnabled) await assignRole(cfg.memberRole, 'Member');
     })
 }).toJSON();

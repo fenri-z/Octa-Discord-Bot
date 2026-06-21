@@ -483,14 +483,61 @@ router.get('/:guildId/goodbye', requireLogin, requireManageGuild, async (req, re
     }
 });
 
-// GET /dashboard/:guildId/booster
-router.get('/:guildId/booster', requireLogin, requireManageGuild, async (req, res) => {
-    try {
-        const db      = req.discordClient?.database;
-        const guildId = req.params.guildId;
-        const guild   = req.botGuild;
+// GET /dashboard/:guildId/booster → redirect ke /boost atau /unboost
+router.get('/:guildId/booster', requireLogin, requireManageGuild, (req, res) => {
+    const guildId = req.params.guildId;
+    if (req.query.tab === 'unboost') return res.redirect(`/dashboard/${guildId}/unboost`);
+    res.redirect(`/dashboard/${guildId}/boost`);
+});
 
-        await _ensureChannels(guild);
+// ── Helper: load data boost/unboost ───────────────────────────────────────
+async function _loadBoostPageVars(req) {
+    const db      = req.discordClient?.database;
+    const guildId = req.params.guildId;
+    const guild   = req.botGuild;
+
+    await _ensureChannels(guild);
+
+    const channels = [...guild.channels.cache.values()]
+        .filter(c => c.type === 0 || c.type === 5 || c.type === 10 || c.type === 11 || c.type === 12)
+        .map(c => ({ id: c.id, name: c.name }))
+        .sort((a, b) => a.name.localeCompare(b.name));
+
+    const roles = [...guild.roles.cache.values()]
+        .filter(r => r.id !== guild.id)
+        .map(r => ({ id: r.id, name: r.name, color: r.hexColor === '#000000' ? '#99aab5' : r.hexColor }))
+        .sort((a, b) => a.name.localeCompare(b.name));
+
+    const u = req.user || {};
+    const loginMember = await _getMember(guild, u.id);
+    const loginUser = {
+        username:    u.username || 'User',
+        displayName: loginMember?.displayName || u.username || 'User',
+        avatarUrl:   u.avatar
+            ? `https://cdn.discordapp.com/avatars/${u.id}/${u.avatar}.png?size=256`
+            : 'https://cdn.discordapp.com/embed/avatars/0.png',
+        roleColor: (loginMember?.displayHexColor && loginMember.displayHexColor !== '#000000')
+            ? loginMember.displayHexColor : '#ffffff',
+    };
+
+    const botClientUser = req.discordClient?.user;
+    const botMember = botClientUser ? await _getMember(guild, botClientUser.id) : null;
+    const botUser = {
+        username:  botMember?.displayName || botClientUser?.username || 'Bot',
+        avatarUrl: botClientUser?.avatar
+            ? `https://cdn.discordapp.com/avatars/${botClientUser.id}/${botClientUser.avatar}.png?size=256`
+            : 'https://cdn.discordapp.com/embed/avatars/0.png',
+        roleColor: (botMember?.displayHexColor && botMember.displayHexColor !== '#000000')
+            ? botMember.displayHexColor : '#ffffff',
+    };
+
+    return { db, guildId, guild, channels, roles, loginUser, botUser };
+}
+
+// GET /dashboard/:guildId/boost
+router.get('/:guildId/boost', requireLogin, requireManageGuild, async (req, res) => {
+    try {
+        const { db, guildId, guild, channels, roles, loginUser, botUser } = await _loadBoostPageVars(req);
 
         const boostData = {
             enabled:            getDbBool(db, `booster-boost-enabled-${guildId}`,          false),
@@ -523,6 +570,25 @@ router.get('/:guildId/booster', requireLogin, requireManageGuild, async (req, re
             cardFont:           db?.get(`booster-boost-cardFont-${guildId}`)                ?? 'impact',
         };
 
+        res.render('dashboard/boost', {
+            title: 'Boost Notification',
+            guild, channels, roles,
+            missingPerms: getMissingPerms(guild),
+            boostData, loginUser, botUser,
+            activePage: 'boost',
+            hasSidebar: true
+        });
+    } catch (err) {
+        console.error('[dashboard/boost] Error:', err);
+        res.status(500).render('error', { hasSidebar: false, title: 'Server Error', message: 'Failed to load server data.' });
+    }
+});
+
+// GET /dashboard/:guildId/unboost
+router.get('/:guildId/unboost', requireLogin, requireManageGuild, async (req, res) => {
+    try {
+        const { db, guildId, guild, channels, roles, loginUser, botUser } = await _loadBoostPageVars(req);
+
         const unboostData = {
             enabled:            getDbBool(db, `booster-unboost-enabled-${guildId}`,         false),
             channelId:          db?.get(`booster-unboost-channel-${guildId}`)                ?? '',
@@ -553,59 +619,16 @@ router.get('/:guildId/booster', requireLogin, requireManageGuild, async (req, re
             cardFont:           db?.get(`booster-unboost-cardFont-${guildId}`)               ?? 'impact',
         };
 
-        const channels = [...guild.channels.cache.values()]
-            .filter(c => c.type === 0 || c.type === 5 || c.type === 10 || c.type === 11 || c.type === 12)
-            .map(c => ({ id: c.id, name: c.name }))
-            .sort((a, b) => a.name.localeCompare(b.name));
-
-        const roles = [...guild.roles.cache.values()]
-            .filter(r => r.id !== guild.id)
-            .map(r => ({ id: r.id, name: r.name, color: r.hexColor === '#000000' ? '#99aab5' : r.hexColor }))
-            .sort((a, b) => a.name.localeCompare(b.name));
-
-        const u = req.user || {};
-        let loginMember = null;
-        loginMember = await _getMember(guild, u.id);
-        const loginUser = {
-            username:    u.username || 'User',
-            displayName: loginMember?.displayName || u.username || 'User',
-            avatarUrl:   u.avatar
-                ? `https://cdn.discordapp.com/avatars/${u.id}/${u.avatar}.png?size=256`
-                : 'https://cdn.discordapp.com/embed/avatars/0.png',
-            roleColor: (loginMember?.displayHexColor && loginMember.displayHexColor !== '#000000')
-                ? loginMember.displayHexColor : '#ffffff',
-        };
-
-        const botClientUser = req.discordClient?.user;
-        let botMember = null;
-        if (botClientUser) {
-            botMember = await _getMember(guild, botClientUser.id);
-        }
-        const botUser = {
-            username:  botMember?.displayName || botClientUser?.username || 'Bot',
-            avatarUrl: botClientUser?.avatar
-                ? `https://cdn.discordapp.com/avatars/${botClientUser.id}/${botClientUser.avatar}.png?size=256`
-                : 'https://cdn.discordapp.com/embed/avatars/0.png',
-            roleColor: (botMember?.displayHexColor && botMember.displayHexColor !== '#000000')
-                ? botMember.displayHexColor : '#ffffff',
-        };
-
-        const boosterTab   = req.query.tab === 'unboost' ? 'Unboost Notification' : 'Boost Notification';
-        res.render('dashboard/booster', {
-            title: boosterTab,
-            guild,
-            channels,
-            roles,
+        res.render('dashboard/unboost', {
+            title: 'Unboost Notification',
+            guild, channels, roles,
             missingPerms: getMissingPerms(guild),
-            boostData,
-            unboostData,
-            loginUser,
-            botUser,
-            activePage: 'booster',
+            unboostData, loginUser, botUser,
+            activePage: 'unboost',
             hasSidebar: true
         });
     } catch (err) {
-        console.error('[dashboard/booster] Error:', err);
+        console.error('[dashboard/unboost] Error:', err);
         res.status(500).render('error', { hasSidebar: false, title: 'Server Error', message: 'Failed to load server data.' });
     }
 });
@@ -628,6 +651,8 @@ router.get('/:guildId/autorole', requireLogin, requireManageGuild, async (req, r
     }
 
     const joinData = {
+        allEnabled:    getDbBool(`autorole-all-enabled-${guildId}`, false),
+        allRoleId:     db?.get(`autorole-all-role-${guildId}`)     ?? null,
         memberEnabled: getDbBool(`autorole-member-enabled-${guildId}`, false),
         memberRoleId:  db?.get(`autorole-member-role-${guildId}`) ?? null,
         botEnabled:    getDbBool(`autorole-bot-enabled-${guildId}`, false),

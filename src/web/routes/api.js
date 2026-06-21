@@ -373,7 +373,7 @@ router.post('/guild/:guildId/autorole-join', requireLogin, requireManageGuild, (
     const guildId = req.params.guildId;
     if (!db) return res.status(500).json({ success: false, message: 'Database not available.' });
 
-    const { memberEnabled, memberRoleId, botEnabled, botRoleId } = req.body;
+    const { allEnabled, allRoleId, memberEnabled, memberRoleId, botEnabled, botRoleId } = req.body;
 
     const arjMissing = missingGlobalPerms(req.botGuild, [PermissionsBitField.Flags.ManageRoles]);
     if (arjMissing.length) return res.json({ success: false, message: `Bot lacks permission:\n${arjMissing.map(p => `• ${p}`).join('\n')}` });
@@ -388,6 +388,9 @@ router.post('/guild/:guildId/autorole-join', requireLogin, requireManageGuild, (
         return null;
     }
 
+    const errAll = validateRole(allRoleId, 'Semua');
+    if (errAll) return res.json({ success: false, message: errAll });
+
     const errMember = validateRole(memberRoleId, 'Member');
     if (errMember) return res.json({ success: false, message: errMember });
 
@@ -395,8 +398,12 @@ router.post('/guild/:guildId/autorole-join', requireLogin, requireManageGuild, (
     if (errBot) return res.json({ success: false, message: errBot });
 
     // Simpan dengan key yang sama seperti slashcommand-autorole.js
+    db.set(`autorole-all-enabled-${guildId}`,    allEnabled    ? 'true' : 'false');
     db.set(`autorole-member-enabled-${guildId}`, memberEnabled ? 'true' : 'false');
     db.set(`autorole-bot-enabled-${guildId}`,    botEnabled    ? 'true' : 'false');
+
+    if (allRoleId)    db.set(`autorole-all-role-${guildId}`,    allRoleId);
+    else              db.delete(`autorole-all-role-${guildId}`);
 
     if (memberRoleId) db.set(`autorole-member-role-${guildId}`, memberRoleId);
     else              db.delete(`autorole-member-role-${guildId}`);
@@ -598,8 +605,10 @@ router.get('/guild/:guildId/autorole-button/:name', requireLogin, requireManageG
     try {
         const panel = JSON.parse(raw);
         const sentRaw = db?.get(`autobtn-sent-${guildId}-${name}`);
-        panel.isSent       = !!sentRaw;
-        panel.sentChannelId = sentRaw ? (JSON.parse(sentRaw).channelId || '') : '';
+        const sentObj = sentRaw ? JSON.parse(sentRaw) : null;
+        panel.isSent        = !!sentRaw;
+        panel.sentChannelId = sentObj?.channelId || '';
+        panel.sentMessageId = sentObj?.messageId || '';
         res.json({ success: true, panel });
     } catch {
         res.json({ success: false, message: 'Data panel rusak.' });
@@ -976,7 +985,7 @@ router.post('/guild/:guildId/autorole-button/:name/send', requireLogin, requireM
         );
         db?.set(`autobtn-sent-${guildId}-${name}`, JSON.stringify({ messageId: sent.id, channelId: channel.id }));
 
-        res.json({ success: true, message: `Panel successfully sent to #${channel.name}!` });
+        res.json({ success: true, message: `Panel successfully sent to #${channel.name}!`, messageId: sent.id, channelId: channel.id });
     }
     } catch (err) {
         logError('[autorole-button/send]', err);
@@ -1000,8 +1009,10 @@ router.get('/guild/:guildId/autorole-reaction/:name', requireLogin, requireManag
     try {
         const panel   = JSON.parse(raw);
         const sentRaw = db?.get(`autoreact-sent-${guildId}-${name}`);
-        panel.isSent       = !!sentRaw;
-        panel.sentChannelId = sentRaw ? (JSON.parse(sentRaw).channelId || '') : '';
+        const sentObjR = sentRaw ? JSON.parse(sentRaw) : null;
+        panel.isSent        = !!sentRaw;
+        panel.sentChannelId = sentObjR?.channelId || '';
+        panel.sentMessageId = sentObjR?.messageId || '';
         res.json({ success: true, panel });
     } catch {
         res.json({ success: false, message: 'Data panel rusak.' });
@@ -1333,7 +1344,7 @@ router.post('/guild/:guildId/autorole-reaction/:name/send', requireLogin, requir
             } catch { /* emoji tidak valid, lewati */ }
         }
 
-        res.json({ success: true, message: `Panel successfully sent to #${channel.name}!` });
+        res.json({ success: true, message: `Panel successfully sent to #${channel.name}!`, messageId: sent.id, channelId: channel.id });
     } catch (err) {
         logError('[autorole-reaction/send]', err);
         res.json({ success: false, message: 'Failed to send panel. Check bot permissions.' });
@@ -1884,7 +1895,7 @@ router.post('/guild/:guildId/message-builder/:name/send', requireLogin, requireM
     try {
         const sent = await channel.send(mbBuildSendOpts(template));
         db?.set(`pesan-unik-sent-${guildId}-${name}`, JSON.stringify({ messageId: sent.id, channelId: channel.id }));
-        res.json({ success: true, message: `Successfully sent to #${channel.name}!` });
+        res.json({ success: true, message: `Successfully sent to #${channel.name}!`, messageId: sent.id, channelId: channel.id });
     } catch (err) {
         logError('[message-builder/send]', err);
         res.json({ success: false, message: 'Failed to send message. Check bot permissions.' });

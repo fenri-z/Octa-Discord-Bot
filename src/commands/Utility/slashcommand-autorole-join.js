@@ -24,6 +24,8 @@ function getBool(client, key, defaultVal) {
 
 function getConfig(client, guildId) {
     return {
+        allEnabled:    getBool(client, `autorole-all-enabled-${guildId}`,    false),
+        allRoleId:     client.database.get(`autorole-all-role-${guildId}`)   ?? null,
         memberEnabled: getBool(client, `autorole-member-enabled-${guildId}`, false),
         memberRoleId:  client.database.get(`autorole-member-role-${guildId}`) ?? null,
         botEnabled:    getBool(client, `autorole-bot-enabled-${guildId}`,    false),
@@ -73,13 +75,6 @@ module.exports = new ApplicationCommand({
                         type: 3,
                         autocomplete: true,
                         required: true
-                    },
-                    {
-                        name: 'role_bot',
-                        description: '(Only for type=all) Specific role for bots. Leave empty = use the same role.',
-                        type: 3,
-                        autocomplete: true,
-                        required: false
                     }
                 ]
             },
@@ -149,6 +144,7 @@ module.exports = new ApplicationCommand({
 
         // ── /autorole-join status ──────────────────────────────────────────
         if (sub === 'status') {
+            const allRole    = cfg.allRoleId    ? guild.roles.cache.get(cfg.allRoleId)    : null;
             const memberRole = cfg.memberRoleId ? guild.roles.cache.get(cfg.memberRoleId) : null;
             const botRole    = cfg.botRoleId    ? guild.roles.cache.get(cfg.botRoleId)    : null;
 
@@ -156,6 +152,14 @@ module.exports = new ApplicationCommand({
                 .setTitle(s.status_title)
                 .setColor('#5865F2')
                 .addFields(
+                    {
+                        name: s.field_all,
+                        value: [
+                            `${s.field_status} ${cfg.allEnabled ? c.enabled : c.disabled}`,
+                            `${s.field_role} ${allRole ? `${allRole}` : c.not_set}`
+                        ].join('\n'),
+                        inline: false
+                    },
                     {
                         name: s.field_member,
                         value: [
@@ -187,27 +191,24 @@ module.exports = new ApplicationCommand({
 
             if (!validateRole(guild, role, interaction, s)) return;
 
-            let botRole = role;
-            if (type === 'all') {
-                const botRoleStr = options.getString('role_bot');
-                if (botRoleStr) {
-                    botRole = resolveRole(guild, botRoleStr);
-                    if (!validateRole(guild, botRole, interaction, s)) return;
-                }
-            }
-
             const lines = [];
 
-            if (type === 'member' || type === 'all') {
+            if (type === 'all') {
+                client.database.set(`autorole-all-role-${guild.id}`, role.id);
+                setBool(client, `autorole-all-enabled-${guild.id}`, true);
+                lines.push(s.all_set(role));
+            }
+
+            if (type === 'member') {
                 client.database.set(`autorole-member-role-${guild.id}`, role.id);
                 setBool(client, `autorole-member-enabled-${guild.id}`, true);
                 lines.push(s.member_set(role));
             }
 
-            if (type === 'bot' || type === 'all') {
-                client.database.set(`autorole-bot-role-${guild.id}`, botRole.id);
+            if (type === 'bot') {
+                client.database.set(`autorole-bot-role-${guild.id}`, role.id);
                 setBool(client, `autorole-bot-enabled-${guild.id}`, true);
-                lines.push(s.bot_set(botRole));
+                lines.push(s.bot_set(role));
             }
 
             return interaction.reply({
@@ -227,20 +228,24 @@ module.exports = new ApplicationCommand({
             const active = options.getBoolean('active');
 
             if (active) {
-                if ((type === 'member' || type === 'all') && !cfg.memberRoleId)
-                    return interaction.reply({ content: s.member_role_unset, flags: MessageFlags.Ephemeral });
-                if ((type === 'bot' || type === 'all') && !cfg.botRoleId)
-                    return interaction.reply({ content: s.bot_role_unset, flags: MessageFlags.Ephemeral });
+                if (type === 'all'    && !cfg.allRoleId)    return interaction.reply({ content: s.all_role_unset,    flags: MessageFlags.Ephemeral });
+                if (type === 'member' && !cfg.memberRoleId) return interaction.reply({ content: s.member_role_unset, flags: MessageFlags.Ephemeral });
+                if (type === 'bot'    && !cfg.botRoleId)    return interaction.reply({ content: s.bot_role_unset,    flags: MessageFlags.Ephemeral });
             }
 
             const lines = [];
 
-            if (type === 'member' || type === 'all') {
+            if (type === 'all') {
+                setBool(client, `autorole-all-enabled-${guild.id}`, active);
+                lines.push(active ? s.all_enabled : s.all_disabled);
+            }
+
+            if (type === 'member') {
                 setBool(client, `autorole-member-enabled-${guild.id}`, active);
                 lines.push(active ? s.member_enabled : s.member_disabled);
             }
 
-            if (type === 'bot' || type === 'all') {
+            if (type === 'bot') {
                 setBool(client, `autorole-bot-enabled-${guild.id}`, active);
                 lines.push(active ? s.bot_enabled_str : s.bot_disabled);
             }
@@ -261,13 +266,19 @@ module.exports = new ApplicationCommand({
             const type  = options.getString('type');
             const lines = [];
 
-            if (type === 'member' || type === 'all') {
+            if (type === 'all') {
+                client.database.delete(`autorole-all-role-${guild.id}`);
+                setBool(client, `autorole-all-enabled-${guild.id}`, false);
+                lines.push(s.removed_all);
+            }
+
+            if (type === 'member') {
                 client.database.delete(`autorole-member-role-${guild.id}`);
                 setBool(client, `autorole-member-enabled-${guild.id}`, false);
                 lines.push(s.removed_member);
             }
 
-            if (type === 'bot' || type === 'all') {
+            if (type === 'bot') {
                 client.database.delete(`autorole-bot-role-${guild.id}`);
                 setBool(client, `autorole-bot-enabled-${guild.id}`, false);
                 lines.push(s.removed_bot);

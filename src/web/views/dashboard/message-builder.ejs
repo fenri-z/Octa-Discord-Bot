@@ -603,6 +603,8 @@ const I18N_MB_ERR_URL_INVALID  = <%- JSON.stringify(t("message_builder.err_url_i
 const I18N_MB_ERR_URL_IMG      = <%- JSON.stringify(t("message_builder.err_url_not_image")) %>;
 const I18N_MB_NO_TEMPLATES      = '<%= t("message_builder.no_templates") %>';
 const I18N_MB_NO_TEMPLATES_HINT = '<%- t("message_builder.no_templates_hint") %>';
+const I18N_MB_BADGE_TEXT = '<%= t("message_builder.badge_text") %>';
+const I18N_MB_BADGE_BOTH = '<%= t("message_builder.badge_both") %>';
 
 const MB_PLACEHOLDERS = [
     { group: 'USER', items: [
@@ -886,6 +888,44 @@ function cancelEdit() {
     window._floatClean?.();
 }
 
+// ── Render a single template card (DOM, no reload) ────────────────────────
+function _mbRenderCard(name, tmpl, isSent, sentChannelId, sentMessageId) {
+    const esc     = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    const effChId = isSent ? (sentChannelId || tmpl.channelId || '') : (tmpl.channelId || '');
+    const ch      = effChId ? CHANNELS[effChId] : null;
+    const color   = tmpl.color || '#5865F2';
+    const badge   = tmpl.messageType === 'plain' ? I18N_MB_BADGE_TEXT
+                  : tmpl.messageType === 'both'  ? I18N_MB_BADGE_BOTH : 'Embed';
+    const sz      = 'width:13px;height:13px;vertical-align:middle;';
+    const nameEsc = esc(name);
+    const viewOrSend = isSent && sentChannelId && sentMessageId
+        ? `<a class="btn btn-outline btn-sm" href="https://discord.com/channels/${GUILD_ID}/${sentChannelId}/${sentMessageId}" target="_blank"><i data-lucide="external-link" style="${sz}margin-right:.2rem;"></i> View</a>`
+        : `<button class="btn btn-outline btn-sm" onclick="openSendModal('${nameEsc}')"><i data-lucide="send" style="${sz}margin-right:.2rem;"></i>Send</button>`;
+    const div = document.createElement('div');
+    div.className = 'ar-panel-card mb-row';
+    div.dataset.name = name;
+    div.dataset.channelId = effChId;
+    div.innerHTML = `
+        <div class="ar-panel-row-left">
+            <span class="ar-panel-name">
+                <span style="width:10px;height:10px;border-radius:50%;background:${color};flex-shrink:0;display:inline-block;"></span>
+                ${esc(name)}
+            </span>
+            ${ch ? `<span class="ar-panel-channel"><i data-lucide="hash" style="width:11px;height:11px;"></i>${esc(ch.name)}</span>` : ''}
+            <span class="mb-badge mb-badge-type">${badge}</span>
+        </div>
+        <div class="ar-panel-row-right">
+            <button class="btn btn-outline btn-sm" onclick="editTemplate('${nameEsc}')"><i data-lucide="pencil" style="${sz}margin-right:.25rem;"></i>Edit</button>
+            ${viewOrSend}
+            <button class="btn btn-sm ar-btn-delete" onclick="deleteTemplate('${nameEsc}')"><i data-lucide="trash-2" style="${sz}"></i></button>
+        </div>`;
+    requestAnimationFrame(() => {
+        const icons = div.querySelectorAll('[data-lucide]');
+        if (icons.length && window.lucide) lucide.createIcons({ nodes: [...icons] });
+    });
+    return div;
+}
+
 // ── Save template ─────────────────────────────────────────────────────────
 async function saveTemplate() {
     const originalName = document.getElementById('editOriginalName').value;
@@ -967,8 +1007,37 @@ async function saveTemplate() {
     const data = await res.json();
     if (!data.success) { showAlert(data.message); throw new Error(data.message); }
 
-    queueToast(data.message, 'success');
-    location.reload();
+    const list = document.getElementById('mbList');
+    // Remove empty state if present
+    const emptyEl = list.querySelector('div[style*="text-align:center"]');
+    if (emptyEl) emptyEl.remove();
+
+    const isSent       = !!(_savedTemplateData?.isSent);
+    const sentChId     = _savedTemplateData?.sentChannelId || '';
+    const sentMsgId    = _savedTemplateData?.sentMessageId || '';
+    const newCard      = _mbRenderCard(name, payload, isSent, sentChId, sentMsgId);
+    const existingCard = list.querySelector(`.mb-row[data-name="${name}"]`);
+
+    if (existingCard) {
+        existingCard.replaceWith(newCard);
+    } else {
+        list.appendChild(newCard);
+    }
+
+    if (isEdit) {
+        // Stay in edit mode — update saved snapshot so Reset works correctly
+        _savedTemplateData = { ..._savedTemplateData, ...payload };
+        _mbCaptureBaseline();
+        window._floatClean?.();
+    } else {
+        cancelEdit();
+    }
+
+    refreshMbStats();
+    const countEl = document.getElementById('mbTmplCount');
+    if (countEl) countEl.textContent = document.querySelectorAll('.mb-row').length;
+
+    showToast(data.message, 'success');
 }
 
 function refreshMbStats() {
@@ -1043,8 +1112,28 @@ async function sendTemplate() {
         body: JSON.stringify({})
     });
     const data = await res.json();
-    if (data.success) { showToast(data.message, 'success'); setTimeout(closeSendModal, 800); }
-    else showAlert(data.message);
+    if (!data.success) { showAlert(data.message); return; }
+
+    // Update card: replace Send button with View link
+    const list = document.getElementById('mbList');
+    const existingCard = list.querySelector(`.mb-row[data-name="${_sendingName}"]`);
+    if (existingCard) {
+        const tmplData = { channelId: data.channelId, color: existingCard.querySelector('[style*="border-radius:50%"]')?.style.background || '#5865F2',
+            messageType: existingCard.querySelector('.mb-badge-type')?.textContent?.includes('Embed') && existingCard.querySelector('.mb-badge-type')?.textContent?.includes('Text') ? 'both'
+                : existingCard.querySelector('.mb-badge-type')?.textContent === 'Embed' ? 'embed' : 'plain' };
+        existingCard.replaceWith(_mbRenderCard(_sendingName, tmplData, true, data.channelId, data.messageId));
+    }
+
+    // If currently editing this template, unlock channel field
+    if (_editingName === _sendingName && _savedTemplateData) {
+        _savedTemplateData.isSent       = true;
+        _savedTemplateData.sentChannelId = data.channelId;
+        _savedTemplateData.sentMessageId = data.messageId;
+        _applyChannel(data.channelId, true);
+    }
+
+    showToast(data.message, 'success');
+    setTimeout(closeSendModal, 800);
 }
 
 // ── Utility ───────────────────────────────────────────────────────────────

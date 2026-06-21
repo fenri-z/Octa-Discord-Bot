@@ -978,6 +978,19 @@ async function deleteCommand(btn) {
     const idx     = parseInt(row.dataset.idx);
     const trigger = commands[idx]?.trigger || '';
     if (!await showConfirm(I18N_CC_DEL_TITLE, I18N_CC_DEL_MSG.replace('{{trigger}}', trigger))) return;
+
+    if (editingIdx === idx) {
+        // The command being edited is deleted — cancel edit mode
+        editingIdx = -1;
+        clearForm();
+        document.getElementById('ccFormTitle').textContent = i18n.add_title;
+        document.getElementById('ccCancelEdit').style.display = 'none';
+        window._floatClean?.();
+    } else if (editingIdx > idx) {
+        // A command before the one being edited was deleted — shift index to match
+        editingIdx--;
+    }
+
     commands.splice(idx, 1);
     renderList();
     refreshCcStats();

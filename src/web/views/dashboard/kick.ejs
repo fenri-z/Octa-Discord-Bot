@@ -177,13 +177,12 @@
         </div>
 
         <!-- Add Streamer -->
-        <% if (kickAccounts.length < maxAccounts) { %>
-        <div class="settings-card" style="margin-bottom:1.5rem;">
+        <div id="kkAddCard" class="settings-card" style="margin-bottom:1.5rem;<%- kickAccounts.length >= maxAccounts ? 'display:none;' : '' %>">
             <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:1rem;">
                 <i data-lucide="plus-circle" style="color:#53FC18;width:18px;height:18px;flex-shrink:0;"></i>
                 <h2 style="margin:0;font-size:1rem;font-weight:600;"><%= t('kick.add_title') %></h2>
             </div>
-            <p style="font-size:.85rem;color:var(--text-muted);margin:0 0 1rem 0;">
+            <p id="kkAddDesc" style="font-size:.85rem;color:var(--text-muted);margin:0 0 1rem 0;">
                 <%- t('kick.add_desc', { remaining: maxAccounts - kickAccounts.length, max: maxAccounts }) %>
             </p>
             <div class="form-group" style="margin-bottom:0;">
@@ -243,21 +242,17 @@
                 </div>
             </div>
         </div>
-        <% } else { %>
-        <div class="perm-card perm-warn" style="margin-bottom:1.5rem;">
+        <div id="kkMaxBanner" class="perm-card perm-warn" style="margin-bottom:1.5rem;<%- kickAccounts.length < maxAccounts ? 'display:none;' : '' %>">
             <i data-lucide="info"></i>
             <span><%- t('kick.max_reached', { max: maxAccounts }) %></span>
         </div>
-        <% } %>
 
         <!-- Daftar Streamer -->
         <div id="kkAccountList">
-        <% if (kickAccounts.length === 0) { %>
-            <div class="settings-card" style="text-align:center;padding:3rem 1.5rem;">
+            <div id="kkEmptyState" class="settings-card" style="text-align:center;padding:3rem 1.5rem;<%- kickAccounts.length > 0 ? 'display:none;' : '' %>">
                 <svg viewBox="0 0 24 24" fill="currentColor" style="width:48px;height:48px;color:#53FC18;opacity:.4;display:block;margin:0 auto .75rem;"><path d="M2.664 0v24h5.227v-8.01l2.557-2.503 5.186 10.513H21l-7.527-14.6L20.188 3.54h-5.753L8.083 9.872 7.89 9.68V0z"/></svg>
                 <p style="color:var(--text-muted);margin:0;"><%= t('kick.no_streamers') %></p>
             </div>
-        <% } else { %>
         <% kickAccounts.forEach(function(acc) {
             const cardKey = acc.slug.replace(/[^a-zA-Z0-9]/g,'_');
         %>
@@ -432,7 +427,6 @@
             </div><!-- /kk-panel-layout -->
         </div><!-- /kk-channel-card -->
         <% }); %>
-        <% } %>
         </div><!-- /kkAccountList -->
 
     </div><!-- /dash-content-wide -->
@@ -450,6 +444,8 @@ const CHANNELS_MAP= <%- JSON.stringify(Object.fromEntries((locals.channels||[]).
 let _kkLookupData = null;
 
 const I18N_KK_CONFIRM_DEL = <%- JSON.stringify(t("kick.confirm_delete")) %>;
+const KK_MAX_ACCOUNTS     = <%= maxAccounts %>;
+const KK_ADD_DESC_TPL     = <%- JSON.stringify(t("kick.add_desc", { remaining: '__N__', max: maxAccounts })) %>;
 const I18N_KK_ERR_NO_CH   = '<%= t("kick.err_no_channel") %>';
 const I18N_KK_SEARCH_BTN  = '<%= t("kick.search_btn") %>';
 const I18N_KK_SEARCHING   = '<%= t("kick.searching") %>';
@@ -583,8 +579,24 @@ async function removeKickStreamer(slug, name) {
     if (!await showConfirm('Remove Streamer', I18N_KK_CONFIRM_DEL.replace('{{name}}', name))) return;
     const r    = await fetch(`/api/guild/${GUILD_ID}/kick/accounts/${encodeURIComponent(slug)}`, { method: 'DELETE' });
     const data = await r.json();
-    if (data.success) { queueToast(data.message, 'success'); location.reload(); }
-    else showAlert(data.message);
+    if (data.success) {
+        const key  = slug.replace(/[^a-zA-Z0-9]/g, '_');
+        const card = document.getElementById(`kkCard-${key}`);
+        if (card) card.remove();
+        const kkIdx = _kkAllAccounts.findIndex(a => a.slug === slug);
+        if (kkIdx !== -1) _kkAllAccounts.splice(kkIdx, 1);
+        const newCount = document.querySelectorAll('.kk-channel-card').length;
+        refreshKkStats();
+        if (newCount < KK_MAX_ACCOUNTS) {
+            document.getElementById('kkMaxBanner').style.display = 'none';
+            document.getElementById('kkAddCard').style.display   = '';
+            document.getElementById('kkAddDesc').innerHTML = KK_ADD_DESC_TPL.replace('__N__', KK_MAX_ACCOUNTS - newCount);
+        }
+        if (newCount === 0) document.getElementById('kkEmptyState').style.display = '';
+        showToast(data.message, 'success');
+    } else {
+        showAlert(data.message);
+    }
 }
 
 // ── Discord Markdown renderer ──────────────────────────────────────────────────

@@ -181,13 +181,12 @@
         </div>
 
         <!-- Add Streamer -->
-        <% if (twAccounts.length < maxAccounts) { %>
-        <div class="settings-card" style="margin-bottom:1.5rem;">
+        <div id="twAddCard" class="settings-card" style="margin-bottom:1.5rem;<%- twAccounts.length >= maxAccounts ? 'display:none;' : '' %>">
             <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:1rem;">
                 <i data-lucide="plus-circle" style="color:#9146FF;width:18px;height:18px;flex-shrink:0;"></i>
                 <h2 style="margin:0;font-size:1rem;font-weight:600;"><%= t('twitch.add_title') %></h2>
             </div>
-            <p style="font-size:.85rem;color:var(--text-muted);margin:0 0 1rem 0;">
+            <p id="twAddDesc" style="font-size:.85rem;color:var(--text-muted);margin:0 0 1rem 0;">
                 <%- t('twitch.add_desc', { remaining: maxAccounts - twAccounts.length, max: maxAccounts }) %>
             </p>
             <div class="form-group" style="margin-bottom:0;">
@@ -248,21 +247,17 @@
                 </div>
             </div>
         </div>
-        <% } else { %>
-        <div class="perm-card perm-warn" style="margin-bottom:1.5rem;">
+        <div id="twMaxBanner" class="perm-card perm-warn" style="margin-bottom:1.5rem;<%- twAccounts.length < maxAccounts ? 'display:none;' : '' %>">
             <i data-lucide="info"></i>
             <span><%- t('twitch.max_reached', { max: maxAccounts }) %></span>
         </div>
-        <% } %>
 
         <!-- Daftar Streamer -->
         <div id="twAccountList">
-        <% if (twAccounts.length === 0) { %>
-            <div class="settings-card" style="text-align:center;padding:3rem 1.5rem;">
+            <div id="twEmptyState" class="settings-card" style="text-align:center;padding:3rem 1.5rem;<%- twAccounts.length > 0 ? 'display:none;' : '' %>">
                 <svg viewBox="0 0 24 24" fill="currentColor" style="width:48px;height:48px;color:#9146FF;opacity:.4;display:block;margin:0 auto .75rem;"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"/></svg>
                 <p style="color:var(--text-muted);margin:0;"><%= t('twitch.no_streamers') %></p>
             </div>
-        <% } else { %>
         <% twAccounts.forEach(function(acc) { %>
         <div class="settings-card tw-channel-card" id="twCard-<%= acc.userId %>">
 
@@ -438,7 +433,6 @@
             </div><!-- /tw-panel-layout -->
         </div><!-- /tw-channel-card -->
         <% }); %>
-        <% } %>
         </div><!-- /twAccountList -->
 
     </div><!-- /dash-content-wide -->
@@ -462,6 +456,8 @@ const I18N_TW_ERR_CONN   = '<%= t("twitch.err_conn") %>';
 const I18N_TW_SENDING    = '<%= t("twitch.sending_test") %>';
 const I18N_TW_NO_CH      = '<%= t("twitch.preview_no_channel") %>';
 const I18N_TW_CONFIRM_DEL   = <%- JSON.stringify(t("twitch.confirm_delete")) %>;
+const TW_MAX_ACCOUNTS       = <%= maxAccounts %>;
+const TW_ADD_DESC_TPL       = <%- JSON.stringify(t("twitch.add_desc", { remaining: '__N__', max: maxAccounts })) %>;
 const I18N_TW_STREAM_TITLE  = '<%= t("twitch.preview_stream_title") %>';
 
 // ── Lookup ────────────────────────────────────────────────────────────────────
@@ -579,8 +575,23 @@ async function removeStreamer(userId, name) {
     if (!await showConfirm('Remove Streamer', I18N_TW_CONFIRM_DEL.replace('{{name}}', name))) return;
     const r    = await fetch(`/api/guild/${GUILD_ID}/twitch/accounts/${encodeURIComponent(userId)}`, { method: 'DELETE' });
     const data = await r.json();
-    if (data.success) { queueToast(data.message, 'success'); location.reload(); }
-    else showAlert(data.message);
+    if (data.success) {
+        const card = document.getElementById(`twCard-${userId}`);
+        if (card) card.remove();
+        const idx = _twAllIds.indexOf(userId);
+        if (idx !== -1) _twAllIds.splice(idx, 1);
+        const newCount = document.querySelectorAll('.tw-channel-card').length;
+        refreshTwStats();
+        if (newCount < TW_MAX_ACCOUNTS) {
+            document.getElementById('twMaxBanner').style.display = 'none';
+            document.getElementById('twAddCard').style.display   = '';
+            document.getElementById('twAddDesc').innerHTML = TW_ADD_DESC_TPL.replace('__N__', TW_MAX_ACCOUNTS - newCount);
+        }
+        if (newCount === 0) document.getElementById('twEmptyState').style.display = '';
+        showToast(data.message, 'success');
+    } else {
+        showAlert(data.message);
+    }
 }
 
 // ── Discord Markdown renderer ──────────────────────────────────────────────────

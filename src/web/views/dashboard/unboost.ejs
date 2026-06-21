@@ -1,0 +1,826 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+
+<div class="dash-layout">
+    <%- include('../partials/sidebar', { activePage: 'unboost' }) %>
+
+    <main class="dash-main" style="max-width:100%;">
+        <%- include('../partials/perm-notice') %>
+        <div class="page-header">
+            <h1><%= t('booster.tab_unboost_title') %></h1>
+            <p><%= t('booster.tab_unboost_desc') %></p>
+        </div>
+
+        <div class="booster-guide settings-card" style="margin-bottom:1.5rem;">
+            <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.25rem;">
+                <i data-lucide="book-open" style="color:var(--accent);width:18px;height:18px;flex-shrink:0;"></i>
+                <h2 style="margin:0;font-size:1rem;font-weight:600;"><%= t('booster.unboost_how_to_use') %></h2>
+            </div>
+            <div class="guide-grid">
+                <div class="guide-step">
+                    <div class="guide-num">1</div>
+                    <div class="guide-title"><%= t('booster.unboost_step1_title') %></div>
+                    <div class="guide-desc"><%- t('booster.unboost_step1_desc') %></div>
+                </div>
+                <div class="guide-step">
+                    <div class="guide-num">2</div>
+                    <div class="guide-title"><%= t('booster.unboost_step2_title') %></div>
+                    <div class="guide-desc"><%- t('booster.unboost_step2_desc') %></div>
+                </div>
+                <div class="guide-step">
+                    <div class="guide-num">3</div>
+                    <div class="guide-title"><%= t('booster.unboost_step3_title') %></div>
+                    <div class="guide-desc"><%- t('booster.unboost_step3_desc') %></div>
+                </div>
+            </div>
+            <div class="guide-tip">💡 <%- t('booster.unboost_tip') %></div>
+        </div>
+
+        <div class="booster-editor-layout">
+
+            <!-- Kolom kiri: form -->
+            <div class="settings-card" style="margin-bottom:0;">
+
+                <div class="form-group">
+                    <label class="toggle-label">
+                        <input type="checkbox" id="unboostEnabled" class="toggle-input"
+                               <%= unboostData.enabled ? 'checked' : '' %>>
+                        <span class="toggle-slider"></span>
+                        <span><%= t('booster.unboost_enable') %></span>
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label class="label"><%= t('common.notification_channel') %> <span style="color:#ed4245;">*</span></label>
+                    <select id="unboostChannel" class="select">
+                        <option value=""><%= t('common.select_channel') %></option>
+                        <% (locals.channels || []).forEach(ch => { %>
+                            <option value="<%= ch.id %>" <%= unboostData.channelId === ch.id ? 'selected' : '' %>>#<%= ch.name %></option>
+                        <% }) %>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="label"><%= t('common.message_type') %></label>
+                    <div style="display:flex;gap:.75rem;">
+                        <label class="radio-label" style="display:flex;align-items:center;gap:.5rem;cursor:pointer;">
+                            <input type="radio" name="unboostMessageType" id="unboostTypePlain" value="plain"
+                                   <%= (unboostData.messageType || 'plain') === 'plain' ? 'checked' : '' %>>
+                            <span><%= t('common.plain_text') %></span>
+                        </label>
+                        <label class="radio-label" style="display:flex;align-items:center;gap:.5rem;cursor:pointer;">
+                            <input type="radio" name="unboostMessageType" id="unboostTypeEmbed" value="embed"
+                                   <%= (unboostData.messageType || 'plain') === 'embed' ? 'checked' : '' %>>
+                            <span><%= t('common.embed') %></span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Panel Teks Biasa -->
+                <div id="unboostPlainPanel" class="form-group" style="display:none;">
+                    <div class="label-with-picker">
+                        <label class="label" style="margin-bottom:0;"><%= t('common.plain_text_message') %></label>
+                        <div class="ph-btn-group">
+                            <div class="ph-picker-anchor">
+                                <button type="button" class="ph-toggle-btn" onclick="togglePicker('unboostPlainPicker',event)"><%= t('booster.placeholder_btn') %></button>
+                                <div class="ph-dropdown" id="unboostPlainPicker" style="display:none;"></div>
+                            </div>
+                            <div class="ph-picker-anchor mention-anchor">
+                                <button type="button" class="ph-toggle-btn" onclick="togglePicker('unboostPlainMentionPicker',event)">@ Mention</button>
+                                <div class="ph-dropdown mention-dd" id="unboostPlainMentionPicker" style="display:none;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <textarea id="unboostPlainText" class="textarea mb-auto-resize" rows="4"
+                              maxlength="2000"
+                              placeholder="💔 {member} has stopped boosting **{server}**. Total boosts: **{boosts}**."
+                              oninput="mbResizeArea(this);mbUpdateCount('unboostPlainText','unboostPlainCount');updateUnboostPreview()"><%= unboostData.plainText %></textarea>
+                    <div class="mb-char-count" id="unboostPlainCount">0 / 2000</div>
+                </div>
+
+                <!-- Panel Embed -->
+                <div id="unboostEmbedPanel">
+
+                    <div class="form-group">
+                        <div class="label-with-picker">
+                            <label class="label" style="margin-bottom:0;"><%= t('common.embed_title') %></label>
+                            <div class="ph-btn-group">
+                                <div class="ph-picker-anchor">
+                                    <button type="button" class="ph-toggle-btn" onclick="togglePicker('unboostEmbedPicker',event)"><%= t('booster.placeholder_btn') %></button>
+                                    <div class="ph-dropdown" id="unboostEmbedPicker" style="display:none;"></div>
+                                </div>
+                                <div class="ph-picker-anchor mention-anchor">
+                                    <button type="button" class="ph-toggle-btn" onclick="togglePicker('unboostEmbedMentionPicker',event)">@ Mention</button>
+                                    <div class="ph-dropdown mention-dd" id="unboostEmbedMentionPicker" style="display:none;"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <input type="text" id="unboostTitle" class="input"
+                               placeholder="💔 Boost Ended"
+                               value="<%= unboostData.title %>"
+                               oninput="updateUnboostPreview()">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="label"><%= t('common.embed_description') %></label>
+                        <textarea id="unboostDesc" class="textarea mb-auto-resize" rows="4"
+                                  maxlength="3500"
+                                  placeholder="{member} has removed their boost from the server."
+                                  oninput="mbResizeArea(this);mbUpdateCount('unboostDesc','unboostDescCount');updateUnboostPreview()"><%= unboostData.description %></textarea>
+                        <div class="mb-char-count" id="unboostDescCount">0 / 3500</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="label"><%= t('common.embed_color') %></label>
+                        <div style="display:flex;gap:.75rem;align-items:center;">
+                            <input type="color" id="unboostColorPicker" value="<%= unboostData.color || '#ED4245' %>"
+                                   style="width:44px;height:36px;border:none;border-radius:6px;cursor:pointer;padding:0;background:none;"
+                                   oninput="syncHex('unboostColor','unboostColorPicker');updateUnboostPreview()">
+                            <input type="text" id="unboostColor" class="input" style="max-width:130px;"
+                                   placeholder="#ED4245" maxlength="7"
+                                   value="<%= unboostData.color || '#ED4245' %>"
+                                   oninput="syncPicker('unboostColor','unboostColorPicker');updateUnboostPreview()">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="label"><%= t('booster.footer_label') %> <span style="font-weight:400;color:var(--text-muted)"><%= t('booster.footer_optional') %></span></label>
+                        <input type="text" id="unboostFooter" class="input"
+                               placeholder="<%= t('booster.footer_placeholder') %>"
+                               value="<%= unboostData.footerText || '' %>"
+                               oninput="updateUnboostPreview()">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="toggle-label">
+                            <input type="checkbox" id="unboostShowThumbnail" class="toggle-input"
+                                   <%= unboostData.showThumbnail !== false ? 'checked' : '' %> onchange="updateUnboostPreview()">
+                            <span class="toggle-slider"></span>
+                            <span><%= t('booster.show_thumbnail') %></span>
+                        </label>
+                    </div>
+
+                    <div class="form-group" style="border-top:1px solid var(--border);padding-top:1rem;margin-top:.5rem;">
+                        <label class="label" style="margin-bottom:.75rem;"><%= t('booster.field_info') %></label>
+                        <div style="display:flex;flex-direction:column;gap:.6rem;">
+                            <label class="toggle-label">
+                                <input type="checkbox" id="unboostShowMember" class="toggle-input"
+                                       <%= unboostData.showMember ? 'checked' : '' %> onchange="updateUnboostPreview()">
+                                <span class="toggle-slider"></span><span><%= t('booster.field_member') %></span>
+                            </label>
+                            <label class="toggle-label">
+                                <input type="checkbox" id="unboostShowTotalBoost" class="toggle-input"
+                                       <%= unboostData.showTotalBoost ? 'checked' : '' %> onchange="updateUnboostPreview()">
+                                <span class="toggle-slider"></span><span><%= t('booster.field_total_boost') %></span>
+                            </label>
+                            <label class="toggle-label">
+                                <input type="checkbox" id="unboostShowLevelServer" class="toggle-input"
+                                       <%= unboostData.showLevelServer ? 'checked' : '' %> onchange="updateUnboostPreview()">
+                                <span class="toggle-slider"></span><span><%= t('booster.field_level_server') %></span>
+                            </label>
+                        </div>
+                    </div>
+                </div><!-- /unboostEmbedPanel -->
+
+                <!-- ── Unboost Card ── -->
+                <div class="form-group" style="margin-top:1.5rem;border-top:1px solid var(--border);padding-top:1.25rem;">
+                    <label class="label" style="margin-bottom:.75rem;"><%= t('booster.unboost_card_label') %></label>
+                    <label class="toggle-label">
+                        <input type="checkbox" id="unboostCardEnabled" class="toggle-input"
+                               <%= unboostData.cardEnabled ? 'checked' : '' %>>
+                        <span class="toggle-slider"></span>
+                        <span><%= t('booster.send_unboost_card') %></span>
+                    </label>
+                </div>
+                <div id="unboostCardPanel" style="display:none;">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;">
+                        <div class="form-group">
+                            <label class="label"><%= t('booster.card_avatar_shape') %></label>
+                            <div style="display:flex;gap:.6rem;margin-top:.2rem;">
+                                <label style="display:flex;align-items:center;gap:.4rem;cursor:pointer;font-size:.85rem;">
+                                    <input type="radio" name="unboostCardAvatarShape" value="circle" <%= (unboostData.cardAvatarShape||'circle')==='circle'?'checked':'' %>>
+                                    <span><%= t('booster.card_avatar_circle') %></span>
+                                </label>
+                                <label style="display:flex;align-items:center;gap:.4rem;cursor:pointer;font-size:.85rem;">
+                                    <input type="radio" name="unboostCardAvatarShape" value="square" <%= unboostData.cardAvatarShape==='square'?'checked':'' %>>
+                                    <span><%= t('booster.card_avatar_square') %></span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="label"><%= t('booster.card_font') %></label>
+                            <select id="unboostCardFont" class="select" style="font-size:.82rem;">
+                                <% [['impact','Impact'],['arial','Arial'],['georgia','Georgia'],['courier','Courier New'],['verdana','Verdana']].forEach(function(f){ %>
+                                    <option value="<%= f[0] %>" <%= (unboostData.cardFont||'impact')===f[0]?'selected':'' %>><%= f[1] %></option>
+                                <% }) %>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="label"><%= t('booster.card_bg_type') %></label>
+                        <div style="display:flex;gap:.75rem;flex-wrap:wrap;margin-top:.2rem;">
+                            <% [['gradient',t('booster.card_bg_gradient')],['solid',t('booster.card_bg_solid')],['image',t('booster.card_bg_image_url_opt')],['transparent',t('booster.card_bg_transparent')]].forEach(function(bt){ %>
+                            <label style="display:flex;align-items:center;gap:.4rem;cursor:pointer;font-size:.85rem;">
+                                <input type="radio" name="unboostCardBgType" value="<%= bt[0] %>" <%= (unboostData.cardBgType||'gradient')===bt[0]?'checked':'' %>>
+                                <span><%= bt[1] %></span>
+                            </label>
+                            <% }) %>
+                        </div>
+                    </div>
+                    <div id="unboostCardBgGradientPanel" style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;">
+                        <div class="form-group">
+                            <label class="label" id="unboostCardBgColor1Label"><%= t('booster.card_left_bg') %></label>
+                            <div style="display:flex;gap:.5rem;align-items:center;">
+                                <input type="color" id="unboostCardBgColorPicker" value="<%= unboostData.cardBgColor||'#1e0a0a' %>" style="width:38px;height:32px;border:none;border-radius:5px;cursor:pointer;padding:0;background:none;" oninput="bcSync('unboostCardBgColor','unboostCardBgColorPicker');drawUnboostCard()">
+                                <input type="text" id="unboostCardBgColor" class="input" style="max-width:110px;" maxlength="7" value="<%= unboostData.cardBgColor||'#1e0a0a' %>" oninput="bcSyncP('unboostCardBgColor','unboostCardBgColorPicker');drawUnboostCard()">
+                            </div>
+                        </div>
+                        <div class="form-group" id="unboostCardBgColor2Group">
+                            <label class="label"><%= t('booster.card_right_bg') %></label>
+                            <div style="display:flex;gap:.5rem;align-items:center;">
+                                <input type="color" id="unboostCardBgColor2Picker" value="<%= unboostData.cardBgColor2||'#2e0a0a' %>" style="width:38px;height:32px;border:none;border-radius:5px;cursor:pointer;padding:0;background:none;" oninput="bcSync('unboostCardBgColor2','unboostCardBgColor2Picker');drawUnboostCard()">
+                                <input type="text" id="unboostCardBgColor2" class="input" style="max-width:110px;" maxlength="7" value="<%= unboostData.cardBgColor2||'#2e0a0a' %>" oninput="bcSyncP('unboostCardBgColor2','unboostCardBgColor2Picker');drawUnboostCard()">
+                            </div>
+                        </div>
+                    </div>
+                    <div id="unboostCardBgImagePanel" style="display:none;" class="form-group">
+                        <label class="label"><%= t('booster.card_bg_image_url') %></label>
+                        <input type="text" id="unboostCardBgImageUrl" class="input" placeholder="https://..." value="<%= unboostData.cardBgImageUrl||'' %>">
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;">
+                        <div class="form-group">
+                            <label class="label"><%= t('booster.card_overlay_color') %></label>
+                            <div style="display:flex;gap:.5rem;align-items:center;">
+                                <input type="color" id="unboostCardOverlayColorPicker" value="<%= unboostData.cardOverlayColor||'#000000' %>" style="width:38px;height:32px;border:none;border-radius:5px;cursor:pointer;padding:0;background:none;" oninput="bcSync('unboostCardOverlayColor','unboostCardOverlayColorPicker');drawUnboostCard()">
+                                <input type="text" id="unboostCardOverlayColor" class="input" style="max-width:110px;" maxlength="7" value="<%= unboostData.cardOverlayColor||'#000000' %>" oninput="bcSyncP('unboostCardOverlayColor','unboostCardOverlayColorPicker');drawUnboostCard()">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="label" style="display:flex;justify-content:space-between;"><span><%= t('booster.card_overlay_opacity') %></span><span id="unboostCardOverlayOpacityVal" style="color:var(--text-muted);font-weight:400;"><%= unboostData.cardOverlayOpacity||'0' %>%</span></label>
+                            <input type="range" id="unboostCardOverlayOpacity" min="0" max="100" value="<%= unboostData.cardOverlayOpacity||'0' %>" style="width:100%;margin-top:.45rem;accent-color:var(--accent,#5865f2);" oninput="document.getElementById('unboostCardOverlayOpacityVal').textContent=this.value+'%';drawUnboostCard()">
+                        </div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;">
+                        <div class="form-group">
+                            <label class="label"><%= t('booster.card_title_color') %></label>
+                            <div style="display:flex;gap:.5rem;align-items:center;">
+                                <input type="color" id="unboostCardTitleColorPicker" value="<%= unboostData.cardTitleColor||'#ffffff' %>" style="width:38px;height:32px;border:none;border-radius:5px;cursor:pointer;padding:0;background:none;" oninput="bcSync('unboostCardTitleColor','unboostCardTitleColorPicker');drawUnboostCard()">
+                                <input type="text" id="unboostCardTitleColor" class="input" style="max-width:110px;" maxlength="7" value="<%= unboostData.cardTitleColor||'#ffffff' %>" oninput="bcSyncP('unboostCardTitleColor','unboostCardTitleColorPicker');drawUnboostCard()">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="label"><%= t('booster.card_username_color') %></label>
+                            <div style="display:flex;gap:.5rem;align-items:center;">
+                                <input type="color" id="unboostCardUsernameColorPicker" value="<%= unboostData.cardUsernameColor||'#ED4245' %>" style="width:38px;height:32px;border:none;border-radius:5px;cursor:pointer;padding:0;background:none;" oninput="bcSync('unboostCardUsernameColor','unboostCardUsernameColorPicker');drawUnboostCard()">
+                                <input type="text" id="unboostCardUsernameColor" class="input" style="max-width:110px;" maxlength="7" value="<%= unboostData.cardUsernameColor||'#ED4245' %>" oninput="bcSyncP('unboostCardUsernameColor','unboostCardUsernameColorPicker');drawUnboostCard()">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="label"><%= t('booster.card_msg_color') %></label>
+                            <div style="display:flex;gap:.5rem;align-items:center;">
+                                <input type="color" id="unboostCardMsgColorPicker" value="<%= unboostData.cardMsgColor||'#cccccc' %>" style="width:38px;height:32px;border:none;border-radius:5px;cursor:pointer;padding:0;background:none;" oninput="bcSync('unboostCardMsgColor','unboostCardMsgColorPicker');drawUnboostCard()">
+                                <input type="text" id="unboostCardMsgColor" class="input" style="max-width:110px;" maxlength="7" value="<%= unboostData.cardMsgColor||'#cccccc' %>" oninput="bcSyncP('unboostCardMsgColor','unboostCardMsgColorPicker');drawUnboostCard()">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="label"><%= t('booster.card_avatar_border') %></label>
+                            <div style="display:flex;gap:.5rem;align-items:center;">
+                                <input type="color" id="unboostCardAccentPicker" value="<%= unboostData.cardAccentColor||'#ED4245' %>" style="width:38px;height:32px;border:none;border-radius:5px;cursor:pointer;padding:0;background:none;" oninput="bcSync('unboostCardAccentColor','unboostCardAccentPicker');drawUnboostCard()">
+                                <input type="text" id="unboostCardAccentColor" class="input" style="max-width:110px;" maxlength="7" value="<%= unboostData.cardAccentColor||'#ED4245' %>" oninput="bcSyncP('unboostCardAccentColor','unboostCardAccentPicker');drawUnboostCard()">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="label"><%= t('booster.card_large_text') %></label>
+                        <input type="text" id="unboostCardWelcomeText" class="input" maxlength="20" placeholder="UNBOOST" value="<%= unboostData.cardWelcomeText||'UNBOOST' %>">
+                    </div>
+                    <div class="form-group">
+                        <label class="label"><%= t('booster.card_small_text') %></label>
+                        <input type="text" id="unboostCardSubText" class="input" maxlength="60" placeholder="Boost ended..." value="<%= unboostData.cardSubText||'Boost ended...' %>">
+                        <div class="hint" style="margin-top:.3rem;"><code>{server}</code> · <code>{boosts}</code> · <code>{level}</code></div>
+                    </div>
+                </div>
+
+                <div id="unboostMsg" class="form-message"></div>
+            </div>
+
+            <!-- Kolom kanan: preview -->
+            <div class="preview-panel">
+                <div class="preview-label"><%= t('common.preview') %></div>
+                <div class="dc-window">
+                    <div class="dc-channel-bar">
+                        <span class="dc-channel-hash">#</span>
+                        <span id="unboostPrevChannel">pilih-channel</span>
+                    </div>
+                    <div class="dc-messages">
+                        <div id="unboostCardPreviewWrap" style="display:none;padding:.75rem 1rem .25rem;">
+                            <canvas id="unboostCardCanvas" width="760" height="247" style="width:100%;border-radius:12px;display:block;"></canvas>
+                        </div>
+                        <div class="dc-message">
+                            <img class="dc-avatar"
+                                 src="<%- locals.botNavAvatar || 'https://cdn.discordapp.com/embed/avatars/0.png' %>"
+                                 alt="avatar" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+                            <div class="dc-msg-body">
+                                <span class="dc-username" style="color:<%- botUser ? botUser.roleColor : '#ffffff' %>"><%- botUser ? botUser.username : 'Bot' %></span>
+                                <span class="dc-timestamp">Today at 12:00 PM</span>
+                                <div id="unboostPreviewPlain" class="dc-plain-msg" style="display:none;"></div>
+                                <img id="unboostCardInPlain" style="display:none;width:100%;max-width:440px;border-radius:8px;margin-top:.4rem;" alt="">
+                                <div class="dc-embed" id="unboostPreviewEmbed">
+                                    <div class="dc-embed-pill" id="unboostPreviewPill" style="background:#ED4245;"></div>
+                                    <div class="dc-embed-body">
+                                        <div class="dc-embed-main">
+                                            <div class="dc-embed-content">
+                                                <div class="dc-embed-title" id="unboostPreviewTitle"></div>
+                                                <div class="dc-embed-desc"  id="unboostPreviewDesc"></div>
+                                                <div class="dc-embed-fields" id="unboostPreviewFields"></div>
+                                            </div>
+                                            <div class="dc-embed-thumb" id="unboostPreviewThumb" style="display:none;">
+                                                <img id="unboostPreviewThumbImg"
+                                                     src="<%- loginUser ? loginUser.avatarUrl : 'https://cdn.discordapp.com/embed/avatars/0.png' %>"
+                                                     alt="thumb" style="width:100%;height:100%;object-fit:cover;display:block;"
+                                                     onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+                                            </div>
+                                        </div>
+                                        <img id="unboostCardInEmbed" style="display:none;width:100%;border-radius:4px;margin-top:.4rem;" alt="">
+                                        <div class="dc-embed-footer" id="unboostPreviewFooter"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    <%- include('../partials/dash-footer') %>
+    </main>
+</div>
+
+<%- include('../partials/bottom-nav') %>
+
+<style>
+.booster-editor-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    align-items: start;
+}
+@media (max-width: 900px) {
+    .booster-editor-layout { grid-template-columns: 1fr; }
+}
+</style>
+
+<script>
+const GUILD_ID = '<%= guild.id %>';
+const CHANNELS = <%- JSON.stringify(Object.fromEntries((locals.channels||[]).map(ch=>[ch.id,ch.name]))) %>;
+const ROLES = <%- JSON.stringify(Object.fromEntries((locals.roles||[]).map(r=>[r.id,{name:r.name,color:r.color}]))) %>;
+
+const I18N_BOOST_FIELD_MBR   = '<%= t("booster.field_member") %>';
+const I18N_BOOST_FIELD_TOT   = '<%= t("booster.field_total_boost") %>';
+const I18N_BOOST_FIELD_LVL   = '<%= t("booster.field_level_server") %>';
+const I18N_BOOST_LEFT_BG     = '<%= t("booster.card_left_bg") %>';
+const I18N_BOOST_BG_COLOR    = '<%= t("booster.card_bg_color") %>';
+const I18N_BOOST_PH_MENTION  = '<%= t("booster.ph_mention") %>';
+const I18N_BOOST_PH_USERNAME = '<%= t("booster.ph_username") %>';
+const I18N_BOOST_PH_TAG      = '<%= t("booster.ph_tag") %>';
+const I18N_BOOST_PH_SERVER   = '<%= t("booster.ph_server") %>';
+const I18N_BOOST_PH_BOOSTS   = '<%= t("booster.ph_boosts") %>';
+const I18N_BOOST_PH_LEVEL    = '<%= t("booster.ph_level") %>';
+const I18N_BOOST_ERR_NO_CH   = '<%= t("booster.err_no_channel") %>';
+const I18N_BOOST_ERR_CLR     = '<%= t("booster.err_invalid_color", { example: "#ED4245" }) %>';
+
+const SAMPLE = {
+    member:    '@<%= loginUser ? loginUser.displayName.replace(/'/g,"") : "BoostUser" %>',
+    username:  '<%= loginUser ? loginUser.username.replace(/'/g,"") : "BoostUser" %>',
+    tag:       '<%= loginUser ? loginUser.username.replace(/'/g,"") : "BoostUser" %>#0',
+    server:    '<%- guild.name.replace(/'/g,"\\'") %>',
+    boosts:    '<%= guild.premiumSubscriptionCount ?? 0 %>',
+    level:     '<%= guild.premiumTier %>',
+    avatarUrl: '<%- loginUser ? loginUser.avatarUrl : "https://cdn.discordapp.com/embed/avatars/0.png" %>',
+};
+
+// ── Toggle tipe pesan ──────────────────────────────────────────────────────
+function toggleUnboostType() {
+    const isPlain = document.getElementById('unboostTypePlain').checked;
+    document.getElementById('unboostPlainPanel').style.display = isPlain ? 'block' : 'none';
+    document.getElementById('unboostEmbedPanel').style.display = isPlain ? 'none'  : 'block';
+    updateUnboostPreview();
+    drawUnboostCard();
+}
+document.querySelectorAll('input[name="unboostMessageType"]').forEach(el =>
+    el.addEventListener('change', toggleUnboostType));
+
+// ── Custom Discord emoji dalam preview ────────────────────────────────────
+function resolveEmoji(html) {
+    if (!html) return '';
+    return html
+        .replace(/&lt;a:(\w+):(\d+)&gt;/g, (_, name, id) => `<img src="https://cdn.discordapp.com/emojis/${id}.gif" class="dc-emoji" alt=":${name}:" onerror="this.style.display='none'">`)
+        .replace(/&lt;:(\w+):(\d+)&gt;/g,  (_, name, id) => `<img src="https://cdn.discordapp.com/emojis/${id}.webp" class="dc-emoji" alt=":${name}:" onerror="this.style.display='none'">`);
+}
+
+// ── Markdown → HTML ────────────────────────────────────────────────────────
+function mdToHtml(text) {
+    if (!text) return '';
+    function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+    function inline(s) {
+        return s
+            .replace(/\*\*\*(.+?)\*\*\*/g,'<strong><em>$1</em></strong>')
+            .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+            .replace(/\*(.+?)\*/g,'<em>$1</em>')
+            .replace(/__(.+?)__/g,'<u>$1</u>')
+            .replace(/~~(.+?)~~/g,'<s>$1</s>');
+    }
+    const lines = text.split('\n'), out = [];
+    for (const raw of lines) out.push(inline(esc(raw)));
+    let result = '';
+    for (let j = 0; j < out.length; j++) {
+        if (j > 0) result += '<br>';
+        result += out[j];
+    }
+    return result;
+}
+
+function mbadge(color, text) { return `<span style="color:${color};background:rgba(88,101,242,.15);border-radius:3px;padding:0 2px;font-weight:600;">${text}</span>`; }
+function resolvePh(text) {
+    if (!text) return '';
+    let html = text
+        .replace(/\{member\}/g,   `<span style="color:#7289da;background:rgba(88,101,242,.15);border-radius:3px;padding:0 2px;font-weight:600;">${SAMPLE.member}</span>`)
+        .replace(/\{username\}/g, SAMPLE.username)
+        .replace(/\{tag\}/g,      SAMPLE.tag)
+        .replace(/\{server\}/g,   SAMPLE.server)
+        .replace(/\{boosts\}/g,   `<strong>${SAMPLE.boosts}</strong>`)
+        .replace(/\{level\}/g,    `<strong>${SAMPLE.level}</strong>`);
+    html = html
+        .replace(/&lt;@&amp;(\d+)&gt;/g, (_, id) => { const r = ROLES[id]; return r ? mbadge(r.color, '@'+r.name) : `@unknown`; })
+        .replace(/&lt;@!?(\d+)&gt;/g, () => mbadge('#7289da', '@User'))
+        .replace(/&lt;#(\d+)&gt;/g, (_, id) => { const n = CHANNELS[id]; return n ? mbadge('#7289da', '#'+n) : '#unknown'; })
+        .replace(/@everyone/g, mbadge('#7289da', '@everyone'))
+        .replace(/@here/g,     mbadge('#7289da', '@here'));
+    return html;
+}
+
+// ── Card color sync helpers ────────────────────────────────────────────────
+function bcSync(inputId, pickerId) { document.getElementById(inputId).value = document.getElementById(pickerId).value; }
+function bcSyncP(inputId, pickerId) { const v = document.getElementById(inputId).value; if (/^#[0-9A-Fa-f]{6}$/.test(v)) document.getElementById(pickerId).value = v; }
+
+// ── Card toggle ────────────────────────────────────────────────────────────
+document.getElementById('unboostCardEnabled').addEventListener('change', function() {
+    document.getElementById('unboostCardPanel').style.display = this.checked ? 'block' : 'none';
+    drawUnboostCard();
+});
+document.querySelectorAll('input[name="unboostCardBgType"]').forEach(el => el.addEventListener('change', drawUnboostCard));
+document.querySelectorAll('input[name="unboostCardAvatarShape"]').forEach(el => el.addEventListener('change', drawUnboostCard));
+['unboostCardWelcomeText','unboostCardSubText','unboostCardFont','unboostCardBgImageUrl'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.addEventListener('input', drawUnboostCard);
+});
+
+// ── Card placement sync ────────────────────────────────────────────────────
+function _syncCardPlacement() {
+    const enabled  = document.getElementById('unboostCardEnabled')?.checked;
+    const wrap     = document.getElementById('unboostCardPreviewWrap');
+    const imgEmbed = document.getElementById('unboostCardInEmbed');
+    const imgPlain = document.getElementById('unboostCardInPlain');
+
+    if (!enabled) {
+        if (wrap)     wrap.style.display     = 'none';
+        if (imgEmbed) imgEmbed.style.display = 'none';
+        if (imgPlain) imgPlain.style.display = 'none';
+        return;
+    }
+
+    const canvas  = document.getElementById('unboostCardCanvas');
+    const dataUrl = canvas ? canvas.toDataURL() : '';
+    if (imgEmbed && dataUrl) imgEmbed.src = dataUrl;
+    if (imgPlain && dataUrl) imgPlain.src = dataUrl;
+
+    const isPlain = document.getElementById('unboostTypePlain')?.checked;
+    if (isPlain) {
+        if (wrap)     wrap.style.display     = 'none';
+        if (imgEmbed) imgEmbed.style.display = 'none';
+        if (imgPlain) imgPlain.style.display = 'block';
+    } else {
+        if (wrap)     wrap.style.display     = 'none';
+        if (imgEmbed) imgEmbed.style.display = 'block';
+        if (imgPlain) imgPlain.style.display = 'none';
+    }
+}
+
+// ── Canvas card drawing ────────────────────────────────────────────────────
+async function drawUnboostCard() {
+    const enabled = document.getElementById('unboostCardEnabled').checked;
+    if (!enabled) { _syncCardPlacement(); return; }
+
+    const canvas = document.getElementById('unboostCardCanvas');
+    const ctx    = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+
+    const g = id => document.getElementById('unboostCard' + id);
+    const bgType    = document.querySelector('input[name="unboostCardBgType"]:checked')?.value || 'gradient';
+    const bg1       = g('BgColor')?.value      || '#1e0a0a';
+    const bg2       = g('BgColor2')?.value     || '#2e0a0a';
+    const bgImgUrl  = (g('BgImageUrl')?.value  || '').trim();
+    const overlayClr= g('OverlayColor')?.value || '#000000';
+    const overlayOp = (parseInt(g('OverlayOpacity')?.value || '0')) / 100;
+    const accent    = g('AccentColor')?.value  || '#ED4245';
+    const titleClr  = g('TitleColor')?.value   || '#ffffff';
+    const userClr   = g('UsernameColor')?.value|| accent;
+    const msgClr    = g('MsgColor')?.value     || '#cccccc';
+    const shape     = document.querySelector('input[name="unboostCardAvatarShape"]:checked')?.value || 'circle';
+    const fontSel   = g('Font')?.value         || 'impact';
+    const fontMap   = { impact:"Impact,'Arial Black',sans-serif", arial:'Arial,Helvetica,sans-serif', georgia:"Georgia,'Times New Roman',serif", courier:"'Courier New',Courier,monospace", verdana:'Verdana,Geneva,sans-serif' };
+    const fontFam   = fontMap[fontSel] || fontMap.impact;
+    const bigText   = g('WelcomeText')?.value  || 'UNBOOST';
+    const sub       = (g('SubText')?.value || 'Boost ended...')
+                        .replace(/{server}/gi, SAMPLE.server)
+                        .replace(/{boosts}/gi, SAMPLE.boosts)
+                        .replace(/{level}/gi,  SAMPLE.level);
+
+    const gradPanel = document.getElementById('unboostCardBgGradientPanel');
+    const imgPanel  = document.getElementById('unboostCardBgImagePanel');
+    const col2Grp   = document.getElementById('unboostCardBgColor2Group');
+    const lbl       = document.getElementById('unboostCardBgColor1Label');
+    const hasBgClr  = bgType !== 'image' && bgType !== 'transparent';
+    if (gradPanel) gradPanel.style.display = hasBgClr ? 'grid' : 'none';
+    if (imgPanel)  imgPanel.style.display  = bgType === 'image' ? 'block' : 'none';
+    if (col2Grp)   col2Grp.style.display   = bgType === 'gradient' ? 'block' : 'none';
+    if (lbl)       lbl.textContent         = bgType === 'gradient' ? I18N_BOOST_LEFT_BG : I18N_BOOST_BG_COLOR;
+
+    ctx.clearRect(0, 0, W, H);
+    function rr(x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y); ctx.quadraticCurveTo(x+w,y,x+w,y+r); ctx.lineTo(x+w,y+h-r); ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h); ctx.lineTo(x+r,y+h); ctx.quadraticCurveTo(x,y+h,x,y+h-r); ctx.lineTo(x,y+r); ctx.quadraticCurveTo(x,y,x+r,y); ctx.closePath(); }
+
+    if (bgType === 'transparent') {
+        const sz = 12; ctx.save(); rr(0,0,W,H,16); ctx.clip();
+        for (let y=0;y<H;y+=sz) for (let x=0;x<W;x+=sz) { ctx.fillStyle=(Math.floor(x/sz)+Math.floor(y/sz))%2===0?'#c0c0c0':'#909090'; ctx.fillRect(x,y,sz,sz); }
+        ctx.restore();
+    } else if (bgType === 'image' && bgImgUrl) {
+        const proxyUrl = `/api/guild/${GUILD_ID}/image-proxy?url=` + encodeURIComponent(bgImgUrl);
+        try {
+            await new Promise((res,rej) => { const img=new Image(); img.onload=()=>{ctx.save();rr(0,0,W,H,16);ctx.clip();const sc=Math.max(W/img.width,H/img.height);ctx.drawImage(img,(W-img.width*sc)/2,(H-img.height*sc)/2,img.width*sc,img.height*sc);ctx.restore();res();};img.onerror=rej;img.src=proxyUrl;});
+        } catch { rr(0,0,W,H,16);const gd=ctx.createLinearGradient(0,0,W,H);gd.addColorStop(0,bg1);gd.addColorStop(1,bg2);ctx.fillStyle=gd;ctx.fill();}
+    } else if (bgType === 'solid') { rr(0,0,W,H,16); ctx.fillStyle=bg1; ctx.fill();
+    } else { rr(0,0,W,H,16);const gd=ctx.createLinearGradient(0,0,W,H);gd.addColorStop(0,bg1);gd.addColorStop(1,bg2);ctx.fillStyle=gd;ctx.fill(); }
+
+    if (overlayOp>0){ctx.save();rr(0,0,W,H,16);ctx.clip();ctx.globalAlpha=overlayOp;ctx.fillStyle=overlayClr;ctx.fillRect(0,0,W,H);ctx.globalAlpha=1;ctx.restore();}
+
+    ctx.globalAlpha=0.07;ctx.fillStyle=accent;
+    ctx.beginPath();ctx.arc(W-60,40,80,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.arc(W-20,H-20,60,0,Math.PI*2);ctx.fill();
+    ctx.globalAlpha=1;
+
+    const AS=120,BD=5,avL=50,avT=(H-AS-BD*2)/2,TX=avL+AS+BD*2+40,isSquare=shape==='square';
+    ctx.fillStyle=accent;
+    if(isSquare){rr(avL,avT,AS+BD*2,AS+BD*2,20);ctx.fill();}
+    else{ctx.beginPath();ctx.arc(avL+(AS+BD*2)/2,avT+(AS+BD*2)/2,(AS+BD*2)/2,0,Math.PI*2);ctx.fill();}
+
+    const avatarProxyUrl = `/api/guild/${GUILD_ID}/image-proxy?url=` + encodeURIComponent(SAMPLE.avatarUrl);
+    await new Promise(res => {
+        const avImg=new Image();
+        avImg.onload=()=>{ctx.save();if(isSquare){rr(avL+BD,avT+BD,AS,AS,14);ctx.clip();}else{ctx.beginPath();ctx.arc(avL+BD+AS/2,avT+BD+AS/2,AS/2,0,Math.PI*2);ctx.clip();}ctx.drawImage(avImg,avL+BD,avT+BD,AS,AS);ctx.restore();res();};
+        avImg.onerror=()=>{ctx.fillStyle='#5a6070';if(isSquare){rr(avL+BD,avT+BD,AS,AS,14);ctx.fill();}else{ctx.beginPath();ctx.arc(avL+BD+AS/2,avT+BD+AS/2,AS/2,0,Math.PI*2);ctx.fill();}const cx=avL+BD+AS/2,cy=avT+BD+AS/2;ctx.fillStyle='#8892a4';ctx.beginPath();ctx.arc(cx,cy-20,22,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.ellipse(cx,cy+40,35,28,0,0,Math.PI*2);ctx.fill();res();};
+        avImg.src=avatarProxyUrl;
+    });
+
+    ctx.shadowColor=titleClr;ctx.shadowBlur=8;ctx.font=`900 54px ${fontFam}`;ctx.fillStyle=titleClr;ctx.fillText(bigText,TX,115);ctx.shadowBlur=0;
+    ctx.shadowColor='rgba(0,0,0,0.5)';ctx.shadowBlur=4;ctx.font=`700 24px ${fontFam}`;ctx.fillStyle=userClr;ctx.fillText(SAMPLE.username,TX,157);ctx.shadowBlur=0;
+    ctx.font=`600 16px ${fontFam}`;ctx.fillStyle=msgClr;ctx.fillText(sub,TX,192);
+    _syncCardPlacement();
+}
+
+// ── Field sample data ──────────────────────────────────────────────────────
+const UNBOOST_FIELDS = [
+    { id: 'unboostShowMember',      name: I18N_BOOST_FIELD_MBR, value: () => SAMPLE.username },
+    { id: 'unboostShowTotalBoost',  name: I18N_BOOST_FIELD_TOT, value: () => `${SAMPLE.boosts} boost` },
+    { id: 'unboostShowLevelServer', name: I18N_BOOST_FIELD_LVL, value: () => `Level <%= guild.premiumTier %>` },
+];
+
+function renderFields(fieldDefs, containerId) {
+    const el = document.getElementById(containerId);
+    const active = fieldDefs.filter(f => document.getElementById(f.id)?.checked);
+    if (!active.length) { el.innerHTML = ''; return; }
+    el.innerHTML = active.map(f =>
+        `<div><div class="dc-field-name">${f.name}</div><div class="dc-field-value">${f.value()}</div></div>`
+    ).join('');
+}
+
+// ── Preview ────────────────────────────────────────────────────────────────
+function updateUnboostPreview() {
+    const isPlain = document.getElementById('unboostTypePlain').checked;
+    const plainEl = document.getElementById('unboostPreviewPlain');
+    const embedEl = document.getElementById('unboostPreviewEmbed');
+    const chanId  = document.getElementById('unboostChannel').value;
+    document.getElementById('unboostPrevChannel').textContent = chanId && CHANNELS[chanId] ? CHANNELS[chanId] : 'pilih-channel';
+
+    if (isPlain) {
+        const html = resolveEmoji(resolvePh(mdToHtml(document.getElementById('unboostPlainText').value)));
+        plainEl.innerHTML     = html;
+        plainEl.style.display = html.trim() ? 'block' : 'none';
+        embedEl.style.display = 'none';
+    } else {
+        plainEl.style.display = 'none';
+        const color = document.getElementById('unboostColor').value || '#ED4245';
+        document.getElementById('unboostPreviewPill').style.background  = color;
+        document.getElementById('unboostPreviewTitle').innerHTML = resolvePh(mdToHtml(document.getElementById('unboostTitle').value));
+        document.getElementById('unboostPreviewDesc').innerHTML  = resolveEmoji(resolvePh(mdToHtml(document.getElementById('unboostDesc').value)));
+        renderFields(UNBOOST_FIELDS, 'unboostPreviewFields');
+        const footer = document.getElementById('unboostFooter').value.trim();
+        document.getElementById('unboostPreviewFooter').innerHTML = footer ? resolveEmoji(resolvePh(mdToHtml(footer))) : '';
+        const hasTitle   = document.getElementById('unboostTitle').value.trim();
+        const hasDesc    = document.getElementById('unboostDesc').value.trim();
+        const hasField   = UNBOOST_FIELDS.some(f => document.getElementById(f.id)?.checked);
+        const cardActive = document.getElementById('unboostCardEnabled').checked;
+        embedEl.style.display = (hasTitle || hasDesc || hasField || cardActive) ? 'flex' : 'none';
+        const thumbEl = document.getElementById('unboostPreviewThumb');
+        if (thumbEl) thumbEl.style.display = document.getElementById('unboostShowThumbnail').checked ? 'block' : 'none';
+    }
+    _syncCardPlacement();
+}
+
+document.getElementById('unboostChannel').addEventListener('change', updateUnboostPreview);
+
+// ── Color sync ─────────────────────────────────────────────────────────────
+function syncHex(inputId, pickerId) { document.getElementById(inputId).value = document.getElementById(pickerId).value; }
+function syncPicker(inputId, pickerId) {
+    const val = document.getElementById(inputId).value;
+    if (/^#[0-9A-Fa-f]{6}$/.test(val)) document.getElementById(pickerId).value = val;
+}
+
+// ── Placeholder picker ─────────────────────────────────────────────────────
+const PLACEHOLDERS = [
+    ['{member}',   I18N_BOOST_PH_MENTION],
+    ['{username}', I18N_BOOST_PH_USERNAME],
+    ['{tag}',      I18N_BOOST_PH_TAG],
+    ['{server}',   I18N_BOOST_PH_SERVER],
+    ['{boosts}',   I18N_BOOST_PH_BOOSTS],
+    ['{level}',    I18N_BOOST_PH_LEVEL],
+];
+
+let unboostLastFocused = 'unboostTitle';
+['unboostTitle','unboostDesc','unboostFooter'].forEach(id => {
+    document.getElementById(id)?.addEventListener('focus', () => unboostLastFocused = id);
+});
+
+function buildEmbedPicker(pickerId) {
+    const el = document.getElementById(pickerId);
+    if (!el) return;
+    el.innerHTML = PLACEHOLDERS.map(([ph, desc]) =>
+        `<button type="button" class="ph-item" onclick="insertPhDyn('${ph}')"><code>${ph}</code><span>${desc}</span></button>`
+    ).join('');
+}
+
+function buildPlainPicker(pickerId, targetId) {
+    const el = document.getElementById(pickerId);
+    if (!el) return;
+    el.innerHTML = PLACEHOLDERS.map(([ph, desc]) =>
+        `<button type="button" class="ph-item" onclick="insertPh('${targetId}','${ph}')"><code>${ph}</code><span>${desc}</span></button>`
+    ).join('');
+}
+
+function togglePicker(id, event) {
+    if (event) event.stopPropagation();
+    const el = document.getElementById(id);
+    const wasHidden = el.style.display === 'none';
+    document.querySelectorAll('.ph-dropdown').forEach(d => d.style.display = 'none');
+    document.querySelectorAll('.ph-toggle-btn').forEach(b => b.classList.remove('active'));
+    if (wasHidden) { el.style.display = 'grid'; if (event?.currentTarget) event.currentTarget.classList.add('active'); }
+}
+document.addEventListener('click', () => {
+    document.querySelectorAll('.ph-dropdown').forEach(d => d.style.display = 'none');
+    document.querySelectorAll('.ph-toggle-btn').forEach(b => b.classList.remove('active'));
+});
+
+function insertPh(targetId, ph) {
+    const el = document.getElementById(targetId);
+    if (!el) return;
+    const s = el.selectionStart ?? el.value.length;
+    el.value = el.value.substring(0, s) + ph + el.value.substring(s);
+    el.selectionStart = el.selectionEnd = s + ph.length;
+    el.focus();
+    el.dispatchEvent(new Event('input'));
+    document.querySelectorAll('.ph-dropdown').forEach(d => d.style.display = 'none');
+}
+
+function insertPhDyn(ph) { insertPh(unboostLastFocused, ph); }
+
+// ── Save ───────────────────────────────────────────────────────────────────
+async function saveUnboost() {
+    if (!document.getElementById('unboostChannel').value)
+        return showAlert(I18N_BOOST_ERR_NO_CH);
+    const messageType = document.querySelector('input[name="unboostMessageType"]:checked')?.value || 'embed';
+    const color       = document.getElementById('unboostColor').value.trim() || '#ED4245';
+    if (messageType === 'embed' && !/^#[0-9A-Fa-f]{6}$/.test(color))
+        return showAlert(I18N_BOOST_ERR_CLR);
+
+    const res = await fetch(`/api/guild/${GUILD_ID}/booster-unboost`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            enabled:         document.getElementById('unboostEnabled').checked,
+            channelId:       document.getElementById('unboostChannel').value,
+            messageType,
+            plainText:       document.getElementById('unboostPlainText').value.trim(),
+            title:           document.getElementById('unboostTitle').value.trim(),
+            description:     document.getElementById('unboostDesc').value.trim(),
+            footerText:      document.getElementById('unboostFooter').value.trim(),
+            color,
+            showMember:      document.getElementById('unboostShowMember').checked,
+            showTotalBoost:  document.getElementById('unboostShowTotalBoost').checked,
+            showLevelServer: document.getElementById('unboostShowLevelServer').checked,
+            showThumbnail:   document.getElementById('unboostShowThumbnail').checked,
+            cardEnabled:        document.getElementById('unboostCardEnabled').checked,
+            cardWelcomeText:    document.getElementById('unboostCardWelcomeText').value.trim()    || 'UNBOOST',
+            cardSubText:        document.getElementById('unboostCardSubText').value.trim()        || 'Boost ended...',
+            cardBgColor:        document.getElementById('unboostCardBgColor').value.trim()        || '#1e0a0a',
+            cardBgColor2:       document.getElementById('unboostCardBgColor2').value.trim()       || '#2e0a0a',
+            cardAccentColor:    document.getElementById('unboostCardAccentColor').value.trim()    || '#ED4245',
+            cardAvatarShape:    document.querySelector('input[name="unboostCardAvatarShape"]:checked')?.value || 'circle',
+            cardBgType:         document.querySelector('input[name="unboostCardBgType"]:checked')?.value      || 'gradient',
+            cardBgImageUrl:     document.getElementById('unboostCardBgImageUrl')?.value.trim()    || '',
+            cardOverlayColor:   document.getElementById('unboostCardOverlayColor')?.value.trim()  || '#000000',
+            cardOverlayOpacity: parseInt(document.getElementById('unboostCardOverlayOpacity')?.value || '0'),
+            cardTitleColor:     document.getElementById('unboostCardTitleColor')?.value.trim()    || '#ffffff',
+            cardUsernameColor:  document.getElementById('unboostCardUsernameColor')?.value.trim() || '#ED4245',
+            cardMsgColor:       document.getElementById('unboostCardMsgColor')?.value.trim()      || '#cccccc',
+            cardFont:           document.getElementById('unboostCardFont')?.value                 || 'impact',
+        })
+    });
+    const data = await res.json();
+    if (data.success) showToast(data.message, 'success');
+    else showAlert(data.message);
+}
+
+function _buildMentionDd(dd, getTarget) {
+    function item(html, mention) {
+        const b = document.createElement('button');
+        b.type = 'button'; b.className = 'ph-item';
+        b.innerHTML = html;
+        b.addEventListener('click', () => {
+            const ta = typeof getTarget === 'function' ? getTarget() : getTarget;
+            if (!ta) return;
+            const s = ta.selectionStart ?? ta.value.length;
+            const ep = ta.selectionEnd ?? ta.value.length;
+            ta.value = ta.value.slice(0, s) + mention + ta.value.slice(ep);
+            ta.selectionStart = ta.selectionEnd = s + mention.length;
+            ta.focus(); ta.dispatchEvent(new Event('input', {bubbles: true}));
+            document.querySelectorAll('.ph-dropdown').forEach(d => d.style.display = 'none');
+            document.querySelectorAll('.ph-toggle-btn').forEach(b => b.classList.remove('active'));
+        });
+        return b;
+    }
+    function hdr(t) { const h = document.createElement('div'); h.className = 'ph-group-label'; h.textContent = t; return h; }
+    const inp = document.createElement('input');
+    inp.type = 'text'; inp.className = 'mention-search-input'; inp.placeholder = 'Search...';
+    inp.addEventListener('click', e => e.stopPropagation());
+    inp.addEventListener('input', () => {
+        const q = inp.value.toLowerCase();
+        dd.querySelectorAll('.ph-item').forEach(el => { el.style.display = el.textContent.toLowerCase().includes(q) ? '' : 'none'; });
+    });
+    dd.appendChild(inp);
+    dd.appendChild(hdr('Special'));
+    dd.appendChild(item('<code>@everyone</code>', '@everyone'));
+    dd.appendChild(item('<code>@here</code>', '@here'));
+    const rKeys = Object.keys(ROLES);
+    if (rKeys.length) {
+        dd.appendChild(hdr('Roles'));
+        rKeys.forEach(id => { const r = ROLES[id]; dd.appendChild(item(`<span style="color:${r.color}">@${r.name}</span>`, `<@&${id}>`)); });
+    }
+    const cKeys = Object.keys(CHANNELS);
+    if (cKeys.length) {
+        dd.appendChild(hdr('Channels'));
+        cKeys.forEach(id => { const name = CHANNELS[id]; dd.appendChild(item(`<span>#${name}</span>`, `<#${id}>`)); });
+    }
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────
+buildEmbedPicker('unboostEmbedPicker');
+buildPlainPicker('unboostPlainPicker', 'unboostPlainText');
+_buildMentionDd(document.getElementById('unboostEmbedMentionPicker'), () => document.getElementById(unboostLastFocused));
+_buildMentionDd(document.getElementById('unboostPlainMentionPicker'), () => document.getElementById('unboostPlainText'));
+
+if (document.getElementById('unboostCardEnabled').checked)
+    document.getElementById('unboostCardPanel').style.display = 'block';
+
+drawUnboostCard().then(() => toggleUnboostType());
+
+function mbResizeArea(el) {
+    if (!el) return;
+    el.style.height = '1px';
+    el.style.height = el.scrollHeight + 'px';
+}
+function mbUpdateCount(taId, countId) {
+    const ta = document.getElementById(taId);
+    const ct = document.getElementById(countId);
+    if (!ta || !ct) return;
+    const len = ta.value.length;
+    const max = parseInt(ta.getAttribute('maxlength')) || 0;
+    ct.textContent = len + ' / ' + max;
+    ct.className = 'mb-char-count' + (len >= max ? ' danger' : len >= max * 0.9 ? ' warn' : '');
+}
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.mb-auto-resize').forEach(mbResizeArea);
+    mbUpdateCount('unboostPlainText', 'unboostPlainCount');
+    mbUpdateCount('unboostDesc',      'unboostDescCount');
+});
+
+window._floatSave = saveUnboost;
+</script>
+
+<%- include('../partials/footer') %>

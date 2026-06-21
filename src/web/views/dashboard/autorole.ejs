@@ -101,6 +101,35 @@
                     </div>
                 </div>
 
+                <div class="ar-divider"></div>
+
+                <!-- Semua -->
+                <div class="ar-section">
+                    <div class="ar-section-title"><%= t('autorole.join_section_all') %> <span style="font-size:.75rem;font-weight:400;color:var(--text-muted);">(member + bot)</span></div>
+                    <div class="form-group">
+                        <label class="toggle-label">
+                            <input type="checkbox" id="joinAllEnabled" class="toggle-input"
+                                   <%= joinData.allEnabled ? 'checked' : '' %>>
+                            <span class="toggle-slider"></span>
+                            <span><%= t('autorole.enable_all') %></span>
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label class="label"><%= t('autorole.role_for_all') %></label>
+                        <select id="joinAllRole" class="select">
+                            <option value=""><%= t('common.select_role') %></option>
+                            <% roles.forEach(role => { %>
+                                <option value="<%= role.id %>"
+                                        style="color: <%= role.color %>"
+                                        <%= joinData.allRoleId === role.id ? 'selected' : '' %>>
+                                    @<%= role.name %>
+                                </option>
+                            <% }) %>
+                        </select>
+                        <div class="hint"><%- t('autorole.join_hint_all') %></div>
+                    </div>
+                </div>
+
                 <div id="joinMsg" class="form-message"></div>
             </div>
         </div>
@@ -193,7 +222,7 @@
                 <div class="stat-card">
                     <div class="stat-icon stat-icon-comm"><i data-lucide="circle-dot"></i></div>
                     <div class="stat-info">
-                        <div class="stat-value"><%= panels.length %></div>
+                        <div class="stat-value" id="arBtnStatTotal"><%= panels.length %></div>
                         <div class="stat-label">Total Panels</div>
                     </div>
                 </div>
@@ -205,9 +234,9 @@
                     </div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-icon <%= panels.length >= 20 ? '' : 'stat-icon-comm' %>" style="<%= panels.length >= 20 ? 'color:#ed4245;background:rgba(237,66,69,.12);' : '' %>"><i data-lucide="layers"></i></div>
+                    <div id="arBtnStatSlotsIcon" class="stat-icon <%= panels.length >= 20 ? '' : 'stat-icon-comm' %>" style="<%= panels.length >= 20 ? 'color:#ed4245;background:rgba(237,66,69,.12);' : '' %>"><i data-lucide="layers"></i></div>
                     <div class="stat-info">
-                        <div class="stat-value" style="<%= panels.length >= 20 ? 'color:#ed4245;' : '' %>"><%= panels.length %>/20</div>
+                        <div id="arBtnStatSlots" class="stat-value" style="<%= panels.length >= 20 ? 'color:#ed4245;' : '' %>"><%= panels.length %>/20</div>
                         <div class="stat-label">Slots Used</div>
                     </div>
                 </div>
@@ -239,8 +268,8 @@
                 <div class="guide-tip">💡 <%- t('autorole.button_tip') %></div>
             </div>
 
-            <!-- Inline form card (hidden by default, opened via New Panel button) -->
-            <div class="settings-card" id="panelFormCard" style="margin-bottom:1.5rem;display:none;" data-flt-ignore>
+            <!-- Panel form card -->
+            <div class="settings-card" id="panelFormCard" style="margin-bottom:1.5rem;" data-flt-ignore>
                 <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;margin-bottom:1rem;">
                     <h2 id="panelModalTitle" style="margin:0;font-size:1.05rem;font-weight:600;"><%= t('autorole.new_panel_title') %></h2>
                     <button id="panelCancelEdit" class="btn btn-sm btn-outline" onclick="closePanelModal()" style="display:none;">
@@ -510,21 +539,13 @@
             <div class="ar-saved-header">
                 <span class="ar-saved-label">Saved Panels</span>
                 <div class="ar-saved-line"></div>
-                <% if (panels.length < 20) { %>
-                <button class="btn btn-primary btn-sm" onclick="openCreatePanel()" style="flex-shrink:0;gap:.3rem;">
-                    <i data-lucide="plus" style="width:13px;height:13px;"></i> New Panel
-                </button>
-                <% } %>
             </div>
-            <% if (panels.length >= 20) { %>
-            <div style="background:rgba(240,178,50,.1);border:1px solid rgba(240,178,50,.3);border-radius:8px;padding:.55rem .85rem;margin-bottom:.75rem;font-size:.82rem;color:#f0b232;display:flex;align-items:center;gap:.5rem;">
+            <div id="arBtnLimitBanner" style="background:rgba(240,178,50,.1);border:1px solid rgba(240,178,50,.3);border-radius:8px;padding:.55rem .85rem;margin-bottom:.75rem;font-size:.82rem;color:#f0b232;display:flex;align-items:center;gap:.5rem;<%- panels.length < 20 ? 'display:none;' : '' %>">
                 <i data-lucide="alert-triangle" style="width:14px;height:14px;flex-shrink:0;"></i>
-                Panel limit reached (20/20). Delete an existing panel to create a new one.
+                <%- t('autorole.err_btn_panel_limit') %>
             </div>
-            <% } %>
             <div id="panelGrid">
-                <% if (panels.length === 0) { %>
-                    <div class="empty-state" id="emptyPanels">
+                    <div class="empty-state" id="emptyPanels"<%- panels.length > 0 ? ' style="display:none;"' : '' %>>
                         <p style="margin-bottom:.5rem"><i data-lucide="circle-dot" style="width:2rem;height:2rem;color:var(--text-muted);"></i></p>
                         <p><%- t('autorole.btn_no_panels') %></p>
                         <p style="color:var(--text-muted);font-size:.85rem;margin-top:.5rem">
@@ -532,10 +553,9 @@
                             <code>/autorole-button create</code>.
                         </p>
                     </div>
-                <% } else { %>
                     <% panels.forEach(p => { %>
                     <% const sentP = sentPanels[p.name]; %>
-                    <div class="ar-panel-card" data-name="<%= p.name %>" data-channel-id="<%= p.channelId || '' %>">
+                    <div class="ar-panel-card" data-name="<%= p.name %>" data-channel-id="<%= p.channelId || '' %>" data-sent="<%= sentP ? 'true' : 'false' %>">
                         <div class="ar-panel-row-left">
                             <span class="ar-panel-name"><i data-lucide="circle-dot" style="width:13px;height:13px;"></i><%= p.name %></span>
                             <% const chBtn = channels.find(c => c.id === (sentP ? sentP.channelId : p.channelId)); %>
@@ -553,7 +573,6 @@
                         </div>
                     </div>
                     <% }) %>
-                <% } %>
             </div><!-- /panelGrid -->
         </div><!-- /tab-button -->
 
@@ -567,7 +586,7 @@
                 <div class="stat-card">
                     <div class="stat-icon stat-icon-comm"><i data-lucide="smile"></i></div>
                     <div class="stat-info">
-                        <div class="stat-value"><%= reactPanels.length %></div>
+                        <div class="stat-value" id="arReactStatTotal"><%= reactPanels.length %></div>
                         <div class="stat-label">Total Panels</div>
                     </div>
                 </div>
@@ -579,9 +598,9 @@
                     </div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-icon <%= reactPanels.length >= 20 ? '' : 'stat-icon-comm' %>" style="<%= reactPanels.length >= 20 ? 'color:#ed4245;background:rgba(237,66,69,.12);' : '' %>"><i data-lucide="layers"></i></div>
+                    <div id="arReactStatSlotsIcon" class="stat-icon <%= reactPanels.length >= 20 ? '' : 'stat-icon-comm' %>" style="<%= reactPanels.length >= 20 ? 'color:#ed4245;background:rgba(237,66,69,.12);' : '' %>"><i data-lucide="layers"></i></div>
                     <div class="stat-info">
-                        <div class="stat-value" style="<%= reactPanels.length >= 20 ? 'color:#ed4245;' : '' %>"><%= reactPanels.length %>/20</div>
+                        <div id="arReactStatSlots" class="stat-value" style="<%= reactPanels.length >= 20 ? 'color:#ed4245;' : '' %>"><%= reactPanels.length %>/20</div>
                         <div class="stat-label">Slots Used</div>
                     </div>
                 </div>
@@ -614,7 +633,7 @@
             </div>
 
             <!-- Inline form card (reaction, hidden by default) -->
-            <div class="settings-card" id="reactPanelFormCard" style="margin-bottom:1.5rem;display:none;" data-flt-ignore>
+            <div class="settings-card" id="reactPanelFormCard" style="margin-bottom:1.5rem;" data-flt-ignore>
                 <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;margin-bottom:1rem;">
                     <h2 id="reactPanelModalTitle" style="margin:0;font-size:1.05rem;font-weight:600;"><%= t('autorole.new_react_panel_title') %></h2>
                     <button id="reactPanelCancelEdit" class="btn btn-sm btn-outline" onclick="closeReactPanelModal()" style="display:none;">
@@ -885,21 +904,13 @@
             <div class="ar-saved-header">
                 <span class="ar-saved-label">Saved Panels</span>
                 <div class="ar-saved-line"></div>
-                <% if (reactPanels.length < 20) { %>
-                <button class="btn btn-primary btn-sm" onclick="openCreateReactPanel()" style="flex-shrink:0;gap:.3rem;">
-                    <i data-lucide="plus" style="width:13px;height:13px;"></i> New Panel
-                </button>
-                <% } %>
             </div>
-            <% if (reactPanels.length >= 20) { %>
-            <div style="background:rgba(240,178,50,.1);border:1px solid rgba(240,178,50,.3);border-radius:8px;padding:.55rem .85rem;margin-bottom:.75rem;font-size:.82rem;color:#f0b232;display:flex;align-items:center;gap:.5rem;">
+            <div id="arReactLimitBanner" style="background:rgba(240,178,50,.1);border:1px solid rgba(240,178,50,.3);border-radius:8px;padding:.55rem .85rem;margin-bottom:.75rem;font-size:.82rem;color:#f0b232;display:flex;align-items:center;gap:.5rem;<%- reactPanels.length < 20 ? 'display:none;' : '' %>">
                 <i data-lucide="alert-triangle" style="width:14px;height:14px;flex-shrink:0;"></i>
-                Panel limit reached (20/20). Delete an existing panel to create a new one.
+                <%- t('autorole.err_btn_panel_limit') %>
             </div>
-            <% } %>
             <div id="reactPanelGrid">
-                <% if (reactPanels.length === 0) { %>
-                    <div class="empty-state" id="emptyReactPanels">
+                    <div class="empty-state" id="emptyReactPanels"<%- reactPanels.length > 0 ? ' style="display:none;"' : '' %>>
                         <p style="margin-bottom:.5rem"><i data-lucide="smile" style="width:2rem;height:2rem;color:var(--text-muted);"></i></p>
                         <p><%- t('autorole.react_no_panels') %></p>
                         <p style="color:var(--text-muted);font-size:.85rem;margin-top:.5rem">
@@ -907,10 +918,9 @@
                             <code>/autorole-reaction create</code>.
                         </p>
                     </div>
-                <% } else { %>
                     <% reactPanels.forEach(p => { %>
                     <% const sentRP = sentReactPanels[p.name]; %>
-                    <div class="ar-panel-card" data-name="<%= p.name %>" data-type="reaction" data-channel-id="<%= p.channelId || '' %>">
+                    <div class="ar-panel-card" data-name="<%= p.name %>" data-type="reaction" data-channel-id="<%= p.channelId || '' %>" data-sent="<%= sentRP ? 'true' : 'false' %>">
                         <div class="ar-panel-row-left">
                             <span class="ar-panel-name"><i data-lucide="smile" style="width:13px;height:13px;"></i><%= p.name %></span>
                             <% const chReact = channels.find(c => c.id === (sentRP ? sentRP.channelId : p.channelId)); %>
@@ -928,7 +938,6 @@
                         </div>
                     </div>
                     <% }) %>
-                <% } %>
             </div><!-- /reactPanelGrid -->
         </div><!-- /tab-reaction -->
     </div>
@@ -1622,10 +1631,15 @@ const I18N_AR_ERR_NO_CONTENT     = <%- JSON.stringify(t("autorole.err_no_content
 const I18N_AR_ERR_NO_BUTTONS     = <%- JSON.stringify(t("autorole.err_no_buttons")) %>;
 const I18N_AR_ERR_NO_REACTIONS   = <%- JSON.stringify(t("autorole.err_no_reactions")) %>;
 const I18N_AR_ERR_PANEL_LIMIT    = <%- JSON.stringify(t("autorole.err_btn_panel_limit")) %>;
+let _btnPanelCount               = <%= panels.length %>;
+let _reactPanelCount             = <%= reactPanels.length %>;
 const I18N_AR_BTN_ERR_NO_ROLE   = <%- JSON.stringify(t("autorole.btn_err_no_role")) %>;
 const I18N_AR_BTN_ERR_NO_LABEL  = <%- JSON.stringify(t("autorole.btn_err_no_label")) %>;
 const I18N_AR_BTN_ERR_LABEL_LNG = <%- JSON.stringify(t("autorole.btn_err_label_long")) %>;
 const I18N_AR_BTN_ERR_DUP_ROLE  = <%- JSON.stringify(t("autorole.btn_err_dup_role")) %>;
+const I18N_AR_EDIT_BTN  = <%- JSON.stringify(t("autorole.edit_panel_btn")) %>;
+const I18N_AR_SEND_BTN  = <%- JSON.stringify(t("autorole.send_btn")) %>;
+const I18N_AR_VIEW_BTN  = <%- JSON.stringify(t("autorole.view_btn")) %>;
 
 function updatePanelPreviewChannel() {
     const el = document.getElementById('apPreviewChannel');
@@ -1916,15 +1930,18 @@ function filterPanels(q) {
 // ══════════════════════════════════════════════════════════════════════════════
 async function saveJoin() {
     const msg           = document.getElementById('joinMsg');
+    const allEnabled    = document.getElementById('joinAllEnabled').checked;
+    const allRoleId     = document.getElementById('joinAllRole').value;
     const memberEnabled = document.getElementById('joinMemberEnabled').checked;
     const memberRoleId  = document.getElementById('joinMemberRole').value;
     const botEnabled    = document.getElementById('joinBotEnabled').checked;
     const botRoleId     = document.getElementById('joinBotRole').value;
+    if (allEnabled    && !allRoleId)    { showAlert('<%- t("autorole.error_join_all_role") %>');    throw new Error(); }
     if (memberEnabled && !memberRoleId) { showAlert('<%- t("autorole.error_join_member_role") %>'); throw new Error(); }
     if (botEnabled    && !botRoleId)    { showAlert('<%- t("autorole.error_join_bot_role") %>');    throw new Error(); }
     const res  = await fetch(`/api/guild/${GUILD_ID}/autorole-join`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ memberEnabled, memberRoleId, botEnabled, botRoleId })
+        body: JSON.stringify({ allEnabled, allRoleId, memberEnabled, memberRoleId, botEnabled, botRoleId })
     });
     const data = await res.json();
     if (!data.success) { showAlert(data.message); throw new Error(data.message); }
@@ -2096,6 +2113,9 @@ function _fillPanelForm(panel) {
 
 function _resetPanelForm() {
     const el = id => document.getElementById(id);
+    // Enable selects first so value changes are reflected visually
+    setCselDisabled(el('panelMode'), false);
+    setCselDisabled(el('panelSendPreviewChannel'), false);
     el('panelName').value             = '';
     el('panelEmbedTitle').value       = '';
     el('panelEmbedDescription').value = '';
@@ -2105,6 +2125,9 @@ function _resetPanelForm() {
     el('panelEmbedColor').value       = '#5865F2';
     el('panelColorPicker').value      = '#5865F2';
     el('panelMode').value             = 'multi';
+    el('panelMode').dispatchEvent(new Event('change'));
+    el('panelSendPreviewChannel').value = '';
+    el('panelSendPreviewChannel').dispatchEvent(new Event('change'));
     el('panelMsg').textContent        = '';
     el('panelPlainText').value        = '';
     if (el('panelEmbedAuthorName'))  el('panelEmbedAuthorName').value  = '';
@@ -2113,8 +2136,6 @@ function _resetPanelForm() {
     if (el('panelEmbedTitleUrl'))    el('panelEmbedTitleUrl').value    = '';
     if (el('panelEmbedFooterIcon'))  el('panelEmbedFooterIcon').value  = '';
     if (el('panelEmbedTimestamp'))   el('panelEmbedTimestamp').checked = false;
-    setCselDisabled(el('panelMode'), false);
-    setCselDisabled(el('panelSendPreviewChannel'), false);
     apEmbedFields = [];
     renderApFields();
     _inlineBtns = [];
@@ -2125,6 +2146,8 @@ function _resetPanelForm() {
 function openCreatePanel() {
     _editingPanelName  = '';
     _editingPanelIsSent = false;
+    _editingPanelSentChannelId = '';
+    _editingPanelSentMsgId = '';
     document.getElementById('panelModalTitle').textContent = '<%= t("autorole.new_panel_title") %>';
     document.getElementById('panelCancelEdit').style.display               = 'none';
     document.getElementById('panelOriginalName').value                     = '';
@@ -2140,8 +2163,6 @@ function openCreatePanel() {
     document.getElementById('panelBtnReset').style.display                 = 'none';
     updatePanelPreviewChannel();
     _showPanelFooter('form');
-    document.getElementById('panelFormCard').style.display = '';
-    document.getElementById('panelFormCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 async function openEditPanel(name, isSent = false) {
@@ -2177,34 +2198,40 @@ async function openEditPanel(name, isSent = false) {
                 setCselDisabled(chSelBtn, true);
                 setCselDisabled(modeSelBtn, true);
                 document.getElementById('panelBtnSend').style.display = 'none';
+                _editingPanelSentChannelId = data.panel.sentChannelId || '';
+                _editingPanelSentMsgId     = data.panel.sentMessageId  || '';
             } else {
                 chSelBtn.value = data.panel.channelId || '';
                 setCselDisabled(chSelBtn, false);
                 setCselDisabled(modeSelBtn, false);
                 document.getElementById('panelBtnSend').style.display = '';
+                _editingPanelSentChannelId = '';
+                _editingPanelSentMsgId     = '';
             }
             chSelBtn.dispatchEvent(new Event('change'));
             updatePanelPreviewChannel();
         }
     } catch(e) { console.error(e); }
 
-    document.getElementById('panelFormCard').style.display = '';
     _showPanelFooter('form');
     document.getElementById('panelFormCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function closePanelModal() {
-    document.getElementById('panelFormCard').style.display = 'none';
-    _editingPanelName  = '';
-    _editingPanelIsSent = false;
-    _resetPanelForm();
+    openCreatePanel();
 }
 
 function _showPanelFooter(state) {
     document.getElementById('panelFooterForm').style.display = 'flex';
 }
 
+let _savingPanel = false;
 async function savePanel() {
+    if (_savingPanel) return;
+    _savingPanel = true;
+    const _saveBtns = [document.getElementById('panelBtnSend'), ...document.querySelectorAll('#panelFooterForm .btn')];
+    _saveBtns.forEach(b => b && (b.disabled = true));
+    try {
     const msg          = document.getElementById('panelMsg');
     const originalName = document.getElementById('panelOriginalName').value;
     const name         = originalName || document.getElementById('panelName').value.trim().toLowerCase();
@@ -2245,7 +2272,7 @@ async function savePanel() {
     if (validBtns.length === 0) { showAlert(I18N_AR_ERR_NO_BUTTONS); throw new Error(); }
 
     if (!originalName) {
-        if (<%= panels.length %> >= 20) { showAlert(I18N_AR_ERR_PANEL_LIMIT); throw new Error(); }
+        if (_btnPanelCount >= 20) { showAlert(I18N_AR_ERR_PANEL_LIMIT); throw new Error(); }
     }
 
     const el = id => document.getElementById(id);
@@ -2292,6 +2319,7 @@ async function savePanel() {
 
     const pendingCh = _pendingBtnSendChannel;
     _pendingBtnSendChannel = '';
+    let sentChId = '', sentMsgId = '';
     if (pendingCh) {
         try {
             const sendRes  = await fetch(`/api/guild/${GUILD_ID}/autorole-button/${encodeURIComponent(name)}/send`, {
@@ -2299,18 +2327,46 @@ async function savePanel() {
                 body: JSON.stringify({ channelId: pendingCh })
             });
             const sendData = await sendRes.json();
-            if (sendData.success) showToast(data.message + ' ✅', 'success');
-            else { showToast(data.message, 'success'); showAlert(`Send failed: ${sendData.message}`); }
+            if (sendData.success) {
+                sentChId  = sendData.channelId || pendingCh;
+                sentMsgId = sendData.messageId || '';
+                showToast(data.message + ' ✅', 'success');
+            } else {
+                showAlert(`Send failed: ${sendData.message}`);
+                showToast(data.message, 'success');
+            }
         } catch { showToast(data.message, 'success'); }
-        setTimeout(() => { closePanelModal(); _reloadKeepHash(); }, 800);
     } else {
         showToast(data.message, 'success');
-        setTimeout(() => { closePanelModal(); _reloadKeepHash(); }, 800);
     }
+
+    // Update or add card in the list
+    const list = document.getElementById('panelGrid');
+    const emptyEl = document.getElementById('emptyPanels');
+    const effectiveSentChId  = sentChId  || (originalName ? _editingPanelSentChannelId : '');
+    const effectiveSentMsgId = sentMsgId || (originalName ? _editingPanelSentMsgId : '');
+    const effectiveChId = effectiveSentChId || payload.channelId;
+    const newCard = _arRenderBtnCard(name, effectiveChId, payload.mode, effectiveSentChId, effectiveSentMsgId);
+    const existing = list.querySelector(`.ar-panel-card:not([data-type])[data-name="${name}"]`);
+    if (existing) {
+        existing.replaceWith(newCard);
+    } else {
+        if (emptyEl) emptyEl.style.display = 'none';
+        list.appendChild(newCard);
+        _btnPanelCount++;
+    }
+    if (window.lucide) lucide.createIcons();
+    _arRefreshBtnStats();
+
+    openCreatePanel();
+    } catch(e) { /* validation/network errors already shown via showAlert */ }
+    finally { _savingPanel = false; _saveBtns.forEach(b => b && (b.disabled = false)); }
 }
 
 let _editingPanelName  = '';
 let _editingPanelIsSent = false;
+let _editingPanelSentChannelId = '';
+let _editingPanelSentMsgId = '';
 let _pendingBtnSendChannel = '';
 
 async function saveAndSendPanel() {
@@ -2425,6 +2481,85 @@ function updatePanelPreviewBtns() {
         .join('');
 }
 
+// ── Card render helpers (no-reload DOM updates) ───────────────────────────
+
+function _escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function _arRenderBtnCard(name, channelId, mode, sentChannelId, sentMsgId) {
+    const chName    = channelId ? (CHANNELS[channelId] || channelId) : '';
+    const isSent    = !!(sentChannelId && sentMsgId);
+    const modeClass = mode === 'single' ? 'mode-single' : 'mode-multi';
+    const modeLabel = mode === 'single' ? 'Single' : 'Multi';
+    const safeName  = _escHtml(name);
+    const rightBtn  = isSent
+        ? `<a class="btn btn-outline btn-sm" href="https://discord.com/channels/${GUILD_ID}/${sentChannelId}/${sentMsgId}" target="_blank"><i data-lucide="external-link" style="width:13px;height:13px;vertical-align:middle;margin-right:.2rem;"></i> ${_escHtml(I18N_AR_VIEW_BTN)}</a>`
+        : `<button class="btn btn-outline btn-sm" onclick="openSendPanel('${safeName}')"><i data-lucide="send" style="width:13px;height:13px;vertical-align:middle;margin-right:.2rem;"></i> ${_escHtml(I18N_AR_SEND_BTN)}</button>`;
+    const div = document.createElement('div');
+    div.className = 'ar-panel-card';
+    div.dataset.name      = name;
+    div.dataset.channelId = channelId || '';
+    div.dataset.sent      = isSent ? 'true' : 'false';
+    div.innerHTML = `<div class="ar-panel-row-left">
+        <span class="ar-panel-name"><i data-lucide="circle-dot" style="width:13px;height:13px;"></i>${safeName}</span>
+        ${chName ? `<span class="ar-panel-channel"><i data-lucide="hash" style="width:11px;height:11px;"></i>${_escHtml(chName)}</span>` : ''}
+        <span class="ar-panel-mode ${modeClass}">${modeLabel}</span>
+    </div><div class="ar-panel-row-right">
+        <button class="btn btn-outline btn-sm" onclick="openEditPanel('${safeName}',${isSent})"><i data-lucide="pencil" style="width:13px;height:13px;vertical-align:middle;margin-right:.25rem;"></i>${_escHtml(I18N_AR_EDIT_BTN)}</button>
+        ${rightBtn}
+        <button class="btn btn-sm ar-btn-delete" onclick="deletePanel('${safeName}')"><i data-lucide="trash-2"></i></button>
+    </div>`;
+    return div;
+}
+
+function _arRenderReactCard(name, channelId, mode, sentChannelId, sentMsgId) {
+    const chName    = channelId ? (CHANNELS[channelId] || channelId) : '';
+    const isSent    = !!(sentChannelId && sentMsgId);
+    const modeClass = mode === 'single' ? 'mode-single' : 'mode-multi';
+    const modeLabel = mode === 'single' ? 'Single' : 'Multi';
+    const safeName  = _escHtml(name);
+    const rightBtn  = isSent
+        ? `<a class="btn btn-outline btn-sm" href="https://discord.com/channels/${GUILD_ID}/${sentChannelId}/${sentMsgId}" target="_blank"><i data-lucide="external-link" style="width:13px;height:13px;vertical-align:middle;margin-right:.2rem;"></i> ${_escHtml(I18N_AR_VIEW_BTN)}</a>`
+        : `<button class="btn btn-outline btn-sm" onclick="openSendReactPanel('${safeName}')"><i data-lucide="send" style="width:13px;height:13px;vertical-align:middle;margin-right:.2rem;"></i> ${_escHtml(I18N_AR_SEND_BTN)}</button>`;
+    const div = document.createElement('div');
+    div.className = 'ar-panel-card';
+    div.dataset.name      = name;
+    div.dataset.type      = 'reaction';
+    div.dataset.channelId = channelId || '';
+    div.dataset.sent      = isSent ? 'true' : 'false';
+    div.innerHTML = `<div class="ar-panel-row-left">
+        <span class="ar-panel-name"><i data-lucide="smile" style="width:13px;height:13px;"></i>${safeName}</span>
+        ${chName ? `<span class="ar-panel-channel"><i data-lucide="hash" style="width:11px;height:11px;"></i>${_escHtml(chName)}</span>` : ''}
+        <span class="ar-panel-mode ${modeClass}">${modeLabel}</span>
+    </div><div class="ar-panel-row-right">
+        <button class="btn btn-outline btn-sm" onclick="openEditReactPanel('${safeName}',${isSent})"><i data-lucide="pencil" style="width:13px;height:13px;vertical-align:middle;margin-right:.25rem;"></i>${_escHtml(I18N_AR_EDIT_BTN)}</button>
+        ${rightBtn}
+        <button class="btn btn-sm ar-btn-delete" onclick="deleteReactPanel('${safeName}')"><i data-lucide="trash-2"></i></button>
+    </div>`;
+    return div;
+}
+
+function _arRefreshBtnStats() {
+    const full = _btnPanelCount >= 20;
+    document.getElementById('arBtnStatTotal').textContent       = _btnPanelCount;
+    document.getElementById('arBtnStatSlots').textContent       = `${_btnPanelCount}/20`;
+    document.getElementById('arBtnStatSlots').style.color       = full ? '#ed4245' : '';
+    document.getElementById('arBtnStatSlotsIcon').className     = `stat-icon${full ? '' : ' stat-icon-comm'}`;
+    document.getElementById('arBtnStatSlotsIcon').style.cssText = full ? 'color:#ed4245;background:rgba(237,66,69,.12);' : '';
+    document.getElementById('arBtnLimitBanner').style.display   = full ? '' : 'none';
+}
+
+function _arRefreshReactStats() {
+    const full = _reactPanelCount >= 20;
+    document.getElementById('arReactStatTotal').textContent       = _reactPanelCount;
+    document.getElementById('arReactStatSlots').textContent       = `${_reactPanelCount}/20`;
+    document.getElementById('arReactStatSlots').style.color       = full ? '#ed4245' : '';
+    document.getElementById('arReactStatSlotsIcon').className     = `stat-icon${full ? '' : ' stat-icon-comm'}`;
+    document.getElementById('arReactStatSlotsIcon').style.cssText = full ? 'color:#ed4245;background:rgba(237,66,69,.12);' : '';
+    document.getElementById('arReactLimitBanner').style.display   = full ? '' : 'none';
+}
+
 let _deleteConfirmCallback = null;
 function openDeleteConfirm(name, isSent, callback) {
     document.getElementById('deletePanelMsg').textContent = I18N_AR_DEL_PANEL_MSG.replace('{{name}}', `"${name}"`);
@@ -2435,18 +2570,33 @@ function openDeleteConfirm(name, isSent, callback) {
 }
 function closeDeleteConfirm() { closeModal('deletePanelBackdrop', 'deletePanelModal'); _deleteConfirmCallback = null; }
 async function doDeleteConfirm() {
+    const cb = _deleteConfirmCallback;
     closeDeleteConfirm();
-    if (_deleteConfirmCallback) await _deleteConfirmCallback();
+    if (cb) await cb();
 }
 
 async function deletePanel(name) {
-    const card   = document.querySelector(`.ar-panel-card[data-name="${name}"]`);
-    const isSent = card?.querySelector('.status-sent') !== null;
+    const card   = document.querySelector(`.ar-panel-card:not([data-type])[data-name="${name}"]`);
+    const isSent = card?.dataset.sent === 'true';
     openDeleteConfirm(name, isSent, async () => {
         const res  = await fetch(`/api/guild/${GUILD_ID}/autorole-button/${encodeURIComponent(name)}`, { method: 'DELETE' });
         const data = await res.json();
-        if (data.success) _reloadKeepHash(data.message, 'success');
-        else showAlert(data.message);
+        if (data.success) {
+            if (card) card.remove();
+            _btnPanelCount--;
+            const full = _btnPanelCount >= 20;
+            document.getElementById('arBtnLimitBanner').style.display    = 'none';
+            document.getElementById('arBtnStatTotal').textContent        = _btnPanelCount;
+            document.getElementById('arBtnStatSlots').textContent        = `${_btnPanelCount}/20`;
+            document.getElementById('arBtnStatSlots').style.color        = full ? '#ed4245' : '';
+            document.getElementById('arBtnStatSlotsIcon').className      = `stat-icon${full ? '' : ' stat-icon-comm'}`;
+            document.getElementById('arBtnStatSlotsIcon').style.cssText  = full ? 'color:#ed4245;background:rgba(237,66,69,.12);' : '';
+            if (_btnPanelCount === 0) document.getElementById('emptyPanels').style.display = '';
+            if (_editingPanelName === name) openCreatePanel();
+            showToast(data.message, 'success');
+        } else {
+            showAlert(data.message);
+        }
     });
 }
 
@@ -2477,8 +2627,27 @@ async function doSendPanel() {
     });
     const data = await res.json();
     if (!data.success) { showAlert(data.message); return; }
+
+    const sentChId  = data.channelId || _sendPanelChannelId;
+    const sentMsgId = data.messageId || '';
+    const list = document.getElementById('panelGrid');
+    const mode = list.querySelector(`.ar-panel-card:not([data-type])[data-name="${_sendPanelName}"]`)?.querySelector('.ar-panel-mode')?.textContent?.toLowerCase() || 'multi';
+    const newCard = _arRenderBtnCard(_sendPanelName, sentChId, mode, sentChId, sentMsgId);
+    const existing = list.querySelector(`.ar-panel-card:not([data-type])[data-name="${_sendPanelName}"]`);
+    if (existing) { existing.replaceWith(newCard); if (window.lucide) lucide.createIcons(); }
+
+    if (_editingPanelName === _sendPanelName) {
+        _editingPanelSentChannelId = sentChId;
+        _editingPanelSentMsgId     = sentMsgId;
+        document.getElementById('panelBtnSend').style.display = 'none';
+        const chSel = document.getElementById('panelSendPreviewChannel');
+        chSel.value = sentChId;
+        setCselDisabled(chSel, true);
+        setCselDisabled(document.getElementById('panelMode'), true);
+    }
+
+    closeSendPanel();
     showToast(data.message, 'success');
-    setTimeout(() => { closeSendPanel(); _reloadKeepHash(); }, 800);
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -2783,6 +2952,9 @@ function _fillReactPanelForm(panel) {
 
 function _resetReactPanelForm() {
     const el = id => document.getElementById(id);
+    // Enable selects first so value changes are reflected visually
+    setCselDisabled(el('reactPanelMode'), false);
+    setCselDisabled(el('reactSendPreviewChannel'), false);
     el('reactPanelName').value             = '';
     el('reactPanelEmbedTitle').value       = '';
     el('reactPanelEmbedDescription').value = '';
@@ -2792,6 +2964,9 @@ function _resetReactPanelForm() {
     el('reactPanelEmbedColor').value       = '#5865F2';
     el('reactPanelColorPicker').value      = '#5865F2';
     el('reactPanelMode').value             = 'multi';
+    el('reactPanelMode').dispatchEvent(new Event('change'));
+    el('reactSendPreviewChannel').value    = '';
+    el('reactSendPreviewChannel').dispatchEvent(new Event('change'));
     el('reactPanelMsg').textContent        = '';
     el('reactPanelPlainText').value        = '';
     if (el('reactPanelEmbedAuthorName'))  el('reactPanelEmbedAuthorName').value  = '';
@@ -2800,8 +2975,6 @@ function _resetReactPanelForm() {
     if (el('reactPanelEmbedTitleUrl'))    el('reactPanelEmbedTitleUrl').value    = '';
     if (el('reactPanelEmbedFooterIcon'))  el('reactPanelEmbedFooterIcon').value  = '';
     if (el('reactPanelEmbedTimestamp'))   el('reactPanelEmbedTimestamp').checked = false;
-    setCselDisabled(el('reactPanelMode'), false);
-    setCselDisabled(el('reactSendPreviewChannel'), false);
     rpEmbedFields = [];
     renderRpFields();
     _inlineReacts = [];
@@ -2816,6 +2989,8 @@ function _showReactPanelFooter(state) {
 function openCreateReactPanel() {
     _editingReactPanelName   = '';
     _editingReactPanelIsSent = false;
+    _editingReactPanelSentChannelId = '';
+    _editingReactPanelSentMsgId = '';
     document.getElementById('reactPanelModalTitle').textContent        = '<%= t("autorole.new_react_panel_title") %>';
     document.getElementById('reactPanelCancelEdit').style.display      = 'none';
     document.getElementById('reactPanelOriginalName').value            = '';
@@ -2829,8 +3004,6 @@ function openCreateReactPanel() {
     document.getElementById('reactPanelBtnReset').style.display        = 'none';
     updateReactPanelPreviewChannel();
     _showReactPanelFooter('form');
-    document.getElementById('reactPanelFormCard').style.display = '';
-    document.getElementById('reactPanelFormCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 async function openEditReactPanel(name, isSent = false) {
@@ -2862,30 +3035,36 @@ async function openEditReactPanel(name, isSent = false) {
                 setCselDisabled(chSelReact, true);
                 setCselDisabled(modeSelReact, true);
                 document.getElementById('reactPanelBtnSend').style.display = 'none';
+                _editingReactPanelSentChannelId = data.panel.sentChannelId || '';
+                _editingReactPanelSentMsgId     = data.panel.sentMessageId  || '';
             } else {
                 chSelReact.value = data.panel.channelId || '';
                 setCselDisabled(chSelReact, false);
                 setCselDisabled(modeSelReact, false);
                 document.getElementById('reactPanelBtnSend').style.display = '';
+                _editingReactPanelSentChannelId = '';
+                _editingReactPanelSentMsgId     = '';
             }
             chSelReact.dispatchEvent(new Event('change'));
             updateReactPanelPreviewChannel();
         }
     } catch(e) { console.error(e); }
 
-    document.getElementById('reactPanelFormCard').style.display = '';
     _showReactPanelFooter('form');
     document.getElementById('reactPanelFormCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function closeReactPanelModal() {
-    document.getElementById('reactPanelFormCard').style.display = 'none';
-    _editingReactPanelName   = '';
-    _editingReactPanelIsSent = false;
-    _resetReactPanelForm();
+    openCreateReactPanel();
 }
 
+let _savingReactPanel = false;
 async function saveReactPanel() {
+    if (_savingReactPanel) return;
+    _savingReactPanel = true;
+    const _reactSaveBtns = [document.getElementById('reactPanelBtnSend'), ...document.querySelectorAll('#reactPanelFooterForm .btn')];
+    _reactSaveBtns.forEach(b => b && (b.disabled = true));
+    try {
     const msg          = document.getElementById('reactPanelMsg');
     const originalName = document.getElementById('reactPanelOriginalName').value;
     const name         = originalName || document.getElementById('reactPanelName').value.trim().toLowerCase();
@@ -2926,7 +3105,7 @@ async function saveReactPanel() {
     if (validReacts.length === 0) { showAlert(I18N_AR_ERR_NO_REACTIONS); throw new Error(); }
 
     if (!originalName) {
-        if (<%= reactPanels.length %> >= 20) { showAlert(I18N_AR_ERR_PANEL_LIMIT); throw new Error(); }
+        if (_reactPanelCount >= 20) { showAlert(I18N_AR_ERR_PANEL_LIMIT); throw new Error(); }
     }
 
     const rEl = id => document.getElementById(id);
@@ -2969,22 +3148,52 @@ async function saveReactPanel() {
 
     const pendingCh = _pendingReactSendChannel;
     _pendingReactSendChannel = '';
+    let sentChId = '', sentMsgId = '';
     if (pendingCh) {
         try {
             const sendRes  = await fetch(`/api/guild/${GUILD_ID}/autorole-reaction/${encodeURIComponent(name)}/send`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ channelId: pendingCh }) });
             const sendData = await sendRes.json();
-            if (sendData.success) showToast(data.message + ' ✅', 'success');
-            else { showToast(data.message, 'success'); showAlert(`Send failed: ${sendData.message}`); }
+            if (sendData.success) {
+                sentChId  = sendData.channelId || pendingCh;
+                sentMsgId = sendData.messageId || '';
+                showToast(data.message + ' ✅', 'success');
+            } else {
+                showAlert(`Send failed: ${sendData.message}`);
+                showToast(data.message, 'success');
+            }
         } catch { showToast(data.message, 'success'); }
-        setTimeout(() => { closeReactPanelModal(); _reloadKeepHash(); }, 800);
     } else {
         showToast(data.message, 'success');
-        setTimeout(() => { closeReactPanelModal(); _reloadKeepHash(); }, 800);
     }
+
+    // Update or add card in the list
+    const rList = document.getElementById('reactPanelGrid');
+    const rEmptyEl = document.getElementById('emptyReactPanels');
+    const rEffSentChId  = sentChId  || (originalName ? _editingReactPanelSentChannelId : '');
+    const rEffSentMsgId = sentMsgId || (originalName ? _editingReactPanelSentMsgId : '');
+    const rEffChId = rEffSentChId || payload.channelId;
+    const rMode = document.getElementById('reactPanelMode')?.value || 'multi';
+    const newReactCard = _arRenderReactCard(name, rEffChId, rMode, rEffSentChId, rEffSentMsgId);
+    const rExisting = rList.querySelector(`.ar-panel-card[data-type="reaction"][data-name="${name}"]`);
+    if (rExisting) {
+        rExisting.replaceWith(newReactCard);
+    } else {
+        if (rEmptyEl) rEmptyEl.style.display = 'none';
+        rList.appendChild(newReactCard);
+        _reactPanelCount++;
+    }
+    if (window.lucide) lucide.createIcons();
+    _arRefreshReactStats();
+
+    openCreateReactPanel();
+    } catch(e) { /* validation/network errors already shown via showAlert */ }
+    finally { _savingReactPanel = false; _reactSaveBtns.forEach(b => b && (b.disabled = false)); }
 }
 
 let _editingReactPanelName   = '';
 let _editingReactPanelIsSent = false;
+let _editingReactPanelSentChannelId = '';
+let _editingReactPanelSentMsgId = '';
 let _pendingReactSendChannel = '';
 
 async function saveAndSendReactPanel() {
@@ -3114,12 +3323,26 @@ function updateReactPanelPreviewReacts() {
 
 async function deleteReactPanel(name) {
     const card   = document.querySelector(`.ar-panel-card[data-type="reaction"][data-name="${name}"]`);
-    const isSent = card?.querySelector('.status-sent') !== null;
+    const isSent = card?.dataset.sent === 'true';
     openDeleteConfirm(name, isSent, async () => {
         const res  = await fetch(`/api/guild/${GUILD_ID}/autorole-reaction/${encodeURIComponent(name)}`, { method: 'DELETE' });
         const data = await res.json();
-        if (data.success) _reloadKeepHash(data.message, 'success');
-        else showAlert(data.message);
+        if (data.success) {
+            if (card) card.remove();
+            _reactPanelCount--;
+            const full = _reactPanelCount >= 20;
+            document.getElementById('arReactLimitBanner').style.display    = 'none';
+            document.getElementById('arReactStatTotal').textContent        = _reactPanelCount;
+            document.getElementById('arReactStatSlots').textContent        = `${_reactPanelCount}/20`;
+            document.getElementById('arReactStatSlots').style.color        = full ? '#ed4245' : '';
+            document.getElementById('arReactStatSlotsIcon').className      = `stat-icon${full ? '' : ' stat-icon-comm'}`;
+            document.getElementById('arReactStatSlotsIcon').style.cssText  = full ? 'color:#ed4245;background:rgba(237,66,69,.12);' : '';
+            if (_reactPanelCount === 0) document.getElementById('emptyReactPanels').style.display = '';
+            if (_editingReactPanelName === name) openCreateReactPanel();
+            showToast(data.message, 'success');
+        } else {
+            showAlert(data.message);
+        }
     });
 }
 
@@ -3149,8 +3372,27 @@ async function doSendReactPanel() {
     });
     const data = await res.json();
     if (!data.success) { showAlert(data.message); return; }
+
+    const sentChId  = data.channelId || _sendReactPanelChannelId;
+    const sentMsgId = data.messageId || '';
+    const rList = document.getElementById('reactPanelGrid');
+    const rMode = rList.querySelector(`.ar-panel-card[data-type="reaction"][data-name="${_sendReactPanelName}"]`)?.querySelector('.ar-panel-mode')?.textContent?.toLowerCase() || 'multi';
+    const newCard = _arRenderReactCard(_sendReactPanelName, sentChId, rMode, sentChId, sentMsgId);
+    const rExisting = rList.querySelector(`.ar-panel-card[data-type="reaction"][data-name="${_sendReactPanelName}"]`);
+    if (rExisting) { rExisting.replaceWith(newCard); if (window.lucide) lucide.createIcons(); }
+
+    if (_editingReactPanelName === _sendReactPanelName) {
+        _editingReactPanelSentChannelId = sentChId;
+        _editingReactPanelSentMsgId     = sentMsgId;
+        document.getElementById('reactPanelBtnSend').style.display = 'none';
+        const chSel = document.getElementById('reactSendPreviewChannel');
+        chSel.value = sentChId;
+        setCselDisabled(chSel, true);
+        setCselDisabled(document.getElementById('reactPanelMode'), true);
+    }
+
+    closeSendReactPanel();
     showToast(data.message, 'success');
-    setTimeout(() => { closeSendReactPanel(); _reloadKeepHash(); }, 800);
 }
 
 async function saveAllButtons() {
@@ -3179,10 +3421,9 @@ async function saveAllButtons() {
     });
     const data = await res.json();
     if (!data.success) { showAlert(data.message); return; }
-    showToast(data.message, 'success');
     _btnData = buttons;
-    renderBtnEditorTable();
-    setTimeout(() => { closeBtnModal(); _reloadKeepHash(); }, 800);
+    closeBtnModal();
+    showToast(data.message, 'success');
 }
 
 async function _arDefaultFloatSave() {
@@ -3258,8 +3499,8 @@ buildApPhPicker('reactDescPhPicker',   'reactPanelEmbedDescription');
 
 // Inisialisasi state form tanpa membuka/scroll ke form
 document.addEventListener('DOMContentLoaded', () => {
-    _resetPanelForm();
-    _resetReactPanelForm();
+    openCreatePanel();
+    openCreateReactPanel();
     apUpdateCount('panelPlainText',          'panelPlainCount');
     apUpdateCount('panelEmbedDescription',   'panelDescCount');
     apUpdateCount('reactPanelPlainText',     'reactPlainCount');

@@ -34,8 +34,8 @@
         <span class="sidebar-group-label">Notification</span>
         <a href="/dashboard/<%= guild.id %>/welcome"              class="sidebar-sublink<%= activePage === 'welcome'          ? ' active' : '' %>"><i data-lucide="user-plus"></i> Welcome Notification</a>
         <a href="/dashboard/<%= guild.id %>/goodbye"              class="sidebar-sublink<%= activePage === 'goodbye'          ? ' active' : '' %>"><i data-lucide="log-out"></i> Goodbye Notification</a>
-        <a href="/dashboard/<%= guild.id %>/booster?tab=boost"    class="sidebar-sublink" id="sidebarSubBoost"><i data-lucide="zap"></i> Boost Notification</a>
-        <a href="/dashboard/<%= guild.id %>/booster?tab=unboost"  class="sidebar-sublink" id="sidebarSubUnboost"><i data-lucide="zap-off"></i> Unboost Notification</a>
+        <a href="/dashboard/<%= guild.id %>/boost"    class="sidebar-sublink<%= activePage === 'boost'   ? ' active' : '' %>"><i data-lucide="zap"></i> Boost Notification</a>
+        <a href="/dashboard/<%= guild.id %>/unboost"  class="sidebar-sublink<%= activePage === 'unboost' ? ' active' : '' %>"><i data-lucide="zap-off"></i> Unboost Notification</a>
         <span class="sidebar-group-label">Auto Role</span>
         <a href="/dashboard/<%= guild.id %>/autorole?tab=join"    class="sidebar-sublink" id="sidebarSubJoin"><i data-lucide="users"></i> Autorole Join</a>
         <a href="/dashboard/<%= guild.id %>/autorole?tab=booster" class="sidebar-sublink" id="sidebarSubBooster"><i data-lucide="zap"></i> Autorole Booster</a>
@@ -69,7 +69,7 @@
     // Tandai sub-link aktif berdasarkan query tab
     var tab = new URLSearchParams(window.location.search).get('tab');
     if (tab) {
-        var map = { boost: 'sidebarSubBoost', unboost: 'sidebarSubUnboost', join: 'sidebarSubJoin', booster: 'sidebarSubBooster', button: 'sidebarSubButton', reaction: 'sidebarSubReaction' };
+        var map = { join: 'sidebarSubJoin', booster: 'sidebarSubBooster', button: 'sidebarSubButton', reaction: 'sidebarSubReaction' };
         var el = document.getElementById(map[tab]);
         if (el) el.classList.add('active');
     }
