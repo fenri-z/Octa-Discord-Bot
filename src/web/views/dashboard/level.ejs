@@ -279,6 +279,14 @@
 const GUILD_ID       = '<%= guild.id %>';
 const I18N_LV_ACTIVE   = '<%- t("level.status_active") %>';
 const I18N_LV_INACTIVE = '<%- t("level.status_inactive") %>';
+const I18N_LV_CONFIRM_RM_TITLE = '<%- t("level.confirm_remove_reward_title") %>';
+const I18N_LV_CONFIRM_RM_MSG   = '<%- t("level.confirm_remove_reward_msg") %>';
+const I18N_LV_ERR_EMPTY_ROLE   = <%- JSON.stringify(t("level.err_empty_role")) %>;
+const I18N_LV_ERR_LEVEL_MIN    = <%- JSON.stringify(t("level.err_level_min")) %>;
+const I18N_LV_ERR_XP_MIN       = <%- JSON.stringify(t("level.err_xp_min")) %>;
+const I18N_LV_ERR_XP_MAX       = <%- JSON.stringify(t("level.err_xp_max")) %>;
+const I18N_LV_ERR_XP_ORDER     = <%- JSON.stringify(t("level.err_xp_order")) %>;
+const I18N_LV_ERR_COOLDOWN     = <%- JSON.stringify(t("level.err_cooldown")) %>;
 
 function refreshLvStats() {
     const enabled = document.getElementById('levelEnabled')?.checked;
@@ -348,7 +356,13 @@ function addReward() {
 }
 
 async function removeReward(btn) {
-    btn.closest('.rr-row').remove();
+    const row      = btn.closest('.rr-row');
+    const level    = row.querySelector('.rr-level')?.value || '?';
+    const roleEl   = row.querySelector('.rr-role');
+    const roleName = roleEl?.options[roleEl.selectedIndex]?.text || 'this role';
+    const _rmMsg = I18N_LV_CONFIRM_RM_MSG.replace('{{role}}', roleName).replace('{{level}}', level);
+    if (!await showConfirm(I18N_LV_CONFIRM_RM_TITLE, _rmMsg)) return;
+    row.remove();
     const rrMsg = document.getElementById('roleRewardMsg');
     const rewards = getRewards().filter(r => r.roleId);
     const data = await apiFetch('/level', 'POST', {
@@ -360,7 +374,8 @@ async function removeReward(btn) {
         cooldown:    parseInt(document.getElementById('levelCooldown').value, 10) || 60,
         roleRewards: rewards,
     });
-    showMsg(rrMsg, data.message, data.success ? 'success' : 'error');
+    if (data.success) queueToast(data.message, 'success');
+    else showAlert(data.message);
 }
 
 function getRewards() {
@@ -374,33 +389,18 @@ async function saveConfig() {
     const rrMsg = document.getElementById('roleRewardMsg');
     const rewards = getRewards();
     const emptyRole = rewards.find(r => !r.roleId);
-    if (emptyRole) {
-        showMsg(rrMsg, 'Please select a role for all reward entries, or remove the empty ones.', 'error');
-        return;
-    }
+    if (emptyRole) { showAlert(I18N_LV_ERR_EMPTY_ROLE); return; }
     const invalidLevel = rewards.find(r => isNaN(r.level) || r.level < 1);
-    if (invalidLevel) {
-        showMsg(rrMsg, 'Level must be at least 1.', 'error');
-        return;
-    }
+    if (invalidLevel) { showAlert(I18N_LV_ERR_LEVEL_MIN); return; }
 
-    const msg     = document.getElementById('levelCfgMsg');
     const xpMin   = parseInt(document.getElementById('levelXpMin').value, 10);
     const xpMax   = parseInt(document.getElementById('levelXpMax').value, 10);
     const cooldown= parseInt(document.getElementById('levelCooldown').value, 10);
 
-    if (isNaN(xpMin) || xpMin < 1 || xpMin > 100) {
-        showMsg(msg, 'XP Min must be between 1 and 100.', 'error'); return;
-    }
-    if (isNaN(xpMax) || xpMax < 1 || xpMax > 100) {
-        showMsg(msg, 'XP Max must be between 1 and 100.', 'error'); return;
-    }
-    if (xpMin > xpMax) {
-        showMsg(msg, 'XP Min cannot be greater than XP Max.', 'error'); return;
-    }
-    if (isNaN(cooldown) || cooldown < 1 || cooldown > 3600) {
-        showMsg(msg, 'Cooldown must be between 1 and 3600 seconds.', 'error'); return;
-    }
+    if (isNaN(xpMin) || xpMin < 1 || xpMin > 100) { showAlert(I18N_LV_ERR_XP_MIN); return; }
+    if (isNaN(xpMax) || xpMax < 1 || xpMax > 100) { showAlert(I18N_LV_ERR_XP_MAX); return; }
+    if (xpMin > xpMax) { showAlert(I18N_LV_ERR_XP_ORDER); return; }
+    if (isNaN(cooldown) || cooldown < 1 || cooldown > 3600) { showAlert(I18N_LV_ERR_COOLDOWN); return; }
 
     const data = await apiFetch('/level', 'POST', {
         enabled:   document.getElementById('levelEnabled').checked,
@@ -409,9 +409,8 @@ async function saveConfig() {
         xpMin, xpMax, cooldown,
         roleRewards: rewards,
     });
-    showMsg(msg, data.message, data.success ? 'success' : 'error');
-    if (data.success) refreshLvStats();
-    if (rrMsg.textContent) { rrMsg.textContent = ''; rrMsg.className = 'form-message'; }
+    if (data.success) { queueToast(data.message, 'success'); refreshLvStats(); }
+    else showAlert(data.message);
 }
 
 window._floatSave = () => saveConfig();

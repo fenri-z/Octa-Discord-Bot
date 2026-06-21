@@ -639,12 +639,13 @@ router.post('/guild/:guildId/autorole-button', requireLogin, requireManageGuild,
         try { const r = db?.get(`autobtn-${guildId}-${panelName}`); return r ? JSON.parse(r) : null; } catch { return null; }
     })();
 
-    if (!existing) {
-        const listRaw = db?.get(`autobtn-list-${guildId}`);
-        const currentList = listRaw ? (() => { try { return JSON.parse(listRaw); } catch { return []; } })() : [];
-        if (currentList.length >= 20)
-            return res.json({ success: false, message: 'Panel limit reached. Maximum 20 button panels allowed.' });
-    }
+    if (existing)
+        return res.json({ success: false, message: `Panel name "${panelName}" already exists. Choose a different name.` });
+
+    const listRaw = db?.get(`autobtn-list-${guildId}`);
+    const currentList = listRaw ? (() => { try { return JSON.parse(listRaw); } catch { return []; } })() : [];
+    if (currentList.length >= 20)
+        return res.json({ success: false, message: 'Panel limit reached. Maximum 20 button panels allowed.' });
 
     const colorHex = embedColor
         ? (embedColor.startsWith('#') ? embedColor : `#${embedColor}`)
@@ -1035,16 +1036,17 @@ router.post('/guild/:guildId/autorole-reaction', requireLogin, requireManageGuil
         try { const r = db?.get(`autoreact-${guildId}-${panelName}`); return r ? JSON.parse(r) : null; } catch { return null; }
     })();
 
-    if (!existing) {
-        const listRaw = db?.get(`autoreact-list-${guildId}`);
-        const currentList = listRaw ? (() => { try { return JSON.parse(listRaw); } catch { return []; } })() : [];
-        if (currentList.length >= 20)
-            return res.json({ success: false, message: 'Panel limit reached. Maximum 20 reaction panels allowed.' });
-    }
+    if (existing)
+        return res.json({ success: false, message: `Panel name "${panelName}" already exists. Choose a different name.` });
+
+    const listRaw = db?.get(`autoreact-list-${guildId}`);
+    const currentList = listRaw ? (() => { try { return JSON.parse(listRaw); } catch { return []; } })() : [];
+    if (currentList.length >= 20)
+        return res.json({ success: false, message: 'Panel limit reached. Maximum 20 reaction panels allowed.' });
 
     const colorHex = embedColor
         ? (embedColor.startsWith('#') ? embedColor : `#${embedColor}`)
-        : (existing?.embedColor || '#5865F2');
+        : '#5865F2';
 
     const now   = Date.now();
     const panel = {
@@ -1708,6 +1710,9 @@ router.post('/guild/:guildId/message-builder', requireLogin, requireManageGuild,
     }
 
     const existing  = mbGetTemplate(db, guildId, name);
+    if (req.body.isNew && existing) {
+        return res.json({ success: false, message: `Template "${name}" already exists. Choose a different name.` });
+    }
     if (!existing) {
         const currentList = mbGetList(db, guildId);
         if (currentList.length >= 20)

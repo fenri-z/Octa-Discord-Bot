@@ -131,6 +131,8 @@
     "view_in_discord": "View in Discord",
     "cancel": "Cancel",
     "delete": "Delete",
+    "ok": "OK",
+    "notice": "Notice",
     "preview_no_channel": "select-channel",
     "unsaved_changes": "You have unsaved changes",
     "save_changes": "Save Changes",
@@ -185,7 +187,8 @@
     "step2_desc": "Set the embed, colors, text template, and optionally enable the welcome card with a custom background.",
     "step3_title": "Enable & Save",
     "step3_desc": "Toggle the feature on and click Save to activate. New members will trigger the notification immediately.",
-    "tip": "Use the <strong>{mention}</strong>, <strong>{username}</strong>, and <strong>{count}</strong> placeholders in your message to personalize each welcome."
+    "tip": "Use the <strong>{mention}</strong>, <strong>{username}</strong>, and <strong>{count}</strong> placeholders in your message to personalize each welcome.",
+    "err_no_channel": "Please select a destination channel first."
   },
   "goodbye": {
     "page_title": "Goodbye Notification",
@@ -204,7 +207,8 @@
     "step2_desc": "Set the embed, colors, and text template. You can also enable a goodbye card with a custom background.",
     "step3_title": "Enable & Save",
     "step3_desc": "Toggle the feature on and click Save to activate. Members leaving the server will trigger the notification.",
-    "tip": "Use the <strong>{username}</strong>, <strong>{server}</strong>, and <strong>{count}</strong> placeholders to personalize each goodbye message."
+    "tip": "Use the <strong>{username}</strong>, <strong>{server}</strong>, and <strong>{count}</strong> placeholders to personalize each goodbye message.",
+    "err_no_channel": "Please select a destination channel first."
   },
   "booster": {
     "page_title": "Boost Notification",
@@ -380,7 +384,28 @@
     "react_step2_desc": "Select a channel and click <strong>Send</strong> to post the reaction panel.",
     "react_step3_title": "Members React",
     "react_step3_desc": "Members click the emoji reactions to get or remove the corresponding role. Reacting again removes the role.",
-    "react_tip": "Use Unicode emoji (👍 ⭐ 🎮) or custom server emoji with format <code>&lt;:name:id&gt;</code>. Max <strong>20 reactions</strong> per panel."
+    "react_tip": "Use Unicode emoji (👍 ⭐ 🎮) or custom server emoji with format <code>&lt;:name:id&gt;</code>. Max <strong>20 reactions</strong> per panel.",
+    "delete_panel_title": "Delete Panel",
+    "delete_panel_msg": "Delete panel {{name}}?",
+    "delete_panel_warning": "The message already sent on Discord will also be permanently deleted.",
+    "err_max_buttons": "Maximum 25 buttons per panel.",
+    "err_panel_full": "Panel is full (max 25 buttons).",
+    "err_max_reactions": "Max 20 reactions per panel.",
+    "err_invalid_name": "Invalid panel name. Use letters, numbers, - or _.",
+    "err_name_exists": "Panel name \"{{name}}\" already exists. Choose a different name.",
+    "err_invalid_image_url": "Invalid image URL. Must start with https://...",
+    "err_invalid_thumb_url": "Invalid thumbnail URL. Must start with https://...",
+    "err_invalid_color": "Invalid embed color. Example: #5865F2",
+    "err_no_channel": "Please select a channel to send this panel.",
+    "err_no_channel_first": "Please select a channel first.",
+    "err_no_content": "Fill in at least a Plain Text message or Embed title/description.",
+    "err_no_buttons": "Add at least 1 role button before saving.",
+    "err_no_reactions": "Add at least 1 reaction before saving.",
+    "err_btn_panel_limit": "Panel limit reached (20/20). Delete an existing panel first.",
+    "btn_err_no_role": "Button #{{n}}: Please select a role first.",
+    "btn_err_no_label": "Button #{{n}}: Label cannot be empty.",
+    "btn_err_label_long": "Button #{{n}}: Label exceeds 80 characters.",
+    "btn_err_dup_role": "Button #{{n1}} and #{{n2}} use the same role."
   },
   "automod": {
     "page_title": "Automod",
@@ -703,7 +728,13 @@
     "badge_both": "Text+Embed",
     "badge_live": "Live",
     "send_modal_desc": "Send <strong>{{name}}</strong> to <strong>{{channel}}</strong>?",
-    "send_modal_note": "This template can only be sent once. After sending, editing and saving it will update the Discord message automatically."
+    "send_modal_note": "This template can only be sent once. After sending, editing and saving it will update the Discord message automatically.",
+    "err_load_template": "Failed to load template: {{msg}}",
+    "err_limit": "Template limit reached (20/20). Delete an existing template first.",
+    "err_duplicate": "Template \"{{name}}\" already exists. Choose a different name.",
+    "err_url_invalid": "❌ {{label}}: URL must start with https://",
+    "err_url_not_image": "❌ {{label}}: Must be a direct image link (.png .jpg .gif .webp)",
+    "err_no_channel_send": "This template has no destination channel. Edit it and select a channel first."
   },
   "serverstats": {
     "page_title": "Server Stats",
@@ -1354,7 +1385,15 @@
     "lb_user": "User ID",
     "lb_level": "Level",
     "lb_xp": "XP",
-    "select_role": "— Select Role —"
+    "select_role": "— Select Role —",
+    "confirm_remove_reward_title": "Remove Role Reward",
+    "confirm_remove_reward_msg": "Remove reward {{role}} at Level {{level}}?",
+    "err_empty_role": "Please select a role for all reward entries, or remove the empty ones.",
+    "err_level_min": "Level must be at least 1.",
+    "err_xp_min": "XP Min must be between 1 and 100.",
+    "err_xp_max": "XP Max must be between 1 and 100.",
+    "err_xp_order": "XP Min cannot be greater than XP Max.",
+    "err_cooldown": "Cooldown must be between 1 and 3600 seconds."
   },
   "starboard": {
     "page_title": "Starboard",
@@ -1378,7 +1417,8 @@
     "emoji_label": "Emoji",
     "emoji_hint": "Use a default Discord emoji (⭐, 🌟, etc.) or a custom server emoji.",
     "threshold_label": "Min. Reaction",
-    "threshold_hint": "Minimum number of reactions needed for a message to appear in the starboard."
+    "threshold_hint": "Minimum number of reactions needed for a message to appear in the starboard.",
+    "err_threshold": "Minimum Reaction must be between 1 and 50."
   },
   "custom_commands": {
     "page_title": "Custom Commands",
@@ -1443,7 +1483,11 @@
     "ee_footer": "Footer",
     "ee_footer_icon_ph": "Footer icon URL (https://...)...",
     "ee_footer_text_ph": "Footer text...",
-    "ee_show_timestamp": "Timestamp"
+    "ee_show_timestamp": "Timestamp",
+    "confirm_delete_title": "Delete Command",
+    "confirm_delete_msg": "Delete command \"{{trigger}}\"?",
+    "err_limit": "Command limit reached (10/10). Delete an existing command first.",
+    "err_duplicate": "Command \"{{trigger}}\" already exists. Use the Edit button to modify it."
   },
   "extlog": {
     "page_title": "Extended Logging",

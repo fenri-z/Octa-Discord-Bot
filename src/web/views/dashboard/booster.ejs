@@ -1185,13 +1185,12 @@ function insertPhDyn(pickerId, ph) {
 
 // ── Save ────────────────────────────────────────────────────────────────────
 async function saveBoost() {
-    const msg         = document.getElementById('boostMsg');
     if (!document.getElementById('boostChannel').value)
-        return showMsg(msg, I18N_BOOST_ERR_NO_CH, 'error');
+        return showAlert(I18N_BOOST_ERR_NO_CH);
     const messageType = document.querySelector('input[name="boostMessageType"]:checked')?.value || 'embed';
     const color       = document.getElementById('boostColor').value.trim() || '#FF73FA';
     if (messageType === 'embed' && !/^#[0-9A-Fa-f]{6}$/.test(color))
-        return showMsg(msg, I18N_BOOST_ERR_CLR_B, 'error');
+        return showAlert(I18N_BOOST_ERR_CLR_B);
 
     const res = await fetch(`/api/guild/${GUILD_ID}/booster-boost`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -1227,17 +1226,17 @@ async function saveBoost() {
         })
     });
     const data = await res.json();
-    showMsg(msg, data.message, data.success ? 'success' : 'error');
+    if (data.success) queueToast(data.message, 'success');
+    else showAlert(data.message);
 }
 
 async function saveUnboost() {
-    const msg         = document.getElementById('unboostMsg');
     if (!document.getElementById('unboostChannel').value)
-        return showMsg(msg, I18N_BOOST_ERR_NO_CH, 'error');
+        return showAlert(I18N_BOOST_ERR_NO_CH);
     const messageType = document.querySelector('input[name="unboostMessageType"]:checked')?.value || 'embed';
     const color       = document.getElementById('unboostColor').value.trim() || '#ED4245';
     if (messageType === 'embed' && !/^#[0-9A-Fa-f]{6}$/.test(color))
-        return showMsg(msg, I18N_BOOST_ERR_CLR_U, 'error');
+        return showAlert(I18N_BOOST_ERR_CLR_U);
 
     const res = await fetch(`/api/guild/${GUILD_ID}/booster-unboost`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -1272,7 +1271,8 @@ async function saveUnboost() {
         })
     });
     const data = await res.json();
-    showMsg(msg, data.message, data.success ? 'success' : 'error');
+    if (data.success) queueToast(data.message, 'success');
+    else showAlert(data.message);
 }
 
 function showMsg(el, text, type) {

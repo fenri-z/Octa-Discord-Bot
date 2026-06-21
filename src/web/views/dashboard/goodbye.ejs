@@ -780,7 +780,8 @@ function insertPh(targetId, ph) {
 
 const CHANNELS  = <%- JSON.stringify(Object.fromEntries((locals.channels || []).map(ch => [ch.id, ch.name]))) %>;
 const ROLES     = <%- JSON.stringify(Object.fromEntries((locals.roles    || []).map(r  => [r.id,  { name: r.name, color: r.color }]))) %>;
-const I18N_NO_CH = '<%= t("common.preview_no_channel") %>';
+const I18N_NO_CH         = '<%= t("common.preview_no_channel") %>';
+const I18N_GB_ERR_NO_CH  = <%- JSON.stringify(t("goodbye.err_no_channel")) %>;
 
 // ── Update preview ────────────────────────────────────────────────────────────
 function updatePreview() {
@@ -907,7 +908,7 @@ toggleCardPanel().then(() => toggleMessageTypePanel());
 async function saveGoodbye(guildId) {
     const msg = document.getElementById('goodbyeMsg');
     if (!document.getElementById('goodbyeChannel').value)
-        return showMsg(msg, 'Please select a destination channel first.', 'error');
+        return showAlert(I18N_GB_ERR_NO_CH);
     const payload = {
         enabled:       document.getElementById('goodbyeEnabled').checked,
         channelId:     document.getElementById('goodbyeChannel').value,
@@ -940,7 +941,8 @@ async function saveGoodbye(guildId) {
         body: JSON.stringify(payload)
     });
     const data = await res.json();
-    showMsg(msg, data.message, data.success ? 'success' : 'error');
+    if (data.success) queueToast(data.message, 'success');
+    else showAlert(data.message);
 }
 
 function showMsg(el, text, type) {

@@ -205,7 +205,6 @@ async function apiFetch(path, method, body) {
 
 // ── Simpan channel ─────────────────────────────────────────────────────────────
 async function saveConfig() {
-    const msg  = document.getElementById('mlMsg');
     const data = await apiFetch('/modlog/config', 'POST', {
         channelId: document.getElementById('mlChannel').value || null,
         events: {
@@ -216,8 +215,8 @@ async function saveConfig() {
             warn:    document.getElementById('evtWarn').checked,
         },
     });
-    showMsg(msg, data.message, data.success ? 'success' : 'error');
-    if (data.success) refreshMlStats();
+    if (data.success) { queueToast(data.message, 'success'); refreshMlStats(); }
+    else showAlert(data.message);
 }
 
 // ── Toggle handlers (simpan langsung saat diubah) ──────────────────────────────
@@ -233,13 +232,12 @@ function getEvents() {
 
 ['evtBan','evtUnban','evtKick','evtTimeout','evtWarn'].forEach(id => {
     document.getElementById(id)?.addEventListener('change', async function () {
-        const msg  = document.getElementById('evtMsg');
         const data = await apiFetch('/modlog/config', 'POST', {
             channelId: document.getElementById('mlChannel').value || null,
             events: getEvents(),
         });
-        showMsg(msg, data.message, data.success ? 'success' : 'error');
-        if (data.success) refreshMlStats(); else this.checked = !this.checked;
+        if (data.success) { queueToast(data.message, 'success'); refreshMlStats(); }
+        else { showAlert(data.message); this.checked = !this.checked; }
     });
 });
 

@@ -473,11 +473,11 @@ async function saveThresholds() {
             duration: document.getElementById('t2Duration')?.value,
         },
     });
-    showMsg(msg, data.message, data.success ? 'success' : 'error');
     if (data.success) {
+        queueToast(data.message, 'success');
         const actions = ['t1Action','t2Action'].map(id => document.getElementById(id)?.value);
         document.getElementById('statActiveThresholds').textContent = actions.filter(a => a && a !== 'none').length;
-    }
+    } else showAlert(data.message);
 }
 
 // ── Search ────────────────────────────────────────────────────────────────
@@ -513,12 +513,12 @@ async function searchWarns() {
     const userId = input.value.trim().replace(/\D/g, '');
 
     if (!userId || userId.length < 17)
-        return showMsg(msg, I18N_ERR_INVID, 'error');
+        return showAlert(I18N_ERR_INVID);
 
     showMsg(msg, I18N_SEARCHING, 'info');
     const data = await fetch(`/api/guild/${GUILD_ID}/warnings/user/${userId}`).then(r => r.json());
 
-    if (!data.success) return showMsg(msg, data.message, 'error');
+    if (!data.success) { showMsg(msg, '', 'info'); return showAlert(data.message); }
 
     _searchUserId = userId;
     showMsg(msg, '', 'info');
@@ -544,12 +544,12 @@ async function searchWarns() {
 
 async function clearUserWarns() {
     if (!_searchUserId) return;
-    if (!confirm(I18N_CONFIRM_DEL)) return;
+    if (!await showConfirm('Clear Warnings', I18N_CONFIRM_DEL)) return;
 
     const msg  = document.getElementById('searchMsg');
     const data = await apiFetch(`/warnings/user/${_searchUserId}`, 'DELETE');
-    showMsg(msg, data.message, data.success ? 'success' : 'error');
-    if (!data.success) return;
+    if (!data.success) { showAlert(data.message); return; }
+    queueToast(data.message, 'success');
 
     document.getElementById('srTotal').textContent     = `0 warnings`;
     document.getElementById('srWarnList').innerHTML    = `<p style="color:var(--text-muted);font-size:.875rem;">${I18N_NO_WARNINGS}</p>`;
@@ -557,7 +557,7 @@ async function clearUserWarns() {
 
 async function deleteSingleWarn(userId, warnId, btn) {
     const data = await apiFetch(`/warnings/user/${userId}/${warnId}`, 'DELETE');
-    if (!data.success) return alert(data.message);
+    if (!data.success) return showAlert(data.message);
 
     const item = btn.closest('.wn-warn-item');
     if (item) item.remove();

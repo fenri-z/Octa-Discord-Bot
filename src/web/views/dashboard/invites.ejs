@@ -438,12 +438,12 @@ async function refreshInvites(guildId) {
     try {
         const res  = await fetch(`/api/guild/${guildId}/invites`);
         const data = await res.json();
-        if (!data.success) { alert(data.message || I18N_INV_ERR_FETCH); return; }
+        if (!data.success) { showAlert(data.message || I18N_INV_ERR_FETCH); return; }
         ALL_INVITES = data.invites;
         currentPage = 1;
         applyFilter();
         document.getElementById('lastRefreshed').textContent = `${I18N_INV_REFRESHED} ${new Date().toLocaleTimeString('id-ID')}`;
-    } catch { alert(I18N_INV_ERR_CONNECT); }
+    } catch { showAlert(I18N_INV_ERR_CONNECT); }
     finally {
         btn.disabled = false;
         btn.innerHTML = '<i data-lucide="refresh-cw" style="width:14px;height:14px;"></i> Refresh';

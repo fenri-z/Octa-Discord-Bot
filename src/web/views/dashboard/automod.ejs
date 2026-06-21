@@ -560,36 +560,33 @@ async function apiFetch(path, method, body) {
 
 // ── Konfigurasi Umum ──────────────────────────────────────────────────────────
 async function saveGeneral(quiet = false) {
-    const msg = document.getElementById('generalMsg');
     const data = await apiFetch('/automod/general', 'POST', {
         action:       document.getElementById('automodAction').value,
         muteDuration: document.getElementById('automodMuteDuration').value,
         auditLogId:   document.getElementById('automodAuditLog').value || null,
     });
-    if (!quiet || !data.success) showMsg(msg, data.message, data.success ? 'success' : 'error');
+    if (data.success) { if (!quiet) queueToast(data.message, 'success'); }
+    else showAlert(data.message);
     return data;
 }
 
 // ── Toggle handlers (simpan langsung saat diubah) ─────────────────────────────
 document.getElementById('toggleAntilink')?.addEventListener('change', async function () {
-    const msg  = document.getElementById('toggleMsg');
     const data = await apiFetch('/automod/antilink', 'POST', { enabled: this.checked });
-    showMsg(msg, data.message, data.success ? 'success' : 'error');
-    if (data.success) refreshAmStats(); else this.checked = !this.checked;
+    if (data.success) { queueToast(data.message, 'success'); refreshAmStats(); }
+    else { showAlert(data.message); this.checked = !this.checked; }
 });
 
 document.getElementById('toggleAntiinvite')?.addEventListener('change', async function () {
-    const msg  = document.getElementById('toggleMsg');
     const data = await apiFetch('/automod/antiinvite', 'POST', { enabled: this.checked });
-    showMsg(msg, data.message, data.success ? 'success' : 'error');
-    if (data.success) refreshAmStats(); else this.checked = !this.checked;
+    if (data.success) { queueToast(data.message, 'success'); refreshAmStats(); }
+    else { showAlert(data.message); this.checked = !this.checked; }
 });
 
 document.getElementById('toggleAttachments')?.addEventListener('change', async function () {
-    const msg  = document.getElementById('toggleMsg');
     const data = await apiFetch('/automod/attachments', 'POST', { enabled: this.checked });
-    showMsg(msg, data.message, data.success ? 'success' : 'error');
-    if (data.success) refreshAmStats(); else this.checked = !this.checked;
+    if (data.success) { queueToast(data.message, 'success'); refreshAmStats(); }
+    else { showAlert(data.message); this.checked = !this.checked; }
 });
 
 // ── Anti-Spam ─────────────────────────────────────────────────────────────────
@@ -598,14 +595,13 @@ document.getElementById('spamEnabled')?.addEventListener('change', function () {
 });
 
 async function saveSpam(quiet = false) {
-    const msg = document.getElementById('spamMsg');
     const data = await apiFetch('/automod/spam', 'POST', {
         enabled:  document.getElementById('spamEnabled').checked,
         limit:    parseInt(document.getElementById('spamLimit')?.value)    || 5,
         interval: parseInt(document.getElementById('spamInterval')?.value) || 5,
     });
-    if (!quiet || !data.success) showMsg(msg, data.message, data.success ? 'success' : 'error');
-    if (data.success) refreshAmStats();
+    if (data.success) { if (!quiet) queueToast(data.message, 'success'); refreshAmStats(); }
+    else showAlert(data.message);
     return data;
 }
 
@@ -615,13 +611,12 @@ document.getElementById('mentionEnabled')?.addEventListener('change', function (
 });
 
 async function saveMassMention(quiet = false) {
-    const msg = document.getElementById('mentionMsg');
     const data = await apiFetch('/automod/massmention', 'POST', {
         enabled: document.getElementById('mentionEnabled').checked,
         limit:   parseInt(document.getElementById('mentionLimit')?.value) || 5,
     });
-    if (!quiet || !data.success) showMsg(msg, data.message, data.success ? 'success' : 'error');
-    if (data.success) refreshAmStats();
+    if (data.success) { if (!quiet) queueToast(data.message, 'success'); refreshAmStats(); }
+    else showAlert(data.message);
     return data;
 }
 
@@ -631,14 +626,13 @@ document.getElementById('raidEnabled')?.addEventListener('change', function () {
 });
 
 async function saveAntiRaid(quiet = false) {
-    const msg = document.getElementById('raidMsg');
     const data = await apiFetch('/automod/antiraid', 'POST', {
         enabled:   document.getElementById('raidEnabled').checked,
         joinLimit: parseInt(document.getElementById('raidJoinLimit')?.value) || 10,
         interval:  parseInt(document.getElementById('raidInterval')?.value)  || 10,
     });
-    if (!quiet || !data.success) showMsg(msg, data.message, data.success ? 'success' : 'error');
-    if (data.success) refreshAmStats();
+    if (data.success) { if (!quiet) queueToast(data.message, 'success'); refreshAmStats(); }
+    else showAlert(data.message);
     return data;
 }
 
@@ -663,13 +657,12 @@ function updateWordCount(total) {
 
 async function addWord() {
     const input = document.getElementById('newWord');
-    const msg   = document.getElementById('wordsMsg');
     const word  = input.value.trim().toLowerCase();
     if (!word) return;
 
     const data = await apiFetch('/automod/words', 'POST', { word });
-    showMsg(msg, data.message, data.success ? 'success' : 'error');
-    if (!data.success) return;
+    if (!data.success) { showAlert(data.message); return; }
+    queueToast(data.message, 'success');
 
     input.value = '';
     const list  = document.getElementById('wordsList');
@@ -681,10 +674,9 @@ async function addWord() {
 }
 
 async function deleteWord(word) {
-    const msg  = document.getElementById('wordsMsg');
     const data = await apiFetch(`/automod/words/${encodeURIComponent(word)}`, 'DELETE');
-    showMsg(msg, data.message, data.success ? 'success' : 'error');
-    if (!data.success) return;
+    if (!data.success) { showAlert(data.message); return; }
+    queueToast(data.message, 'success');
 
     const chip = document.querySelector(`.am-word-chip[data-word="${CSS.escape(word)}"]`);
     if (chip) chip.remove();
@@ -722,13 +714,12 @@ function renderWlRoleChip(id, name, color) {
 
 async function addWhitelistChannel() {
     const sel  = document.getElementById('wlAddChannel');
-    const msg  = document.getElementById('wlChMsg');
     const id   = sel.value;
-    if (!id) { showMsg(msg, I18N_AM_ERR_CH, 'error'); return; }
+    if (!id) { showAlert(I18N_AM_ERR_CH); return; }
 
     const data = await apiFetch('/automod/whitelist', 'POST', { type: 'channel', id });
-    showMsg(msg, data.message, data.success ? 'success' : 'error');
-    if (!data.success) return;
+    if (!data.success) { showAlert(data.message); return; }
+    queueToast(data.message, 'success');
 
     const list  = document.getElementById('wlChannelList');
     const empty = document.getElementById('wlChEmpty');
@@ -740,13 +731,12 @@ async function addWhitelistChannel() {
 
 async function addWhitelistRole() {
     const sel  = document.getElementById('wlAddRole');
-    const msg  = document.getElementById('wlRlMsg');
     const id   = sel.value;
-    if (!id) { showMsg(msg, I18N_AM_ERR_ROLE, 'error'); return; }
+    if (!id) { showAlert(I18N_AM_ERR_ROLE); return; }
 
     const data = await apiFetch('/automod/whitelist', 'POST', { type: 'role', id });
-    showMsg(msg, data.message, data.success ? 'success' : 'error');
-    if (!data.success) return;
+    if (!data.success) { showAlert(data.message); return; }
+    queueToast(data.message, 'success');
 
     const list  = document.getElementById('wlRoleList');
     const empty = document.getElementById('wlRlEmpty');
@@ -757,14 +747,12 @@ async function addWhitelistRole() {
 }
 
 async function removeWhitelist(type, id) {
-    const msgId = type === 'channel' ? 'wlChMsg' : 'wlRlMsg';
-    const listId = type === 'channel' ? 'wlChannelList' : 'wlRoleList';
+    const listId  = type === 'channel' ? 'wlChannelList' : 'wlRoleList';
     const emptyId = type === 'channel' ? 'wlChEmpty' : 'wlRlEmpty';
-    const msg  = document.getElementById(msgId);
 
     const data = await apiFetch(`/automod/whitelist/${type}/${id}`, 'DELETE');
-    showMsg(msg, data.message, data.success ? 'success' : 'error');
-    if (!data.success) return;
+    if (!data.success) { showAlert(data.message); return; }
+    queueToast(data.message, 'success');
 
     const chip = document.querySelector(`#${listId} .am-word-chip[data-id="${id}"]`);
     if (chip) chip.remove();
@@ -784,7 +772,7 @@ async function removeWhitelist(type, id) {
 window._floatSave = async function () {
     const results = await Promise.allSettled([saveGeneral(true), saveSpam(true), saveMassMention(true), saveAntiRaid(true)]);
     const ok = results.every(r => r.status === 'fulfilled' && r.value?.success);
-    if (ok) showMsg(null, results[0].value.message, 'success');
+    if (ok) queueToast(results[0].value.message, 'success');
     else throw new Error();
 };
 </script>

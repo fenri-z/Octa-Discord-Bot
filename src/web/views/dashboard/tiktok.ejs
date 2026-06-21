@@ -661,7 +661,7 @@ const CHANNELS    = <%- JSON.stringify(Object.fromEntries((locals.channels||[]).
 const ROLES_MAP   = <%- JSON.stringify(Object.fromEntries((locals.roles||[]).map(r=>[r.id,r]))) %>;
 const CHANNELS_MAP= <%- JSON.stringify(Object.fromEntries((locals.channels||[]).map(c=>[c.id,c]))) %>;
 
-const I18N_TT_CONFIRM_DEL  = '<%= t("tiktok.confirm_delete") %>';
+const I18N_TT_CONFIRM_DEL  = <%- JSON.stringify(t("tiktok.confirm_delete")) %>;
 const I18N_TT_ERR_VIDEO_CH = '<%= t("tiktok.err_no_video_channel") %>';
 const I18N_TT_ERR_LIVE_CH  = '<%= t("tiktok.err_no_live_channel") %>';
 const I18N_TT_SEARCH_BTN   = '<%= t("tiktok.search_btn") %>';
@@ -748,7 +748,7 @@ async function addAccount() {
     });
     const data = await r.json();
     if (data.success) { queueToast(data.message, 'success'); location.reload(); }
-    else alert(data.message);
+    else showAlert(data.message);
 }
 
 // ── Discord Markdown renderer ──────────────────────────────────────────────────
@@ -868,13 +868,13 @@ async function saveAccount(username, quiet = false) {
     // Validasi client-side
     if (videoEnabled && !videoChannelId) {
         switchTab(key, 'video');
-        showMsg(msgEl, I18N_TT_ERR_VIDEO_CH, 'error');
+        showAlert(I18N_TT_ERR_VIDEO_CH);
         document.getElementById(`vidChannel-${key}`)?.focus();
         return { success: false, message: I18N_TT_ERR_VIDEO_CH };
     }
     if (liveEnabled && !liveChannelId) {
         switchTab(key, 'live');
-        showMsg(msgEl, I18N_TT_ERR_LIVE_CH, 'error');
+        showAlert(I18N_TT_ERR_LIVE_CH);
         document.getElementById(`liveChannel-${key}`)?.focus();
         return { success: false, message: I18N_TT_ERR_LIVE_CH };
     }
@@ -894,8 +894,8 @@ async function saveAccount(username, quiet = false) {
         body: JSON.stringify(payload),
     });
     const data = await r.json();
-    if (!quiet || !data.success) showMsg(msgEl, data.message, data.success ? 'success' : 'error');
-    if (data.success) refreshTtStats();
+    if (data.success) { if (!quiet) queueToast(data.message, 'success'); refreshTtStats(); }
+    else showAlert(data.message);
     return data;
 }
 
@@ -910,16 +910,18 @@ async function testNotif(username, key) {
         body: JSON.stringify({ type: tab }),
     });
     const data = await r.json();
-    showMsg(msgEl, data.message, data.success ? 'success' : 'error');
+    showMsg(msgEl, '', 'info');
+    if (data.success) queueToast(data.message, 'success');
+    else showAlert(data.message);
 }
 
 // ── Hapus akun ────────────────────────────────────────────────────────────────
 async function removeAccount(username, name) {
-    if (!confirm(I18N_TT_CONFIRM_DEL.replace('{{name}}', name))) return;
+    if (!await showConfirm('Remove Account', I18N_TT_CONFIRM_DEL.replace('{{name}}', name))) return;
     const r    = await fetch(`/api/guild/${GUILD_ID}/tiktok/accounts/${encodeURIComponent(username)}`, { method: 'DELETE' });
     const data = await r.json();
     if (data.success) { queueToast(data.message, 'success'); location.reload(); }
-    else alert(data.message);
+    else showAlert(data.message);
 }
 
 async function reEnableAccount(username, key) {
@@ -929,9 +931,9 @@ async function reEnableAccount(username, key) {
         const r    = await fetch(`/api/guild/${GUILD_ID}/tiktok/accounts/${encodeURIComponent(username)}/reenable`, { method: 'POST' });
         const data = await r.json();
         if (data.success) { queueToast(data.message, 'success'); location.reload(); }
-        else showMsg(null, data.message, 'error');
+        else showAlert(data.message);
     } catch {
-        showMsg(null, 'Connection error.', 'error');
+        showAlert(I18N_TT_ERR_CONNECT);
     } finally {
         if (btn) { btn.disabled = false; if (window.lucide) lucide.createIcons(); }
     }
@@ -1107,7 +1109,7 @@ window._floatSave = async function () {
     if (_ttAllUsers.length === 0) return;
     const results = await Promise.allSettled(_ttAllUsers.map(u => saveAccount(u, true)));
     const ok = results.every(r => r.status === 'fulfilled' && r.value?.success);
-    if (ok) showMsg(null, results[0].value.message, 'success');
+    if (ok) queueToast(results[0].value.message, 'success');
     else throw new Error();
 };
 </script>

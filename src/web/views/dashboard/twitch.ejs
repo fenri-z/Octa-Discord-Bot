@@ -461,7 +461,7 @@ const I18N_TW_ERR_NO_CH  = '<%= t("twitch.err_no_channel") %>';
 const I18N_TW_ERR_CONN   = '<%= t("twitch.err_conn") %>';
 const I18N_TW_SENDING    = '<%= t("twitch.sending_test") %>';
 const I18N_TW_NO_CH      = '<%= t("twitch.preview_no_channel") %>';
-const I18N_TW_CONFIRM_DEL   = '<%= t("twitch.confirm_delete") %>';
+const I18N_TW_CONFIRM_DEL   = <%- JSON.stringify(t("twitch.confirm_delete")) %>;
 const I18N_TW_STREAM_TITLE  = '<%= t("twitch.preview_stream_title") %>';
 
 // ── Lookup ────────────────────────────────────────────────────────────────────
@@ -534,7 +534,7 @@ async function addStreamer() {
     });
     const data = await r.json();
     if (data.success) { queueToast(data.message, 'success'); location.reload(); }
-    else alert(data.message);
+    else showAlert(data.message);
 }
 
 // ── Simpan ────────────────────────────────────────────────────────────────────
@@ -546,7 +546,7 @@ async function saveStreamer(userId, quiet = false) {
     const message    = document.getElementById(`twMessage-${userId}`)?.value?.trim() || '';
 
     if (enabled && !channelId) {
-        showMsg(msgEl, I18N_TW_ERR_NO_CH, 'error');
+        showAlert(I18N_TW_ERR_NO_CH);
         document.getElementById(`twChannel-${userId}`)?.focus();
         return { success: false, message: I18N_TW_ERR_NO_CH };
     }
@@ -556,8 +556,8 @@ async function saveStreamer(userId, quiet = false) {
         body: JSON.stringify({ enabled, channelId, plainMessage, message }),
     });
     const data = await r.json();
-    if (!quiet || !data.success) showMsg(msgEl, data.message, data.success ? 'success' : 'error');
-    if (data.success) refreshTwStats();
+    if (data.success) { if (!quiet) queueToast(data.message, 'success'); refreshTwStats(); }
+    else showAlert(data.message);
     return data;
 }
 
@@ -569,16 +569,18 @@ async function testNotif(userId) {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
     });
     const data = await r.json();
-    showMsg(msgEl, data.message, data.success ? 'success' : 'error');
+    showMsg(msgEl, '', 'info');
+    if (data.success) queueToast(data.message, 'success');
+    else showAlert(data.message);
 }
 
 // ── Hapus streamer ────────────────────────────────────────────────────────────
 async function removeStreamer(userId, name) {
-    if (!confirm(I18N_TW_CONFIRM_DEL.replace('{{name}}', name))) return;
+    if (!await showConfirm('Remove Streamer', I18N_TW_CONFIRM_DEL.replace('{{name}}', name))) return;
     const r    = await fetch(`/api/guild/${GUILD_ID}/twitch/accounts/${encodeURIComponent(userId)}`, { method: 'DELETE' });
     const data = await r.json();
     if (data.success) { queueToast(data.message, 'success'); location.reload(); }
-    else alert(data.message);
+    else showAlert(data.message);
 }
 
 // ── Discord Markdown renderer ──────────────────────────────────────────────────
@@ -785,7 +787,7 @@ window._floatSave = async function () {
     if (_twAllIds.length === 0) return;
     const results = await Promise.allSettled(_twAllIds.map(id => saveStreamer(id, true)));
     const ok = results.every(r => r.status === 'fulfilled' && r.value?.success);
-    if (ok) showMsg(null, results[0].value.message, 'success');
+    if (ok) queueToast(results[0].value.message, 'success');
     else throw new Error();
 };
 </script>

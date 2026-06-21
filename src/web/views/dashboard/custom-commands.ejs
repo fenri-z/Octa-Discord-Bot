@@ -567,6 +567,10 @@
 
 <script>
 const GUILD_ID = '<%= guild.id %>';
+const I18N_CC_DEL_TITLE  = '<%- t("custom_commands.confirm_delete_title") %>';
+const I18N_CC_DEL_MSG    = '<%- t("custom_commands.confirm_delete_msg") %>';
+const I18N_CC_ERR_LIMIT  = <%- JSON.stringify(t("custom_commands.err_limit")) %>;
+const I18N_CC_ERR_DUP    = <%- JSON.stringify(t("custom_commands.err_duplicate")) %>;
 let commands      = <%- JSON.stringify(commands) %>;
 let savedCommands = JSON.parse(JSON.stringify(commands));
 let embedFields      = []; // { name, value, inline }
@@ -811,9 +815,12 @@ function refreshCcStats() {
 }
 
 async function saveCommands() {
-    const msg  = document.getElementById('ccListMsg');
     const data = await apiFetch('/custom-commands', 'POST', { commands });
-    showMsg(msg, data.message, data.success ? 'success' : 'error');
+    if (data.success) {
+        queueToast(data.message, 'success');
+    } else {
+        showAlert(data.message);
+    }
     if (data.success) {
         savedCommands = JSON.parse(JSON.stringify(commands));
         document.getElementById('cmdCount').textContent = commands.length;
@@ -922,8 +929,17 @@ function addCommandFromForm() {
 
     // Slot limit check — only when adding new (not editing existing)
     if (editingIdx === -1 && commands.length >= 10) {
-        showMsg(addMsg, 'Command limit reached (10/10). Delete an existing command first.', 'error');
+        showAlert(I18N_CC_ERR_LIMIT);
         return false;
+    }
+    // Duplicate trigger check — only when adding new
+    if (editingIdx === -1) {
+        const dup = commands.findIndex(c => c.trigger.toLowerCase() === trigger.toLowerCase());
+        if (dup !== -1) {
+            showAlert(I18N_CC_ERR_DUP.replace('{{trigger}}', trigger));
+            document.getElementById('ccTrigger').focus();
+            return false;
+        }
     }
 
     const mode   = document.getElementById('ccMode').value;
@@ -961,7 +977,7 @@ async function deleteCommand(btn) {
     const row     = btn.closest('.cc-row');
     const idx     = parseInt(row.dataset.idx);
     const trigger = commands[idx]?.trigger || '';
-    if (!confirm(`Delete command "${trigger}"?`)) return;
+    if (!await showConfirm(I18N_CC_DEL_TITLE, I18N_CC_DEL_MSG.replace('{{trigger}}', trigger))) return;
     commands.splice(idx, 1);
     renderList();
     refreshCcStats();
@@ -1083,7 +1099,7 @@ function validateUrlOnBlur(el, event) {
     const msg = /^https?:\/\//i.test(url)
         ? `**${label}**: Not a valid URL — must be a public https:// link.`
         : `**${label}**: URL must start with https://`;
-    showMsg(null, msg, 'error');
+    showAlert(msg);
 }
 function getInvalidUrlField() {
     // [id, label, mustBeImage]

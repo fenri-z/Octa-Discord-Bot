@@ -216,18 +216,16 @@ function getPayload() {
 }
 
 async function saveConfig() {
-    const msg  = document.getElementById('cfgMsg');
     const data = await apiFetch('/extlog', 'POST', getPayload());
-    showMsg(msg, data.message, data.success ? 'success' : 'error');
-    if (data.success) refreshElStats();
+    if (data.success) { queueToast(data.message, 'success'); refreshElStats(); }
+    else showAlert(data.message);
 }
 
 ['evtMessageEdit','evtMessageDelete','evtVoiceActivity','evtNicknameChange','evtRoleChange'].forEach(id => {
     document.getElementById(id)?.addEventListener('change', async function () {
-        const msg  = document.getElementById('evtMsg');
         const data = await apiFetch('/extlog', 'POST', getPayload());
-        showMsg(msg, data.message, data.success ? 'success' : 'error');
-        if (data.success) refreshElStats(); else this.checked = !this.checked;
+        if (data.success) { queueToast(data.message, 'success'); refreshElStats(); }
+        else { showAlert(data.message); this.checked = !this.checked; }
     });
 });
 

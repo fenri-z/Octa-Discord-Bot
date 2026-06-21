@@ -234,14 +234,12 @@ document.getElementById('ssEnabled')?.addEventListener('change', async function(
         body: JSON.stringify({ enabled: checked })
     });
     const data = await res.json();
-    showMsg(msg, data.message, data.success ? 'success' : 'error');
-    if (data.success) updateStatusCard(checked);
-    else this.checked = !checked;
+    if (data.success) { queueToast(data.message, 'success'); updateStatusCard(checked); }
+    else { showAlert(data.message); this.checked = !checked; }
 });
 
 // ── Save labels ──────────────────────────────────────────────────────
 async function saveLabels(guildId) {
-    const msg = document.getElementById('labelsMsg');
     const totalLabel    = document.getElementById('lblTotal')?.value.trim();
     const humanLabel    = document.getElementById('lblHuman')?.value.trim();
     const botLabel      = document.getElementById('lblBot')?.value.trim();
@@ -253,7 +251,8 @@ async function saveLabels(guildId) {
         body: JSON.stringify({ totalLabel, humanLabel, botLabel, categoryLabel })
     });
     const data = await res.json();
-    showMsg(msg, data.message, data.success ? 'success' : 'error');
+    if (data.success) queueToast(data.message, 'success');
+    else showAlert(data.message);
 }
 
 // ── Setup ────────────────────────────────────────────────────────────
@@ -271,7 +270,7 @@ async function doSetup(guildId) {
     const data = await res.json();
     if (btn) { btn.disabled = false; btn.innerHTML = '<i data-lucide="plus-circle"></i> Create Stats Channels'; if(window.lucide) lucide.createIcons(); }
     if (data.success) { queueToast(data.message, 'success'); location.reload(); }
-    else showMsg(msg, data.message, 'error');
+    else showAlert(data.message);
 }
 
 // ── Reset ────────────────────────────────────────────────────────────
@@ -299,7 +298,7 @@ async function confirmReset() {
     btn.innerHTML = '<i data-lucide="trash-2"></i> Yes, Delete All';
     if (window.lucide) lucide.createIcons();
     if (data.success) { closeResetModal(); queueToast(data.message, 'success'); location.reload(); }
-    else showMsg(msg, data.message, 'error');
+    else showAlert(data.message);
 }
 
 function showMsg(el, text, type) {

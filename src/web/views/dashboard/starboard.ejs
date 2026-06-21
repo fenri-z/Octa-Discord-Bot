@@ -159,8 +159,9 @@
 
 <script>
 const GUILD_ID       = '<%= guild.id %>';
-const I18N_SB_ACTIVE   = '<%- t("starboard.status_active") %>';
-const I18N_SB_INACTIVE = '<%- t("starboard.status_inactive") %>';
+const I18N_SB_ACTIVE      = '<%- t("starboard.status_active") %>';
+const I18N_SB_INACTIVE    = '<%- t("starboard.status_inactive") %>';
+const I18N_SB_ERR_THRESH  = <%- JSON.stringify(t("starboard.err_threshold")) %>;
 
 function refreshSbStats() {
     const enabled   = document.getElementById('sbEnabled')?.checked;
@@ -208,7 +209,7 @@ async function saveConfig() {
     const msg       = document.getElementById('sbMsg');
     const threshold = parseInt(document.getElementById('sbThreshold').value, 10);
     if (isNaN(threshold) || threshold < 1 || threshold > 50) {
-        showMsg(msg, 'Minimum Reaction must be between 1 and 50.', 'error');
+        showAlert(I18N_SB_ERR_THRESH);
         return;
     }
     const data = await apiFetch('/starboard', 'POST', {
@@ -217,8 +218,8 @@ async function saveConfig() {
         emoji:     document.getElementById('sbEmoji').value.trim() || '⭐',
         threshold,
     });
-    showMsg(msg, data.message, data.success ? 'success' : 'error');
-    if (data.success) refreshSbStats();
+    if (data.success) { queueToast(data.message, 'success'); refreshSbStats(); }
+    else showAlert(data.message);
 }
 
 document.addEventListener('keydown', function(e) {

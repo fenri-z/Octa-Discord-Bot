@@ -1064,22 +1064,20 @@
 <div class="mb-modal-backdrop" id="deletePanelBackdrop" onclick="closeDeleteConfirm()"></div>
 <div class="mb-modal mb-modal-sm" id="deletePanelModal" data-flt-ignore>
     <div class="mb-modal-header">
-        <h2><i data-lucide="trash-2" style="width:16px;height:16px;vertical-align:middle;margin-right:.4rem;color:#da373c;"></i>Delete Panel</h2>
+        <h2><i data-lucide="trash-2" style="width:16px;height:16px;vertical-align:middle;margin-right:.4rem;color:#da373c;"></i><%= t('autorole.delete_panel_title') %></h2>
         <button class="mb-modal-close" onclick="closeDeleteConfirm()">✕</button>
     </div>
     <div class="mb-modal-body">
-        <p style="color:var(--text-muted);font-size:.9rem;margin:0;">
-            Delete panel <strong id="deletePanelNameLabel"></strong>?
-        </p>
+        <p id="deletePanelMsg" style="color:var(--text-muted);font-size:.9rem;margin:0;"></p>
         <p id="deletePanelWarning" style="display:none;color:#da373c;font-size:.82rem;margin-top:.6rem;background:rgba(218,55,60,.1);border-radius:6px;padding:.5rem .75rem;">
             <i data-lucide="alert-triangle" style="width:13px;height:13px;vertical-align:middle;margin-right:.3rem;"></i>
-            The message already sent on Discord will also be permanently deleted.
+            <%= t('autorole.delete_panel_warning') %>
         </p>
     </div>
     <div class="mb-modal-footer">
         <div style="display:flex;gap:.75rem;justify-content:flex-end;">
             <button class="btn btn-outline" onclick="closeDeleteConfirm()"><%= t('common.cancel') %></button>
-            <button class="btn btn-danger" onclick="doDeleteConfirm()"><i data-lucide="trash-2" style="width:14px;height:14px;vertical-align:middle;margin-right:.3rem;"></i>Delete</button>
+            <button class="btn btn-danger" onclick="doDeleteConfirm()"><i data-lucide="trash-2" style="width:14px;height:14px;vertical-align:middle;margin-right:.3rem;"></i><%= t('common.delete') %></button>
         </div>
     </div>
 </div>
@@ -1348,41 +1346,6 @@
 .mb-search  { flex:1; min-width:180px; max-width:320px; }
 .empty-state { text-align:center; padding:2.5rem 1rem; color:var(--text-muted); }
 
-/* ── Modal ── */
-.mb-modal-backdrop {
-    display:none; position:fixed; inset:0;
-    background:rgba(0,0,0,.6); z-index:400;
-    opacity:0; transition:opacity .2s; pointer-events:none;
-}
-.mb-modal-backdrop.open { display:block; opacity:1; pointer-events:auto; }
-.mb-modal {
-    display:none; position:fixed;
-    top:50%; left:50%; transform:translate(-50%,-50%) scale(.96);
-    width:min(96vw,700px); max-height:90vh;
-    background:var(--bg2); border:1px solid var(--border);
-    border-radius:12px; z-index:401;
-    flex-direction:column;
-    box-shadow:0 16px 48px rgba(0,0,0,.6);
-    transition:transform .2s, opacity .2s; opacity:0;
-}
-.mb-modal.open { display:flex; transform:translate(-50%,-50%) scale(1); opacity:1; }
-.mb-modal-sm   { width:min(96vw,420px); }
-.mb-modal-wide { width:min(96vw,860px); }
-.mb-modal-full { width:min(96vw,960px); }
-.mb-modal-header {
-    display:flex; align-items:center; justify-content:space-between;
-    padding:1rem 1.25rem; border-bottom:1px solid var(--border); flex-shrink:0;
-}
-.mb-modal-header h2 { font-size:1.05rem; font-weight:600; }
-.mb-modal-close {
-    background:none; border:none; color:var(--text-muted);
-    font-size:1.1rem; cursor:pointer; padding:.25rem .4rem;
-    border-radius:6px; transition:background .15s;
-}
-.mb-modal-close:hover { background:var(--bg3); color:var(--text); }
-.mb-modal-body { padding:1.25rem; overflow-y:auto; flex:1; }
-.mb-modal-footer { padding:1rem 1.25rem; border-top:1px solid var(--border); flex-shrink:0; }
-
 /* ── Multi count buttons ── */
 .multi-count-btn { min-width:80px; }
 .multi-count-btn:hover { background:var(--accent); border-color:var(--accent); color:#fff; }
@@ -1644,6 +1607,25 @@ const GUILD_ID  = '<%= guild.id %>';
 const ALL_ROLES = <%- JSON.stringify(roles) %>;
 const CHANNELS  = <%- JSON.stringify(Object.fromEntries(channels.map(c=>[c.id,c.name]))) %>;
 const ROLES_MAP = <%- JSON.stringify(Object.fromEntries(roles.map(r=>[r.id,{name:r.name,color:r.color}]))) %>;
+const I18N_AR_DEL_PANEL_MSG    = '<%- t("autorole.delete_panel_msg") %>';
+const I18N_AR_ERR_MAX_BTNS    = '<%- t("autorole.err_max_buttons") %>';
+const I18N_AR_ERR_PANEL_FULL  = '<%- t("autorole.err_panel_full") %>';
+const I18N_AR_ERR_MAX_REACTS  = '<%- t("autorole.err_max_reactions") %>';
+const I18N_AR_ERR_INVALID_NAME   = <%- JSON.stringify(t("autorole.err_invalid_name")) %>;
+const I18N_AR_ERR_NAME_EXISTS    = <%- JSON.stringify(t("autorole.err_name_exists")) %>;
+const I18N_AR_ERR_IMG_URL        = <%- JSON.stringify(t("autorole.err_invalid_image_url")) %>;
+const I18N_AR_ERR_THUMB_URL      = <%- JSON.stringify(t("autorole.err_invalid_thumb_url")) %>;
+const I18N_AR_ERR_COLOR          = <%- JSON.stringify(t("autorole.err_invalid_color")) %>;
+const I18N_AR_ERR_NO_CH          = <%- JSON.stringify(t("autorole.err_no_channel")) %>;
+const I18N_AR_ERR_NO_CH_FIRST    = <%- JSON.stringify(t("autorole.err_no_channel_first")) %>;
+const I18N_AR_ERR_NO_CONTENT     = <%- JSON.stringify(t("autorole.err_no_content")) %>;
+const I18N_AR_ERR_NO_BUTTONS     = <%- JSON.stringify(t("autorole.err_no_buttons")) %>;
+const I18N_AR_ERR_NO_REACTIONS   = <%- JSON.stringify(t("autorole.err_no_reactions")) %>;
+const I18N_AR_ERR_PANEL_LIMIT    = <%- JSON.stringify(t("autorole.err_btn_panel_limit")) %>;
+const I18N_AR_BTN_ERR_NO_ROLE   = <%- JSON.stringify(t("autorole.btn_err_no_role")) %>;
+const I18N_AR_BTN_ERR_NO_LABEL  = <%- JSON.stringify(t("autorole.btn_err_no_label")) %>;
+const I18N_AR_BTN_ERR_LABEL_LNG = <%- JSON.stringify(t("autorole.btn_err_label_long")) %>;
+const I18N_AR_BTN_ERR_DUP_ROLE  = <%- JSON.stringify(t("autorole.btn_err_dup_role")) %>;
 
 function updatePanelPreviewChannel() {
     const el = document.getElementById('apPreviewChannel');
@@ -1893,15 +1875,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 function _reloadKeepHash(msg, type) { if (msg) queueToast(msg, type || 'success'); location.reload(); }
 
-// ── Helper modal ─────────────────────────────────────────────────────────────
-function openModal(bid, mid)  {
-    document.getElementById(bid).classList.add('open');
-    document.getElementById(mid).classList.add('open');
-}
-function closeModal(bid, mid) {
-    document.getElementById(bid).classList.remove('open');
-    document.getElementById(mid).classList.remove('open');
-}
+// openModal / closeModal tersedia global dari footer.ejs
 function showMsg(el, text, type) {
     el.textContent = text;
     el.className   = `form-message msg-${type}`;
@@ -1946,15 +1920,15 @@ async function saveJoin() {
     const memberRoleId  = document.getElementById('joinMemberRole').value;
     const botEnabled    = document.getElementById('joinBotEnabled').checked;
     const botRoleId     = document.getElementById('joinBotRole').value;
-    if (memberEnabled && !memberRoleId) { showMsg(msg, '<%= t("autorole.error_join_member_role") %>', 'error'); throw new Error(); }
-    if (botEnabled    && !botRoleId)    { showMsg(msg, '<%= t("autorole.error_join_bot_role") %>',    'error'); throw new Error(); }
+    if (memberEnabled && !memberRoleId) { showAlert('<%- t("autorole.error_join_member_role") %>'); throw new Error(); }
+    if (botEnabled    && !botRoleId)    { showAlert('<%- t("autorole.error_join_bot_role") %>');    throw new Error(); }
     const res  = await fetch(`/api/guild/${GUILD_ID}/autorole-join`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ memberEnabled, memberRoleId, botEnabled, botRoleId })
     });
     const data = await res.json();
-    if (!data.success) { showMsg(msg, data.message, 'error'); throw new Error(data.message); }
-    showMsg(msg, data.message, 'success');
+    if (!data.success) { showAlert(data.message); throw new Error(data.message); }
+    queueToast(data.message, 'success');
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -1965,14 +1939,14 @@ async function saveBooster() {
     const autoroleEnabled = document.getElementById('boosterAutoroleEnabled').checked;
     const autoroleRoleId  = document.getElementById('boosterAutoroleRole').value;
     const autoremoveEnabled = document.getElementById('boosterAutoremoveEnabled').checked;
-    if (autoroleEnabled && !autoroleRoleId) { showMsg(msg, '<%= t("autorole.error_booster_role") %>', 'error'); throw new Error(); }
+    if (autoroleEnabled && !autoroleRoleId) { showAlert('<%- t("autorole.error_booster_role") %>'); throw new Error(); }
     const res  = await fetch(`/api/guild/${GUILD_ID}/autorole-booster`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ autoroleEnabled, autoroleRoleId, autoremoveEnabled })
     });
     const data = await res.json();
-    if (!data.success) { showMsg(msg, data.message, 'error'); throw new Error(data.message); }
-    showMsg(msg, data.message, 'success');
+    if (!data.success) { showAlert(data.message); throw new Error(data.message); }
+    queueToast(data.message, 'success');
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -2236,7 +2210,12 @@ async function savePanel() {
     const name         = originalName || document.getElementById('panelName').value.trim().toLowerCase();
 
     if (!name || !/^[a-zA-Z0-9_-]{1,32}$/.test(name)) {
-        showMsg(msg, 'Invalid panel name. Use letters, numbers, - or _.', 'error'); throw new Error();
+        showAlert(I18N_AR_ERR_INVALID_NAME); throw new Error();
+    }
+
+    if (!originalName) {
+        const exists = document.querySelector(`.ar-panel-card:not([data-type])[data-name="${name}"]`);
+        if (exists) { showAlert(I18N_AR_ERR_NAME_EXISTS.replace('{{name}}', name)); throw new Error(); }
     }
 
     const panelPlainText   = document.getElementById('panelPlainText').value.trim();
@@ -2251,22 +2230,22 @@ async function savePanel() {
     const hasEmbedContent  = !!(embedTitle || embedDescription);
 
     const urlOk = v => !v || v === '-' || /^https?:\/\/.+\..+/.test(v);
-    if (!urlOk(rawImage)) { showMsg(msg, 'Invalid image URL. Must start with https://...', 'error'); throw new Error(); }
-    if (!urlOk(rawThumb)) { showMsg(msg, 'Invalid thumbnail URL. Must start with https://...', 'error'); throw new Error(); }
-    if (!/^#[0-9A-Fa-f]{6}$/.test(embedColor)) { showMsg(msg, 'Invalid embed color. Example: #5865F2', 'error'); throw new Error(); }
+    if (!urlOk(rawImage)) { showAlert(I18N_AR_ERR_IMG_URL); throw new Error(); }
+    if (!urlOk(rawThumb)) { showAlert(I18N_AR_ERR_THUMB_URL); throw new Error(); }
+    if (!/^#[0-9A-Fa-f]{6}$/.test(embedColor)) { showAlert(I18N_AR_ERR_COLOR); throw new Error(); }
 
     const channelId = document.getElementById('panelSendPreviewChannel').value;
-    if (!channelId) { showMsg(msg, 'Please select a channel to send this panel.', 'error'); throw new Error(); }
+    if (!channelId) { showAlert(I18N_AR_ERR_NO_CH); throw new Error(); }
 
     if (!panelPlainText && !embedTitle && !embedDescription) {
-        showMsg(msg, 'Fill in at least a Plain Text message or Embed title/description.', 'error'); throw new Error();
+        showAlert(I18N_AR_ERR_NO_CONTENT); throw new Error();
     }
 
     const validBtns = _inlineBtns.filter(b => b.roleId && b.label);
-    if (validBtns.length === 0) { showMsg(msg, 'Add at least 1 role button before saving.', 'error'); throw new Error(); }
+    if (validBtns.length === 0) { showAlert(I18N_AR_ERR_NO_BUTTONS); throw new Error(); }
 
     if (!originalName) {
-        if (<%= panels.length %> >= 20) { showMsg(msg, 'Panel limit reached (20/20). Delete an existing panel first.', 'error'); throw new Error(); }
+        if (<%= panels.length %> >= 20) { showAlert(I18N_AR_ERR_PANEL_LIMIT); throw new Error(); }
     }
 
     const el = id => document.getElementById(id);
@@ -2300,7 +2279,7 @@ async function savePanel() {
         body: JSON.stringify(payload)
     });
     const data = await res.json();
-    if (!data.success) { showMsg(msg, data.message, 'error'); throw new Error(data.message); }
+    if (!data.success) { showAlert(data.message); throw new Error(data.message); }
 
     // Simpan tombol inline — untuk panel baru maupun edit
     const btns = _inlineBtns.filter(b => b.roleId && b.label);
@@ -2311,39 +2290,22 @@ async function savePanel() {
         });
     } catch(e) { console.error('Failed to save inline buttons:', e); }
 
-    if (originalName) {
-        // Edit panel
-        showMsg(msg, data.message, 'success');
-        const pendingCh = _pendingBtnSendChannel;
-        _pendingBtnSendChannel = '';
-        if (pendingCh) {
-            try {
-                const sendRes  = await fetch(`/api/guild/${GUILD_ID}/autorole-button/${encodeURIComponent(name)}/send`, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ channelId: pendingCh })
-                });
-                const sendData = await sendRes.json();
-                showMsg(msg, sendData.success ? '✅ Saved & sent to channel!' : `Saved, but send failed: ${sendData.message}`, sendData.success ? 'success' : 'error');
-            } catch { showMsg(msg, '✅ Saved, but failed to send.', 'error'); }
-            setTimeout(() => { closePanelModal(); _reloadKeepHash(); }, 1200);
-        } else {
-            setTimeout(() => { closePanelModal(); _reloadKeepHash(); }, 800);
-        }
+    const pendingCh = _pendingBtnSendChannel;
+    _pendingBtnSendChannel = '';
+    if (pendingCh) {
+        try {
+            const sendRes  = await fetch(`/api/guild/${GUILD_ID}/autorole-button/${encodeURIComponent(name)}/send`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ channelId: pendingCh })
+            });
+            const sendData = await sendRes.json();
+            if (sendData.success) queueToast(data.message + ' ✅', 'success');
+            else { queueToast(data.message, 'success'); showAlert(`Send failed: ${sendData.message}`); }
+        } catch { queueToast(data.message, 'success'); }
+        setTimeout(() => { closePanelModal(); _reloadKeepHash(); }, 800);
     } else {
-        // Panel baru — kirim jika _pendingBtnSendChannel diisi (dari tombol Send), atau simpan saja
-        showMsg(msg, data.message, 'success');
-        const pendingNewCh = _pendingBtnSendChannel;
-        _pendingBtnSendChannel = '';
-        if (pendingNewCh) {
-            try {
-                const sendRes  = await fetch(`/api/guild/${GUILD_ID}/autorole-button/${encodeURIComponent(name)}/send`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ channelId: pendingNewCh }) });
-                const sendData = await sendRes.json();
-                showMsg(msg, sendData.success ? '✅ Saved & sent to channel!' : `Saved, but send failed: ${sendData.message}`, sendData.success ? 'success' : 'error');
-            } catch { showMsg(msg, '✅ Saved, but failed to send.', 'error'); }
-            setTimeout(() => { closePanelModal(); _reloadKeepHash(); }, 1200);
-        } else {
-            setTimeout(() => { closePanelModal(); _reloadKeepHash(); }, 800);
-        }
+        queueToast(data.message, 'success');
+        setTimeout(() => { closePanelModal(); _reloadKeepHash(); }, 800);
     }
 }
 
@@ -2353,7 +2315,7 @@ let _pendingBtnSendChannel = '';
 
 async function saveAndSendPanel() {
     const channelId = document.getElementById('panelSendPreviewChannel').value;
-    if (!channelId) { showMsg(document.getElementById('panelMsg'), 'Please select a channel first.', 'error'); return; }
+    if (!channelId) { showAlert(I18N_AR_ERR_NO_CH_FIRST); return; }
     _pendingBtnSendChannel = channelId;
     await savePanel();
 }
@@ -2442,7 +2404,7 @@ function updateInlineBtn(i) {
 }
 
 function addInlineBtnRow() {
-    if (_inlineBtns.length >= 25) return alert('Max 25 buttons per panel.');
+    if (_inlineBtns.length >= 25) return showAlert(I18N_AR_ERR_MAX_BTNS);
     _inlineBtns.push({ roleId: '', label: '', style: 1 });
     renderInlineBtnTable();
     setTimeout(() => { document.getElementById('panelFormCard').scrollIntoView({ behavior: 'smooth', block: 'end' }); }, 50);
@@ -2465,7 +2427,7 @@ function updatePanelPreviewBtns() {
 
 let _deleteConfirmCallback = null;
 function openDeleteConfirm(name, isSent, callback) {
-    document.getElementById('deletePanelNameLabel').textContent = `"${name}"`;
+    document.getElementById('deletePanelMsg').textContent = I18N_AR_DEL_PANEL_MSG.replace('{{name}}', `"${name}"`);
     document.getElementById('deletePanelWarning').style.display = isSent ? '' : 'none';
     _deleteConfirmCallback = callback;
     openModal('deletePanelBackdrop', 'deletePanelModal');
@@ -2484,7 +2446,7 @@ async function deletePanel(name) {
         const res  = await fetch(`/api/guild/${GUILD_ID}/autorole-button/${encodeURIComponent(name)}`, { method: 'DELETE' });
         const data = await res.json();
         if (data.success) _reloadKeepHash(data.message, 'success');
-        else alert(data.message);
+        else showAlert(data.message);
     });
 }
 
@@ -2509,15 +2471,14 @@ function openSendPanel(name) {
 function closeSendPanel() { closeModal('sendPanelBackdrop', 'sendPanelModal'); }
 
 async function doSendPanel() {
-    const msg = document.getElementById('sendPanelMsg');
     const res = await fetch(`/api/guild/${GUILD_ID}/autorole-button/${encodeURIComponent(_sendPanelName)}/send`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ channelId: _sendPanelChannelId })
     });
     const data = await res.json();
-    if (!data.success) return showMsg(msg, data.message, 'error');
-    showMsg(msg, data.message, 'success');
-    setTimeout(() => { closeSendPanel(); _reloadKeepHash(); }, 1000);
+    if (!data.success) { showAlert(data.message); return; }
+    queueToast(data.message, 'success');
+    setTimeout(() => { closeSendPanel(); _reloadKeepHash(); }, 800);
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -2609,7 +2570,7 @@ async function refreshBtnData() {
 }
 
 function addButtonRow() {
-    if (_btnData.length >= 25) return alert('Panel is full (max 25 buttons).');
+    if (_btnData.length >= 25) return showAlert(I18N_AR_ERR_PANEL_FULL);
     _btnData.push({ roleId: '', label: '', style: 1 });
     renderBtnEditorTable();
     const body = document.getElementById('btnModal').querySelector('.mb-modal-body');
@@ -2930,7 +2891,12 @@ async function saveReactPanel() {
     const name         = originalName || document.getElementById('reactPanelName').value.trim().toLowerCase();
 
     if (!name || !/^[a-zA-Z0-9_-]{1,32}$/.test(name)) {
-        showMsg(msg, 'Invalid panel name. Use letters, numbers, - or _.', 'error'); throw new Error();
+        showAlert(I18N_AR_ERR_INVALID_NAME); throw new Error();
+    }
+
+    if (!originalName) {
+        const exists = document.querySelector(`.ar-panel-card[data-type="reaction"][data-name="${name}"]`);
+        if (exists) { showAlert(I18N_AR_ERR_NAME_EXISTS.replace('{{name}}', name)); throw new Error(); }
     }
 
     const panelPlainText   = document.getElementById('reactPanelPlainText').value.trim();
@@ -2945,22 +2911,22 @@ async function saveReactPanel() {
     const hasEmbedContent  = !!(embedTitle || embedDescription);
 
     const urlOk = v => !v || v === '-' || /^https?:\/\/.+\..+/.test(v);
-    if (!urlOk(rawImage)) { showMsg(msg, 'Invalid image URL. Must start with https://...', 'error'); throw new Error(); }
-    if (!urlOk(rawThumb)) { showMsg(msg, 'Invalid thumbnail URL. Must start with https://...', 'error'); throw new Error(); }
-    if (!/^#[0-9A-Fa-f]{6}$/.test(embedColor)) { showMsg(msg, 'Invalid embed color. Example: #5865F2', 'error'); throw new Error(); }
+    if (!urlOk(rawImage)) { showAlert(I18N_AR_ERR_IMG_URL); throw new Error(); }
+    if (!urlOk(rawThumb)) { showAlert(I18N_AR_ERR_THUMB_URL); throw new Error(); }
+    if (!/^#[0-9A-Fa-f]{6}$/.test(embedColor)) { showAlert(I18N_AR_ERR_COLOR); throw new Error(); }
 
     const reactChannelId = document.getElementById('reactSendPreviewChannel').value;
-    if (!reactChannelId) { showMsg(msg, 'Please select a channel to send this panel.', 'error'); throw new Error(); }
+    if (!reactChannelId) { showAlert(I18N_AR_ERR_NO_CH); throw new Error(); }
 
     if (!panelPlainText && !embedTitle && !embedDescription) {
-        showMsg(msg, 'Fill in at least a Plain Text message or Embed title/description.', 'error'); throw new Error();
+        showAlert(I18N_AR_ERR_NO_CONTENT); throw new Error();
     }
 
     const validReacts = _inlineReacts.filter(r => r.emoji && r.roleId);
-    if (validReacts.length === 0) { showMsg(msg, 'Add at least 1 reaction before saving.', 'error'); throw new Error(); }
+    if (validReacts.length === 0) { showAlert(I18N_AR_ERR_NO_REACTIONS); throw new Error(); }
 
     if (!originalName) {
-        if (<%= reactPanels.length %> >= 20) { showMsg(msg, 'Panel limit reached (20/20). Delete an existing panel first.', 'error'); throw new Error(); }
+        if (<%= reactPanels.length %> >= 20) { showAlert(I18N_AR_ERR_PANEL_LIMIT); throw new Error(); }
     }
 
     const rEl = id => document.getElementById(id);
@@ -2990,7 +2956,7 @@ async function saveReactPanel() {
         body: JSON.stringify(payload)
     });
     const data = await res.json();
-    if (!data.success) { showMsg(msg, data.message, 'error'); throw new Error(data.message); }
+    if (!data.success) { showAlert(data.message); throw new Error(data.message); }
 
     // Simpan reactions inline
     const reacts = _inlineReacts.filter(r => r.emoji && r.roleId);
@@ -3001,35 +2967,19 @@ async function saveReactPanel() {
         });
     } catch(e) { console.error('Gagal simpan reactions inline:', e); }
 
-    if (originalName) {
-        showMsg(msg, data.message, 'success');
-        const pendingCh = _pendingReactSendChannel;
-        _pendingReactSendChannel = '';
-        if (pendingCh) {
-            try {
-                const sendRes  = await fetch(`/api/guild/${GUILD_ID}/autorole-reaction/${encodeURIComponent(name)}/send`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ channelId: pendingCh }) });
-                const sendData = await sendRes.json();
-                showMsg(msg, sendData.success ? '✅ Saved & sent to channel!' : `Saved, but send failed: ${sendData.message}`, sendData.success ? 'success' : 'error');
-            } catch { showMsg(msg, '✅ Saved, but failed to send.', 'error'); }
-            setTimeout(() => { closeReactPanelModal(); _reloadKeepHash(); }, 1200);
-        } else {
-            setTimeout(() => { closeReactPanelModal(); _reloadKeepHash(); }, 800);
-        }
+    const pendingCh = _pendingReactSendChannel;
+    _pendingReactSendChannel = '';
+    if (pendingCh) {
+        try {
+            const sendRes  = await fetch(`/api/guild/${GUILD_ID}/autorole-reaction/${encodeURIComponent(name)}/send`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ channelId: pendingCh }) });
+            const sendData = await sendRes.json();
+            if (sendData.success) queueToast(data.message + ' ✅', 'success');
+            else { queueToast(data.message, 'success'); showAlert(`Send failed: ${sendData.message}`); }
+        } catch { queueToast(data.message, 'success'); }
+        setTimeout(() => { closeReactPanelModal(); _reloadKeepHash(); }, 800);
     } else {
-        // Panel baru — kirim jika _pendingReactSendChannel diisi (dari tombol Send), atau simpan saja
-        showMsg(msg, data.message, 'success');
-        const pendingNewCh = _pendingReactSendChannel;
-        _pendingReactSendChannel = '';
-        if (pendingNewCh) {
-            try {
-                const sendRes  = await fetch(`/api/guild/${GUILD_ID}/autorole-reaction/${encodeURIComponent(name)}/send`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ channelId: pendingNewCh }) });
-                const sendData = await sendRes.json();
-                showMsg(msg, sendData.success ? '✅ Saved & sent to channel!' : `Saved, but send failed: ${sendData.message}`, sendData.success ? 'success' : 'error');
-            } catch { showMsg(msg, '✅ Saved, but failed to send.', 'error'); }
-            setTimeout(() => { closeReactPanelModal(); _reloadKeepHash(); }, 1200);
-        } else {
-            setTimeout(() => { closeReactPanelModal(); _reloadKeepHash(); }, 800);
-        }
+        queueToast(data.message, 'success');
+        setTimeout(() => { closeReactPanelModal(); _reloadKeepHash(); }, 800);
     }
 }
 
@@ -3039,7 +2989,7 @@ let _pendingReactSendChannel = '';
 
 async function saveAndSendReactPanel() {
     const channelId = document.getElementById('reactSendPreviewChannel').value;
-    if (!channelId) { showMsg(document.getElementById('reactPanelMsg'), 'Please select a channel first.', 'error'); return; }
+    if (!channelId) { showAlert(I18N_AR_ERR_NO_CH_FIRST); return; }
     _pendingReactSendChannel = channelId;
     await saveReactPanel();
 }
@@ -3133,7 +3083,7 @@ function updateInlineReact(i) {
 }
 
 function addInlineReactRow() {
-    if (_inlineReacts.length >= 20) return alert('Maks 20 reaction per panel.');
+    if (_inlineReacts.length >= 20) return showAlert(I18N_AR_ERR_MAX_REACTS);
     _inlineReacts.push({ emoji: '', roleId: '' });
     renderInlineReactTable();
     setTimeout(() => { document.getElementById('reactPanelFormCard').scrollIntoView({ behavior: 'smooth', block: 'end' }); }, 50);
@@ -3169,7 +3119,7 @@ async function deleteReactPanel(name) {
         const res  = await fetch(`/api/guild/${GUILD_ID}/autorole-reaction/${encodeURIComponent(name)}`, { method: 'DELETE' });
         const data = await res.json();
         if (data.success) _reloadKeepHash(data.message, 'success');
-        else alert(data.message);
+        else showAlert(data.message);
     });
 }
 
@@ -3193,15 +3143,14 @@ function openSendReactPanel(name) {
 function closeSendReactPanel() { closeModal('sendReactPanelBackdrop', 'sendReactPanelModal'); }
 
 async function doSendReactPanel() {
-    const msg = document.getElementById('sendReactPanelMsg');
     const res = await fetch(`/api/guild/${GUILD_ID}/autorole-reaction/${encodeURIComponent(_sendReactPanelName)}/send`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ channelId: _sendReactPanelChannelId })
     });
     const data = await res.json();
-    if (!data.success) return showMsg(msg, data.message, 'error');
-    showMsg(msg, data.message, 'success');
-    setTimeout(() => { closeSendReactPanel(); _reloadKeepHash(); }, 1000);
+    if (!data.success) { showAlert(data.message); return; }
+    queueToast(data.message, 'success');
+    setTimeout(() => { closeSendReactPanel(); _reloadKeepHash(); }, 800);
 }
 
 async function saveAllButtons() {
@@ -3210,16 +3159,16 @@ async function saveAllButtons() {
 
     // Validasi wajib
     for (let i = 0; i < buttons.length; i++) {
-        if (!buttons[i].roleId) return showMsg(msg, `Button #${i+1}: Please select a role first.`, 'error');
-        if (!buttons[i].label)  return showMsg(msg, `Button #${i+1}: Label cannot be empty.`, 'error');
-        if (buttons[i].label.length > 80) return showMsg(msg, `Button #${i+1}: Label exceeds 80 characters.`, 'error');
+        if (!buttons[i].roleId) return showAlert(I18N_AR_BTN_ERR_NO_ROLE.replace('{{n}}', i+1));
+        if (!buttons[i].label)  return showAlert(I18N_AR_BTN_ERR_NO_LABEL.replace('{{n}}', i+1));
+        if (buttons[i].label.length > 80) return showAlert(I18N_AR_BTN_ERR_LABEL_LNG.replace('{{n}}', i+1));
     }
 
     // Validasi duplikat
     const seen = {};
     for (let i = 0; i < buttons.length; i++) {
         if (seen[buttons[i].roleId] !== undefined) {
-            return showMsg(msg, `Button #${seen[buttons[i].roleId]+1} and #${i+1} use the same role.`, 'error');
+            return showAlert(I18N_AR_BTN_ERR_DUP_ROLE.replace('{{n1}}', seen[buttons[i].roleId]+1).replace('{{n2}}', i+1));
         }
         seen[buttons[i].roleId] = i;
     }
@@ -3229,8 +3178,8 @@ async function saveAllButtons() {
         body: JSON.stringify({ buttons })
     });
     const data = await res.json();
-    if (!data.success) return showMsg(msg, data.message, 'error');
-    showMsg(msg, `${buttons.length} button(s) saved successfully!`, 'success');
+    if (!data.success) { showAlert(data.message); return; }
+    queueToast(data.message, 'success');
     _btnData = buttons;
     renderBtnEditorTable();
     setTimeout(() => { closeBtnModal(); _reloadKeepHash(); }, 800);

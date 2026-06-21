@@ -377,10 +377,10 @@ async function createGiveaway() {
     const roleId      = document.getElementById('gwRole').value;
     const msgEl       = document.getElementById('gwCreateMsg');
 
-    if (!prize)                          { showMsg(msgEl, I18N_GW_ERR_PRIZE,    'error'); throw new Error(); }
-    if (!channelId)                      { showMsg(msgEl, I18N_GW_ERR_CHANNEL,  'error'); throw new Error(); }
-    if (!winnerCount || winnerCount < 1) { showMsg(msgEl, I18N_GW_ERR_WINNERS,  'error'); throw new Error(); }
-    if (!durValue || durValue < 1)       { showMsg(msgEl, I18N_GW_ERR_DURATION, 'error'); throw new Error(); }
+    if (!prize)                          { await showAlert(I18N_GW_ERR_PRIZE);    throw new Error(); }
+    if (!channelId)                      { await showAlert(I18N_GW_ERR_CHANNEL);  throw new Error(); }
+    if (!winnerCount || winnerCount < 1) { await showAlert(I18N_GW_ERR_WINNERS);  throw new Error(); }
+    if (!durValue || durValue < 1)       { await showAlert(I18N_GW_ERR_DURATION); throw new Error(); }
 
     const durationMs = durValue * durUnit;
     let r, data;
@@ -391,14 +391,14 @@ async function createGiveaway() {
         });
         data = await r.json();
     } catch (err) {
-        showMsg(msgEl, I18N_GW_ERR_CONNECT, 'error');
+        showAlert(I18N_GW_ERR_CONNECT);
         throw err;
     }
     if (data.success) {
         queueToast(data.message, 'success');
         location.reload();
     } else {
-        showMsg(msgEl, data.message, 'error');
+        showAlert(data.message);
         throw new Error(data.message);
     }
 }
@@ -407,23 +407,25 @@ window._floatSave = async () => createGiveaway();
 
 // ── End ───────────────────────────────────────────────────────────────────────
 async function endGiveaway(id) {
-    if (!confirm(I18N_GW_CONFIRM_END)) return;
+    if (!await showConfirm('End Giveaway', I18N_GW_CONFIRM_END, { confirmText: 'End', icon: 'trophy', danger: false })) return;
     const msgEl = document.getElementById(`gwMsg-${id}`);
     showMsg(msgEl, 'Mengakhiri giveaway...', 'info');
     const r    = await fetch(`/api/guild/${GUILD_ID}/giveaway/${id}/end`, { method: 'POST' });
     const data = await r.json();
     if (data.success) { queueToast(data.message, 'success'); location.reload(); }
-    else showMsg(msgEl, data.message, 'error');
+    else showAlert(data.message);
 }
 
 // ── Reroll ────────────────────────────────────────────────────────────────────
 async function rerollGiveaway(id) {
-    if (!confirm(I18N_GW_CONFIRM_REROLL)) return;
+    if (!await showConfirm('Reroll Giveaway', I18N_GW_CONFIRM_REROLL, { confirmText: 'Reroll', icon: 'refresh-cw', danger: false })) return;
     const msgEl = document.getElementById(`gwMsg-${id}`);
     showMsg(msgEl, I18N_GW_REROLLING, 'info');
     const r    = await fetch(`/api/guild/${GUILD_ID}/giveaway/${id}/reroll`, { method: 'POST' });
     const data = await r.json();
-    showMsg(msgEl, data.message, data.success ? 'success' : 'error');
+    showMsg(msgEl, '', 'info');
+    if (data.success) queueToast(data.message, 'success');
+    else showAlert(data.message);
 }
 
 function refreshGwStats() {
@@ -435,7 +437,7 @@ function refreshGwStats() {
 
 // ── Delete from history ───────────────────────────────────────────────────────
 async function deleteGiveaway(id) {
-    if (!confirm(I18N_GW_CONFIRM_DEL)) return;
+    if (!await showConfirm('Delete Giveaway', I18N_GW_CONFIRM_DEL)) return;
     const msgEl = document.getElementById(`gwMsg-${id}`);
     showMsg(msgEl, I18N_GW_DELETING, 'info');
     const r    = await fetch(`/api/guild/${GUILD_ID}/giveaway/${id}/remove`, { method: 'POST' });
@@ -445,18 +447,17 @@ async function deleteGiveaway(id) {
         if (row) row.remove();
         refreshGwStats();
     } else {
-        showMsg(msgEl, data.message, 'error');
+        showAlert(data.message);
     }
 }
 
 // ── Cancel ────────────────────────────────────────────────────────────────────
 async function cancelGiveaway(id) {
-    if (!confirm(I18N_GW_CONFIRM_CANCEL)) return;
-    const msgEl = document.getElementById(`gwMsg-${id}`);
-    const r     = await fetch(`/api/guild/${GUILD_ID}/giveaway/${id}`, { method: 'DELETE' });
-    const data  = await r.json();
+    if (!await showConfirm('Cancel Giveaway', I18N_GW_CONFIRM_CANCEL, { confirmText: 'Cancel Giveaway', icon: 'x-circle', danger: false })) return;
+    const r    = await fetch(`/api/guild/${GUILD_ID}/giveaway/${id}`, { method: 'DELETE' });
+    const data = await r.json();
     if (data.success) { queueToast(data.message, 'success'); location.reload(); }
-    else showMsg(msgEl, data.message, 'error');
+    else showAlert(data.message);
 }
 
 // ── Helper ────────────────────────────────────────────────────────────────────

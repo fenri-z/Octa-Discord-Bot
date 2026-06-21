@@ -509,39 +509,7 @@
     background: rgba(237,66,69,.05) !important;
 }
 
-/* ── Send modal ── */
-.mb-modal-backdrop {
-    display:none; position:fixed; inset:0;
-    background:rgba(0,0,0,.6); z-index:400;
-    opacity:0; transition:opacity .2s;
-    pointer-events:none;
-}
-.mb-modal-backdrop.open { display:block; opacity:1; pointer-events:auto; }
-.mb-modal {
-    display:none; position:fixed;
-    top:50%; left:50%; transform:translate(-50%,-50%) scale(.96);
-    width:min(96vw,420px); max-height:90vh;
-    background:var(--bg2); border:1px solid var(--border);
-    border-radius:12px; z-index:401;
-    flex-direction:column;
-    box-shadow:0 16px 48px rgba(0,0,0,.6);
-    transition:transform .2s, opacity .2s;
-    opacity:0;
-}
-.mb-modal.open { display:flex; transform:translate(-50%,-50%) scale(1); opacity:1; }
-.mb-modal-header {
-    display:flex; align-items:center; justify-content:space-between;
-    padding:1rem 1.25rem; border-bottom:1px solid var(--border); flex-shrink:0;
-}
-.mb-modal-header h2 { font-size:1.05rem; font-weight:600; }
-.mb-modal-close {
-    background:none; border:none; color:var(--text-muted);
-    font-size:1.1rem; cursor:pointer; padding:.25rem .4rem;
-    border-radius:6px; transition:background .15s;
-}
-.mb-modal-close:hover { background:var(--bg3); color:var(--text); }
-.mb-modal-body   { padding:1.25rem; overflow-y:auto; flex:1; }
-.mb-modal-footer { padding:1rem 1.25rem; border-top:1px solid var(--border); flex-shrink:0; }
+/* ── Send modal (style dari global style.css) ── */
 
 /* ── Panel-card shared styles ── */
 .ar-panel-card {
@@ -626,8 +594,13 @@ const I18N_MB_NEW_TITLE   = '<%= t("message_builder.modal_new_title") %>';
 const I18N_MB_CONFIRM_DEL = <%- JSON.stringify(t("message_builder.confirm_delete")) %>;
 const I18N_MB_ERR_EMPTY   = '<%= t("message_builder.err_name_empty") %>';
 const I18N_MB_ERR_INVALID = '<%= t("message_builder.err_name_invalid") %>';
-const I18N_MB_ERR_NO_CH   = '<%= t("message_builder.err_no_channel") %>';
-const I18N_MB_ERR_LIMIT   = 'Template limit reached (20/20). Delete an existing template first.';
+const I18N_MB_ERR_NO_CH       = '<%= t("message_builder.err_no_channel") %>';
+const I18N_MB_ERR_NO_CH_SEND  = <%- JSON.stringify(t("message_builder.err_no_channel_send")) %>;
+const I18N_MB_ERR_LIMIT       = <%- JSON.stringify(t("message_builder.err_limit")) %>;
+const I18N_MB_ERR_LOAD_TMPL   = <%- JSON.stringify(t("message_builder.err_load_template")) %>;
+const I18N_MB_ERR_DUPLICATE    = <%- JSON.stringify(t("message_builder.err_duplicate")) %>;
+const I18N_MB_ERR_URL_INVALID  = <%- JSON.stringify(t("message_builder.err_url_invalid")) %>;
+const I18N_MB_ERR_URL_IMG      = <%- JSON.stringify(t("message_builder.err_url_not_image")) %>;
 const I18N_MB_NO_TEMPLATES      = '<%= t("message_builder.no_templates") %>';
 const I18N_MB_NO_TEMPLATES_HINT = '<%- t("message_builder.no_templates_hint") %>';
 
@@ -862,7 +835,7 @@ function _applyChannel(chId, locked) {
 async function editTemplate(name, markDirty = true) {
     const res  = await fetch(`/api/guild/${GUILD_ID}/message-builder/${encodeURIComponent(name)}`);
     const data = await res.json();
-    if (!data.success) return alert('Failed to load template: ' + data.message);
+    if (!data.success) return showAlert(I18N_MB_ERR_LOAD_TMPL.replace('{{msg}}', data.message));
     const t = data.template;
 
     _editingName = name;
@@ -922,13 +895,17 @@ async function saveTemplate() {
 
     if (!isEdit) {
         const curCount = document.querySelectorAll('.mb-row').length;
-        if (curCount >= MB_LIMIT) { showMsg(msg, I18N_MB_ERR_LIMIT, 'error'); throw new Error(); }
+        if (curCount >= MB_LIMIT) { showAlert(I18N_MB_ERR_LIMIT); throw new Error(); }
     }
-    if (!name) { showMsg(msg, I18N_MB_ERR_EMPTY, 'error'); throw new Error(); }
-    if (!/^[a-zA-Z0-9_-]{1,32}$/.test(name)) { showMsg(msg, I18N_MB_ERR_INVALID, 'error'); throw new Error(); }
+    if (!name) { showAlert(I18N_MB_ERR_EMPTY); throw new Error(); }
+    if (!/^[a-zA-Z0-9_-]{1,32}$/.test(name)) { showAlert(I18N_MB_ERR_INVALID); throw new Error(); }
+    if (!isEdit && document.querySelector(`.mb-row[data-name="${name}"]`)) {
+        showAlert(I18N_MB_ERR_DUPLICATE.replace('{{name}}', name));
+        throw new Error();
+    }
 
     const channelId = document.getElementById('editChannelId').value;
-    if (!channelId) { showMsg(msg, I18N_MB_ERR_NO_CH, 'error'); throw new Error(); }
+    if (!channelId) { showAlert(I18N_MB_ERR_NO_CH); throw new Error(); }
 
     const plainText  = document.getElementById('editPlainText').value.trim();
     const plainImage = document.getElementById('editPlainImage').value.trim();
@@ -957,19 +934,19 @@ async function saveTemplate() {
         const val = document.getElementById(f.id)?.value.trim();
         if (!val) continue;
         if (!mbIsHttpUrl(val)) {
-            showMsg(msg, `❌ ${f.label}: must start with https://`, 'error');
+            showAlert(I18N_MB_ERR_URL_INVALID.replace('{{label}}', f.label));
             document.getElementById(f.id)?.classList.add('mb-url-warn');
             throw new Error();
         }
         if (f.img && !isHttpImg(val)) {
-            showMsg(msg, `❌ ${f.label}: must be a direct image link (.png .jpg .gif .webp)`, 'error');
+            showAlert(I18N_MB_ERR_URL_IMG.replace('{{label}}', f.label));
             document.getElementById(f.id)?.classList.add('mb-url-warn');
             throw new Error();
         }
     }
 
     const payload = {
-        name, channelId,
+        name, channelId, isNew: !isEdit,
         messageType, plainText, plainImage, title,
         description: desc, footer,
         footerIcon: document.getElementById('editFooterIcon').value.trim(),
@@ -988,7 +965,7 @@ async function saveTemplate() {
         body: JSON.stringify(payload)
     });
     const data = await res.json();
-    if (!data.success) { showMsg(msg, data.message, 'error'); throw new Error(data.message); }
+    if (!data.success) { showAlert(data.message); throw new Error(data.message); }
 
     queueToast(data.message, 'success');
     location.reload();
@@ -1013,13 +990,13 @@ function refreshMbStats() {
 
 // ── Delete template ───────────────────────────────────────────────────────
 async function deleteTemplate(name) {
-    if (!confirm(I18N_MB_CONFIRM_DEL.replace('{{name}}', name))) return;
+    if (!await showConfirm('Delete Template', I18N_MB_CONFIRM_DEL.replace('{{name}}', name))) return;
     const res  = await fetch(`/api/guild/${GUILD_ID}/message-builder/${encodeURIComponent(name)}`, { method: 'DELETE' });
     const data = await res.json();
-    if (!data.success) { showMsg(document.getElementById('mbListMsg'), data.message, 'error'); return; }
+    if (!data.success) { showAlert(data.message); return; }
     const row = document.querySelector(`.mb-row[data-name="${name}"]`);
     if (row) row.remove();
-    showMsg(document.getElementById('mbListMsg'), data.message, 'success');
+    queueToast(data.message, 'success');
     refreshMbStats();
     const list    = document.getElementById('mbList');
     const count   = document.querySelectorAll('.mb-row').length;
@@ -1040,7 +1017,7 @@ function openSendModal(name) {
     const row = document.querySelector(`.mb-row[data-name="${name}"]`);
     const channelId = row?.dataset.channelId || '';
     if (!channelId) {
-        showMsg(document.getElementById('mbListMsg'), I18N_MB_ERR_NO_CH, 'error');
+        showAlert(I18N_MB_ERR_NO_CH_SEND);
         return;
     }
     _sendingName = name;
@@ -1066,8 +1043,8 @@ async function sendTemplate() {
         body: JSON.stringify({})
     });
     const data = await res.json();
-    showMsg(msg, data.message, data.success ? 'success' : 'error');
-    if (data.success) setTimeout(closeSendModal, 1200);
+    if (data.success) { queueToast(data.message, 'success'); setTimeout(closeSendModal, 800); }
+    else showAlert(data.message);
 }
 
 // ── Utility ───────────────────────────────────────────────────────────────

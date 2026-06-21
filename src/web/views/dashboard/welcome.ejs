@@ -1027,7 +1027,8 @@ function insertPh(targetId, ph) {
 const CHANNELS = <%- JSON.stringify(
     Object.fromEntries((locals.channels || []).map(ch => [ch.id, ch.name]))
 ) %>;
-const I18N_NO_CH = '<%= t("common.preview_no_channel") %>';
+const I18N_NO_CH         = '<%= t("common.preview_no_channel") %>';
+const I18N_WL_ERR_NO_CH  = <%- JSON.stringify(t("welcome.err_no_channel")) %>;
 
 // ── Roles map untuk preview mention role ──────────────────────────────────
 const ROLES = <%- JSON.stringify(
@@ -1186,7 +1187,7 @@ toggleCardPanel().then(() => toggleMessageTypePanel());
 async function saveWelcome(guildId) {
     const msg = document.getElementById('welcomeMsg');
     if (!document.getElementById('welcomeChannel').value)
-        return showMsg(msg, 'Please select a destination channel first.', 'error');
+        return showAlert(I18N_WL_ERR_NO_CH);
     const payload = {
         enabled:           document.getElementById('welcomeEnabled').checked,
         channelId:         document.getElementById('welcomeChannel').value,
@@ -1220,7 +1221,8 @@ async function saveWelcome(guildId) {
         body: JSON.stringify(payload)
     });
     const data = await res.json();
-    showMsg(msg, data.message, data.success ? 'success' : 'error');
+    if (data.success) queueToast(data.message, 'success');
+    else showAlert(data.message);
 }
 
 function showMsg(el, text, type) {

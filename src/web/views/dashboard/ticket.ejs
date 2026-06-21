@@ -386,7 +386,7 @@ async function addStaffRole() {
         body: JSON.stringify({ roleId }),
     });
     const data = await res.json();
-    if (!data.success) { showMsg(msg, data.message, 'error'); return; }
+    if (!data.success) { showAlert(data.message); return; }
 
     const r = ROLES_MAP[roleId];
     _staffRoles.push(roleId);
@@ -401,20 +401,19 @@ async function addStaffRole() {
     chip.innerHTML = `<span style="font-size:.8rem;${r?.color ? `color:${r.color};` : ''}">@${r?.name || roleId}</span><button class="am-chip-del" onclick="removeStaffRole('${roleId}')" title="${I18N_TK_REMOVE_TITLE}">×</button>`;
     list.appendChild(chip);
     document.getElementById('staffRoleCounter').textContent = `${_staffRoles.length} role`;
-    showMsg(msg, data.message, 'success');
+    queueToast(data.message, 'success');
 }
 
 async function removeStaffRole(roleId) {
-    const msg  = document.getElementById('staffRoleMsg');
     const res  = await fetch(`/api/guild/${GUILD_ID}/ticket/staff-roles/${roleId}`, { method: 'DELETE' });
     const data = await res.json();
-    if (!data.success) { showMsg(msg, data.message, 'error'); return; }
+    if (!data.success) { showAlert(data.message); return; }
 
     _staffRoles = _staffRoles.filter(id => id !== roleId);
     document.querySelector(`.am-word-chip[data-id="${roleId}"]`)?.remove();
     document.getElementById('staffRoleCounter').textContent = `${_staffRoles.length} role`;
     if (_staffRoles.length === 0) document.getElementById('staffRoleEmpty').style.display = '';
-    showMsg(msg, data.message, 'success');
+    queueToast(data.message, 'success');
 }
 
 // ── showMsg helper ────────────────────────────────────────────────────────────
@@ -437,13 +436,13 @@ async function saveConfig(quiet = false) {
         body: JSON.stringify(payload)
     });
     const data = await res.json();
-    if (!quiet) showMsg(msg, data.message, data.success ? 'success' : 'error');
+    if (data.success) { if (!quiet) queueToast(data.message, 'success'); }
+    else { if (!quiet) showAlert(data.message); }
     return data;
 }
 
 // ── Simpan embed panel ────────────────────────────────────────────────────────
 async function savePanelEmbed(quiet = false) {
-    const msg = document.getElementById('panelMsg');
     const payload = {
         embedTitle: document.getElementById('panelTitle').value.trim(),
         embedDesc:  document.getElementById('panelDesc').value.trim(),
@@ -455,15 +454,15 @@ async function savePanelEmbed(quiet = false) {
         body: JSON.stringify(payload)
     });
     const data = await res.json();
-    if (!quiet) showMsg(msg, data.message, data.success ? 'success' : 'error');
+    if (data.success) { if (!quiet) queueToast(data.message, 'success'); }
+    else { if (!quiet) showAlert(data.message); }
     return data;
 }
 
 // ── Kirim panel ───────────────────────────────────────────────────────────────
 async function sendPanel() {
-    const msg       = document.getElementById('panelMsg');
     const channelId = document.getElementById('panelSendChannel').value;
-    if (!channelId) return showMsg(msg, I18N_TK_NO_CH, 'error');
+    if (!channelId) return showAlert(I18N_TK_NO_CH);
 
     // Simpan embed dulu
     await savePanelEmbed();
@@ -474,7 +473,7 @@ async function sendPanel() {
     });
     const data = await res.json();
     if (data.success) { queueToast(I18N_TK_SENT_OK, 'success'); location.reload(); }
-    else showMsg(msg, data.message, 'error');
+    else showAlert(data.message);
 }
 
 function mbResizeArea(el) {
@@ -498,10 +497,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
 window._floatSave = async function () {
     const [d1, d2] = await Promise.all([saveConfig(true), savePanelEmbed(true)]);
-    const msg = document.getElementById('configMsg');
     const ok = d1.success && d2.success;
-    showMsg(msg, ok ? d1.message : (d1.success ? d2.message : d1.message), ok ? 'success' : 'error');
-    if (!ok) throw new Error();
+    if (ok) queueToast(d1.message, 'success');
+    else { showAlert(d1.success ? d2.message : d1.message); throw new Error(); }
 };
 
 function togglePicker(id, event) {

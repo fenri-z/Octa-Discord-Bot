@@ -131,6 +131,8 @@
     "view_in_discord": "Lihat di Discord",
     "cancel": "Batal",
     "delete": "Hapus",
+    "ok": "OK",
+    "notice": "Pemberitahuan",
     "preview_no_channel": "select-channel",
     "unsaved_changes": "Ada perubahan yang belum disimpan",
     "save_changes": "Simpan Perubahan",
@@ -185,7 +187,8 @@
     "step2_desc": "Atur embed, warna, template teks, dan aktifkan welcome card dengan background kustom jika diinginkan.",
     "step3_title": "Aktifkan & Simpan",
     "step3_desc": "Aktifkan toggle dan klik Simpan. Member baru yang bergabung akan langsung memicu notifikasi.",
-    "tip": "Gunakan placeholder <strong>{mention}</strong>, <strong>{username}</strong>, dan <strong>{count}</strong> dalam pesanmu untuk mempersonalisasi setiap sambutan."
+    "tip": "Gunakan placeholder <strong>{mention}</strong>, <strong>{username}</strong>, dan <strong>{count}</strong> dalam pesanmu untuk mempersonalisasi setiap sambutan.",
+    "err_no_channel": "Pilih channel tujuan terlebih dahulu."
   },
   "goodbye": {
     "page_title": "Notifikasi Perpisahan",
@@ -204,7 +207,8 @@
     "step2_desc": "Atur embed, warna, dan template teks. Kamu juga bisa mengaktifkan goodbye card dengan background kustom.",
     "step3_title": "Aktifkan & Simpan",
     "step3_desc": "Aktifkan toggle dan klik Simpan. Member yang keluar dari server akan memicu notifikasi.",
-    "tip": "Gunakan placeholder <strong>{username}</strong>, <strong>{server}</strong>, dan <strong>{count}</strong> untuk mempersonalisasi setiap pesan perpisahan."
+    "tip": "Gunakan placeholder <strong>{username}</strong>, <strong>{server}</strong>, dan <strong>{count}</strong> untuk mempersonalisasi setiap pesan perpisahan.",
+    "err_no_channel": "Pilih channel tujuan terlebih dahulu."
   },
   "booster": {
     "page_title": "Notifikasi Boost",
@@ -380,7 +384,28 @@
     "react_step2_desc": "Pilih channel dan klik <strong>Kirim</strong> untuk mengirim panel reaksi.",
     "react_step3_title": "Member Bereaksi",
     "react_step3_desc": "Member klik emoji reaksi untuk mendapatkan atau mencabut role yang sesuai. Bereaksi lagi akan mencabut role.",
-    "react_tip": "Gunakan emoji Unicode (👍 ⭐ 🎮) atau emoji server kustom dengan format <code>&lt;:nama:id&gt;</code>. Maks <strong>20 reaksi</strong> per panel."
+    "react_tip": "Gunakan emoji Unicode (👍 ⭐ 🎮) atau emoji server kustom dengan format <code>&lt;:nama:id&gt;</code>. Maks <strong>20 reaksi</strong> per panel.",
+    "delete_panel_title": "Hapus Panel",
+    "delete_panel_msg": "Hapus panel {{name}}?",
+    "delete_panel_warning": "Pesan yang sudah terkirim di Discord juga akan ikut terhapus secara permanen.",
+    "err_max_buttons": "Maksimal 25 tombol per panel.",
+    "err_panel_full": "Panel penuh (maks 25 tombol).",
+    "err_max_reactions": "Maks 20 reaksi per panel.",
+    "err_invalid_name": "Nama panel tidak valid. Gunakan huruf, angka, - atau _.",
+    "err_name_exists": "Nama panel \"{{name}}\" sudah ada. Pilih nama yang berbeda.",
+    "err_invalid_image_url": "URL gambar tidak valid. Harus diawali dengan https://...",
+    "err_invalid_thumb_url": "URL thumbnail tidak valid. Harus diawali dengan https://...",
+    "err_invalid_color": "Warna embed tidak valid. Contoh: #5865F2",
+    "err_no_channel": "Pilih channel untuk mengirim panel ini.",
+    "err_no_channel_first": "Pilih channel terlebih dahulu.",
+    "err_no_content": "Isi setidaknya pesan Plain Text atau judul/deskripsi Embed.",
+    "err_no_buttons": "Tambahkan minimal 1 tombol role sebelum menyimpan.",
+    "err_no_reactions": "Tambahkan minimal 1 reaksi sebelum menyimpan.",
+    "err_btn_panel_limit": "Batas panel tercapai (20/20). Hapus panel yang ada terlebih dahulu.",
+    "btn_err_no_role": "Tombol #{{n}}: Pilih role terlebih dahulu.",
+    "btn_err_no_label": "Tombol #{{n}}: Label tidak boleh kosong.",
+    "btn_err_label_long": "Tombol #{{n}}: Label melebihi 80 karakter.",
+    "btn_err_dup_role": "Tombol #{{n1}} dan #{{n2}} menggunakan role yang sama."
   },
   "automod": {
     "page_title": "Automod",
@@ -702,7 +727,13 @@
     "badge_both": "Teks+Embed",
     "badge_live": "Live",
     "send_modal_desc": "Kirim <strong>{{name}}</strong> ke <strong>{{channel}}</strong>?",
-    "send_modal_note": "Template ini hanya bisa dikirim sekali. Setelah dikirim, edit dan simpan untuk memperbarui pesan Discord secara otomatis."
+    "send_modal_note": "Template ini hanya bisa dikirim sekali. Setelah dikirim, edit dan simpan untuk memperbarui pesan Discord secara otomatis.",
+    "err_load_template": "Gagal memuat template: {{msg}}",
+    "err_limit": "Batas template tercapai (20/20). Hapus template yang ada terlebih dahulu.",
+    "err_duplicate": "Template \"{{name}}\" sudah ada. Pilih nama yang berbeda.",
+    "err_url_invalid": "❌ {{label}}: URL harus dimulai dengan https://",
+    "err_url_not_image": "❌ {{label}}: Harus berupa link gambar langsung (.png .jpg .gif .webp)",
+    "err_no_channel_send": "Template ini belum memiliki channel tujuan. Edit dan pilih channel terlebih dahulu."
   },
   "serverstats": {
     "page_title": "Statistik Server",
@@ -1353,7 +1384,15 @@
     "lb_user": "User ID",
     "lb_level": "Level",
     "lb_xp": "XP",
-    "select_role": "— Pilih Role —"
+    "select_role": "— Pilih Role —",
+    "confirm_remove_reward_title": "Hapus Role Reward",
+    "confirm_remove_reward_msg": "Hapus reward {{role}} di Level {{level}}?",
+    "err_empty_role": "Pilih role untuk semua reward, atau hapus yang kosong.",
+    "err_level_min": "Level harus minimal 1.",
+    "err_xp_min": "XP Min harus antara 1 dan 100.",
+    "err_xp_max": "XP Max harus antara 1 dan 100.",
+    "err_xp_order": "XP Min tidak boleh lebih besar dari XP Max.",
+    "err_cooldown": "Cooldown harus antara 1 dan 3600 detik."
   },
   "starboard": {
     "page_title": "Starboard",
@@ -1377,10 +1416,11 @@
     "emoji_label": "Emoji",
     "emoji_hint": "Gunakan emoji default Discord (⭐, 🌟, dll.) atau emoji custom server.",
     "threshold_label": "Min. Reaction",
-    "threshold_hint": "Jumlah reaksi minimum agar pesan masuk starboard."
+    "threshold_hint": "Jumlah reaksi minimum agar pesan masuk starboard.",
+    "err_threshold": "Minimum Reaction harus antara 1 dan 50."
   },
   "custom_commands": {
-    "page_title": "Custom Commands",
+    "page_title": "Perintah Kustom",
     "page_desc": "Buat perintah teks sendiri yang langsung dibalas oleh bot.",
     "total_commands": "Total Command",
     "active_commands": "Command Aktif",
@@ -1441,7 +1481,11 @@
     "ee_footer": "Footer",
     "ee_footer_icon_ph": "URL ikon footer (https://...)...",
     "ee_footer_text_ph": "Teks footer...",
-    "ee_show_timestamp": "Timestamp"
+    "ee_show_timestamp": "Timestamp",
+    "confirm_delete_title": "Hapus Command",
+    "confirm_delete_msg": "Hapus command \"{{trigger}}\"?",
+    "err_limit": "Batas command tercapai (10/10). Hapus command yang ada terlebih dahulu.",
+    "err_duplicate": "Command \"{{trigger}}\" sudah ada. Gunakan tombol Edit untuk mengubahnya."
   },
   "extlog": {
     "page_title": "Extended Logging",

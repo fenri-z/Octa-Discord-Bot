@@ -731,7 +731,7 @@ let _lookupData = null;
 
 async function lookupYtChannel() {
     const input = document.getElementById('ytLookupInput').value.trim();
-    if (!input) return showMsg(null, I18N_YT_ERR_INPUT, 'error');
+    if (!input) { showAlert(I18N_YT_ERR_INPUT); return; }
 
     const resultEl = document.getElementById('ytLookupResult');
     resultEl.style.display = 'none';
@@ -744,7 +744,7 @@ async function lookupYtChannel() {
             body: JSON.stringify({ input }),
         });
         const data = await r.json();
-        if (!data.success) return showMsg(null, data.message, 'error');
+        if (!data.success) return showAlert(data.message);
 
         _lookupData = data.channel;
         document.getElementById('ytLookupName').textContent = data.channel.name;
@@ -755,7 +755,7 @@ async function lookupYtChannel() {
         resultEl.style.display = '';
         if (window.lucide) lucide.createIcons();
     } catch {
-        showMsg(null, I18N_YT_ERR_CONN, 'error');
+        showAlert(I18N_YT_ERR_CONN);
     }
 }
 
@@ -772,10 +772,10 @@ async function addYtChannel() {
             queueToast(data.message, 'success');
             location.reload();
         } else {
-            showMsg(null, data.message, 'error');
+            showAlert(data.message);
         }
     } catch {
-        showMsg(null, I18N_YT_ERR_CONN, 'error');
+        showAlert(I18N_YT_ERR_CONN);
     }
 }
 
@@ -920,9 +920,9 @@ async function testYtNotif(btn, chId) {
             body: JSON.stringify({ type }),
         });
         const data = await r.json();
-        showMsg(null, data.message, data.success ? 'success' : 'error');
+        data.success ? queueToast(data.message, 'success') : showAlert(data.message);
     } catch {
-        showMsg(null, I18N_YT_ERR_CONN, 'error');
+        showAlert(I18N_YT_ERR_CONN);
     } finally {
         btn.disabled  = false;
         btn.innerHTML = orig;
@@ -984,18 +984,22 @@ async function saveYtSettings(chId, quiet = false) {
             body: JSON.stringify(body),
         });
         const data = await r.json();
-        if (!quiet || !data.success) showMsg(null, data.message, data.success ? 'success' : 'error');
-        if (data.success) refreshYtStats();
+        if (data.success) {
+            if (!quiet) queueToast(data.message, 'success');
+            refreshYtStats();
+        } else {
+            showAlert(data.message);
+        }
         return data;
     } catch {
-        showMsg(null, I18N_YT_ERR_CONN, 'error');
+        showAlert(I18N_YT_ERR_CONN);
         return { success: false, message: I18N_YT_ERR_CONN };
     }
 }
 
 // ── Delete channel ─────────────────────────────────────────────────────────────
 async function deleteYtChannel(chId, chName) {
-    if (!confirm(I18N_YT_CONFIRM_DELETE.replace('{{name}}', chName))) return;
+    if (!await showConfirm('Remove Channel', I18N_YT_CONFIRM_DELETE.replace('{{name}}', chName))) return;
     try {
         const r    = await fetch(`/api/guild/${GUILD_ID}/youtube/channels/${chId}`, { method: 'DELETE' });
         const data = await r.json();
@@ -1004,12 +1008,12 @@ async function deleteYtChannel(chId, chName) {
             if (card) card.remove();
             refreshYtStats();
             if (!document.querySelector('.yt-channel-card')) { queueToast(data.message, 'success'); location.reload(); }
-            else showMsg(null, data.message, 'success');
+            else queueToast(data.message, 'success');
         } else {
-            showMsg(null, data.message, 'error');
+            showAlert(data.message);
         }
     } catch {
-        showMsg(null, I18N_YT_ERR_CONN, 'error');
+        showAlert(I18N_YT_ERR_CONN);
     }
 }
 
@@ -1178,7 +1182,7 @@ window._floatSave = async function () {
     if (_ytAllChIds.length === 0) return;
     const results = await Promise.allSettled(_ytAllChIds.map(id => saveYtSettings(id, true)));
     const ok = results.every(r => r.status === 'fulfilled' && r.value?.success);
-    if (ok) showMsg(null, results[0].value.message, 'success');
+    if (ok) queueToast(results[0].value.message, 'success');
     else throw new Error();
 };
 </script>

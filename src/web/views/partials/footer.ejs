@@ -1,7 +1,82 @@
 <% if (!locals.hasSidebar) { %><%- include('./site-footer') %><% } %>
     <%- include('./float-save-bar') %>
+
+    <!-- Global Confirm Dialog -->
+    <div class="mb-modal-backdrop" id="_gcBackdrop" onclick="_gcClose(false)"></div>
+    <div class="mb-modal mb-modal-sm" id="_gcModal">
+        <div class="mb-modal-header">
+            <h2 id="_gcTitle" style="display:flex;align-items:center;gap:.4rem;"></h2>
+            <button class="mb-modal-close" onclick="_gcClose(false)">✕</button>
+        </div>
+        <div class="mb-modal-body">
+            <p id="_gcMessage" style="color:var(--text-muted);font-size:.9rem;line-height:1.6;white-space:pre-line;"></p>
+        </div>
+        <div class="mb-modal-footer" style="display:flex;justify-content:flex-end;gap:.5rem;">
+            <button class="btn btn-outline" id="_gcCancelBtn" onclick="_gcClose(false)">Cancel</button>
+            <button class="btn" id="_gcConfirmBtn" onclick="_gcClose(true)">Confirm</button>
+        </div>
+    </div>
+
     <script src="/js/dashboard.js"></script>
     <script>
+    // ── Global modal helpers ────────────────────────────────────────────────
+    function openModal(bid, mid) {
+        document.getElementById(bid).classList.add('open');
+        document.getElementById(mid).classList.add('open');
+    }
+    function closeModal(bid, mid) {
+        document.getElementById(bid).classList.remove('open');
+        document.getElementById(mid).classList.remove('open');
+    }
+
+    // ── Global confirm dialog ───────────────────────────────────────────────
+    let _gcResolve = null;
+
+    function showConfirm(title, message, { confirmText = 'Delete', icon = 'trash-2', danger = true } = {}) {
+        return new Promise(resolve => {
+            _gcResolve = resolve;
+            const titleEl = document.getElementById('_gcTitle');
+            const color   = danger ? '#da373c' : 'var(--accent)';
+            titleEl.innerHTML = `<i data-lucide="${icon}" style="width:16px;height:16px;flex-shrink:0;color:${color};"></i>` + _escHtml(title);
+            document.getElementById('_gcMessage').textContent = message;
+            const btn = document.getElementById('_gcConfirmBtn');
+            btn.textContent  = confirmText;
+            btn.className    = 'btn ' + (danger ? 'btn-danger' : 'btn-primary');
+            document.getElementById('_gcCancelBtn').style.display = '';
+            openModal('_gcBackdrop', '_gcModal');
+            if (window.lucide) lucide.createIcons({ nodes: [titleEl] });
+        });
+    }
+
+    function showAlert(message, { title = '<%- t("common.notice") %>', icon = 'info', okText = '<%- t("common.ok") %>' } = {}) {
+        return new Promise(resolve => {
+            _gcResolve = resolve;
+            const titleEl = document.getElementById('_gcTitle');
+            titleEl.innerHTML = `<i data-lucide="${icon}" style="width:16px;height:16px;flex-shrink:0;color:var(--accent);"></i>` + _escHtml(title);
+            document.getElementById('_gcMessage').textContent = message;
+            const btn = document.getElementById('_gcConfirmBtn');
+            btn.textContent = okText;
+            btn.className   = 'btn btn-primary';
+            document.getElementById('_gcCancelBtn').style.display = 'none';
+            openModal('_gcBackdrop', '_gcModal');
+            if (window.lucide) lucide.createIcons({ nodes: [titleEl] });
+        });
+    }
+
+    function _gcClose(result) {
+        closeModal('_gcBackdrop', '_gcModal');
+        if (_gcResolve) { _gcResolve(result); _gcResolve = null; }
+    }
+
+    function _escHtml(s) {
+        return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    // Tutup dengan Escape
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape' && _gcResolve) _gcClose(false);
+    });
+
     document.addEventListener('DOMContentLoaded', () => {
         if (window.lucide) lucide.createIcons();
 
