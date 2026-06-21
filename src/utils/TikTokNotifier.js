@@ -36,6 +36,7 @@ class TikTokNotifier {
         this._avatarTimer  = null;
         this._validityTimer = null;
         this._isLiveCache  = new Map(); // username → { result, expiresAt }
+        this._tikwmBackoff = null;      // timestamp sampai kapan tikwm di-skip
     }
 
     // ─── Lifecycle ─────────────────────────────────────────────────────────────
@@ -199,9 +200,20 @@ class TikTokNotifier {
     }
 
     async _fetchVideos(username, limit = 5) {
+        // Jika tikwm sedang dalam periode backoff (kena rate limit sebelumnya), langsung pakai yt-dlp
+        if (this._tikwmBackoff && Date.now() < this._tikwmBackoff) {
+            return this._fetchVideosYtdlp(username, limit);
+        }
         try {
-            return await this._fetchVideosTikwm(username, limit);
+            const result = await this._fetchVideosTikwm(username, limit);
+            this._tikwmBackoff = null; // sukses → reset backoff
+            return result;
         } catch (err) {
+            const isRateLimit = /rate|limit|429/i.test(err.message);
+            if (isRateLimit && !this._tikwmBackoff) {
+                // Backoff 10 menit setelah kena rate limit
+                this._tikwmBackoff = Date.now() + 10 * 60 * 1000;
+            }
             warn(`[TikTok] tikwm gagal (${username}), fallback ke yt-dlp: ${err.message}`);
             return this._fetchVideosYtdlp(username, limit);
         }
