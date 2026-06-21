@@ -260,9 +260,12 @@
             <%
                 const _sub = websubMeta[ytCh.id] || {};
                 const _subStatus = _sub.status;
-                const _defVideoMsg = "Hey, **{channel}** just uploaded a new video on YouTube!\nDon't miss it, watch now! 🎉";
-                const _defShortMsg = "**{channel}** just posted a new Short!\nCheck out their quick video, don't miss out! ⚡";
-                const _defLiveMsg  = "Hey, **{channel}** is **LIVE** on YouTube right now!\nCome join and watch the stream~ 🎉";
+                const _defVideoMsg      = "Hey, **{channel}** just uploaded a new video on YouTube!\nDon't miss it, watch now! 🎉";
+                const _defShortMsg      = "**{channel}** just posted a new Short!\nCheck out their quick video, don't miss out! ⚡";
+                const _defLiveMsg       = "Hey, **{channel}** is **LIVE** on YouTube right now!\nCome join and watch the stream~ 🎉";
+                const _defVideoPlainMsg = "@everyone 📢 **{channel}** just uploaded a new video!";
+                const _defShortPlainMsg = "@everyone ⚡ **{channel}** just posted a new Short!";
+                const _defLivePlainMsg  = "@everyone 🔴 **{channel}** is LIVE on YouTube!";
                 const _ytMockUrl   = 'https://youtube.com/watch?v=dQw4w9WgXcQ';
                 const _md = s => (s || '')
                     .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
@@ -349,13 +352,13 @@
                         <textarea class="textarea mb-auto-resize" id="videoPlainMessage-<%= ytCh.id %>" rows="2"
                                   maxlength="2000"
                                   placeholder="<%= t('youtube.plain_msg_ph').replace('{channel}', ytCh.name) %>"
-                                  oninput="mbResizeArea(this);mbUpdateCount('videoPlainMessage-<%= ytCh.id %>','videoPlainCount-<%= ytCh.id %>');updateYtPreview('<%= ytCh.id %>','video')"><%= ytCh.videoPlainMessage || '' %></textarea>
+                                  oninput="mbResizeArea(this);mbUpdateCount('videoPlainMessage-<%= ytCh.id %>','videoPlainCount-<%= ytCh.id %>');updateYtPreview('<%= ytCh.id %>','video')"><%= ytCh.videoPlainMessage ?? _defVideoPlainMsg %></textarea>
                         <div class="mb-char-count" id="videoPlainCount-<%= ytCh.id %>">0 / 2000</div>
                     </div>
                     <div class="form-group">
                         <div class="label-with-picker">
                             <label class="label" style="margin-bottom:0;"><%= t('youtube.additional_msg') %> <span style="color:#ed4245;">*</span></label>
-                            <div class="ph-picker-anchor">
+                            <div class="ph-picker-anchor" data-no-mention>
                                 <button type="button" class="ph-toggle-btn" onclick="togglePicker('ytVideoPicker-<%= ytCh.id %>',event)"><%= t('youtube.placeholder_btn') %></button>
                                 <div class="ph-dropdown" id="ytVideoPicker-<%= ytCh.id %>" style="display:none;"></div>
                             </div>
@@ -476,13 +479,13 @@
                         <textarea class="textarea mb-auto-resize" id="shortPlainMessage-<%= ytCh.id %>" rows="2"
                                   maxlength="2000"
                                   placeholder="<%= t('youtube.plain_msg_ph').replace('{channel}', ytCh.name) %>"
-                                  oninput="mbResizeArea(this);mbUpdateCount('shortPlainMessage-<%= ytCh.id %>','shortPlainCount-<%= ytCh.id %>');updateYtPreview('<%= ytCh.id %>','short')"><%= ytCh.shortPlainMessage || '' %></textarea>
+                                  oninput="mbResizeArea(this);mbUpdateCount('shortPlainMessage-<%= ytCh.id %>','shortPlainCount-<%= ytCh.id %>');updateYtPreview('<%= ytCh.id %>','short')"><%= ytCh.shortPlainMessage ?? _defShortPlainMsg %></textarea>
                         <div class="mb-char-count" id="shortPlainCount-<%= ytCh.id %>">0 / 2000</div>
                     </div>
                     <div class="form-group">
                         <div class="label-with-picker">
                             <label class="label" style="margin-bottom:0;"><%= t('youtube.additional_msg') %> <span style="color:#ed4245;">*</span></label>
-                            <div class="ph-picker-anchor">
+                            <div class="ph-picker-anchor" data-no-mention>
                                 <button type="button" class="ph-toggle-btn" onclick="togglePicker('ytShortPicker-<%= ytCh.id %>',event)"><%= t('youtube.placeholder_btn') %></button>
                                 <div class="ph-dropdown" id="ytShortPicker-<%= ytCh.id %>" style="display:none;"></div>
                             </div>
@@ -602,13 +605,13 @@
                         <textarea class="textarea mb-auto-resize" id="livePlainMessage-<%= ytCh.id %>" rows="2"
                                   maxlength="2000"
                                   placeholder="<%= t('youtube.plain_msg_ph').replace('{channel}', ytCh.name) %>"
-                                  oninput="mbResizeArea(this);mbUpdateCount('livePlainMessage-<%= ytCh.id %>','livePlainCount-<%= ytCh.id %>');updateYtPreview('<%= ytCh.id %>','live')"><%= ytCh.livePlainMessage || '' %></textarea>
+                                  oninput="mbResizeArea(this);mbUpdateCount('livePlainMessage-<%= ytCh.id %>','livePlainCount-<%= ytCh.id %>');updateYtPreview('<%= ytCh.id %>','live')"><%= ytCh.livePlainMessage ?? _defLivePlainMsg %></textarea>
                         <div class="mb-char-count" id="livePlainCount-<%= ytCh.id %>">0 / 2000</div>
                     </div>
                     <div class="form-group">
                         <div class="label-with-picker">
                             <label class="label" style="margin-bottom:0;"><%= t('youtube.additional_msg') %> <span style="color:#ed4245;">*</span></label>
-                            <div class="ph-picker-anchor">
+                            <div class="ph-picker-anchor" data-no-mention>
                                 <button type="button" class="ph-toggle-btn" onclick="togglePicker('ytLivePicker-<%= ytCh.id %>',event)"><%= t('youtube.placeholder_btn') %></button>
                                 <div class="ph-dropdown" id="ytLivePicker-<%= ytCh.id %>" style="display:none;"></div>
                             </div>
@@ -1094,7 +1097,7 @@ document.getElementById('ytLookupInput')?.addEventListener('keydown', e => {
 });
 
 // ── Mention picker ─────────────────────────────────────────────────────────────
-document.querySelectorAll('.ph-picker-anchor:not(.mention-anchor)').forEach(anchor => {
+document.querySelectorAll('.ph-picker-anchor:not(.mention-anchor):not([data-no-mention])').forEach(anchor => {
     const ta = anchor.closest('.form-group')?.querySelector('textarea');
     if (!ta) return;
     const ma = document.createElement('div');

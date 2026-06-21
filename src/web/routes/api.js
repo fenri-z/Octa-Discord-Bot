@@ -2250,9 +2250,9 @@ router.put('/guild/:guildId/youtube/channels/:ytChannelId', requireLogin, requir
 
     channels[idx] = {
         ...channels[idx],
-        videoEnabled: !!videoEnabled, videoChannelId: videoChannelId || '', videoMessage: videoMessage || '', videoPlainMessage: videoPlainMessage || '',
-        shortEnabled: !!shortEnabled, shortChannelId: shortChannelId || '', shortMessage: shortMessage || '', shortPlainMessage: shortPlainMessage || '',
-        liveEnabled:  !!liveEnabled,  liveChannelId:  liveChannelId  || '', liveMessage:  liveMessage  || '', livePlainMessage:  livePlainMessage  || '',
+        videoEnabled: !!videoEnabled, videoChannelId: videoChannelId || '', videoMessage: videoMessage || '', videoPlainMessage: videoPlainMessage ?? null,
+        shortEnabled: !!shortEnabled, shortChannelId: shortChannelId || '', shortMessage: shortMessage || '', shortPlainMessage: shortPlainMessage ?? null,
+        liveEnabled:  !!liveEnabled,  liveChannelId:  liveChannelId  || '', liveMessage:  liveMessage  || '', livePlainMessage:  livePlainMessage  ?? null,
     };
     setYtChannels(db, guildId, channels);
 
@@ -2487,11 +2487,11 @@ router.put('/guild/:guildId/tiktok/accounts/:username', requireLogin, requireMan
         videoEnabled:      !!videoEnabled,
         videoChannelId:    videoChannelId    || '',
         videoMessage:      videoMessage      || '',
-        videoPlainMessage: videoPlainMessage || '',
+        videoPlainMessage: videoPlainMessage ?? null,
         liveEnabled:       !!liveEnabled,
         liveChannelId:     liveChannelId     || '',
         liveMessage:       liveMessage       || '',
-        livePlainMessage:  livePlainMessage  || '',
+        livePlainMessage:  livePlainMessage  ?? null,
     };
     setTtAccounts(db, guildId, accounts);
 
@@ -2696,7 +2696,7 @@ router.put('/guild/:guildId/twitch/accounts/:userId', requireLogin, requireManag
         ...accounts[idx],
         enabled:      !!enabled,
         channelId:    channelId || '',
-        plainMessage: (plainMessage || '').trim(),
+        plainMessage: plainMessage != null ? plainMessage.trim() : null,
         message:      (message || '').trim(),
     };
     setTwAccounts(db, guildId, accounts);
@@ -2971,7 +2971,7 @@ router.put('/guild/:guildId/kick/accounts/:slug', requireLogin, requireManageGui
             return res.json({ success: false, message: `Bot lacks permission:\n${missing.map(p => `• ${p}`).join('\n')}` });
     }
 
-    accounts[idx] = { ...accounts[idx], enabled: !!enabled, channelId: channelId || '', plainMessage: (plainMessage || '').trim(), message: message || '' };
+    accounts[idx] = { ...accounts[idx], enabled: !!enabled, channelId: channelId || '', plainMessage: plainMessage != null ? plainMessage.trim() : null, message: message || '' };
     setKickAccounts(db, guildId, accounts);
 
     // Auto-refresh thumbnail di background

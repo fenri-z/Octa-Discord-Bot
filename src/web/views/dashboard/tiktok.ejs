@@ -419,13 +419,13 @@
                                       style="font-size:.82rem;" maxlength="2000"
                                       placeholder="<%= t('tiktok.plain_msg_ph_video') %>"
                                       oninput="mbResizeArea(this);mbUpdateCount('vidPlainMessage-<%= key %>','vidPlainCount-<%= key %>');updatePreview('<%= key %>')"
-                            ><%= acc.videoPlainMessage || '' %></textarea>
+                            ><%= acc.videoPlainMessage ?? "@everyone 📢 **{account}** just posted a new TikTok!" %></textarea>
                             <div class="mb-char-count" id="vidPlainCount-<%= key %>">0 / 2000</div>
                         </div>
                         <div class="form-group" style="margin-bottom:0;">
                             <div class="label-with-picker">
                                 <label class="label" style="margin-bottom:0;"><%= t('tiktok.additional_msg') %> <span style="color:#ed4245;">*</span></label>
-                                <div class="ph-picker-anchor">
+                                <div class="ph-picker-anchor" data-no-mention>
                                     <button type="button" class="ph-toggle-btn" onclick="togglePicker('vidPicker-<%= key %>',event)">{…} Placeholder</button>
                                     <div class="ph-dropdown" id="vidPicker-<%= key %>" style="display:none;"></div>
                                 </div>
@@ -480,14 +480,14 @@
                                       placeholder="<%= t('tiktok.plain_msg_ph_live') %>"
                                       <%= !liveSupported?'disabled':'' %>
                                       oninput="mbResizeArea(this);mbUpdateCount('livePlainMessage-<%= key %>','livePlainCount-<%= key %>');updatePreview('<%= key %>')"
-                            ><%= acc.livePlainMessage || '' %></textarea>
+                            ><%= acc.livePlainMessage ?? "@everyone 🔴 **{account}** is LIVE on TikTok!" %></textarea>
                             <div class="mb-char-count" id="livePlainCount-<%= key %>">0 / 2000</div>
                         </div>
                         <div class="form-group" style="margin-bottom:0;">
                             <div class="label-with-picker">
                                 <label class="label" style="margin-bottom:0;"><%= t('tiktok.additional_msg') %> <span style="color:#ed4245;">*</span></label>
                                 <% if (liveSupported) { %>
-                                <div class="ph-picker-anchor">
+                                <div class="ph-picker-anchor" data-no-mention>
                                     <button type="button" class="ph-toggle-btn" onclick="togglePicker('livePicker-<%= key %>',event)">{…} Placeholder</button>
                                     <div class="ph-dropdown" id="livePicker-<%= key %>" style="display:none;"></div>
                                 </div>
@@ -1025,7 +1025,7 @@ document.getElementById('ttLookupInput')?.addEventListener('keydown', e => { if 
 document.querySelectorAll('[id^="vidMessage-"]').forEach(el => updatePreview(el.id.replace('vidMessage-', '')));
 
 // ── Mention picker ─────────────────────────────────────────────────────────────
-document.querySelectorAll('.ph-picker-anchor:not(.mention-anchor)').forEach(anchor => {
+document.querySelectorAll('.ph-picker-anchor:not(.mention-anchor):not([data-no-mention])').forEach(anchor => {
     const ta = anchor.closest('.form-group')?.querySelector('textarea');
     if (!ta) return;
     const ma = document.createElement('div');
