@@ -746,7 +746,7 @@ window._floatSave = async function () {
     const results = await Promise.all(tasks);
     const failed  = results.find(r => !r.success);
     if (failed) showAlert(failed.message);
-    else queueToast(results[results.length - 1].message, 'success');
+    else showToast(results[results.length - 1].message, 'success');
 };
 </script>
 

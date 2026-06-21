@@ -565,7 +565,7 @@ async function saveGeneral(quiet = false) {
         muteDuration: document.getElementById('automodMuteDuration').value,
         auditLogId:   document.getElementById('automodAuditLog').value || null,
     });
-    if (data.success) { if (!quiet) queueToast(data.message, 'success'); }
+    if (data.success) { if (!quiet) showToast(data.message, 'success'); }
     else showAlert(data.message);
     return data;
 }
@@ -573,19 +573,19 @@ async function saveGeneral(quiet = false) {
 // ── Toggle handlers (simpan langsung saat diubah) ─────────────────────────────
 document.getElementById('toggleAntilink')?.addEventListener('change', async function () {
     const data = await apiFetch('/automod/antilink', 'POST', { enabled: this.checked });
-    if (data.success) { queueToast(data.message, 'success'); refreshAmStats(); }
+    if (data.success) { showToast(data.message, 'success'); refreshAmStats(); }
     else { showAlert(data.message); this.checked = !this.checked; }
 });
 
 document.getElementById('toggleAntiinvite')?.addEventListener('change', async function () {
     const data = await apiFetch('/automod/antiinvite', 'POST', { enabled: this.checked });
-    if (data.success) { queueToast(data.message, 'success'); refreshAmStats(); }
+    if (data.success) { showToast(data.message, 'success'); refreshAmStats(); }
     else { showAlert(data.message); this.checked = !this.checked; }
 });
 
 document.getElementById('toggleAttachments')?.addEventListener('change', async function () {
     const data = await apiFetch('/automod/attachments', 'POST', { enabled: this.checked });
-    if (data.success) { queueToast(data.message, 'success'); refreshAmStats(); }
+    if (data.success) { showToast(data.message, 'success'); refreshAmStats(); }
     else { showAlert(data.message); this.checked = !this.checked; }
 });
 
@@ -600,7 +600,7 @@ async function saveSpam(quiet = false) {
         limit:    parseInt(document.getElementById('spamLimit')?.value)    || 5,
         interval: parseInt(document.getElementById('spamInterval')?.value) || 5,
     });
-    if (data.success) { if (!quiet) queueToast(data.message, 'success'); refreshAmStats(); }
+    if (data.success) { if (!quiet) showToast(data.message, 'success'); refreshAmStats(); }
     else showAlert(data.message);
     return data;
 }
@@ -615,7 +615,7 @@ async function saveMassMention(quiet = false) {
         enabled: document.getElementById('mentionEnabled').checked,
         limit:   parseInt(document.getElementById('mentionLimit')?.value) || 5,
     });
-    if (data.success) { if (!quiet) queueToast(data.message, 'success'); refreshAmStats(); }
+    if (data.success) { if (!quiet) showToast(data.message, 'success'); refreshAmStats(); }
     else showAlert(data.message);
     return data;
 }
@@ -631,7 +631,7 @@ async function saveAntiRaid(quiet = false) {
         joinLimit: parseInt(document.getElementById('raidJoinLimit')?.value) || 10,
         interval:  parseInt(document.getElementById('raidInterval')?.value)  || 10,
     });
-    if (data.success) { if (!quiet) queueToast(data.message, 'success'); refreshAmStats(); }
+    if (data.success) { if (!quiet) showToast(data.message, 'success'); refreshAmStats(); }
     else showAlert(data.message);
     return data;
 }
@@ -662,7 +662,7 @@ async function addWord() {
 
     const data = await apiFetch('/automod/words', 'POST', { word });
     if (!data.success) { showAlert(data.message); return; }
-    queueToast(data.message, 'success');
+    showToast(data.message, 'success');
 
     input.value = '';
     const list  = document.getElementById('wordsList');
@@ -676,7 +676,7 @@ async function addWord() {
 async function deleteWord(word) {
     const data = await apiFetch(`/automod/words/${encodeURIComponent(word)}`, 'DELETE');
     if (!data.success) { showAlert(data.message); return; }
-    queueToast(data.message, 'success');
+    showToast(data.message, 'success');
 
     const chip = document.querySelector(`.am-word-chip[data-word="${CSS.escape(word)}"]`);
     if (chip) chip.remove();
@@ -719,7 +719,7 @@ async function addWhitelistChannel() {
 
     const data = await apiFetch('/automod/whitelist', 'POST', { type: 'channel', id });
     if (!data.success) { showAlert(data.message); return; }
-    queueToast(data.message, 'success');
+    showToast(data.message, 'success');
 
     const list  = document.getElementById('wlChannelList');
     const empty = document.getElementById('wlChEmpty');
@@ -736,7 +736,7 @@ async function addWhitelistRole() {
 
     const data = await apiFetch('/automod/whitelist', 'POST', { type: 'role', id });
     if (!data.success) { showAlert(data.message); return; }
-    queueToast(data.message, 'success');
+    showToast(data.message, 'success');
 
     const list  = document.getElementById('wlRoleList');
     const empty = document.getElementById('wlRlEmpty');
@@ -752,7 +752,7 @@ async function removeWhitelist(type, id) {
 
     const data = await apiFetch(`/automod/whitelist/${type}/${id}`, 'DELETE');
     if (!data.success) { showAlert(data.message); return; }
-    queueToast(data.message, 'success');
+    showToast(data.message, 'success');
 
     const chip = document.querySelector(`#${listId} .am-word-chip[data-id="${id}"]`);
     if (chip) chip.remove();
@@ -772,7 +772,7 @@ async function removeWhitelist(type, id) {
 window._floatSave = async function () {
     const results = await Promise.allSettled([saveGeneral(true), saveSpam(true), saveMassMention(true), saveAntiRaid(true)]);
     const ok = results.every(r => r.status === 'fulfilled' && r.value?.success);
-    if (ok) queueToast(results[0].value.message, 'success');
+    if (ok) showToast(results[0].value.message, 'success');
     else throw new Error();
 };
 </script>

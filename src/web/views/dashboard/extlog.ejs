@@ -217,14 +217,14 @@ function getPayload() {
 
 async function saveConfig() {
     const data = await apiFetch('/extlog', 'POST', getPayload());
-    if (data.success) { queueToast(data.message, 'success'); refreshElStats(); }
+    if (data.success) { showToast(data.message, 'success'); refreshElStats(); }
     else showAlert(data.message);
 }
 
 ['evtMessageEdit','evtMessageDelete','evtVoiceActivity','evtNicknameChange','evtRoleChange'].forEach(id => {
     document.getElementById(id)?.addEventListener('change', async function () {
         const data = await apiFetch('/extlog', 'POST', getPayload());
-        if (data.success) { queueToast(data.message, 'success'); refreshElStats(); }
+        if (data.success) { showToast(data.message, 'success'); refreshElStats(); }
         else { showAlert(data.message); this.checked = !this.checked; }
     });
 });

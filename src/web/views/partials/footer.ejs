@@ -72,6 +72,9 @@
         return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
 
+    // Toast langsung (tanpa reload) — alias showMsg global
+    function showToast(text, type) { showMsg(null, text, type || 'success'); }
+
     // Tutup dengan Escape
     document.addEventListener('keydown', e => {
         if (e.key === 'Escape' && _gcResolve) _gcClose(false);

@@ -817,7 +817,7 @@ function refreshCcStats() {
 async function saveCommands() {
     const data = await apiFetch('/custom-commands', 'POST', { commands });
     if (data.success) {
-        queueToast(data.message, 'success');
+        showToast(data.message, 'success');
     } else {
         showAlert(data.message);
     }

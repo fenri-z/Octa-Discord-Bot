@@ -996,7 +996,7 @@ async function deleteTemplate(name) {
     if (!data.success) { showAlert(data.message); return; }
     const row = document.querySelector(`.mb-row[data-name="${name}"]`);
     if (row) row.remove();
-    queueToast(data.message, 'success');
+    showToast(data.message, 'success');
     refreshMbStats();
     const list    = document.getElementById('mbList');
     const count   = document.querySelectorAll('.mb-row').length;
@@ -1043,7 +1043,7 @@ async function sendTemplate() {
         body: JSON.stringify({})
     });
     const data = await res.json();
-    if (data.success) { queueToast(data.message, 'success'); setTimeout(closeSendModal, 800); }
+    if (data.success) { showToast(data.message, 'success'); setTimeout(closeSendModal, 800); }
     else showAlert(data.message);
 }
 

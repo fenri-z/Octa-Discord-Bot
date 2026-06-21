@@ -551,7 +551,7 @@ async function saveKickStreamer(slug, key, quiet = false) {
             body: JSON.stringify({ enabled, channelId, plainMessage, message }),
         });
         const data = await r.json();
-        if (data.success) { if (!quiet) queueToast(data.message, 'success'); refreshKkStats(); }
+        if (data.success) { if (!quiet) showToast(data.message, 'success'); refreshKkStats(); }
         else showAlert(data.message);
         return data;
     } catch {
@@ -570,7 +570,7 @@ async function testKickNotif(slug, key) {
         const r    = await fetch(`/api/guild/${GUILD_ID}/kick/accounts/${encodeURIComponent(slug)}/test`, { method: 'POST' });
         const data = await r.json();
         showMsg(msgEl, '', 'info');
-        if (data.success) queueToast(data.message, 'success');
+        if (data.success) showToast(data.message, 'success');
         else showAlert(data.message);
     } catch {
         showMsg(msgEl, '', 'info');
@@ -790,7 +790,7 @@ window._floatSave = async function () {
     if (_kkAllAccounts.length === 0) return;
     const results = await Promise.allSettled(_kkAllAccounts.map(a => saveKickStreamer(a.slug, a.key, true)));
     const ok = results.every(r => r.status === 'fulfilled' && r.value?.success);
-    if (ok) queueToast(results[0].value.message, 'success');
+    if (ok) showToast(results[0].value.message, 'success');
     else throw new Error();
 };
 </script>

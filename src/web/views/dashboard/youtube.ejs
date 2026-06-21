@@ -920,7 +920,7 @@ async function testYtNotif(btn, chId) {
             body: JSON.stringify({ type }),
         });
         const data = await r.json();
-        data.success ? queueToast(data.message, 'success') : showAlert(data.message);
+        data.success ? showToast(data.message, 'success') : showAlert(data.message);
     } catch {
         showAlert(I18N_YT_ERR_CONN);
     } finally {
@@ -985,7 +985,7 @@ async function saveYtSettings(chId, quiet = false) {
         });
         const data = await r.json();
         if (data.success) {
-            if (!quiet) queueToast(data.message, 'success');
+            if (!quiet) showToast(data.message, 'success');
             refreshYtStats();
         } else {
             showAlert(data.message);
@@ -1008,7 +1008,7 @@ async function deleteYtChannel(chId, chName) {
             if (card) card.remove();
             refreshYtStats();
             if (!document.querySelector('.yt-channel-card')) { queueToast(data.message, 'success'); location.reload(); }
-            else queueToast(data.message, 'success');
+            else showToast(data.message, 'success');
         } else {
             showAlert(data.message);
         }
@@ -1182,7 +1182,7 @@ window._floatSave = async function () {
     if (_ytAllChIds.length === 0) return;
     const results = await Promise.allSettled(_ytAllChIds.map(id => saveYtSettings(id, true)));
     const ok = results.every(r => r.status === 'fulfilled' && r.value?.success);
-    if (ok) queueToast(results[0].value.message, 'success');
+    if (ok) showToast(results[0].value.message, 'success');
     else throw new Error();
 };
 </script>

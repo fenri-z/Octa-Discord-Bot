@@ -215,7 +215,7 @@ async function saveConfig() {
             warn:    document.getElementById('evtWarn').checked,
         },
     });
-    if (data.success) { queueToast(data.message, 'success'); refreshMlStats(); }
+    if (data.success) { showToast(data.message, 'success'); refreshMlStats(); }
     else showAlert(data.message);
 }
 
@@ -236,7 +236,7 @@ function getEvents() {
             channelId: document.getElementById('mlChannel').value || null,
             events: getEvents(),
         });
-        if (data.success) { queueToast(data.message, 'success'); refreshMlStats(); }
+        if (data.success) { showToast(data.message, 'success'); refreshMlStats(); }
         else { showAlert(data.message); this.checked = !this.checked; }
     });
 });

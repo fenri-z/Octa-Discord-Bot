@@ -218,7 +218,7 @@ async function saveConfig() {
         emoji:     document.getElementById('sbEmoji').value.trim() || '⭐',
         threshold,
     });
-    if (data.success) { queueToast(data.message, 'success'); refreshSbStats(); }
+    if (data.success) { showToast(data.message, 'success'); refreshSbStats(); }
     else showAlert(data.message);
 }
 

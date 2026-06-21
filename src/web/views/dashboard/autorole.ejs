@@ -1928,7 +1928,7 @@ async function saveJoin() {
     });
     const data = await res.json();
     if (!data.success) { showAlert(data.message); throw new Error(data.message); }
-    queueToast(data.message, 'success');
+    showToast(data.message, 'success');
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -1946,7 +1946,7 @@ async function saveBooster() {
     });
     const data = await res.json();
     if (!data.success) { showAlert(data.message); throw new Error(data.message); }
-    queueToast(data.message, 'success');
+    showToast(data.message, 'success');
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -2299,12 +2299,12 @@ async function savePanel() {
                 body: JSON.stringify({ channelId: pendingCh })
             });
             const sendData = await sendRes.json();
-            if (sendData.success) queueToast(data.message + ' ✅', 'success');
-            else { queueToast(data.message, 'success'); showAlert(`Send failed: ${sendData.message}`); }
-        } catch { queueToast(data.message, 'success'); }
+            if (sendData.success) showToast(data.message + ' ✅', 'success');
+            else { showToast(data.message, 'success'); showAlert(`Send failed: ${sendData.message}`); }
+        } catch { showToast(data.message, 'success'); }
         setTimeout(() => { closePanelModal(); _reloadKeepHash(); }, 800);
     } else {
-        queueToast(data.message, 'success');
+        showToast(data.message, 'success');
         setTimeout(() => { closePanelModal(); _reloadKeepHash(); }, 800);
     }
 }
@@ -2477,7 +2477,7 @@ async function doSendPanel() {
     });
     const data = await res.json();
     if (!data.success) { showAlert(data.message); return; }
-    queueToast(data.message, 'success');
+    showToast(data.message, 'success');
     setTimeout(() => { closeSendPanel(); _reloadKeepHash(); }, 800);
 }
 
@@ -2973,12 +2973,12 @@ async function saveReactPanel() {
         try {
             const sendRes  = await fetch(`/api/guild/${GUILD_ID}/autorole-reaction/${encodeURIComponent(name)}/send`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ channelId: pendingCh }) });
             const sendData = await sendRes.json();
-            if (sendData.success) queueToast(data.message + ' ✅', 'success');
-            else { queueToast(data.message, 'success'); showAlert(`Send failed: ${sendData.message}`); }
-        } catch { queueToast(data.message, 'success'); }
+            if (sendData.success) showToast(data.message + ' ✅', 'success');
+            else { showToast(data.message, 'success'); showAlert(`Send failed: ${sendData.message}`); }
+        } catch { showToast(data.message, 'success'); }
         setTimeout(() => { closeReactPanelModal(); _reloadKeepHash(); }, 800);
     } else {
-        queueToast(data.message, 'success');
+        showToast(data.message, 'success');
         setTimeout(() => { closeReactPanelModal(); _reloadKeepHash(); }, 800);
     }
 }
@@ -3149,7 +3149,7 @@ async function doSendReactPanel() {
     });
     const data = await res.json();
     if (!data.success) { showAlert(data.message); return; }
-    queueToast(data.message, 'success');
+    showToast(data.message, 'success');
     setTimeout(() => { closeSendReactPanel(); _reloadKeepHash(); }, 800);
 }
 
@@ -3179,7 +3179,7 @@ async function saveAllButtons() {
     });
     const data = await res.json();
     if (!data.success) { showAlert(data.message); return; }
-    queueToast(data.message, 'success');
+    showToast(data.message, 'success');
     _btnData = buttons;
     renderBtnEditorTable();
     setTimeout(() => { closeBtnModal(); _reloadKeepHash(); }, 800);

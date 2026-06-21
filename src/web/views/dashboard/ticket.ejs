@@ -401,7 +401,7 @@ async function addStaffRole() {
     chip.innerHTML = `<span style="font-size:.8rem;${r?.color ? `color:${r.color};` : ''}">@${r?.name || roleId}</span><button class="am-chip-del" onclick="removeStaffRole('${roleId}')" title="${I18N_TK_REMOVE_TITLE}">×</button>`;
     list.appendChild(chip);
     document.getElementById('staffRoleCounter').textContent = `${_staffRoles.length} role`;
-    queueToast(data.message, 'success');
+    showToast(data.message, 'success');
 }
 
 async function removeStaffRole(roleId) {
@@ -413,7 +413,7 @@ async function removeStaffRole(roleId) {
     document.querySelector(`.am-word-chip[data-id="${roleId}"]`)?.remove();
     document.getElementById('staffRoleCounter').textContent = `${_staffRoles.length} role`;
     if (_staffRoles.length === 0) document.getElementById('staffRoleEmpty').style.display = '';
-    queueToast(data.message, 'success');
+    showToast(data.message, 'success');
 }
 
 // ── showMsg helper ────────────────────────────────────────────────────────────
@@ -436,7 +436,7 @@ async function saveConfig(quiet = false) {
         body: JSON.stringify(payload)
     });
     const data = await res.json();
-    if (data.success) { if (!quiet) queueToast(data.message, 'success'); }
+    if (data.success) { if (!quiet) showToast(data.message, 'success'); }
     else { if (!quiet) showAlert(data.message); }
     return data;
 }
@@ -454,7 +454,7 @@ async function savePanelEmbed(quiet = false) {
         body: JSON.stringify(payload)
     });
     const data = await res.json();
-    if (data.success) { if (!quiet) queueToast(data.message, 'success'); }
+    if (data.success) { if (!quiet) showToast(data.message, 'success'); }
     else { if (!quiet) showAlert(data.message); }
     return data;
 }
@@ -498,7 +498,7 @@ document.addEventListener('DOMContentLoaded', () => {
 window._floatSave = async function () {
     const [d1, d2] = await Promise.all([saveConfig(true), savePanelEmbed(true)]);
     const ok = d1.success && d2.success;
-    if (ok) queueToast(d1.message, 'success');
+    if (ok) showToast(d1.message, 'success');
     else { showAlert(d1.success ? d2.message : d1.message); throw new Error(); }
 };
 

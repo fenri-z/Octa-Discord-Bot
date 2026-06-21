@@ -556,7 +556,7 @@ async function saveStreamer(userId, quiet = false) {
         body: JSON.stringify({ enabled, channelId, plainMessage, message }),
     });
     const data = await r.json();
-    if (data.success) { if (!quiet) queueToast(data.message, 'success'); refreshTwStats(); }
+    if (data.success) { if (!quiet) showToast(data.message, 'success'); refreshTwStats(); }
     else showAlert(data.message);
     return data;
 }
@@ -570,7 +570,7 @@ async function testNotif(userId) {
     });
     const data = await r.json();
     showMsg(msgEl, '', 'info');
-    if (data.success) queueToast(data.message, 'success');
+    if (data.success) showToast(data.message, 'success');
     else showAlert(data.message);
 }
 
@@ -787,7 +787,7 @@ window._floatSave = async function () {
     if (_twAllIds.length === 0) return;
     const results = await Promise.allSettled(_twAllIds.map(id => saveStreamer(id, true)));
     const ok = results.every(r => r.status === 'fulfilled' && r.value?.success);
-    if (ok) queueToast(results[0].value.message, 'success');
+    if (ok) showToast(results[0].value.message, 'success');
     else throw new Error();
 };
 </script>

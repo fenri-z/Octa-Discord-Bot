@@ -474,7 +474,7 @@ async function saveThresholds() {
         },
     });
     if (data.success) {
-        queueToast(data.message, 'success');
+        showToast(data.message, 'success');
         const actions = ['t1Action','t2Action'].map(id => document.getElementById(id)?.value);
         document.getElementById('statActiveThresholds').textContent = actions.filter(a => a && a !== 'none').length;
     } else showAlert(data.message);
@@ -549,7 +549,7 @@ async function clearUserWarns() {
     const msg  = document.getElementById('searchMsg');
     const data = await apiFetch(`/warnings/user/${_searchUserId}`, 'DELETE');
     if (!data.success) { showAlert(data.message); return; }
-    queueToast(data.message, 'success');
+    showToast(data.message, 'success');
 
     document.getElementById('srTotal').textContent     = `0 warnings`;
     document.getElementById('srWarnList').innerHTML    = `<p style="color:var(--text-muted);font-size:.875rem;">${I18N_NO_WARNINGS}</p>`;

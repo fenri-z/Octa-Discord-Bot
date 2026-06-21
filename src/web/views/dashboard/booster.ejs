@@ -1226,7 +1226,7 @@ async function saveBoost() {
         })
     });
     const data = await res.json();
-    if (data.success) queueToast(data.message, 'success');
+    if (data.success) showToast(data.message, 'success');
     else showAlert(data.message);
 }
 
@@ -1271,7 +1271,7 @@ async function saveUnboost() {
         })
     });
     const data = await res.json();
-    if (data.success) queueToast(data.message, 'success');
+    if (data.success) showToast(data.message, 'success');
     else showAlert(data.message);
 }
 

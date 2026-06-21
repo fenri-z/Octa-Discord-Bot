@@ -424,7 +424,7 @@ async function rerollGiveaway(id) {
     const r    = await fetch(`/api/guild/${GUILD_ID}/giveaway/${id}/reroll`, { method: 'POST' });
     const data = await r.json();
     showMsg(msgEl, '', 'info');
-    if (data.success) queueToast(data.message, 'success');
+    if (data.success) showToast(data.message, 'success');
     else showAlert(data.message);
 }
 

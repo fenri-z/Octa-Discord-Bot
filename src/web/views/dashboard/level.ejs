@@ -374,7 +374,7 @@ async function removeReward(btn) {
         cooldown:    parseInt(document.getElementById('levelCooldown').value, 10) || 60,
         roleRewards: rewards,
     });
-    if (data.success) queueToast(data.message, 'success');
+    if (data.success) showToast(data.message, 'success');
     else showAlert(data.message);
 }
 
@@ -409,7 +409,7 @@ async function saveConfig() {
         xpMin, xpMax, cooldown,
         roleRewards: rewards,
     });
-    if (data.success) { queueToast(data.message, 'success'); refreshLvStats(); }
+    if (data.success) { showToast(data.message, 'success'); refreshLvStats(); }
     else showAlert(data.message);
 }
 

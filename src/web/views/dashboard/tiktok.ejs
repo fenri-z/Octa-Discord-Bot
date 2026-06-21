@@ -894,7 +894,7 @@ async function saveAccount(username, quiet = false) {
         body: JSON.stringify(payload),
     });
     const data = await r.json();
-    if (data.success) { if (!quiet) queueToast(data.message, 'success'); refreshTtStats(); }
+    if (data.success) { if (!quiet) showToast(data.message, 'success'); refreshTtStats(); }
     else showAlert(data.message);
     return data;
 }
@@ -911,7 +911,7 @@ async function testNotif(username, key) {
     });
     const data = await r.json();
     showMsg(msgEl, '', 'info');
-    if (data.success) queueToast(data.message, 'success');
+    if (data.success) showToast(data.message, 'success');
     else showAlert(data.message);
 }
 
@@ -1109,7 +1109,7 @@ window._floatSave = async function () {
     if (_ttAllUsers.length === 0) return;
     const results = await Promise.allSettled(_ttAllUsers.map(u => saveAccount(u, true)));
     const ok = results.every(r => r.status === 'fulfilled' && r.value?.success);
-    if (ok) queueToast(results[0].value.message, 'success');
+    if (ok) showToast(results[0].value.message, 'success');
     else throw new Error();
 };
 </script>

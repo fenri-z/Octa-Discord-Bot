@@ -234,7 +234,7 @@ document.getElementById('ssEnabled')?.addEventListener('change', async function(
         body: JSON.stringify({ enabled: checked })
     });
     const data = await res.json();
-    if (data.success) { queueToast(data.message, 'success'); updateStatusCard(checked); }
+    if (data.success) { showToast(data.message, 'success'); updateStatusCard(checked); }
     else { showAlert(data.message); this.checked = !checked; }
 });
 
@@ -251,7 +251,7 @@ async function saveLabels(guildId) {
         body: JSON.stringify({ totalLabel, humanLabel, botLabel, categoryLabel })
     });
     const data = await res.json();
-    if (data.success) queueToast(data.message, 'success');
+    if (data.success) showToast(data.message, 'success');
     else showAlert(data.message);
 }
 
