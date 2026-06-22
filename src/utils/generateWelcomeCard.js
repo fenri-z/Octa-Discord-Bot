@@ -95,6 +95,7 @@ async function generateWelcomeCard({
     const AVT = Math.round((H - AS - BD * 2) / 2);   // 65
     const BT  = AS + BD * 2;                           // 130
     const TX  = AVL + BT + 40;                         // 240
+    const AVAIL_W = W - TX - 25;                       // 535
 
     const resolvedTitle    = textColor    || titleColor    || '#ffffff';
     const resolvedUsername = usernameColor || accentColor  || '#5865F2';
@@ -180,28 +181,42 @@ async function generateWelcomeCard({
     }
 
     // Card decorations + text — rendered at 2× density for crispness
+    // Auto-scale title font size so it never overflows the card
+    const baseTitleFs = 56;
+    const approxCharW = baseTitleFs * 0.62 + 3;  // Impact px-per-char estimate at base size
+    const estimatedTitleW = welcomeText.length * approxCharW;
+    const titleFs = estimatedTitleW > AVAIL_W
+        ? Math.max(26, Math.floor(baseTitleFs * AVAIL_W / estimatedTitleW))
+        : baseTitleFs;
+    const titleLs = titleFs < 42 ? 0 : 3;
+
     const s = {
         w: escXml(welcomeText),
         u: escXml(username),
         t: escXml(subText),
     };
     const cardSvgBuf = Buffer.from(`<svg width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <clipPath id="tc">
+      <rect x="${TX}" y="0" width="${AVAIL_W}" height="${H}"/>
+    </clipPath>
+  </defs>
   <!-- Decorative circles -->
   <circle cx="${W-60}" cy="40"       r="80" fill="${accentColor}" opacity="0.07"/>
   <circle cx="${W-20}" cy="${H-20}"  r="60" fill="${accentColor}" opacity="0.04"/>
   <!-- Title: stacked copy for soft glow without SVG filters -->
-  <text x="${TX}" y="115" font-family="${resolvedFont}" font-size="56" font-weight="900"
-        letter-spacing="3" fill="${resolvedTitle}" opacity="0.35">${s.w}</text>
-  <text x="${TX}" y="115" font-family="${resolvedFont}" font-size="56" font-weight="900"
-        letter-spacing="3" fill="${resolvedTitle}">${s.w}</text>
+  <text x="${TX}" y="115" font-family="${resolvedFont}" font-size="${titleFs}" font-weight="900"
+        letter-spacing="${titleLs}" fill="${resolvedTitle}" opacity="0.35" clip-path="url(#tc)">${s.w}</text>
+  <text x="${TX}" y="115" font-family="${resolvedFont}" font-size="${titleFs}" font-weight="900"
+        letter-spacing="${titleLs}" fill="${resolvedTitle}" clip-path="url(#tc)">${s.w}</text>
   <!-- Username: offset dark copy as shadow, then main text -->
   <text x="${TX}" y="159" font-family="${resolvedFont}" font-size="25" font-weight="700"
-        fill="rgba(0,0,0,0.6)">${s.u}</text>
+        fill="rgba(0,0,0,0.6)" clip-path="url(#tc)">${s.u}</text>
   <text x="${TX}" y="157" font-family="${resolvedFont}" font-size="25" font-weight="700"
-        fill="${resolvedUsername}">${s.u}</text>
+        fill="${resolvedUsername}" clip-path="url(#tc)">${s.u}</text>
   <!-- Sub text -->
   <text x="${TX}" y="192" font-family="${resolvedFont}" font-size="17" font-weight="600"
-        fill="${resolvedMsg}">${s.t}</text>
+        fill="${resolvedMsg}" clip-path="url(#tc)">${s.t}</text>
 </svg>`);
 
     composites.push({ input: await svgAt2x(cardSvgBuf, W, H), top: 0, left: 0 });

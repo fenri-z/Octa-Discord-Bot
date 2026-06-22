@@ -91,11 +91,13 @@
                             </div>
                         </div>
                     </div>
-                    <textarea id="boostPlainText" class="textarea mb-auto-resize" rows="4"
-                              maxlength="2000"
-                              placeholder="🚀 {member} just boosted **{server}**! Total boosts: **{boosts}**."
-                              oninput="mbResizeArea(this);mbUpdateCount('boostPlainText','boostPlainCount');updateBoostPreview()"><%= boostData.plainText %></textarea>
-                    <div class="mb-char-count" id="boostPlainCount">0 / 2000</div>
+                    <div class="textarea-count-wrap">
+                        <textarea id="boostPlainText" class="textarea mb-auto-resize" rows="4"
+                                  maxlength="2000"
+                                  placeholder="🚀 {member} just boosted **{server}**! Total boosts: **{boosts}**."
+                                  oninput="mbResizeArea(this);mbInlineCount('boostPlainText','boostPlainCount');updateBoostPreview()"><%= boostData.plainText %></textarea>
+                        <span class="input-inline-count" id="boostPlainCount">0 / 2000</span>
+                    </div>
                 </div>
 
                 <!-- Panel Embed -->
@@ -123,11 +125,13 @@
 
                     <div class="form-group">
                         <label class="label"><%= t('common.embed_description') %></label>
-                        <textarea id="boostDesc" class="textarea mb-auto-resize" rows="4"
-                                  maxlength="3500"
-                                  placeholder="Thank you {member} for boosting this server! 💖"
-                                  oninput="mbResizeArea(this);mbUpdateCount('boostDesc','boostDescCount');updateBoostPreview()"><%= boostData.description %></textarea>
-                        <div class="mb-char-count" id="boostDescCount">0 / 3500</div>
+                        <div class="textarea-count-wrap">
+                            <textarea id="boostDesc" class="textarea mb-auto-resize" rows="4"
+                                      maxlength="3500"
+                                      placeholder="Thank you {member} for boosting this server! 💖"
+                                      oninput="mbResizeArea(this);mbInlineCount('boostDesc','boostDescCount');updateBoostPreview()"><%= boostData.description %></textarea>
+                            <span class="input-inline-count" id="boostDescCount">0 / 3500</span>
+                        </div>
                     </div>
 
                     <div class="form-group">
@@ -297,11 +301,19 @@
                     </div>
                     <div class="form-group">
                         <label class="label"><%= t('booster.card_large_text') %></label>
-                        <input type="text" id="boostCardWelcomeText" class="input" maxlength="20" placeholder="BOOST!" value="<%= boostData.cardWelcomeText||'BOOST!' %>">
+                        <div class="input-count-wrap">
+                            <input type="text" id="boostCardWelcomeText" class="input" maxlength="20" placeholder="BOOST!" value="<%= boostData.cardWelcomeText||'BOOST!' %>"
+                                   oninput="mbInlineCount('boostCardWelcomeText','boostCardWelcomeTextCount')">
+                            <span class="input-inline-count" id="boostCardWelcomeTextCount">0 / 20</span>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label class="label"><%= t('booster.card_small_text') %></label>
-                        <input type="text" id="boostCardSubText" class="input" maxlength="60" placeholder="Thank you for boosting!" value="<%= boostData.cardSubText||'Thank you for boosting!' %>">
+                        <div class="input-count-wrap">
+                            <input type="text" id="boostCardSubText" class="input" maxlength="60" placeholder="Thank you for boosting!" value="<%= boostData.cardSubText||'Thank you for boosting!' %>"
+                                   oninput="mbInlineCount('boostCardSubText','boostCardSubTextCount')">
+                            <span class="input-inline-count" id="boostCardSubTextCount">0 / 60</span>
+                        </div>
                         <div class="hint" style="margin-top:.3rem;"><code>{server}</code> · <code>{boosts}</code> · <code>{level}</code></div>
                     </div>
                 </div>
@@ -586,9 +598,13 @@ async function drawBoostCard() {
         avImg.src=avatarProxyUrl;
     });
 
-    ctx.shadowColor=titleClr;ctx.shadowBlur=8;ctx.font=`900 54px ${fontFam}`;ctx.fillStyle=titleClr;ctx.fillText(bigText,TX,115);ctx.shadowBlur=0;
-    ctx.shadowColor='rgba(0,0,0,0.5)';ctx.shadowBlur=4;ctx.font=`700 24px ${fontFam}`;ctx.fillStyle=userClr;ctx.fillText(SAMPLE.username,TX,157);ctx.shadowBlur=0;
-    ctx.font=`600 16px ${fontFam}`;ctx.fillStyle=msgClr;ctx.fillText(sub,TX,192);
+    const availW = W - TX - 20;
+    let titleFs = 54;
+    ctx.font = `900 ${titleFs}px ${fontFam}`;
+    while (titleFs > 20 && ctx.measureText(bigText).width > availW) { titleFs -= 2; ctx.font = `900 ${titleFs}px ${fontFam}`; }
+    ctx.shadowColor=titleClr;ctx.shadowBlur=8;ctx.fillStyle=titleClr;ctx.fillText(bigText,TX,115);ctx.shadowBlur=0;
+    ctx.shadowColor='rgba(0,0,0,0.5)';ctx.shadowBlur=4;ctx.font=`700 24px ${fontFam}`;ctx.fillStyle=userClr;ctx.fillText(SAMPLE.username,TX,157,availW);ctx.shadowBlur=0;
+    ctx.font=`600 16px ${fontFam}`;ctx.fillStyle=msgClr;ctx.fillText(sub,TX,192,availW);
     _syncCardPlacement();
 }
 
@@ -822,10 +838,21 @@ function mbUpdateCount(taId, countId) {
     ct.textContent = len + ' / ' + max;
     ct.className = 'mb-char-count' + (len >= max ? ' danger' : len >= max * 0.9 ? ' warn' : '');
 }
+function mbInlineCount(inputId, countId) {
+    const el = document.getElementById(inputId);
+    const ct = document.getElementById(countId);
+    if (!el || !ct) return;
+    const len = el.value.length;
+    const max = parseInt(el.getAttribute('maxlength')) || 0;
+    ct.textContent = len + ' / ' + max;
+    ct.className = 'input-inline-count' + (len >= max ? ' danger' : len >= max * 0.9 ? ' warn' : '');
+}
 document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.mb-auto-resize').forEach(mbResizeArea);
-    mbUpdateCount('boostPlainText', 'boostPlainCount');
-    mbUpdateCount('boostDesc',      'boostDescCount');
+    mbInlineCount('boostPlainText',        'boostPlainCount');
+    mbInlineCount('boostDesc',             'boostDescCount');
+    mbInlineCount('boostCardWelcomeText',  'boostCardWelcomeTextCount');
+    mbInlineCount('boostCardSubText',      'boostCardSubTextCount');
 });
 
 window._floatSave = saveBoost;

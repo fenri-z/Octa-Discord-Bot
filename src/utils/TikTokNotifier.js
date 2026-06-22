@@ -761,7 +761,7 @@ class TikTokNotifier {
 
         const embed = new EmbedBuilder()
             .setColor(0xFE2C55)
-            .setTitle(`🔴 ${displayName} is Live Right Now!`)
+            .setTitle(`🔴 ${displayName} is Live!`)
             .setURL(liveUrl)
             .setDescription(description);
 

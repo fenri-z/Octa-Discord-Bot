@@ -989,7 +989,7 @@ class YouTubeNotifier {
         const titles = {
             video: `📹 ${data.channel} — New Video!`,
             short: `🎬 ${data.channel} — New Short!`,
-            live:  `🔴 ${data.channel} is Live Right Now!`,
+            live:  `🔴 ${data.channel} is Live!`,
         };
         const fields = { video: '🎬 Video Title', short: '🎬 Short Title', live: '🎙️ Stream Title' };
         const colors = { video: 0xFF0000, short: 0xFF6B35, live: 0xCC0000 };
@@ -1005,8 +1005,8 @@ class YouTubeNotifier {
         const description = customMsg || defaultDescs[type];
 
         const footerTexts = this._baseUrl
-            ? { video: 'YouTube Video', short: 'YouTube Short', live: 'YouTube Live' }
-            : { video: '📹 YouTube Video', short: '🎬 YouTube Short', live: '🔴 YouTube Live' };
+            ? { video: 'YouTube Video', short: 'YouTube Short', live: 'YouTube LIVE' }
+            : { video: '📹 YouTube Video', short: '🎬 YouTube Short', live: '🔴 YouTube LIVE' };
 
         const embed = new EmbedBuilder()
             .setColor(colors[type])

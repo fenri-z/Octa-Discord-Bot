@@ -486,7 +486,7 @@ class TwitchNotifier {
 
         const embed = new EmbedBuilder()
             .setColor(0x9146FF)
-            .setTitle(`🔴 ${displayName} is Live Right Now!`)
+            .setTitle(`🔴 ${displayName} is Live!`)
             .setURL(streamUrl)
             .setDescription(description);
 

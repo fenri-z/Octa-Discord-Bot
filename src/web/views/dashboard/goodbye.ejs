@@ -93,11 +93,13 @@
                             </div>
                         </div>
                     </div>
-                    <textarea id="goodbyePlainText" class="textarea mb-auto-resize" rows="3"
-                              maxlength="2000"
-                              placeholder="Goodbye, {member}! Thanks for being with us in **{server}**."
-                              oninput="mbResizeArea(this);mbUpdateCount('goodbyePlainText','goodbyePlainCount')"><%= goodbyeData.plainText %></textarea>
-                    <div class="mb-char-count" id="goodbyePlainCount">0 / 2000</div>
+                    <div class="textarea-count-wrap">
+                        <textarea id="goodbyePlainText" class="textarea mb-auto-resize" rows="3"
+                                  maxlength="2000"
+                                  placeholder="Goodbye, {member}! Thanks for being with us in **{server}**."
+                                  oninput="mbResizeArea(this);mbInlineCount('goodbyePlainText','goodbyePlainCount')"><%= goodbyeData.plainText %></textarea>
+                        <span class="input-inline-count" id="goodbyePlainCount">0 / 2000</span>
+                    </div>
                 </div>
 
                 <!-- ── Panel Embed ── -->
@@ -124,11 +126,13 @@
 
                 <div class="form-group">
                     <label class="label"><%= t('common.embed_description') %></label>
-                    <textarea id="goodbyeDescription" class="textarea mb-auto-resize" rows="3"
-                              maxlength="3500"
-                              placeholder="{member} has left the server."
-                              oninput="mbResizeArea(this);mbUpdateCount('goodbyeDescription','goodbyeDescCount')"><%= goodbyeData.description || '' %></textarea>
-                    <div class="mb-char-count" id="goodbyeDescCount">0 / 3500</div>
+                    <div class="textarea-count-wrap">
+                        <textarea id="goodbyeDescription" class="textarea mb-auto-resize" rows="3"
+                                  maxlength="3500"
+                                  placeholder="{member} has left the server."
+                                  oninput="mbResizeArea(this);mbInlineCount('goodbyeDescription','goodbyeDescCount')"><%= goodbyeData.description || '' %></textarea>
+                        <span class="input-inline-count" id="goodbyeDescCount">0 / 3500</span>
+                    </div>
                 </div>
 
                 <div class="form-group">
@@ -308,14 +312,22 @@
                     </div>
 
                     <div class="form-group">
-                        <label class="label">Large Text (GOODBYE)</label>
-                        <input type="text" id="cardWelcomeText" class="input" maxlength="20"
-                               placeholder="GOODBYE" value="<%= goodbyeData.cardWelcomeText||'GOODBYE' %>">
+                        <label class="label">Title Card</label>
+                        <div class="input-count-wrap">
+                            <input type="text" id="cardWelcomeText" class="input" maxlength="20"
+                                   placeholder="GOODBYE" value="<%= goodbyeData.cardWelcomeText||'GOODBYE' %>"
+                                   oninput="mbInlineCount('cardWelcomeText','cardWelcomeTextCount')">
+                            <span class="input-inline-count" id="cardWelcomeTextCount">0 / 20</span>
+                        </div>
                     </div>
                     <div class="form-group">
-                        <label class="label">Small Text Below</label>
-                        <input type="text" id="cardSubText" class="input" maxlength="60"
-                               placeholder="FROM {server}" value="<%= goodbyeData.cardSubText||'FROM {server}' %>">
+                        <label class="label">Description Card</label>
+                        <div class="input-count-wrap">
+                            <input type="text" id="cardSubText" class="input" maxlength="60"
+                                   placeholder="FROM {server}" value="<%= goodbyeData.cardSubText||'FROM {server}' %>"
+                                   oninput="mbInlineCount('cardSubText','cardSubTextCount')">
+                            <span class="input-inline-count" id="cardSubTextCount">0 / 60</span>
+                        </div>
                         <div class="hint" style="margin-top:.3rem;"><code>{server}</code> · <code>{count}</code> · <code>{tag}</code></div>
                     </div>
 
@@ -683,9 +695,13 @@ async function drawCardPreview() {
         avImg.src = avatarProxyUrl;
     });
 
-    ctx.shadowColor=titleClr; ctx.shadowBlur=8; ctx.font=`900 54px ${fontFam}`; ctx.fillStyle=titleClr; ctx.fillText(bigText,TX,115); ctx.shadowBlur=0;
-    ctx.shadowColor='rgba(0,0,0,0.5)'; ctx.shadowBlur=4; ctx.font=`700 24px ${fontFam}`; ctx.fillStyle=userClr; ctx.fillText(SAMPLE.username,TX,157); ctx.shadowBlur=0;
-    ctx.font=`600 16px ${fontFam}`; ctx.fillStyle=msgClr; ctx.fillText(sub,TX,192);
+    const availW = W - TX - 20;
+    let titleFs = 54;
+    ctx.font = `900 ${titleFs}px ${fontFam}`;
+    while (titleFs > 20 && ctx.measureText(bigText).width > availW) { titleFs -= 2; ctx.font = `900 ${titleFs}px ${fontFam}`; }
+    ctx.shadowColor=titleClr; ctx.shadowBlur=8; ctx.fillStyle=titleClr; ctx.fillText(bigText,TX,115); ctx.shadowBlur=0;
+    ctx.shadowColor='rgba(0,0,0,0.5)'; ctx.shadowBlur=4; ctx.font=`700 24px ${fontFam}`; ctx.fillStyle=userClr; ctx.fillText(SAMPLE.username,TX,157,availW); ctx.shadowBlur=0;
+    ctx.font=`600 16px ${fontFam}`; ctx.fillStyle=msgClr; ctx.fillText(sub,TX,192,availW);
 
     _syncCardPlacement();
 }
@@ -965,10 +981,21 @@ function mbUpdateCount(taId, countId) {
     ct.textContent = len + ' / ' + max;
     ct.className = 'mb-char-count' + (len >= max ? ' danger' : len >= max * 0.9 ? ' warn' : '');
 }
+function mbInlineCount(inputId, countId) {
+    const el = document.getElementById(inputId);
+    const ct = document.getElementById(countId);
+    if (!el || !ct) return;
+    const len = el.value.length;
+    const max = parseInt(el.getAttribute('maxlength')) || 0;
+    ct.textContent = len + ' / ' + max;
+    ct.className = 'input-inline-count' + (len >= max ? ' danger' : len >= max * 0.9 ? ' warn' : '');
+}
 document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.mb-auto-resize').forEach(mbResizeArea);
-    mbUpdateCount('goodbyePlainText',   'goodbyePlainCount');
-    mbUpdateCount('goodbyeDescription', 'goodbyeDescCount');
+    mbInlineCount('goodbyePlainText',   'goodbyePlainCount');
+    mbInlineCount('goodbyeDescription', 'goodbyeDescCount');
+    mbInlineCount('cardWelcomeText',    'cardWelcomeTextCount');
+    mbInlineCount('cardSubText',        'cardSubTextCount');
 });
 
 window._floatSave = () => saveGoodbye('<%= guild.id %>');

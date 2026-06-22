@@ -547,7 +547,7 @@ class KickNotifier {
 
         const embed = new EmbedBuilder()
             .setColor(0x53FC18)
-            .setTitle(`🔴 ${displayName} is Live Right Now!`)
+            .setTitle(`🔴 ${displayName} is Live!`)
             .setURL(streamUrl)
             .setDescription(description);
 

@@ -91,11 +91,13 @@
                             </div>
                         </div>
                     </div>
-                    <textarea id="unboostPlainText" class="textarea mb-auto-resize" rows="4"
-                              maxlength="2000"
-                              placeholder="💔 {member} has stopped boosting **{server}**. Total boosts: **{boosts}**."
-                              oninput="mbResizeArea(this);mbUpdateCount('unboostPlainText','unboostPlainCount');updateUnboostPreview()"><%= unboostData.plainText %></textarea>
-                    <div class="mb-char-count" id="unboostPlainCount">0 / 2000</div>
+                    <div class="textarea-count-wrap">
+                        <textarea id="unboostPlainText" class="textarea mb-auto-resize" rows="4"
+                                  maxlength="2000"
+                                  placeholder="💔 {member} has stopped boosting **{server}**. Total boosts: **{boosts}**."
+                                  oninput="mbResizeArea(this);mbInlineCount('unboostPlainText','unboostPlainCount');updateUnboostPreview()"><%= unboostData.plainText %></textarea>
+                        <span class="input-inline-count" id="unboostPlainCount">0 / 2000</span>
+                    </div>
                 </div>
 
                 <!-- Panel Embed -->
@@ -123,11 +125,13 @@
 
                     <div class="form-group">
                         <label class="label"><%= t('common.embed_description') %></label>
-                        <textarea id="unboostDesc" class="textarea mb-auto-resize" rows="4"
-                                  maxlength="3500"
-                                  placeholder="{member} has removed their boost from the server."
-                                  oninput="mbResizeArea(this);mbUpdateCount('unboostDesc','unboostDescCount');updateUnboostPreview()"><%= unboostData.description %></textarea>
-                        <div class="mb-char-count" id="unboostDescCount">0 / 3500</div>
+                        <div class="textarea-count-wrap">
+                            <textarea id="unboostDesc" class="textarea mb-auto-resize" rows="4"
+                                      maxlength="3500"
+                                      placeholder="{member} has removed their boost from the server."
+                                      oninput="mbResizeArea(this);mbInlineCount('unboostDesc','unboostDescCount');updateUnboostPreview()"><%= unboostData.description %></textarea>
+                            <span class="input-inline-count" id="unboostDescCount">0 / 3500</span>
+                        </div>
                     </div>
 
                     <div class="form-group">
@@ -292,11 +296,19 @@
                     </div>
                     <div class="form-group">
                         <label class="label"><%= t('booster.card_large_text') %></label>
-                        <input type="text" id="unboostCardWelcomeText" class="input" maxlength="20" placeholder="UNBOOST" value="<%= unboostData.cardWelcomeText||'UNBOOST' %>">
+                        <div class="input-count-wrap">
+                            <input type="text" id="unboostCardWelcomeText" class="input" maxlength="20" placeholder="UNBOOST" value="<%= unboostData.cardWelcomeText||'UNBOOST' %>"
+                                   oninput="mbInlineCount('unboostCardWelcomeText','unboostCardWelcomeTextCount')">
+                            <span class="input-inline-count" id="unboostCardWelcomeTextCount">0 / 20</span>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label class="label"><%= t('booster.card_small_text') %></label>
-                        <input type="text" id="unboostCardSubText" class="input" maxlength="60" placeholder="Boost ended..." value="<%= unboostData.cardSubText||'Boost ended...' %>">
+                        <div class="input-count-wrap">
+                            <input type="text" id="unboostCardSubText" class="input" maxlength="60" placeholder="Boost ended..." value="<%= unboostData.cardSubText||'Boost ended...' %>"
+                                   oninput="mbInlineCount('unboostCardSubText','unboostCardSubTextCount')">
+                            <span class="input-inline-count" id="unboostCardSubTextCount">0 / 60</span>
+                        </div>
                         <div class="hint" style="margin-top:.3rem;"><code>{server}</code> · <code>{boosts}</code> · <code>{level}</code></div>
                     </div>
                 </div>
@@ -580,9 +592,13 @@ async function drawUnboostCard() {
         avImg.src=avatarProxyUrl;
     });
 
-    ctx.shadowColor=titleClr;ctx.shadowBlur=8;ctx.font=`900 54px ${fontFam}`;ctx.fillStyle=titleClr;ctx.fillText(bigText,TX,115);ctx.shadowBlur=0;
-    ctx.shadowColor='rgba(0,0,0,0.5)';ctx.shadowBlur=4;ctx.font=`700 24px ${fontFam}`;ctx.fillStyle=userClr;ctx.fillText(SAMPLE.username,TX,157);ctx.shadowBlur=0;
-    ctx.font=`600 16px ${fontFam}`;ctx.fillStyle=msgClr;ctx.fillText(sub,TX,192);
+    const availW = W - TX - 20;
+    let titleFs = 54;
+    ctx.font = `900 ${titleFs}px ${fontFam}`;
+    while (titleFs > 20 && ctx.measureText(bigText).width > availW) { titleFs -= 2; ctx.font = `900 ${titleFs}px ${fontFam}`; }
+    ctx.shadowColor=titleClr;ctx.shadowBlur=8;ctx.fillStyle=titleClr;ctx.fillText(bigText,TX,115);ctx.shadowBlur=0;
+    ctx.shadowColor='rgba(0,0,0,0.5)';ctx.shadowBlur=4;ctx.font=`700 24px ${fontFam}`;ctx.fillStyle=userClr;ctx.fillText(SAMPLE.username,TX,157,availW);ctx.shadowBlur=0;
+    ctx.font=`600 16px ${fontFam}`;ctx.fillStyle=msgClr;ctx.fillText(sub,TX,192,availW);
     _syncCardPlacement();
 }
 
@@ -814,10 +830,21 @@ function mbUpdateCount(taId, countId) {
     ct.textContent = len + ' / ' + max;
     ct.className = 'mb-char-count' + (len >= max ? ' danger' : len >= max * 0.9 ? ' warn' : '');
 }
+function mbInlineCount(inputId, countId) {
+    const el = document.getElementById(inputId);
+    const ct = document.getElementById(countId);
+    if (!el || !ct) return;
+    const len = el.value.length;
+    const max = parseInt(el.getAttribute('maxlength')) || 0;
+    ct.textContent = len + ' / ' + max;
+    ct.className = 'input-inline-count' + (len >= max ? ' danger' : len >= max * 0.9 ? ' warn' : '');
+}
 document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.mb-auto-resize').forEach(mbResizeArea);
-    mbUpdateCount('unboostPlainText', 'unboostPlainCount');
-    mbUpdateCount('unboostDesc',      'unboostDescCount');
+    mbInlineCount('unboostPlainText',        'unboostPlainCount');
+    mbInlineCount('unboostDesc',             'unboostDescCount');
+    mbInlineCount('unboostCardWelcomeText',  'unboostCardWelcomeTextCount');
+    mbInlineCount('unboostCardSubText',      'unboostCardSubTextCount');
 });
 
 window._floatSave = saveUnboost;
