@@ -144,15 +144,14 @@ class YouTubeNotifier {
             if (!rssRes.ok) return;
             const entries = this._parseRssEntries(await rssRes.text());
 
-            // Cek entry pertama (terbaru): kalau waiting room (upcoming), jangan di-seed
+            // Cek semua entry: kalau waiting room (upcoming), jangan di-seed
             // agar notif terkirim saat stream mulai live. Stream yang sudah berakhir tetap di-seed.
-            const skipFirst = entries.length > 0
-                ? await this._isLive(entries[0].id).then(r => r.isUpcoming).catch(() => false)
-                : false;
-
-            for (let i = 0; i < Math.min(entries.length, 5); i++) {
-                if (i === 0 && skipFirst) continue;
-                const notifKey = `youtube-liveNotified-${guildId}-${channelId}-${entries[i].id}`;
+            const limit = Math.min(entries.length, 5);
+            for (let i = 0; i < limit; i++) {
+                const entry = entries[i];
+                const isUpcoming = await this._isLive(entry.id).then(r => r.isUpcoming).catch(() => false);
+                if (isUpcoming) continue;
+                const notifKey = `youtube-liveNotified-${guildId}-${channelId}-${entry.id}`;
                 if (!db.get(notifKey)) db.set(notifKey, String(Date.now()));
             }
         } catch { /* noop */ }
