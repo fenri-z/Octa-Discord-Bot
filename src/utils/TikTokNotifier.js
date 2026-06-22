@@ -35,8 +35,9 @@ class TikTokNotifier {
         this._healthTimer  = null;
         this._avatarTimer  = null;
         this._validityTimer = null;
-        this._isLiveCache  = new Map(); // username → { result, expiresAt }
-        this._tikwmBackoff = null;      // timestamp sampai kapan tikwm di-skip
+        this._isLiveCache   = new Map(); // username → { result, expiresAt }
+        this._tikwmBackoff  = null;      // timestamp sampai kapan tikwm di-skip
+        this._pollErrorCache = new Map(); // username → expiresAt (skip sementara setelah poll gagal)
     }
 
     // ─── Lifecycle ─────────────────────────────────────────────────────────────
@@ -213,8 +214,10 @@ class TikTokNotifier {
             if (isRateLimit && !this._tikwmBackoff) {
                 // Backoff 10 menit setelah kena rate limit
                 this._tikwmBackoff = Date.now() + 10 * 60 * 1000;
+                warn(`[TikTok] tikwm rate limit, backoff 10 menit: ${err.message}`);
             }
-            warn(`[TikTok] tikwm gagal (${username}), fallback ke yt-dlp: ${err.message}`);
+            // Untuk error non-rate-limit (misal "unique_id is invalid" karena username berganti),
+            // tidak perlu warn — cukup fallback ke yt-dlp, outer poll handler yang akan warn jika perlu.
             return this._fetchVideosYtdlp(username, limit);
         }
     }
@@ -265,6 +268,13 @@ class TikTokNotifier {
 
         let firstPoll = true;
         for (const [username, guildEntries] of usernameMap) {
+            // Skip sementara jika username ini baru saja gagal poll (username diganti / akun invalid)
+            const skipUntil = this._pollErrorCache.get(username);
+            if (skipUntil) {
+                if (Date.now() < skipUntil) continue;
+                this._pollErrorCache.delete(username);
+            }
+
             // Delay antar request agar tidak kena rate limit tikwm (1 req/detik)
             if (!firstPoll) await new Promise(r => setTimeout(r, 1200));
             firstPoll = false;
@@ -297,6 +307,11 @@ class TikTokNotifier {
                 }
             } catch (err) {
                 warn(`[TikTok] Poll error ${username}: ${err.message}`);
+                // Jika username tidak ditemukan (diganti/dihapus), skip 30 menit agar tidak spam
+                const isInvalid = /invalid|not found|secondary user id/i.test(err.message);
+                if (isInvalid) {
+                    this._pollErrorCache.set(username, Date.now() + 30 * 60 * 1000);
+                }
             }
         }
     }
