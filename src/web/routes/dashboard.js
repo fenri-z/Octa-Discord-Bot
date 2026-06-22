@@ -1600,10 +1600,12 @@ router.get('/:guildId/custom-commands', requireLogin, requireManageGuild, async 
         };
         const guildIconUrl = guild.iconURL?.({ extension: 'png', size: 64 }) || '';
 
+        const botPrefix = db?.get(`prefix_${guildId}`) || config.commands.prefix || '!';
+
         res.render('dashboard/custom-commands', {
             title: 'Custom Commands',
             guild, commands, channels, roles,
-            sampleUser, guildIconUrl,
+            sampleUser, guildIconUrl, botPrefix,
             missingPerms: getMissingPerms(guild),
             activePage: 'custom-commands',
             hasSidebar: true,

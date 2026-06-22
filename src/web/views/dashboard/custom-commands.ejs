@@ -335,7 +335,7 @@
                     <div class="ar-panel-row-left">
                         <span class="ar-panel-name">
                             <i data-lucide="terminal" style="width:13px;height:13px;flex-shrink:0;"></i>
-                            <%= cmd.trigger %>
+                            <% if (cmd.mode === 'prefix') { %><span style="opacity:.5;"><%= botPrefix %></span><% } %><%= cmd.trigger %>
                         </span>
                         <span class="cc-badge cc-badge-<%= cmd.mode %>"><%= cmd.mode === 'exact' ? t('custom_commands.badge_exact') : t('custom_commands.badge_prefix') %></span>
                         <span class="cc-badge" style="background:rgba(88,101,242,.15);color:#5865F2;"><%= cmd.responseType === 'embed' ? t('custom_commands.badge_embed') : cmd.responseType === 'both' ? t('custom_commands.badge_both') : t('custom_commands.badge_plain') %></span>
@@ -571,6 +571,7 @@ const I18N_CC_DEL_TITLE  = '<%- t("custom_commands.confirm_delete_title") %>';
 const I18N_CC_DEL_MSG    = '<%- t("custom_commands.confirm_delete_msg") %>';
 const I18N_CC_ERR_LIMIT  = <%- JSON.stringify(t("custom_commands.err_limit")) %>;
 const I18N_CC_ERR_DUP    = <%- JSON.stringify(t("custom_commands.err_duplicate")) %>;
+const BOT_PREFIX  = <%- JSON.stringify(botPrefix) %>;
 let commands      = <%- JSON.stringify(commands) %>;
 let savedCommands = JSON.parse(JSON.stringify(commands));
 let embedFields      = []; // { name, value, inline }
@@ -1009,7 +1010,7 @@ function renderList() {
             <div class="ar-panel-row-left">
                 <span class="ar-panel-name">
                     <i data-lucide="terminal" style="width:13px;height:13px;flex-shrink:0;"></i>
-                    ${escHtml(cmd.trigger)}
+                    ${cmd.mode === 'prefix' ? `<span style="opacity:.5;">${escHtml(BOT_PREFIX)}</span>` : ''}${escHtml(cmd.trigger)}
                 </span>
                 <span class="cc-badge cc-badge-${cmd.mode}">${cmd.mode === 'exact' ? i18n.badge_exact : i18n.badge_prefix}</span>
                 <span class="cc-badge" style="background:rgba(88,101,242,.15);color:#5865F2;">${cmd.responseType === 'embed' ? i18n.badge_embed : cmd.responseType === 'both' ? i18n.badge_both : i18n.badge_plain}</span>
