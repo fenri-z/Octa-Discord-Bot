@@ -327,12 +327,14 @@
                                 <div class="ph-dropdown" id="twPlainPicker-<%= acc.userId %>" style="display:none;"></div>
                             </div>
                         </div>
-                        <textarea class="textarea mb-auto-resize" rows="2" id="twPlainMessage-<%= acc.userId %>"
-                                  style="font-size:.82rem;" maxlength="2000"
-                                  placeholder="<%= t('twitch.plain_msg_ph') %>"
-                                  oninput="mbResizeArea(this);mbUpdateCount('twPlainMessage-<%= acc.userId %>','twPlainCount-<%= acc.userId %>');updatePreview('<%= acc.userId %>')"
-                        ><%= acc.plainMessage ?? "@everyone 🟣 **{account}** is LIVE on Twitch!" %></textarea>
-                        <div class="mb-char-count" id="twPlainCount-<%= acc.userId %>">0 / 2000</div>
+                        <div class="mb-count-wrap">
+                            <textarea class="textarea mb-auto-resize" rows="2" id="twPlainMessage-<%= acc.userId %>"
+                                    style="font-size:.82rem;" maxlength="2000"
+                                    placeholder="<%= t('twitch.plain_msg_ph') %>"
+                                    oninput="mbResizeArea(this);mbUpdateCount('twPlainMessage-<%= acc.userId %>','twPlainCount-<%= acc.userId %>');updatePreview('<%= acc.userId %>')"
+                            ><%= acc.plainMessage ?? "@everyone 🟣 **{account}** is LIVE on Twitch!" %></textarea>
+                            <div class="mb-char-count" id="twPlainCount-<%= acc.userId %>">0 / 2000</div>
+                        </div>
                     </div>
                     <div class="form-group" style="margin-bottom:0;">
                         <div class="label-with-picker">
@@ -342,11 +344,13 @@
                                 <div class="ph-dropdown" id="twPicker-<%= acc.userId %>" style="display:none;"></div>
                             </div>
                         </div>
-                        <textarea class="textarea mb-auto-resize" rows="3" id="twMessage-<%= acc.userId %>"
-                                  style="font-size:.82rem;" maxlength="3500"
-                                  oninput="mbResizeArea(this);mbUpdateCount('twMessage-<%= acc.userId %>','twCount-<%= acc.userId %>');updatePreview('<%= acc.userId %>')"
-                        ><%= acc.message || "Hey, **{account}** is **LIVE** on Twitch right now!\nCome join and watch the stream~ 🎉" %></textarea>
-                        <div class="mb-char-count" id="twCount-<%= acc.userId %>">0 / 3500</div>
+                        <div class="mb-count-wrap">
+                            <textarea class="textarea mb-auto-resize" rows="3" id="twMessage-<%= acc.userId %>"
+                                      style="font-size:.82rem;" maxlength="3500"
+                                      oninput="mbResizeArea(this);mbUpdateCount('twMessage-<%= acc.userId %>','twCount-<%= acc.userId %>');updatePreview('<%= acc.userId %>')"
+                            ><%= acc.message || "Hey, **{account}** is **LIVE** on Twitch right now!\nCome join and watch the stream~ 🎉" %></textarea>
+                            <div class="mb-char-count" id="twCount-<%= acc.userId %>">0 / 3500</div>
+                        </div>
                     </div>
 
                     <!-- Tombol aksi -->

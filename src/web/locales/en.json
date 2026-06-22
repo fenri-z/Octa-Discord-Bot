@@ -136,7 +136,8 @@
     "preview_no_channel": "select-channel",
     "unsaved_changes": "You have unsaved changes",
     "save_changes": "Save Changes",
-    "reset": "Reset"
+    "reset": "Reset",
+    "err_embed_total_limit": "Total embed characters exceed Discord's limit (6000). Reduce text in title, description, fields, or footer."
   },
   "welcome": {
     "page_title": "Welcome Notification",

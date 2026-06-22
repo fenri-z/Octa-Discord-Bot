@@ -156,10 +156,12 @@
                         <div class="ph-dropdown mention-dd" id="ticketDescMentionPicker" style="display:none;"></div>
                     </div>
                 </div>
-                <textarea id="panelDesc" class="textarea mb-auto-resize" rows="4" maxlength="4096"
-                          placeholder="<%= t('ticket.embed_desc_default') %>"
-                          oninput="mbResizeArea(this);mbUpdateCount('panelDesc','panelDescCount');updateTicketPreview()"><%= ticketData.embedDesc %></textarea>
-                <div class="mb-char-count" id="panelDescCount">0 / 4096</div>
+                <div class="mb-count-wrap">
+                    <textarea id="panelDesc" class="textarea mb-auto-resize" rows="4" maxlength="4096"
+                              placeholder="<%= t('ticket.embed_desc_default') %>"
+                              oninput="mbResizeArea(this);mbUpdateCount('panelDesc','panelDescCount');updateTicketPreview()"><%= ticketData.embedDesc %></textarea>
+                    <div class="mb-char-count" id="panelDescCount">0 / 4096</div>
+                </div>
             </div>
             <div class="form-group">
                 <label class="label"><%= t('ticket.embed_color_label') %></label>

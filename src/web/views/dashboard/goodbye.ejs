@@ -93,12 +93,12 @@
                             </div>
                         </div>
                     </div>
-                    <div class="textarea-count-wrap">
+                    <div class="mb-count-wrap">
                         <textarea id="goodbyePlainText" class="textarea mb-auto-resize" rows="3"
                                   maxlength="2000"
                                   placeholder="Goodbye, {member}! Thanks for being with us in **{server}**."
-                                  oninput="mbResizeArea(this);mbInlineCount('goodbyePlainText','goodbyePlainCount')"><%= goodbyeData.plainText %></textarea>
-                        <span class="input-inline-count" id="goodbyePlainCount">0 / 2000</span>
+                                  oninput="mbResizeArea(this);mbUpdateCount('goodbyePlainText','goodbyePlainCount')"><%= goodbyeData.plainText %></textarea>
+                        <div class="mb-char-count" id="goodbyePlainCount">0 / 2000</div>
                     </div>
                 </div>
 
@@ -119,19 +119,24 @@
                             </div>
                         </div>
                     </div>
-                    <input type="text" id="goodbyeTitle" class="input"
-                           placeholder="👋 Goodbye!"
-                           value="<%= goodbyeData.title || '' %>">
+                    <div class="input-count-wrap">
+                        <input type="text" id="goodbyeTitle" class="input"
+                               placeholder="👋 Goodbye!"
+                               maxlength="256"
+                               value="<%= goodbyeData.title || '' %>"
+                               oninput="mbInlineCount('goodbyeTitle','goodbyeTitleCount')">
+                        <span class="input-inline-count" id="goodbyeTitleCount">0 / 256</span>
+                    </div>
                 </div>
 
                 <div class="form-group">
                     <label class="label"><%= t('common.embed_description') %></label>
-                    <div class="textarea-count-wrap">
+                    <div class="mb-count-wrap">
                         <textarea id="goodbyeDescription" class="textarea mb-auto-resize" rows="3"
                                   maxlength="3500"
                                   placeholder="{member} has left the server."
-                                  oninput="mbResizeArea(this);mbInlineCount('goodbyeDescription','goodbyeDescCount')"><%= goodbyeData.description || '' %></textarea>
-                        <span class="input-inline-count" id="goodbyeDescCount">0 / 3500</span>
+                                  oninput="mbResizeArea(this);mbUpdateCount('goodbyeDescription','goodbyeDescCount')"><%= goodbyeData.description || '' %></textarea>
+                        <div class="mb-char-count" id="goodbyeDescCount">0 / 3500</div>
                     </div>
                 </div>
 
@@ -150,9 +155,14 @@
 
                 <div class="form-group">
                     <label class="label"><%= t('common.footer_label') %> <span style="font-weight:400;color:var(--text-muted)"><%= t('common.footer_optional') %></span></label>
-                    <input type="text" id="goodbyeFooter" class="input"
-                           placeholder="<%= t('common.footer_placeholder') %>"
-                           value="<%= goodbyeData.footerText || '' %>">
+                    <div class="input-count-wrap">
+                        <input type="text" id="goodbyeFooter" class="input"
+                               placeholder="<%= t('common.footer_placeholder') %>"
+                               maxlength="2048"
+                               value="<%= goodbyeData.footerText || '' %>"
+                               oninput="mbInlineCount('goodbyeFooter','goodbyeFooterCount')">
+                        <span class="input-inline-count" id="goodbyeFooterCount">0 / 2048</span>
+                    </div>
                 </div>
 
                 <div class="form-group">
@@ -617,7 +627,7 @@ async function drawCardPreview() {
     const fontMap  = { impact:"Impact,'Arial Black',sans-serif", arial:'Arial,Helvetica,sans-serif', georgia:"Georgia,'Times New Roman',serif", courier:"'Courier New',Courier,monospace", verdana:'Verdana,Geneva,sans-serif' };
     const fontFam  = fontMap[fontSel] || fontMap.impact;
     const bigText  = document.getElementById('cardWelcomeText')?.value  || 'GOODBYE';
-    const sub      = (document.getElementById('cardSubText')?.value     || 'FROM {server}')
+    const sub      = (document.getElementById('cardSubText')?.value     ?? '')
                        .replace(/{server}/gi, SAMPLE.server).replace(/{count}/gi, SAMPLE.count).replace(/{tag}/gi, SAMPLE.tag);
 
     const gradPanel = document.getElementById('cardBgGradientPanel');
@@ -640,13 +650,7 @@ async function drawCardPreview() {
     }
 
     if (bgType === 'transparent') {
-        const sz = 12;
-        ctx.save(); rr(0, 0, W, H, 16); ctx.clip();
-        for (let y = 0; y < H; y += sz) for (let x = 0; x < W; x += sz) {
-            ctx.fillStyle = (Math.floor(x/sz) + Math.floor(y/sz)) % 2 === 0 ? '#c0c0c0' : '#909090';
-            ctx.fillRect(x, y, sz, sz);
-        }
-        ctx.restore();
+        // Biarkan canvas benar-benar transparan
     } else if (bgType === 'image' && bgImgUrl) {
         const proxyUrl = '/api/guild/<%= guild.id %>/image-proxy?url=' + encodeURIComponent(bgImgUrl);
         try {
@@ -664,10 +668,12 @@ async function drawCardPreview() {
 
     if (overlayOp > 0) { ctx.save(); rr(0,0,W,H,16); ctx.clip(); ctx.globalAlpha=overlayOp; ctx.fillStyle=overlayClr; ctx.fillRect(0,0,W,H); ctx.globalAlpha=1; ctx.restore(); }
 
-    ctx.globalAlpha=0.07; ctx.fillStyle=accent;
-    ctx.beginPath(); ctx.arc(W-60,40,80,0,Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.arc(W-20,H-20,60,0,Math.PI*2); ctx.fill();
-    ctx.globalAlpha=1;
+    if (bgType !== 'transparent') {
+        ctx.globalAlpha=0.07; ctx.fillStyle=accent;
+        ctx.beginPath(); ctx.arc(W-60,40,80,0,Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(W-20,H-20,60,0,Math.PI*2); ctx.fill();
+        ctx.globalAlpha=1;
+    }
 
     const AS=120,BD=5,avL=50,avT=(H-AS-BD*2)/2,TX=avL+AS+BD*2+40;
     const isSquare = shape==='square';
@@ -937,7 +943,7 @@ async function saveGoodbye(guildId) {
         thumbnail:     document.getElementById('goodbyeThumbnail').checked,
         cardEnabled:        document.getElementById('cardEnabled').checked,
         cardWelcomeText:    document.getElementById('cardWelcomeText').value.trim()    || 'GOODBYE',
-        cardSubText:        document.getElementById('cardSubText').value.trim()         || 'FROM {server}',
+        cardSubText:        document.getElementById('cardSubText').value.trim(),
         cardBgColor:        document.getElementById('cardBgColor').value.trim()         || '#1a0a0a',
         cardBgColor2:       document.getElementById('cardBgColor2').value.trim()        || '#2e0a0a',
         cardAccentColor:    document.getElementById('cardAccentColor').value.trim()     || '#ED4245',
@@ -992,8 +998,10 @@ function mbInlineCount(inputId, countId) {
 }
 document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.mb-auto-resize').forEach(mbResizeArea);
-    mbInlineCount('goodbyePlainText',   'goodbyePlainCount');
-    mbInlineCount('goodbyeDescription', 'goodbyeDescCount');
+    mbUpdateCount('goodbyePlainText',   'goodbyePlainCount');
+    mbInlineCount('goodbyeTitle',       'goodbyeTitleCount');
+    mbUpdateCount('goodbyeDescription', 'goodbyeDescCount');
+    mbInlineCount('goodbyeFooter',      'goodbyeFooterCount');
     mbInlineCount('cardWelcomeText',    'cardWelcomeTextCount');
     mbInlineCount('cardSubText',        'cardSubTextCount');
 });

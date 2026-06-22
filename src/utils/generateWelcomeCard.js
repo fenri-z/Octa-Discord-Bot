@@ -201,9 +201,10 @@ async function generateWelcomeCard({
       <rect x="${TX}" y="0" width="${AVAIL_W}" height="${H}"/>
     </clipPath>
   </defs>
+  ${effectiveBgType !== 'transparent' ? `
   <!-- Decorative circles -->
   <circle cx="${W-60}" cy="40"       r="80" fill="${accentColor}" opacity="0.07"/>
-  <circle cx="${W-20}" cy="${H-20}"  r="60" fill="${accentColor}" opacity="0.04"/>
+  <circle cx="${W-20}" cy="${H-20}"  r="60" fill="${accentColor}" opacity="0.04"/>` : ''}
   <!-- Title: stacked copy for soft glow without SVG filters -->
   <text x="${TX}" y="115" font-family="${resolvedFont}" font-size="${titleFs}" font-weight="900"
         letter-spacing="${titleLs}" fill="${resolvedTitle}" opacity="0.35" clip-path="url(#tc)">${s.w}</text>

@@ -136,7 +136,8 @@
     "preview_no_channel": "select-channel",
     "unsaved_changes": "Ada perubahan yang belum disimpan",
     "save_changes": "Simpan Perubahan",
-    "reset": "Reset"
+    "reset": "Reset",
+    "err_embed_total_limit": "Total karakter embed melebihi batas Discord (6000). Kurangi teks pada judul, deskripsi, field, atau footer."
   },
   "welcome": {
     "page_title": "Notifkasi Sambutan",

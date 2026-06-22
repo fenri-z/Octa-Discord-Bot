@@ -93,12 +93,12 @@
                             </div>
                         </div>
                     </div>
-                    <div class="textarea-count-wrap">
+                    <div class="mb-count-wrap">
                         <textarea id="welcomePlainText" class="textarea mb-auto-resize" rows="3"
                                   maxlength="2000"
                                   placeholder="Hello {member}, welcome to **{server}**! 🎉 You are member #**{count}**."
-                                  oninput="mbResizeArea(this);mbInlineCount('welcomePlainText','welcomePlainCount')"><%= welcomeData.plainText %></textarea>
-                        <span class="input-inline-count" id="welcomePlainCount">0 / 2000</span>
+                                  oninput="mbResizeArea(this);mbUpdateCount('welcomePlainText','welcomePlainCount')"><%= welcomeData.plainText %></textarea>
+                        <div class="mb-char-count" id="welcomePlainCount">0 / 2000</div>
                     </div>
                 </div>
 
@@ -119,19 +119,24 @@
                             </div>
                         </div>
                     </div>
-                    <input type="text" id="welcomeTitle" class="input"
-                           placeholder="👋 Welcome to {server}!"
-                           value="<%= welcomeData.title %>">
+                    <div class="input-count-wrap">
+                        <input type="text" id="welcomeTitle" class="input"
+                               placeholder="👋 Welcome to {server}!"
+                               maxlength="256"
+                               value="<%= welcomeData.title %>"
+                               oninput="mbInlineCount('welcomeTitle','welcomeTitleCount')">
+                        <span class="input-inline-count" id="welcomeTitleCount">0 / 256</span>
+                    </div>
                 </div>
 
                 <div class="form-group">
                     <label class="label"><%= t('common.embed_description') %></label>
-                    <div class="textarea-count-wrap">
+                    <div class="mb-count-wrap">
                         <textarea id="welcomeDescription" class="textarea mb-auto-resize" rows="3"
                                   maxlength="3500"
                                   placeholder="Hello {member}, glad to have you here! 🎉&#10;You are member #**{count}**."
-                                  oninput="mbResizeArea(this);mbInlineCount('welcomeDescription','welcomeDescCount')"><%= welcomeData.description %></textarea>
-                        <span class="input-inline-count" id="welcomeDescCount">0 / 3500</span>
+                                  oninput="mbResizeArea(this);mbUpdateCount('welcomeDescription','welcomeDescCount')"><%= welcomeData.description %></textarea>
+                        <div class="mb-char-count" id="welcomeDescCount">0 / 3500</div>
                     </div>
                 </div>
 
@@ -150,9 +155,14 @@
 
                 <div class="form-group">
                     <label class="label"><%= t('common.footer_label') %> <span style="font-weight:400;color:var(--text-muted)"><%= t('common.footer_optional') %></span></label>
-                    <input type="text" id="welcomeFooter" class="input"
-                           placeholder="<%= t('common.footer_placeholder') %>"
-                           value="<%= welcomeData.footerText || '' %>">
+                    <div class="input-count-wrap">
+                        <input type="text" id="welcomeFooter" class="input"
+                               placeholder="<%= t('common.footer_placeholder') %>"
+                               maxlength="2048"
+                               value="<%= welcomeData.footerText || '' %>"
+                               oninput="mbInlineCount('welcomeFooter','welcomeFooterCount')">
+                        <span class="input-inline-count" id="welcomeFooterCount">0 / 2048</span>
+                    </div>
                 </div>
 
                 <div class="form-group">
@@ -772,7 +782,7 @@ async function drawCardPreview() {
                        verdana:'Verdana,Geneva,sans-serif' };
     const fontFam  = fontMap[fontSel] || fontMap.impact;
     const bigText  = document.getElementById('cardWelcomeText')?.value  || 'WELCOME';
-    const sub      = (document.getElementById('cardSubText')?.value     || 'TO {server}')
+    const sub      = (document.getElementById('cardSubText')?.value     ?? '')
                        .replace(/{server}/gi, SAMPLE.server)
                        .replace(/{count}/gi,  SAMPLE.count)
                        .replace(/{tag}/gi,    SAMPLE.tag);
@@ -803,26 +813,7 @@ async function drawCardPreview() {
 
     // ── Background ────────────────────────────────────────────────────────
     if (bgType === 'transparent') {
-        // Canvas sudah di-clearRect — tidak perlu isi apa-apa
-        // Agar terlihat di preview, gambai checkerboard transparan
-        const sz = 12;
-        for (let y = 0; y < H; y += sz) {
-            for (let x = 0; x < W; x += sz) {
-                ctx.fillStyle = (Math.floor(x/sz) + Math.floor(y/sz)) % 2 === 0 ? '#c0c0c0' : '#909090';
-                ctx.fillRect(x, y, sz, sz);
-            }
-        }
-        // Clip rounded
-        ctx.save();
-        rr(0, 0, W, H, 16); ctx.clip();
-        // Sudah digambar tapi perlu clip dulu — gambar ulang di dalam clip
-        for (let y = 0; y < H; y += sz) {
-            for (let x = 0; x < W; x += sz) {
-                ctx.fillStyle = (Math.floor(x/sz) + Math.floor(y/sz)) % 2 === 0 ? '#c0c0c0' : '#909090';
-                ctx.fillRect(x, y, sz, sz);
-            }
-        }
-        ctx.restore();
+        // Biarkan canvas benar-benar transparan — clearRect di atas sudah cukup
     } else if (bgType === 'image' && bgImgUrl) {
         // Gunakan proxy server-side agar canvas tidak diblokir CORS
         const proxyUrl = '/api/guild/<%= guild.id %>/image-proxy?url=' + encodeURIComponent(bgImgUrl);
@@ -866,11 +857,13 @@ async function drawCardPreview() {
         ctx.restore();
     }
 
-    // ── Decorative circles ────────────────────────────────────────────────
-    ctx.globalAlpha = 0.07; ctx.fillStyle = accent;
-    ctx.beginPath(); ctx.arc(W-60, 40, 80, 0, Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.arc(W-20, H-20, 60, 0, Math.PI*2); ctx.fill();
-    ctx.globalAlpha = 1;
+    // ── Decorative circles (hidden in transparent mode) ───────────────────
+    if (bgType !== 'transparent') {
+        ctx.globalAlpha = 0.07; ctx.fillStyle = accent;
+        ctx.beginPath(); ctx.arc(W-60, 40, 80, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(W-20, H-20, 60, 0, Math.PI*2); ctx.fill();
+        ctx.globalAlpha = 1;
+    }
 
     // ── Avatar ────────────────────────────────────────────────────────────
     const AS = 120, BD = 5;
@@ -1220,7 +1213,7 @@ async function saveWelcome(guildId) {
         cardEnabled:        document.getElementById('cardEnabled').checked,
         cardWelcomeText:    document.getElementById('cardWelcomeText').value.trim()   || 'WELCOME',
         cardUserPrefix:     '',
-        cardSubText:        document.getElementById('cardSubText').value.trim()        || 'TO {server}',
+        cardSubText:        document.getElementById('cardSubText').value.trim(),
         cardBgColor:        document.getElementById('cardBgColor').value.trim()        || '#1a1a2e',
         cardBgColor2:       document.getElementById('cardBgColor2').value.trim()       || '#16213e',
         cardAccentColor:    document.getElementById('cardAccentColor').value.trim()    || '#5865F2',
@@ -1275,8 +1268,10 @@ function mbInlineCount(inputId, countId) {
 }
 document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.mb-auto-resize').forEach(mbResizeArea);
-    mbInlineCount('welcomePlainText',   'welcomePlainCount');
-    mbInlineCount('welcomeDescription', 'welcomeDescCount');
+    mbUpdateCount('welcomePlainText',   'welcomePlainCount');
+    mbInlineCount('welcomeTitle',       'welcomeTitleCount');
+    mbUpdateCount('welcomeDescription', 'welcomeDescCount');
+    mbInlineCount('welcomeFooter',      'welcomeFooterCount');
     mbInlineCount('cardWelcomeText',    'cardWelcomeTextCount');
     mbInlineCount('cardSubText',        'cardSubTextCount');
 });

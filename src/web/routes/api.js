@@ -259,7 +259,7 @@ router.post('/guild/:guildId/welcome', requireLogin, requireManageGuild, vNotifF
     setDbBool(db, `welcome-cardEnabled-${guildId}`, !!cardEnabled);
     db.set(`welcome-cardWelcomeText-${guildId}`, (cardWelcomeText || 'WELCOME').slice(0, 20));
     db.set(`welcome-cardUserPrefix-${guildId}`,  cardUserPrefix != null ? String(cardUserPrefix).slice(0, 5) : '.');
-    db.set(`welcome-cardSubText-${guildId}`,     (cardSubText || 'TO {server}').slice(0, 60));
+    db.set(`welcome-cardSubText-${guildId}`,     (cardSubText != null ? String(cardSubText) : 'TO {server}').slice(0, 60));
     const hexRe = /^#[0-9A-Fa-f]{6}$/;
     db.set(`welcome-cardBgColor-${guildId}`,  hexRe.test(cardBgColor)    ? cardBgColor    : '#1a1a2e');
     db.set(`welcome-cardBgColor2-${guildId}`, hexRe.test(cardBgColor2)   ? cardBgColor2   : '#16213e');
@@ -342,7 +342,7 @@ router.post('/guild/:guildId/goodbye', requireLogin, requireManageGuild, vNotifF
     // Card settings
     setDbBool(db, `goodbye-cardEnabled-${guildId}`,     !!cardEnabled);
     db.set(`goodbye-cardWelcomeText-${guildId}`,        cardWelcomeText?.trim()  || 'GOODBYE');
-    db.set(`goodbye-cardSubText-${guildId}`,            cardSubText?.trim()      || 'FROM {server}');
+    db.set(`goodbye-cardSubText-${guildId}`,            cardSubText != null ? String(cardSubText).trim() : 'FROM {server}');
     db.set(`goodbye-cardBgColor-${guildId}`,            cardBgColor?.trim()      || '#1a0a0a');
     db.set(`goodbye-cardBgColor2-${guildId}`,           cardBgColor2?.trim()     || '#2e0a0a');
     db.set(`goodbye-cardAccent-${guildId}`,             cardAccentColor?.trim()  || '#ED4245');
@@ -455,8 +455,8 @@ router.post('/guild/:guildId/booster-boost', requireLogin, requireManageGuild, (
     db.set(`booster-boost-showLevelServer-${guildId}`,showLevelServer? 'true' : 'false');
     db.set(`booster-boost-showThumbnail-${guildId}`,  showThumbnail  ? 'true' : 'false');
     db.set(`booster-boost-cardEnabled-${guildId}`,    cardEnabled    ? 'true' : 'false');
-    if (cardWelcomeText)    db.set(`booster-boost-cardWelcomeText-${guildId}`,    cardWelcomeText);
-    if (cardSubText)        db.set(`booster-boost-cardSubText-${guildId}`,        cardSubText);
+    if (cardWelcomeText)         db.set(`booster-boost-cardWelcomeText-${guildId}`, cardWelcomeText);
+    if (cardSubText != null)     db.set(`booster-boost-cardSubText-${guildId}`,    cardSubText);
     if (cardBgColor)        db.set(`booster-boost-cardBgColor-${guildId}`,        cardBgColor);
     if (cardBgColor2)       db.set(`booster-boost-cardBgColor2-${guildId}`,       cardBgColor2);
     if (cardAccentColor)    db.set(`booster-boost-cardAccent-${guildId}`,         cardAccentColor);
@@ -523,8 +523,8 @@ router.post('/guild/:guildId/booster-unboost', requireLogin, requireManageGuild,
     db.set(`booster-unboost-showLevelServer-${guildId}`,showLevelServer? 'true' : 'false');
     db.set(`booster-unboost-showThumbnail-${guildId}`,  showThumbnail  ? 'true' : 'false');
     db.set(`booster-unboost-cardEnabled-${guildId}`,    cardEnabled    ? 'true' : 'false');
-    if (cardWelcomeText)    db.set(`booster-unboost-cardWelcomeText-${guildId}`,    cardWelcomeText);
-    if (cardSubText)        db.set(`booster-unboost-cardSubText-${guildId}`,        cardSubText);
+    if (cardWelcomeText)         db.set(`booster-unboost-cardWelcomeText-${guildId}`, cardWelcomeText);
+    if (cardSubText != null)     db.set(`booster-unboost-cardSubText-${guildId}`,    cardSubText);
     if (cardBgColor)        db.set(`booster-unboost-cardBgColor-${guildId}`,        cardBgColor);
     if (cardBgColor2)       db.set(`booster-unboost-cardBgColor2-${guildId}`,       cardBgColor2);
     if (cardAccentColor)    db.set(`booster-unboost-cardAccent-${guildId}`,         cardAccentColor);
@@ -582,6 +582,12 @@ router.post('/guild/:guildId/autorole-booster', requireLogin, requireManageGuild
 });
 
 // Shared helper — applies extended embed fields (author, titleUrl, footer icon, timestamp, fields)
+function embedTotalChars(authorName, title, description, footer, fields) {
+    return [authorName, title, description, footer,
+        ...(Array.isArray(fields) ? fields.filter(f => f.name && f.value).flatMap(f => [f.name, f.value]) : [])
+    ].reduce((s, v) => s + (v || '').length, 0);
+}
+
 function _applyEmbedExtras(embed, panel) {
     if (panel.embedAuthorName) {
         embed.setAuthor({ name: panel.embedAuthorName.slice(0, 256), url: panel.embedAuthorUrl || undefined, iconURL: panel.embedAuthorIcon || undefined });
@@ -643,6 +649,9 @@ router.post('/guild/:guildId/autorole-button', requireLogin, requireManageGuild,
     const urlOk = v => !v || v === '' || /^https?:\/\/.+\..+/.test(v);
     if (!urlOk(embedImage))     return res.json({ success: false, message: 'Invalid image URL.' });
     if (!urlOk(embedThumbnail)) return res.json({ success: false, message: 'Invalid thumbnail URL.' });
+
+    if (embedTotalChars(embedAuthorName, embedTitle, embedDescription, embedFooter, embedFields) > 6000)
+        return res.json({ success: false, message: 'Total embed characters exceed Discord\'s limit (6000). Reduce text in title, description, fields, or footer.' });
 
     const existing = (() => {
         try { const r = db?.get(`autobtn-${guildId}-${panelName}`); return r ? JSON.parse(r) : null; } catch { return null; }
@@ -733,6 +742,11 @@ router.post('/guild/:guildId/autorole-button/:name', requireLogin, requireManage
     const urlOk = v => !v || v === '' || /^https?:\/\/.+\..+/.test(v);
     if (!urlOk(embedImage))     return res.json({ success: false, message: 'Invalid image URL.' });
     if (!urlOk(embedThumbnail)) return res.json({ success: false, message: 'Invalid thumbnail URL.' });
+
+    if (embedTotalChars(embedAuthorName ?? panel.embedAuthorName, embedTitle ?? panel.embedTitle,
+            embedDescription ?? panel.embedDescription, embedFooter ?? panel.embedFooter,
+            embedFields ?? panel.embedFields) > 6000)
+        return res.json({ success: false, message: 'Total embed characters exceed Discord\'s limit (6000). Reduce text in title, description, fields, or footer.' });
 
     // Lock mode & channelId once the panel has been sent
     const sentRaw = db?.get(`autobtn-sent-${guildId}-${name}`);
@@ -1043,6 +1057,9 @@ router.post('/guild/:guildId/autorole-reaction', requireLogin, requireManageGuil
     if (!urlOk(embedImage))     return res.json({ success: false, message: 'Invalid image URL.' });
     if (!urlOk(embedThumbnail)) return res.json({ success: false, message: 'Invalid thumbnail URL.' });
 
+    if (embedTotalChars(embedAuthorName, embedTitle, embedDescription, embedFooter, embedFields) > 6000)
+        return res.json({ success: false, message: 'Total embed characters exceed Discord\'s limit (6000). Reduce text in title, description, fields, or footer.' });
+
     const existing = (() => {
         try { const r = db?.get(`autoreact-${guildId}-${panelName}`); return r ? JSON.parse(r) : null; } catch { return null; }
     })();
@@ -1128,6 +1145,11 @@ router.post('/guild/:guildId/autorole-reaction/:name', requireLogin, requireMana
         return res.json({ success: false, message: 'Embed description exceeds the maximum of 4096 characters.' });
     if (plainText && plainText.length > 2000)
         return res.json({ success: false, message: 'Plain text message exceeds the maximum of 2000 characters.' });
+
+    if (embedTotalChars(embedAuthorName ?? panel.embedAuthorName, embedTitle ?? panel.embedTitle,
+            embedDescription ?? panel.embedDescription, embedFooter ?? panel.embedFooter,
+            embedFields ?? panel.embedFields) > 6000)
+        return res.json({ success: false, message: 'Total embed characters exceed Discord\'s limit (6000). Reduce text in title, description, fields, or footer.' });
 
     // Lock mode & channelId once the panel has been sent
     const sentRaw = db?.get(`autoreact-sent-${guildId}-${name}`);
@@ -1752,6 +1774,10 @@ router.post('/guild/:guildId/message-builder', requireLogin, requireManageGuild,
         createdAt:   existing?.createdAt || now,
         updatedAt:   now,
     };
+
+    if (embedTotalChars(data.authorName, data.title, data.description, data.footer, data.fields) > 6000)
+        return res.json({ success: false, message: 'Total embed characters exceed Discord\'s limit (6000). Reduce text in title, description, fields, or footer.' });
+
     mbSaveTemplate(db, guildId, name, data);
 
     // Jika sudah pernah dikirim, edit pesan Discord-nya
@@ -3536,6 +3562,14 @@ router.post('/guild/:guildId/custom-commands', requireLogin, requireManageGuild,
 
     if (clean.length > 10)
         return res.status(400).json({ success: false, message: 'Maximum 10 custom commands per server.' });
+
+    for (const c of clean) {
+        if (c.responseType === 'embed' || c.responseType === 'both') {
+            const r = c.response || {};
+            if (embedTotalChars(r.author?.name, r.title, r.description, r.footer?.text, r.fields) > 6000)
+                return res.status(400).json({ success: false, message: `Command "${c.trigger}": total embed characters exceed Discord's limit (6000).` });
+        }
+    }
 
     db.set(`customcmd-list-${guildId}`, JSON.stringify(clean));
     guildCache.del(`customcmd-list-${guildId}`);

@@ -91,12 +91,12 @@
                             </div>
                         </div>
                     </div>
-                    <div class="textarea-count-wrap">
+                    <div class="mb-count-wrap">
                         <textarea id="boostPlainText" class="textarea mb-auto-resize" rows="4"
                                   maxlength="2000"
                                   placeholder="🚀 {member} just boosted **{server}**! Total boosts: **{boosts}**."
-                                  oninput="mbResizeArea(this);mbInlineCount('boostPlainText','boostPlainCount');updateBoostPreview()"><%= boostData.plainText %></textarea>
-                        <span class="input-inline-count" id="boostPlainCount">0 / 2000</span>
+                                  oninput="mbResizeArea(this);mbUpdateCount('boostPlainText','boostPlainCount');updateBoostPreview()"><%= boostData.plainText %></textarea>
+                        <div class="mb-char-count" id="boostPlainCount">0 / 2000</div>
                     </div>
                 </div>
 
@@ -117,20 +117,24 @@
                                 </div>
                             </div>
                         </div>
-                        <input type="text" id="boostTitle" class="input"
-                               placeholder="🚀 New Server Boost!"
-                               value="<%= boostData.title %>"
-                               oninput="updateBoostPreview()">
+                        <div class="input-count-wrap">
+                            <input type="text" id="boostTitle" class="input"
+                                   placeholder="🚀 New Server Boost!"
+                                   maxlength="256"
+                                   value="<%= boostData.title %>"
+                                   oninput="mbInlineCount('boostTitle','boostTitleCount');updateBoostPreview()">
+                            <span class="input-inline-count" id="boostTitleCount">0 / 256</span>
+                        </div>
                     </div>
 
                     <div class="form-group">
                         <label class="label"><%= t('common.embed_description') %></label>
-                        <div class="textarea-count-wrap">
+                        <div class="mb-count-wrap">
                             <textarea id="boostDesc" class="textarea mb-auto-resize" rows="4"
                                       maxlength="3500"
                                       placeholder="Thank you {member} for boosting this server! 💖"
-                                      oninput="mbResizeArea(this);mbInlineCount('boostDesc','boostDescCount');updateBoostPreview()"><%= boostData.description %></textarea>
-                            <span class="input-inline-count" id="boostDescCount">0 / 3500</span>
+                                      oninput="mbResizeArea(this);mbUpdateCount('boostDesc','boostDescCount');updateBoostPreview()"><%= boostData.description %></textarea>
+                            <div class="mb-char-count" id="boostDescCount">0 / 3500</div>
                         </div>
                     </div>
 
@@ -149,10 +153,14 @@
 
                     <div class="form-group">
                         <label class="label"><%= t('booster.footer_label') %> <span style="font-weight:400;color:var(--text-muted)"><%= t('booster.footer_optional') %></span></label>
-                        <input type="text" id="boostFooter" class="input"
-                               placeholder="<%= t('booster.footer_placeholder') %>"
-                               value="<%= boostData.footerText || '' %>"
-                               oninput="updateBoostPreview()">
+                        <div class="input-count-wrap">
+                            <input type="text" id="boostFooter" class="input"
+                                   placeholder="<%= t('booster.footer_placeholder') %>"
+                                   maxlength="2048"
+                                   value="<%= boostData.footerText || '' %>"
+                                   oninput="mbInlineCount('boostFooter','boostFooterCount');updateBoostPreview()">
+                            <span class="input-inline-count" id="boostFooterCount">0 / 2048</span>
+                        </div>
                     </div>
 
                     <div class="form-group">
@@ -548,7 +556,7 @@ async function drawBoostCard() {
     const fontMap   = { impact:"Impact,'Arial Black',sans-serif", arial:'Arial,Helvetica,sans-serif', georgia:"Georgia,'Times New Roman',serif", courier:"'Courier New',Courier,monospace", verdana:'Verdana,Geneva,sans-serif' };
     const fontFam   = fontMap[fontSel] || fontMap.impact;
     const bigText   = g('WelcomeText')?.value  || 'BOOST!';
-    const sub       = (g('SubText')?.value || 'Thank you for boosting!')
+    const sub       = (g('SubText')?.value ?? '')
                         .replace(/{server}/gi, SAMPLE.server)
                         .replace(/{boosts}/gi, SAMPLE.boosts)
                         .replace(/{level}/gi,  SAMPLE.level);
@@ -567,9 +575,7 @@ async function drawBoostCard() {
     function rr(x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y); ctx.quadraticCurveTo(x+w,y,x+w,y+r); ctx.lineTo(x+w,y+h-r); ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h); ctx.lineTo(x+r,y+h); ctx.quadraticCurveTo(x,y+h,x,y+h-r); ctx.lineTo(x,y+r); ctx.quadraticCurveTo(x,y,x+r,y); ctx.closePath(); }
 
     if (bgType === 'transparent') {
-        const sz = 12; ctx.save(); rr(0,0,W,H,16); ctx.clip();
-        for (let y=0;y<H;y+=sz) for (let x=0;x<W;x+=sz) { ctx.fillStyle=(Math.floor(x/sz)+Math.floor(y/sz))%2===0?'#c0c0c0':'#909090'; ctx.fillRect(x,y,sz,sz); }
-        ctx.restore();
+        // Biarkan canvas benar-benar transparan
     } else if (bgType === 'image' && bgImgUrl) {
         const proxyUrl = `/api/guild/${GUILD_ID}/image-proxy?url=` + encodeURIComponent(bgImgUrl);
         try {
@@ -580,10 +586,12 @@ async function drawBoostCard() {
 
     if (overlayOp>0){ctx.save();rr(0,0,W,H,16);ctx.clip();ctx.globalAlpha=overlayOp;ctx.fillStyle=overlayClr;ctx.fillRect(0,0,W,H);ctx.globalAlpha=1;ctx.restore();}
 
-    ctx.globalAlpha=0.07;ctx.fillStyle=accent;
-    ctx.beginPath();ctx.arc(W-60,40,80,0,Math.PI*2);ctx.fill();
-    ctx.beginPath();ctx.arc(W-20,H-20,60,0,Math.PI*2);ctx.fill();
-    ctx.globalAlpha=1;
+    if (bgType !== 'transparent') {
+        ctx.globalAlpha=0.07;ctx.fillStyle=accent;
+        ctx.beginPath();ctx.arc(W-60,40,80,0,Math.PI*2);ctx.fill();
+        ctx.beginPath();ctx.arc(W-20,H-20,60,0,Math.PI*2);ctx.fill();
+        ctx.globalAlpha=1;
+    }
 
     const AS=120,BD=5,avL=50,avT=(H-AS-BD*2)/2,TX=avL+AS+BD*2+40,isSquare=shape==='square';
     ctx.fillStyle=accent;
@@ -751,7 +759,7 @@ async function saveBoost() {
             showThumbnail:    document.getElementById('boostShowThumbnail').checked,
             cardEnabled:        document.getElementById('boostCardEnabled').checked,
             cardWelcomeText:    document.getElementById('boostCardWelcomeText').value.trim()    || 'BOOST!',
-            cardSubText:        document.getElementById('boostCardSubText').value.trim()        || 'Thank you for boosting!',
+            cardSubText:        document.getElementById('boostCardSubText').value.trim(),
             cardBgColor:        document.getElementById('boostCardBgColor').value.trim()        || '#0a0a1e',
             cardBgColor2:       document.getElementById('boostCardBgColor2').value.trim()       || '#1e0a2e',
             cardAccentColor:    document.getElementById('boostCardAccentColor').value.trim()    || '#FF73FA',
@@ -849,8 +857,10 @@ function mbInlineCount(inputId, countId) {
 }
 document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.mb-auto-resize').forEach(mbResizeArea);
-    mbInlineCount('boostPlainText',        'boostPlainCount');
-    mbInlineCount('boostDesc',             'boostDescCount');
+    mbUpdateCount('boostPlainText',        'boostPlainCount');
+    mbInlineCount('boostTitle',            'boostTitleCount');
+    mbUpdateCount('boostDesc',             'boostDescCount');
+    mbInlineCount('boostFooter',           'boostFooterCount');
     mbInlineCount('boostCardWelcomeText',  'boostCardWelcomeTextCount');
     mbInlineCount('boostCardSubText',      'boostCardSubTextCount');
 });

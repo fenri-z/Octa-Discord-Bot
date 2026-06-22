@@ -170,10 +170,12 @@
                             </div>
                         </div>
                         <div class="mb-section-body">
-                            <textarea id="ccPlainText" class="textarea mb-auto-resize" data-flt-ignore rows="3"
-                                      placeholder="<%= t('custom_commands.plain_placeholder') %>" maxlength="2000"
-                                      oninput="ccResizeArea(this);ccUpdateCount('ccPlainText','ccPlainCount');updatePreview()"></textarea>
-                            <div class="mb-char-count" id="ccPlainCount">0 / 2000</div>
+                            <div class="mb-count-wrap">
+                                <textarea id="ccPlainText" class="textarea mb-auto-resize" data-flt-ignore rows="3"
+                                          placeholder="<%= t('custom_commands.plain_placeholder') %>" maxlength="2000"
+                                          oninput="ccResizeArea(this);ccUpdateCount('ccPlainText','ccPlainCount');updatePreview()"></textarea>
+                                <div class="mb-char-count" id="ccPlainCount">0 / 2000</div>
+                            </div>
                             <textarea id="ccPlainImage" class="input input-sm mb-url-area" data-flt-ignore rows="1"
                                       placeholder="Image URL (https://...) — optional"
                                       data-url-label="Image URL"
@@ -199,8 +201,11 @@
                             <div class="ee-section">
                                 <div class="ee-sec-label"><%= t('custom_commands.ee_author') %></div>
                                 <div class="form-group" style="margin-bottom:.5rem;">
-                                    <input type="text" id="ccEmbedAuthor" class="input" data-flt-ignore
-                                           placeholder="<%= t('custom_commands.ee_author_name_ph') %>" maxlength="256" oninput="updatePreview()">
+                                    <div class="mb-count-wrap">
+                                        <input type="text" id="ccEmbedAuthor" class="input" data-flt-ignore
+                                               placeholder="<%= t('custom_commands.ee_author_name_ph') %>" maxlength="256" oninput="ccUpdateCount('ccEmbedAuthor','ccAuthorCount');updatePreview()">
+                                        <div class="mb-char-count" id="ccAuthorCount">0 / 256</div>
+                                    </div>
                                 </div>
                                 <div class="cc-two-col" style="gap:.5rem;">
                                     <textarea id="ccEmbedAuthorUrl" class="input input-sm mb-url-area" data-flt-ignore rows="1"
@@ -221,8 +226,11 @@
                             <div class="ee-section">
                                 <div class="ee-sec-label"><%= t('custom_commands.ee_title') %></div>
                                 <div class="form-group" style="margin-bottom:.5rem;">
-                                    <input type="text" id="ccEmbedTitle" class="input ee-title-input" data-flt-ignore
-                                           placeholder="<%= t('custom_commands.ee_title_ph') %>" maxlength="256" oninput="updatePreview()">
+                                    <div class="mb-count-wrap">
+                                        <input type="text" id="ccEmbedTitle" class="input ee-title-input" data-flt-ignore
+                                               placeholder="<%= t('custom_commands.ee_title_ph') %>" maxlength="256" oninput="ccUpdateCount('ccEmbedTitle','ccTitleCount');updatePreview()">
+                                        <div class="mb-char-count" id="ccTitleCount">0 / 256</div>
+                                    </div>
                                 </div>
                                 <textarea id="ccEmbedTitleUrl" class="input input-sm mb-url-area" data-flt-ignore rows="1"
                                        placeholder="<%= t('custom_commands.ee_title_url_ph') %>"
@@ -247,11 +255,13 @@
                                         </div>
                                     </div>
                                 </div>
-                                <textarea id="ccEmbedDesc" class="textarea mb-auto-resize" data-flt-ignore rows="4"
-                                          placeholder="<%= t('custom_commands.ee_desc_ph') %>"
-                                          maxlength="4096"
-                                          oninput="ccResizeArea(this);ccUpdateCount('ccEmbedDesc','ccDescCount');updatePreview()"></textarea>
-                                <div class="mb-char-count" id="ccDescCount">0 / 4096</div>
+                                <div class="mb-count-wrap">
+                                    <textarea id="ccEmbedDesc" class="textarea mb-auto-resize" data-flt-ignore rows="4"
+                                              placeholder="<%= t('custom_commands.ee_desc_ph') %>"
+                                              maxlength="4096"
+                                              oninput="ccResizeArea(this);ccUpdateCount('ccEmbedDesc','ccDescCount');updatePreview()"></textarea>
+                                    <div class="mb-char-count" id="ccDescCount">0 / 4096</div>
+                                </div>
                             </div>
 
                             <div class="ee-sep"></div>
@@ -296,9 +306,12 @@
                             <div class="ee-section">
                                 <div class="ee-sec-label"><%= t('custom_commands.ee_footer') %></div>
                                 <div style="margin-bottom:.5rem;">
-                                    <input type="text" id="ccEmbedFooter" class="input input-sm" data-flt-ignore
-                                           style="display:block;width:100%;box-sizing:border-box;"
-                                           placeholder="<%= t('custom_commands.ee_footer_text_ph') %>" maxlength="2048" oninput="updatePreview()">
+                                    <div class="mb-count-wrap">
+                                        <input type="text" id="ccEmbedFooter" class="input input-sm" data-flt-ignore
+                                               style="display:block;width:100%;box-sizing:border-box;"
+                                               placeholder="<%= t('custom_commands.ee_footer_text_ph') %>" maxlength="2048" oninput="ccUpdateCount('ccEmbedFooter','ccFooterCount');updatePreview()">
+                                        <div class="mb-char-count" id="ccFooterCount">0 / 2048</div>
+                                    </div>
                                 </div>
                                 <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;">
                                     <textarea id="ccEmbedFooterIcon" class="input input-sm mb-url-area" data-flt-ignore rows="1"
@@ -532,6 +545,10 @@
 }
 .mb-char-count.warn   { color: #f0b232; }
 .mb-char-count.danger { color: #ed4245; font-weight: 600; }
+.mb-count-wrap { position: relative; display: block; }
+.mb-count-wrap input.input  { padding-right: 4.6rem; }
+.mb-count-wrap textarea.input { padding-bottom: 1.3rem; }
+.mb-count-wrap .mb-char-count { position: absolute; right: .5rem; bottom: .38rem; margin-top: 0; font-size: .68rem; pointer-events: none; white-space: nowrap; }
 
 
 /* ── Embed Builder ───────────────────────────────────────────────── */
@@ -685,7 +702,8 @@
 const GUILD_ID = '<%= guild.id %>';
 const I18N_CC_DEL_TITLE  = '<%- t("custom_commands.confirm_delete_title") %>';
 const I18N_CC_DEL_MSG    = '<%- t("custom_commands.confirm_delete_msg") %>';
-const I18N_CC_ERR_LIMIT  = <%- JSON.stringify(t("custom_commands.err_limit")) %>;
+const I18N_CC_ERR_LIMIT      = <%- JSON.stringify(t("custom_commands.err_limit")) %>;
+const I18N_ERR_EMBED_TOTAL   = <%- JSON.stringify(t("common.err_embed_total_limit")) %>;
 const I18N_CC_ERR_DUP    = <%- JSON.stringify(t("custom_commands.err_duplicate")) %>;
 const I18N_CC_BADGE_RESTR = <%- JSON.stringify(t("custom_commands.restr_badge_restricted")) %>;
 const BOT_PREFIX  = <%- JSON.stringify(botPrefix) %>;
@@ -906,10 +924,16 @@ function renderEmbedFields() {
         <div class="cc-field-row" data-fi="${i}">
             <div class="cc-field-inputs">
                 <div class="cc-field-num">Field #${i + 1}</div>
-                <input type="text" class="input" placeholder="Field name…" maxlength="256" value="${escHtml(f.name)}"
-                    oninput="embedFields[${i}].name=this.value;updatePreview()">
-                <textarea class="input" placeholder="Field value…" maxlength="1024" rows="2" style="resize:vertical;"
-                    oninput="embedFields[${i}].value=this.value;updatePreview()">${escHtml(f.value)}</textarea>
+                <div class="mb-count-wrap">
+                    <input type="text" class="input" placeholder="Field name…" maxlength="256" value="${escHtml(f.name)}"
+                        oninput="embedFields[${i}].name=this.value;_countEl(this);updatePreview()">
+                    <div class="mb-char-count">${f.name.length} / 256</div>
+                </div>
+                <div class="mb-count-wrap" style="margin-top:.35rem;">
+                    <textarea class="input" placeholder="Field value…" maxlength="1024" rows="2" style="resize:vertical;"
+                        oninput="embedFields[${i}].value=this.value;_countEl(this);updatePreview()">${escHtml(f.value)}</textarea>
+                    <div class="mb-char-count">${f.value.length} / 1024</div>
+                </div>
                 <div class="cc-field-inline-row">
                     <label>
                         <input type="checkbox" ${f.inline ? 'checked' : ''} onchange="embedFields[${i}].inline=this.checked;updatePreview()">
@@ -984,8 +1008,11 @@ function clearForm() {
     embedFields = [];
     renderEmbedFields();
     ccResizeAll();
-    ccUpdateCount('ccPlainText', 'ccPlainCount');
-    ccUpdateCount('ccEmbedDesc', 'ccDescCount');
+    ccUpdateCount('ccPlainText',  'ccPlainCount');
+    ccUpdateCount('ccEmbedDesc',  'ccDescCount');
+    ccUpdateCount('ccEmbedAuthor','ccAuthorCount');
+    ccUpdateCount('ccEmbedTitle', 'ccTitleCount');
+    ccUpdateCount('ccEmbedFooter','ccFooterCount');
     updatePreview();
     const addMsg = document.getElementById('ccAddMsg');
     addMsg.textContent = '';
@@ -1079,6 +1106,14 @@ function addCommandFromForm() {
     if (!text && !hasEmbed && !plainImg) {
         showMsg(addMsg, i18n.err_no_text, 'error');
         return false;
+    }
+
+    if (hasEmbed) {
+        const _embedTotal = [
+            embedResp.author?.name, embedResp.title, embedResp.description, embedResp.footer?.text,
+            ...embedFields.flatMap(f => [f.name.trim(), f.value.trim()])
+        ].reduce((s, v) => s + (v || '').length, 0);
+        if (_embedTotal > 6000) { showMsg(addMsg, I18N_ERR_EMBED_TOTAL, 'error'); return false; }
     }
 
     let resType, response;
@@ -1520,8 +1555,11 @@ function _fillFormFromCmd(cmd) {
     onEeColor(); onEeAuthIcon(); onEeThumb(); onEeImage(); onEeFooterIcon();
     renderEmbedFields();
     ccResizeAll();
-    ccUpdateCount('ccPlainText', 'ccPlainCount');
-    ccUpdateCount('ccEmbedDesc', 'ccDescCount');
+    ccUpdateCount('ccPlainText',  'ccPlainCount');
+    ccUpdateCount('ccEmbedDesc',  'ccDescCount');
+    ccUpdateCount('ccEmbedAuthor','ccAuthorCount');
+    ccUpdateCount('ccEmbedTitle', 'ccTitleCount');
+    ccUpdateCount('ccEmbedFooter','ccFooterCount');
     updatePreview();
     setCcRestrictions(cmd);
 }
@@ -1675,6 +1713,14 @@ function ccResizeAll() {
     requestAnimationFrame(() => {
         document.querySelectorAll('#ccFormCard .mb-url-area, #ccFormCard .mb-auto-resize').forEach(ccResizeArea);
     });
+}
+function _countEl(el) {
+    const ct = el.nextElementSibling;
+    if (!ct || !ct.classList.contains('mb-char-count')) return;
+    const len = el.value.length;
+    const max = parseInt(el.getAttribute('maxlength')) || 0;
+    ct.textContent = len + ' / ' + max;
+    ct.className = 'mb-char-count' + (len >= max ? ' danger' : len >= max * 0.9 ? ' warn' : '');
 }
 function ccUpdateCount(taId, countId) {
     const ta = document.getElementById(taId);

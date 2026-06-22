@@ -346,11 +346,13 @@
                                 <div class="ph-dropdown" id="ytVideoPlainPicker-<%= ytCh.id %>" style="display:none;"></div>
                             </div>
                         </div>
-                        <textarea class="textarea mb-auto-resize" id="videoPlainMessage-<%= ytCh.id %>" rows="2"
-                                  maxlength="2000"
-                                  placeholder="<%= t('youtube.plain_msg_ph').replace('{channel}', ytCh.name) %>"
-                                  oninput="mbResizeArea(this);mbUpdateCount('videoPlainMessage-<%= ytCh.id %>','videoPlainCount-<%= ytCh.id %>');updateYtPreview('<%= ytCh.id %>','video')"><%= ytCh.videoPlainMessage ?? _defVideoPlainMsg %></textarea>
-                        <div class="mb-char-count" id="videoPlainCount-<%= ytCh.id %>">0 / 2000</div>
+                        <div class="mb-count-wrap">
+                            <textarea class="textarea mb-auto-resize" id="videoPlainMessage-<%= ytCh.id %>" rows="2"
+                                      maxlength="2000"
+                                      placeholder="<%= t('youtube.plain_msg_ph').replace('{channel}', ytCh.name) %>"
+                                      oninput="mbResizeArea(this);mbUpdateCount('videoPlainMessage-<%= ytCh.id %>','videoPlainCount-<%= ytCh.id %>');updateYtPreview('<%= ytCh.id %>','video')"><%= ytCh.videoPlainMessage ?? _defVideoPlainMsg %></textarea>
+                            <div class="mb-char-count" id="videoPlainCount-<%= ytCh.id %>">0 / 2000</div>
+                        </div>
                     </div>
                     <div class="form-group">
                         <div class="label-with-picker">
@@ -360,11 +362,13 @@
                                 <div class="ph-dropdown" id="ytVideoPicker-<%= ytCh.id %>" style="display:none;"></div>
                             </div>
                         </div>
-                        <textarea class="textarea mb-auto-resize" id="videoMessage-<%= ytCh.id %>" rows="3"
-                                  maxlength="3500"
-                                  placeholder="<%- t('youtube.msg_ph_video') %>"
-                                  oninput="mbResizeArea(this);mbUpdateCount('videoMessage-<%= ytCh.id %>','videoCount-<%= ytCh.id %>');updateYtPreview('<%= ytCh.id %>','video')"><%= ytCh.videoMessage || _defVideoMsg %></textarea>
-                        <div class="mb-char-count" id="videoCount-<%= ytCh.id %>">0 / 3500</div>
+                        <div class="mb-count-wrap">
+                            <textarea class="textarea mb-auto-resize" id="videoMessage-<%= ytCh.id %>" rows="3"
+                                    maxlength="3500"
+                                    placeholder="<%- t('youtube.msg_ph_video') %>"
+                                    oninput="mbResizeArea(this);mbUpdateCount('videoMessage-<%= ytCh.id %>','videoCount-<%= ytCh.id %>');updateYtPreview('<%= ytCh.id %>','video')"><%= ytCh.videoMessage || _defVideoMsg %></textarea>
+                            <div class="mb-char-count" id="videoCount-<%= ytCh.id %>">0 / 3500</div>
+                        </div>
                     </div>
                     <div class="yt-action-row" style="display:flex;justify-content:flex-end;gap:.5rem;padding-top:.25rem;">
                         <button class="btn btn-secondary" onclick="testYtNotif(this,'<%= ytCh.id %>')">
@@ -473,11 +477,13 @@
                                 <div class="ph-dropdown" id="ytShortPlainPicker-<%= ytCh.id %>" style="display:none;"></div>
                             </div>
                         </div>
-                        <textarea class="textarea mb-auto-resize" id="shortPlainMessage-<%= ytCh.id %>" rows="2"
-                                  maxlength="2000"
-                                  placeholder="<%= t('youtube.plain_msg_ph').replace('{channel}', ytCh.name) %>"
-                                  oninput="mbResizeArea(this);mbUpdateCount('shortPlainMessage-<%= ytCh.id %>','shortPlainCount-<%= ytCh.id %>');updateYtPreview('<%= ytCh.id %>','short')"><%= ytCh.shortPlainMessage ?? _defShortPlainMsg %></textarea>
-                        <div class="mb-char-count" id="shortPlainCount-<%= ytCh.id %>">0 / 2000</div>
+                        <div class="mb-count-wrap">
+                            <textarea class="textarea mb-auto-resize" id="shortPlainMessage-<%= ytCh.id %>" rows="2"
+                                    maxlength="2000"
+                                    placeholder="<%= t('youtube.plain_msg_ph').replace('{channel}', ytCh.name) %>"
+                                    oninput="mbResizeArea(this);mbUpdateCount('shortPlainMessage-<%= ytCh.id %>','shortPlainCount-<%= ytCh.id %>');updateYtPreview('<%= ytCh.id %>','short')"><%= ytCh.shortPlainMessage ?? _defShortPlainMsg %></textarea>
+                            <div class="mb-char-count" id="shortPlainCount-<%= ytCh.id %>">0 / 2000</div>
+                        </div>
                     </div>
                     <div class="form-group">
                         <div class="label-with-picker">
@@ -487,11 +493,13 @@
                                 <div class="ph-dropdown" id="ytShortPicker-<%= ytCh.id %>" style="display:none;"></div>
                             </div>
                         </div>
-                        <textarea class="textarea mb-auto-resize" id="shortMessage-<%= ytCh.id %>" rows="3"
-                                  maxlength="3500"
-                                  placeholder="<%- t('youtube.msg_ph_short') %>"
-                                  oninput="mbResizeArea(this);mbUpdateCount('shortMessage-<%= ytCh.id %>','shortCount-<%= ytCh.id %>');updateYtPreview('<%= ytCh.id %>','short')"><%= ytCh.shortMessage || _defShortMsg %></textarea>
-                        <div class="mb-char-count" id="shortCount-<%= ytCh.id %>">0 / 3500</div>
+                        <div class="mb-count-wrap">
+                            <textarea class="textarea mb-auto-resize" id="shortMessage-<%= ytCh.id %>" rows="3"
+                                    maxlength="3500"
+                                    placeholder="<%- t('youtube.msg_ph_short') %>"
+                                    oninput="mbResizeArea(this);mbUpdateCount('shortMessage-<%= ytCh.id %>','shortCount-<%= ytCh.id %>');updateYtPreview('<%= ytCh.id %>','short')"><%= ytCh.shortMessage || _defShortMsg %></textarea>
+                            <div class="mb-char-count" id="shortCount-<%= ytCh.id %>">0 / 3500</div>
+                        </div>
                     </div>
                     <div class="yt-action-row" style="display:flex;justify-content:flex-end;gap:.5rem;padding-top:.25rem;">
                         <button class="btn btn-secondary" onclick="testYtNotif(this,'<%= ytCh.id %>')">
@@ -599,11 +607,13 @@
                                 <div class="ph-dropdown" id="ytLivePlainPicker-<%= ytCh.id %>" style="display:none;"></div>
                             </div>
                         </div>
-                        <textarea class="textarea mb-auto-resize" id="livePlainMessage-<%= ytCh.id %>" rows="2"
-                                  maxlength="2000"
-                                  placeholder="<%= t('youtube.plain_msg_ph').replace('{channel}', ytCh.name) %>"
-                                  oninput="mbResizeArea(this);mbUpdateCount('livePlainMessage-<%= ytCh.id %>','livePlainCount-<%= ytCh.id %>');updateYtPreview('<%= ytCh.id %>','live')"><%= ytCh.livePlainMessage ?? _defLivePlainMsg %></textarea>
-                        <div class="mb-char-count" id="livePlainCount-<%= ytCh.id %>">0 / 2000</div>
+                        <div class="mb-count-wrap">
+                            <textarea class="textarea mb-auto-resize" id="livePlainMessage-<%= ytCh.id %>" rows="2"
+                                      maxlength="2000"
+                                      placeholder="<%= t('youtube.plain_msg_ph').replace('{channel}', ytCh.name) %>"
+                                      oninput="mbResizeArea(this);mbUpdateCount('livePlainMessage-<%= ytCh.id %>','livePlainCount-<%= ytCh.id %>');updateYtPreview('<%= ytCh.id %>','live')"><%= ytCh.livePlainMessage ?? _defLivePlainMsg %></textarea>
+                            <div class="mb-char-count" id="livePlainCount-<%= ytCh.id %>">0 / 2000</div>
+                        </div>
                     </div>
                     <div class="form-group">
                         <div class="label-with-picker">
@@ -613,11 +623,13 @@
                                 <div class="ph-dropdown" id="ytLivePicker-<%= ytCh.id %>" style="display:none;"></div>
                             </div>
                         </div>
-                        <textarea class="textarea mb-auto-resize" id="liveMessage-<%= ytCh.id %>" rows="3"
-                                  maxlength="3500"
-                                  placeholder="<%- t('youtube.msg_ph_live') %>"
-                                  oninput="mbResizeArea(this);mbUpdateCount('liveMessage-<%= ytCh.id %>','liveCount-<%= ytCh.id %>');updateYtPreview('<%= ytCh.id %>','live')"><%= ytCh.liveMessage || _defLiveMsg %></textarea>
-                        <div class="mb-char-count" id="liveCount-<%= ytCh.id %>">0 / 3500</div>
+                        <div class="mb-count-wrap">
+                            <textarea class="textarea mb-auto-resize" id="liveMessage-<%= ytCh.id %>" rows="3"
+                                      maxlength="3500"
+                                      placeholder="<%- t('youtube.msg_ph_live') %>"
+                                      oninput="mbResizeArea(this);mbUpdateCount('liveMessage-<%= ytCh.id %>','liveCount-<%= ytCh.id %>');updateYtPreview('<%= ytCh.id %>','live')"><%= ytCh.liveMessage || _defLiveMsg %></textarea>
+                            <div class="mb-char-count" id="liveCount-<%= ytCh.id %>">0 / 3500</div>
+                        </div>
                     </div>
                     <div class="yt-action-row" style="display:flex;justify-content:flex-end;gap:.5rem;padding-top:.25rem;">
                         <button class="btn btn-secondary" onclick="testYtNotif(this,'<%= ytCh.id %>')">

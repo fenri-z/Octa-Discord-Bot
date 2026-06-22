@@ -117,10 +117,12 @@
                             </div>
                         </div>
                         <div class="mb-section-body">
-                            <textarea id="editPlainText" class="textarea mb-auto-resize" data-flt-ignore rows="3"
-                                      placeholder="<%= t('message_builder.ph_plain_text') %>" maxlength="2000"
-                                      oninput="mbResizeArea(this);mbUpdateCount('editPlainText','plainTextCount');onFormInput()"></textarea>
-                            <div class="mb-char-count" id="plainTextCount">0 / 2000</div>
+                            <div class="mb-count-wrap">
+                                <textarea id="editPlainText" class="textarea mb-auto-resize" data-flt-ignore rows="3"
+                                          placeholder="<%= t('message_builder.ph_plain_text') %>" maxlength="2000"
+                                          oninput="mbResizeArea(this);mbUpdateCount('editPlainText','plainTextCount');onFormInput()"></textarea>
+                                <div class="mb-char-count" id="plainTextCount">0 / 2000</div>
+                            </div>
                             <textarea id="editPlainImage" class="input input-sm mb-url-area" data-flt-ignore rows="1"
                                       placeholder="<%= t('message_builder.ph_plain_image') %>"
                                       oninput="mbResizeArea(this);mbWarnUrl(this,true);onFormInput()" onblur="mbWarnUrl(this,true,event)"></textarea>
@@ -148,9 +150,12 @@
                                 <div class="ee-section">
                                     <div class="ee-sec-label"><%= t('message_builder.label_author') %></div>
                                     <div class="form-group" style="margin-bottom:.5rem;">
-                                        <input type="text" id="editAuthorName" class="input" data-flt-ignore
-                                               style="display:block;width:100%;align-self:flex-start;"
-                                               placeholder="<%= t('message_builder.ph_author_name') %>" maxlength="256" oninput="onFormInput()">
+                                        <div class="mb-count-wrap">
+                                            <input type="text" id="editAuthorName" class="input" data-flt-ignore
+                                                   style="display:block;width:100%;"
+                                                   placeholder="<%= t('message_builder.ph_author_name') %>" maxlength="256" oninput="onFormInput();mbUpdateCount('editAuthorName','editAuthorNameCount')">
+                                            <div class="mb-char-count" id="editAuthorNameCount">0 / 256</div>
+                                        </div>
                                     </div>
                                     <div class="mb-url-pair" style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;">
                                         <textarea id="editAuthorUrl" class="input input-sm mb-url-area" data-flt-ignore rows="1"
@@ -166,8 +171,11 @@
                                 <div class="ee-section">
                                     <div class="ee-sec-label"><%= t('message_builder.label_title') %></div>
                                     <div class="form-group" style="margin-bottom:.5rem;">
-                                        <input type="text" id="editTitle" class="input ee-title-input" data-flt-ignore
-                                               placeholder="<%= t('message_builder.ph_embed_title') %>" maxlength="256" oninput="onFormInput()">
+                                        <div class="mb-count-wrap">
+                                            <input type="text" id="editTitle" class="input ee-title-input" data-flt-ignore
+                                                   placeholder="<%= t('message_builder.ph_embed_title') %>" maxlength="256" oninput="onFormInput();mbUpdateCount('editTitle','editTitleCount')">
+                                            <div class="mb-char-count" id="editTitleCount">0 / 256</div>
+                                        </div>
                                     </div>
                                     <textarea id="editTitleUrl" class="input input-sm mb-url-area" data-flt-ignore rows="1"
                                            placeholder="<%= t('message_builder.ph_title_url') %>" oninput="mbResizeArea(this);mbWarnUrl(this,false);onFormInput()" onblur="mbWarnUrl(this,false,event)"></textarea>
@@ -190,10 +198,12 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <textarea id="editDescription" class="textarea mb-auto-resize" data-flt-ignore rows="4"
-                                              placeholder="<%= t('message_builder.ph_description') %>" maxlength="4096"
-                                              oninput="mbResizeArea(this);mbUpdateCount('editDescription','descCount');onFormInput()"></textarea>
-                                    <div class="mb-char-count" id="descCount">0 / 4096</div>
+                                    <div class="mb-count-wrap">
+                                        <textarea id="editDescription" class="textarea mb-auto-resize" data-flt-ignore rows="4"
+                                                  placeholder="<%= t('message_builder.ph_description') %>" maxlength="4096"
+                                                  oninput="mbResizeArea(this);mbUpdateCount('editDescription','descCount');onFormInput()"></textarea>
+                                        <div class="mb-char-count" id="descCount">0 / 4096</div>
+                                    </div>
                                 </div>
 
                                 <div class="ee-sep"></div>
@@ -232,10 +242,13 @@
                                 <div class="ee-section">
                                     <div class="ee-sec-label"><%= t('message_builder.label_footer') %></div>
                                     <div style="margin-bottom:.5rem;">
-                                        <input type="text" id="editFooter" class="input input-sm" data-flt-ignore
-                                               style="display:block;width:100%;"
-                                               placeholder="<%= t('message_builder.ph_footer_text') %>" maxlength="2048"
-                                               oninput="onFormInput()">
+                                        <div class="mb-count-wrap">
+                                            <input type="text" id="editFooter" class="input input-sm" data-flt-ignore
+                                                   style="display:block;width:100%;"
+                                                   placeholder="<%= t('message_builder.ph_footer_text') %>" maxlength="2048"
+                                                   oninput="onFormInput();mbUpdateCount('editFooter','editFooterCount')">
+                                            <div class="mb-char-count" id="editFooterCount">0 / 2048</div>
+                                        </div>
                                     </div>
                                     <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;">
                                         <textarea id="editFooterIcon" class="input input-sm mb-url-area" data-flt-ignore rows="1"
@@ -490,6 +503,10 @@
 }
 .mb-char-count.warn   { color:#f0b232; }
 .mb-char-count.danger { color:#ed4245; font-weight:600; }
+.mb-count-wrap { position:relative; display:block; }
+.mb-count-wrap input.input  { padding-right:4.6rem; }
+.mb-count-wrap textarea.input { padding-bottom:1.3rem; }
+.mb-count-wrap .mb-char-count { position:absolute; right:.5rem; bottom:.38rem; margin-top:0; font-size:.68rem; pointer-events:none; white-space:nowrap; }
 
 /* ── Embed field rows (form) ── */
 .cc-field-row { display:flex; gap:.6rem; align-items:flex-start; background:var(--bg3); border:1px solid var(--border); border-radius:8px; padding:.65rem .75rem; margin-bottom:.45rem; }
@@ -599,6 +616,7 @@ const I18N_MB_ERR_LOAD_TMPL   = <%- JSON.stringify(t("message_builder.err_load_t
 const I18N_MB_ERR_DUPLICATE    = <%- JSON.stringify(t("message_builder.err_duplicate")) %>;
 const I18N_MB_ERR_URL_INVALID  = <%- JSON.stringify(t("message_builder.err_url_invalid")) %>;
 const I18N_MB_ERR_URL_IMG      = <%- JSON.stringify(t("message_builder.err_url_not_image")) %>;
+const I18N_ERR_EMBED_TOTAL     = <%- JSON.stringify(t("common.err_embed_total_limit")) %>;
 const I18N_MB_NO_TEMPLATES      = '<%= t("message_builder.no_templates") %>';
 const I18N_MB_NO_TEMPLATES_HINT = '<%- t("message_builder.no_templates_hint") %>';
 const I18N_MB_BADGE_TEXT = '<%= t("message_builder.badge_text") %>';
@@ -736,8 +754,11 @@ function _restoreFromData(t) {
     mbEmbedFields = Array.isArray(t.fields) ? t.fields.map(f => ({ name: f.name || '', value: f.value || '', inline: !!f.inline })) : [];
     renderMbFields(); mbClearUrlWarns();
     mbResizeAll();
-    mbUpdateCount('editPlainText', 'plainTextCount');
-    mbUpdateCount('editDescription', 'descCount');
+    mbUpdateCount('editPlainText',  'plainTextCount');
+    mbUpdateCount('editDescription','descCount');
+    mbUpdateCount('editAuthorName', 'editAuthorNameCount');
+    mbUpdateCount('editTitle',      'editTitleCount');
+    mbUpdateCount('editFooter',     'editFooterCount');
     updatePreview();
 }
 
@@ -768,8 +789,11 @@ function clearForm() {
     renderMbFields();
     mbClearUrlWarns();
     mbResizeAll();
-    mbUpdateCount('editPlainText', 'plainTextCount');
-    mbUpdateCount('editDescription', 'descCount');
+    mbUpdateCount('editPlainText',  'plainTextCount');
+    mbUpdateCount('editDescription','descCount');
+    mbUpdateCount('editAuthorName', 'editAuthorNameCount');
+    mbUpdateCount('editTitle',      'editTitleCount');
+    mbUpdateCount('editFooter',     'editFooterCount');
 }
 
 // ── _applyChannel: set channel value + disabled + lock indicator ─────────────
@@ -984,6 +1008,12 @@ async function saveTemplate() {
         timestamp: document.getElementById('editTimestamp').checked,
         fields:    mbEmbedFields.filter(f => f.name.trim() || f.value.trim()),
     };
+
+    const _embedTotal = [
+        authorName, title, desc, footer,
+        ...mbEmbedFields.flatMap(f => [f.name.trim(), f.value.trim()])
+    ].reduce((s, v) => s + (v || '').length, 0);
+    if (_embedTotal > 6000) { showAlert(I18N_ERR_EMBED_TOTAL); throw new Error(); }
 
     const res  = await fetch(`/api/guild/${GUILD_ID}/message-builder`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -1254,6 +1284,14 @@ function mbResizeAll() {
         document.querySelectorAll('.mb-url-area, .mb-auto-resize').forEach(mbResizeArea);
     });
 }
+function _countEl(el) {
+    const ct = el.nextElementSibling;
+    if (!ct || !ct.classList.contains('mb-char-count')) return;
+    const len = el.value.length;
+    const max = parseInt(el.getAttribute('maxlength')) || 0;
+    ct.textContent = len + ' / ' + max;
+    ct.className = 'mb-char-count' + (len >= max ? ' danger' : len >= max * 0.9 ? ' warn' : '');
+}
 function mbUpdateCount(taId, countId) {
     const ta = document.getElementById(taId);
     const ct = document.getElementById(countId);
@@ -1402,10 +1440,16 @@ function renderMbFields() {
         <div class="cc-field-row" data-fi="${i}">
             <div class="cc-field-inputs">
                 <div class="cc-field-num">Field #${i + 1}</div>
-                <input type="text" class="input" placeholder="Field name…" maxlength="256" value="${escHtml(f.name)}"
-                    oninput="mbEmbedFields[${i}].name=this.value;onFormInput()">
-                <textarea class="input" placeholder="Field value…" maxlength="1024" rows="2" style="resize:vertical;"
-                    oninput="mbEmbedFields[${i}].value=this.value;onFormInput()">${escHtml(f.value)}</textarea>
+                <div class="mb-count-wrap">
+                    <input type="text" class="input" placeholder="Field name…" maxlength="256" value="${escHtml(f.name)}"
+                        oninput="mbEmbedFields[${i}].name=this.value;_countEl(this);onFormInput()">
+                    <div class="mb-char-count">${f.name.length} / 256</div>
+                </div>
+                <div class="mb-count-wrap" style="margin-top:.35rem;">
+                    <textarea class="input" placeholder="Field value…" maxlength="1024" rows="2" style="resize:vertical;"
+                        oninput="mbEmbedFields[${i}].value=this.value;_countEl(this);onFormInput()">${escHtml(f.value)}</textarea>
+                    <div class="mb-char-count">${f.value.length} / 1024</div>
+                </div>
                 <div class="cc-field-inline-row">
                     <label>
                         <input type="checkbox" ${f.inline ? 'checked' : ''} onchange="mbEmbedFields[${i}].inline=this.checked;onFormInput()">

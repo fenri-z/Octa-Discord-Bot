@@ -324,11 +324,13 @@
                                     </div>
                                 </div>
                                 <div class="mb-section-body">
-                                    <textarea id="panelPlainText" class="textarea mb-auto-resize" rows="5"
-                                              maxlength="2000"
-                                              placeholder="<%= t('autorole.plain_text_ph') %>"
-                                              oninput="apResizeArea(this);apUpdateCount('panelPlainText','panelPlainCount');updatePanelPreview()"></textarea>
-                                    <div class="mb-char-count" id="panelPlainCount">0 / 2000</div>
+                                    <div class="mb-count-wrap">
+                                        <textarea id="panelPlainText" class="textarea mb-auto-resize" rows="5"
+                                                  maxlength="2000"
+                                                  placeholder="<%= t('autorole.plain_text_ph') %>"
+                                                  oninput="apResizeArea(this);apUpdateCount('panelPlainText','panelPlainCount');updatePanelPreview()"></textarea>
+                                        <div class="mb-char-count" id="panelPlainCount">0 / 2000</div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -351,8 +353,11 @@
                                     <div class="ee-section">
                                         <div class="ee-sec-label"><%= t('message_builder.label_author') %></div>
                                         <div class="form-group" style="margin-bottom:.5rem;">
-                                            <input type="text" id="panelEmbedAuthorName" class="input"
-                                                   placeholder="<%= t('message_builder.ph_author_name') %>" maxlength="256" oninput="updatePanelPreview()">
+                                            <div class="mb-count-wrap">
+                                                <input type="text" id="panelEmbedAuthorName" class="input"
+                                                       placeholder="<%= t('message_builder.ph_author_name') %>" maxlength="256" oninput="apUpdateCount('panelEmbedAuthorName','panelAuthorNameCount');updatePanelPreview()">
+                                                <div class="mb-char-count" id="panelAuthorNameCount">0 / 256</div>
+                                            </div>
                                         </div>
                                         <div class="mb-url-pair">
                                             <textarea id="panelEmbedAuthorUrl" class="input input-sm mb-url-area" rows="1"
@@ -367,9 +372,12 @@
                                     <div class="ee-section">
                                         <div class="ee-sec-label"><%= t('message_builder.label_title') %></div>
                                         <div class="form-group" style="margin-bottom:.5rem;">
-                                            <input type="text" id="panelEmbedTitle" class="input ee-title-input"
-                                                   placeholder="<%= t('message_builder.ph_embed_title') %>"
-                                                   maxlength="256" oninput="updatePanelPreview()">
+                                            <div class="mb-count-wrap">
+                                                <input type="text" id="panelEmbedTitle" class="input ee-title-input"
+                                                       placeholder="<%= t('message_builder.ph_embed_title') %>"
+                                                       maxlength="256" oninput="apUpdateCount('panelEmbedTitle','panelTitleCount');updatePanelPreview()">
+                                                <div class="mb-char-count" id="panelTitleCount">0 / 256</div>
+                                            </div>
                                         </div>
                                         <textarea id="panelEmbedTitleUrl" class="input input-sm mb-url-area" rows="1"
                                                placeholder="<%= t('message_builder.ph_title_url') %>" oninput="apResizeArea(this);updatePanelPreview()"></textarea>
@@ -391,10 +399,12 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        <textarea id="panelEmbedDescription" class="textarea mb-auto-resize" rows="4"
-                                                  placeholder="<%= t('message_builder.ph_description') %>" maxlength="4096"
-                                                  oninput="apResizeArea(this);apUpdateCount('panelEmbedDescription','panelDescCount');updatePanelPreview()"></textarea>
-                                        <div class="mb-char-count" id="panelDescCount">0 / 4096</div>
+                                        <div class="mb-count-wrap">
+                                            <textarea id="panelEmbedDescription" class="textarea mb-auto-resize" rows="4"
+                                                      placeholder="<%= t('message_builder.ph_description') %>" maxlength="4096"
+                                                      oninput="apResizeArea(this);apUpdateCount('panelEmbedDescription','panelDescCount');updatePanelPreview()"></textarea>
+                                            <div class="mb-char-count" id="panelDescCount">0 / 4096</div>
+                                        </div>
                                     </div>
 
                                     <div class="ee-sep"></div>
@@ -428,10 +438,13 @@
                                     <div class="ee-section">
                                         <div class="ee-sec-label"><%= t('message_builder.label_footer') %></div>
                                         <div style="margin-bottom:.5rem;">
-                                            <input type="text" id="panelEmbedFooter" class="input input-sm"
-                                                   style="display:block;width:100%;"
-                                                   placeholder="<%= t('message_builder.ph_footer_text') %>" maxlength="2048"
-                                                   oninput="updatePanelPreview()">
+                                            <div class="mb-count-wrap">
+                                                <input type="text" id="panelEmbedFooter" class="input input-sm"
+                                                       style="display:block;width:100%;"
+                                                       placeholder="<%= t('message_builder.ph_footer_text') %>" maxlength="2048"
+                                                       oninput="apUpdateCount('panelEmbedFooter','panelFooterCount');updatePanelPreview()">
+                                                <div class="mb-char-count" id="panelFooterCount">0 / 2048</div>
+                                            </div>
                                         </div>
                                         <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;">
                                             <textarea id="panelEmbedFooterIcon" class="input input-sm mb-url-area" rows="1"
@@ -686,11 +699,13 @@
                                     </div>
                                 </div>
                                 <div class="mb-section-body">
-                                    <textarea id="reactPanelPlainText" class="textarea mb-auto-resize" rows="5"
-                                              maxlength="2000"
-                                              placeholder="<%= t('autorole.plain_text_ph') %>"
-                                              oninput="apResizeArea(this);apUpdateCount('reactPanelPlainText','reactPlainCount');updateReactPanelPreview()"></textarea>
-                                    <div class="mb-char-count" id="reactPlainCount">0 / 2000</div>
+                                    <div class="mb-count-wrap">
+                                        <textarea id="reactPanelPlainText" class="textarea mb-auto-resize" rows="5"
+                                                  maxlength="2000"
+                                                  placeholder="<%= t('autorole.plain_text_ph') %>"
+                                                  oninput="apResizeArea(this);apUpdateCount('reactPanelPlainText','reactPlainCount');updateReactPanelPreview()"></textarea>
+                                        <div class="mb-char-count" id="reactPlainCount">0 / 2000</div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -712,8 +727,11 @@
                                     <div class="ee-section">
                                         <div class="ee-sec-label"><%= t('message_builder.label_author') %></div>
                                         <div class="form-group" style="margin-bottom:.5rem;">
-                                            <input type="text" id="reactPanelEmbedAuthorName" class="input"
-                                                   placeholder="<%= t('message_builder.ph_author_name') %>" maxlength="256" oninput="updateReactPanelPreview()">
+                                            <div class="mb-count-wrap">
+                                                <input type="text" id="reactPanelEmbedAuthorName" class="input"
+                                                       placeholder="<%= t('message_builder.ph_author_name') %>" maxlength="256" oninput="apUpdateCount('reactPanelEmbedAuthorName','reactAuthorNameCount');updateReactPanelPreview()">
+                                                <div class="mb-char-count" id="reactAuthorNameCount">0 / 256</div>
+                                            </div>
                                         </div>
                                         <div class="mb-url-pair">
                                             <textarea id="reactPanelEmbedAuthorUrl" class="input input-sm mb-url-area" rows="1"
@@ -728,9 +746,12 @@
                                     <div class="ee-section">
                                         <div class="ee-sec-label"><%= t('message_builder.label_title') %></div>
                                         <div class="form-group" style="margin-bottom:.5rem;">
-                                            <input type="text" id="reactPanelEmbedTitle" class="input ee-title-input"
-                                                   placeholder="<%= t('message_builder.ph_embed_title') %>"
-                                                   maxlength="256" oninput="updateReactPanelPreview()">
+                                            <div class="mb-count-wrap">
+                                                <input type="text" id="reactPanelEmbedTitle" class="input ee-title-input"
+                                                       placeholder="<%= t('message_builder.ph_embed_title') %>"
+                                                       maxlength="256" oninput="apUpdateCount('reactPanelEmbedTitle','reactTitleCount');updateReactPanelPreview()">
+                                                <div class="mb-char-count" id="reactTitleCount">0 / 256</div>
+                                            </div>
                                         </div>
                                         <textarea id="reactPanelEmbedTitleUrl" class="input input-sm mb-url-area" rows="1"
                                                placeholder="<%= t('message_builder.ph_title_url') %>" oninput="apResizeArea(this);updateReactPanelPreview()"></textarea>
@@ -752,10 +773,12 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        <textarea id="reactPanelEmbedDescription" class="textarea mb-auto-resize" rows="4"
-                                                  placeholder="<%= t('message_builder.ph_description') %>" maxlength="4096"
-                                                  oninput="apResizeArea(this);apUpdateCount('reactPanelEmbedDescription','reactDescCount');updateReactPanelPreview()"></textarea>
-                                        <div class="mb-char-count" id="reactDescCount">0 / 4096</div>
+                                        <div class="mb-count-wrap">
+                                            <textarea id="reactPanelEmbedDescription" class="textarea mb-auto-resize" rows="4"
+                                                      placeholder="<%= t('message_builder.ph_description') %>" maxlength="4096"
+                                                      oninput="apResizeArea(this);apUpdateCount('reactPanelEmbedDescription','reactDescCount');updateReactPanelPreview()"></textarea>
+                                            <div class="mb-char-count" id="reactDescCount">0 / 4096</div>
+                                        </div>
                                     </div>
 
                                     <div class="ee-sep"></div>
@@ -789,10 +812,13 @@
                                     <div class="ee-section">
                                         <div class="ee-sec-label"><%= t('message_builder.label_footer') %></div>
                                         <div style="margin-bottom:.5rem;">
-                                            <input type="text" id="reactPanelEmbedFooter" class="input input-sm"
-                                                   style="display:block;width:100%;"
-                                                   placeholder="<%= t('message_builder.ph_footer_text') %>" maxlength="2048"
-                                                   oninput="updateReactPanelPreview()">
+                                            <div class="mb-count-wrap">
+                                                <input type="text" id="reactPanelEmbedFooter" class="input input-sm"
+                                                       style="display:block;width:100%;"
+                                                       placeholder="<%= t('message_builder.ph_footer_text') %>" maxlength="2048"
+                                                       oninput="apUpdateCount('reactPanelEmbedFooter','reactFooterCount');updateReactPanelPreview()">
+                                                <div class="mb-char-count" id="reactFooterCount">0 / 2048</div>
+                                            </div>
                                         </div>
                                         <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;">
                                             <textarea id="reactPanelEmbedFooterIcon" class="input input-sm mb-url-area" rows="1"
@@ -1631,6 +1657,7 @@ const I18N_AR_ERR_NO_CONTENT     = <%- JSON.stringify(t("autorole.err_no_content
 const I18N_AR_ERR_NO_BUTTONS     = <%- JSON.stringify(t("autorole.err_no_buttons")) %>;
 const I18N_AR_ERR_NO_REACTIONS   = <%- JSON.stringify(t("autorole.err_no_reactions")) %>;
 const I18N_AR_ERR_PANEL_LIMIT    = <%- JSON.stringify(t("autorole.err_btn_panel_limit")) %>;
+const I18N_ERR_EMBED_TOTAL       = <%- JSON.stringify(t("common.err_embed_total_limit")) %>;
 let _btnPanelCount               = <%= panels.length %>;
 let _reactPanelCount             = <%= reactPanels.length %>;
 const I18N_AR_BTN_ERR_NO_ROLE   = <%- JSON.stringify(t("autorole.btn_err_no_role")) %>;
@@ -1673,6 +1700,14 @@ function apUpdateCount(taId, countId) {
     if (!ta || !ct) return;
     const len = ta.value.length;
     const max = parseInt(ta.getAttribute('maxlength')) || 0;
+    ct.textContent = len + ' / ' + max;
+    ct.className = 'mb-char-count' + (len >= max ? ' danger' : len >= max * 0.9 ? ' warn' : '');
+}
+function _apCountEl(el) {
+    const ct = el.nextElementSibling;
+    if (!ct || !ct.classList.contains('mb-char-count')) return;
+    const len = el.value.length;
+    const max = parseInt(el.getAttribute('maxlength')) || 0;
     ct.textContent = len + ' / ' + max;
     ct.className = 'mb-char-count' + (len >= max ? ' danger' : len >= max * 0.9 ? ' warn' : '');
 }
@@ -1737,10 +1772,16 @@ function renderApFields() {
         <div class="cc-field-row">
             <div class="cc-field-inputs">
                 <div class="cc-field-num">Field #${i + 1}</div>
-                <input type="text" class="input" placeholder="Field name…" maxlength="256" value="${escHtml(f.name)}"
-                    oninput="apEmbedFields[${i}].name=this.value;updatePanelPreview()">
-                <textarea class="input" placeholder="Field value…" maxlength="1024" rows="2" style="resize:vertical;"
-                    oninput="apEmbedFields[${i}].value=this.value;updatePanelPreview()">${escHtml(f.value)}</textarea>
+                <div class="mb-count-wrap">
+                    <input type="text" class="input" placeholder="Field name…" maxlength="256" value="${escHtml(f.name)}"
+                        oninput="apEmbedFields[${i}].name=this.value;_apCountEl(this);updatePanelPreview()">
+                    <div class="mb-char-count">${f.name.length} / 256</div>
+                </div>
+                <div class="mb-count-wrap" style="margin-top:.35rem;">
+                    <textarea class="input" placeholder="Field value…" maxlength="1024" rows="2" style="resize:vertical;"
+                        oninput="apEmbedFields[${i}].value=this.value;_apCountEl(this);updatePanelPreview()">${escHtml(f.value)}</textarea>
+                    <div class="mb-char-count">${f.value.length} / 1024</div>
+                </div>
                 <div class="cc-field-inline-row">
                     <label><input type="checkbox" ${f.inline ? 'checked' : ''} onchange="apEmbedFields[${i}].inline=this.checked;updatePanelPreview()"> Inline</label>
                 </div>
@@ -1769,10 +1810,16 @@ function renderRpFields() {
         <div class="cc-field-row">
             <div class="cc-field-inputs">
                 <div class="cc-field-num">Field #${i + 1}</div>
-                <input type="text" class="input" placeholder="Field name…" maxlength="256" value="${escHtml(f.name)}"
-                    oninput="rpEmbedFields[${i}].name=this.value;updateReactPanelPreview()">
-                <textarea class="input" placeholder="Field value…" maxlength="1024" rows="2" style="resize:vertical;"
-                    oninput="rpEmbedFields[${i}].value=this.value;updateReactPanelPreview()">${escHtml(f.value)}</textarea>
+                <div class="mb-count-wrap">
+                    <input type="text" class="input" placeholder="Field name…" maxlength="256" value="${escHtml(f.name)}"
+                        oninput="rpEmbedFields[${i}].name=this.value;_apCountEl(this);updateReactPanelPreview()">
+                    <div class="mb-char-count">${f.name.length} / 256</div>
+                </div>
+                <div class="mb-count-wrap" style="margin-top:.35rem;">
+                    <textarea class="input" placeholder="Field value…" maxlength="1024" rows="2" style="resize:vertical;"
+                        oninput="rpEmbedFields[${i}].value=this.value;_apCountEl(this);updateReactPanelPreview()">${escHtml(f.value)}</textarea>
+                    <div class="mb-char-count">${f.value.length} / 1024</div>
+                </div>
                 <div class="cc-field-inline-row">
                     <label><input type="checkbox" ${f.inline ? 'checked' : ''} onchange="rpEmbedFields[${i}].inline=this.checked;updateReactPanelPreview()"> Inline</label>
                 </div>
@@ -2107,6 +2154,11 @@ function _fillPanelForm(panel) {
     modeEl.value = panel.mode || 'multi';
     modeEl.dispatchEvent(new Event('change'));
     document.getElementById('panelPlainText').value = panel.plainText || '';
+    apUpdateCount('panelEmbedAuthorName', 'panelAuthorNameCount');
+    apUpdateCount('panelEmbedTitle',      'panelTitleCount');
+    apUpdateCount('panelEmbedDescription','panelDescCount');
+    apUpdateCount('panelEmbedFooter',     'panelFooterCount');
+    apUpdateCount('panelPlainText',       'panelPlainCount');
     updatePanelPreview();
     apResizeAll();
 }
@@ -2138,6 +2190,11 @@ function _resetPanelForm() {
     if (el('panelEmbedTimestamp'))   el('panelEmbedTimestamp').checked = false;
     apEmbedFields = [];
     renderApFields();
+    apUpdateCount('panelEmbedAuthorName', 'panelAuthorNameCount');
+    apUpdateCount('panelEmbedTitle',      'panelTitleCount');
+    apUpdateCount('panelEmbedDescription','panelDescCount');
+    apUpdateCount('panelEmbedFooter',     'panelFooterCount');
+    apUpdateCount('panelPlainText',       'panelPlainCount');
     _inlineBtns = [];
     renderInlineBtnTable();
     updatePanelPreview();
@@ -2276,6 +2333,13 @@ async function savePanel() {
     }
 
     const el = id => document.getElementById(id);
+
+    const _apEmbedTotal = [
+        el('panelEmbedAuthorName')?.value.trim(), embedTitle, embedDescription, embedFooter,
+        ...apEmbedFields.filter(f => f.name && f.value).flatMap(f => [f.name, f.value])
+    ].reduce((s, v) => s + (v || '').length, 0);
+    if (_apEmbedTotal > 6000) { showAlert(I18N_ERR_EMBED_TOTAL); throw new Error(); }
+
     const payload = {
         name,
         mode,
@@ -2946,6 +3010,11 @@ function _fillReactPanelForm(panel) {
     reactModeEl.value = panel.mode || 'multi';
     reactModeEl.dispatchEvent(new Event('change'));
     el('reactPanelPlainText').value = panel.plainText || '';
+    apUpdateCount('reactPanelEmbedAuthorName',  'reactAuthorNameCount');
+    apUpdateCount('reactPanelEmbedTitle',       'reactTitleCount');
+    apUpdateCount('reactPanelEmbedDescription', 'reactDescCount');
+    apUpdateCount('reactPanelEmbedFooter',      'reactFooterCount');
+    apUpdateCount('reactPanelPlainText',        'reactPlainCount');
     updateReactPanelPreview();
     apResizeAll();
 }
@@ -2977,6 +3046,11 @@ function _resetReactPanelForm() {
     if (el('reactPanelEmbedTimestamp'))   el('reactPanelEmbedTimestamp').checked = false;
     rpEmbedFields = [];
     renderRpFields();
+    apUpdateCount('reactPanelEmbedAuthorName',  'reactAuthorNameCount');
+    apUpdateCount('reactPanelEmbedTitle',       'reactTitleCount');
+    apUpdateCount('reactPanelEmbedDescription', 'reactDescCount');
+    apUpdateCount('reactPanelEmbedFooter',      'reactFooterCount');
+    apUpdateCount('reactPanelPlainText',        'reactPlainCount');
     _inlineReacts = [];
     renderInlineReactTable();
     updateReactPanelPreview();
@@ -3109,6 +3183,13 @@ async function saveReactPanel() {
     }
 
     const rEl = id => document.getElementById(id);
+
+    const _rpEmbedTotal = [
+        rEl('reactPanelEmbedAuthorName')?.value.trim(), embedTitle, embedDescription, embedFooter,
+        ...rpEmbedFields.filter(f => f.name && f.value).flatMap(f => [f.name, f.value])
+    ].reduce((s, v) => s + (v || '').length, 0);
+    if (_rpEmbedTotal > 6000) { showAlert(I18N_ERR_EMBED_TOTAL); throw new Error(); }
+
     const payload = {
         name, mode,
         messageType: isPlainType && hasEmbedContent ? 'both' : isPlainType ? 'plain' : 'embed',
@@ -3501,10 +3582,16 @@ buildApPhPicker('reactDescPhPicker',   'reactPanelEmbedDescription');
 document.addEventListener('DOMContentLoaded', () => {
     openCreatePanel();
     openCreateReactPanel();
-    apUpdateCount('panelPlainText',          'panelPlainCount');
-    apUpdateCount('panelEmbedDescription',   'panelDescCount');
-    apUpdateCount('reactPanelPlainText',     'reactPlainCount');
+    apUpdateCount('panelPlainText',             'panelPlainCount');
+    apUpdateCount('panelEmbedAuthorName',       'panelAuthorNameCount');
+    apUpdateCount('panelEmbedTitle',            'panelTitleCount');
+    apUpdateCount('panelEmbedDescription',      'panelDescCount');
+    apUpdateCount('panelEmbedFooter',           'panelFooterCount');
+    apUpdateCount('reactPanelPlainText',        'reactPlainCount');
+    apUpdateCount('reactPanelEmbedAuthorName',  'reactAuthorNameCount');
+    apUpdateCount('reactPanelEmbedTitle',       'reactTitleCount');
     apUpdateCount('reactPanelEmbedDescription', 'reactDescCount');
+    apUpdateCount('reactPanelEmbedFooter',      'reactFooterCount');
 });
 </script>
 
