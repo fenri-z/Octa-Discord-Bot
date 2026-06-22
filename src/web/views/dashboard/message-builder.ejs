@@ -1024,14 +1024,7 @@ async function saveTemplate() {
         list.appendChild(newCard);
     }
 
-    if (isEdit) {
-        // Stay in edit mode — update saved snapshot so Reset works correctly
-        _savedTemplateData = { ..._savedTemplateData, ...payload };
-        _mbCaptureBaseline();
-        window._floatClean?.();
-    } else {
-        cancelEdit();
-    }
+    cancelEdit();
 
     refreshMbStats();
     const countEl = document.getElementById('mbTmplCount');
