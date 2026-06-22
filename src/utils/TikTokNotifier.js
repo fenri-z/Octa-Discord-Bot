@@ -1,6 +1,6 @@
 'use strict';
 
-const { warn } = require('./Console');
+const { warn, info } = require('./Console');
 const { EmbedBuilder } = require('discord.js');
 const { execFile } = require('child_process');
 
@@ -570,7 +570,6 @@ class TikTokNotifier {
         const wasLive    = !!db.get(liveKey);
 
         if (isLive) {
-            db.delete(failKey);
             if (live.ownerAvatar || live.ownerName) {
                 this._updateAccountProfile(guild, db, account.username, {
                     thumbnail: live.ownerAvatar,
@@ -578,17 +577,30 @@ class TikTokNotifier {
                 });
             }
             if (!wasLive) {
-                // Cooldown: jangan kirim ulang jika sudah notif dalam 2 jam terakhir
                 const lastNotif = parseInt(db.get(notifAtKey) || '0', 10);
-                if (Date.now() - lastNotif < LIVE_NOTIF_COOLDOWN_MS) {
-                    db.set(liveKey, String(Date.now())); // tandai live aktif tapi skip notif
-                    return;
+                if (lastNotif) {
+                    if (live.startTime) {
+                        // Validasi via start time: jika live mulai sebelum notif terakhir → stream sama → skip
+                        if (live.startTime < lastNotif) {
+                            db.set(liveKey, String(Date.now()));
+                            return;
+                        }
+                    } else {
+                        // Fallback: jika TikTok tidak return create_time, pakai cooldown 2 jam
+                        if (Date.now() - lastNotif < LIVE_NOTIF_COOLDOWN_MS) {
+                            db.set(liveKey, String(Date.now()));
+                            return;
+                        }
+                    }
                 }
                 db.set(liveKey, String(Date.now()));
                 db.set(notifAtKey, String(Date.now()));
                 await this._sendLiveNotification(guild, account, live).catch(err =>
                     warn(`[TikTok/Live] Failed to send notification: ${err.message}`)
                 );
+            } else {
+                // Ongoing monitoring: live masih aktif → reset fail counter
+                db.delete(failKey);
             }
         } else if (wasLive) {
             // Butuh LIVE_FAIL_THRESHOLD kali gagal berturut-turut sebelum live dianggap berakhir
@@ -649,17 +661,23 @@ class TikTokNotifier {
             connection.connect()
                 .then(state => {
                     const roomData = state?.roomInfo?.data || {};
-                    // status 2 = live aktif; status 4 = berakhir/offline.
-                    // Hanya tolak status 4 (offline pasti) — status lain (1=starting, 3=dst) dibiarkan lolos
-                    // agar tidak false-negative saat live baru mulai warming up.
-                    if (roomData.status === 4) return done({ isLive: false });
+                    // [DEBUG] log status mentah untuk monitoring — hapus setelah status 3 terkonfirmasi
+                    info(`[TikTok/Live] @${username} roomData.status = ${roomData.status ?? 'undefined'}`);
+                    // status 1 = room dibuat, live belum dimulai → tidak live
+                    // status 2 = live aktif
+                    // status 3 = live transisi/ongoing (masih dianggap live)
+                    // status 4 = live berakhir/offline → tidak live
+                    const liveStatuses = new Set([2, 3]);
+                    if (!liveStatuses.has(roomData.status)) return done({ isLive: false });
                     const owner    = roomData.owner || {};
                     const ownerAvatar = owner.avatar_large?.url_list?.[0]
                                      || owner.avatar_medium?.url_list?.[0]
                                      || owner.avatar_thumb?.url_list?.[0]
                                      || null;
                     done({
-                        isLive: true,
+                        isLive:     true,
+                        // create_time = Unix detik → konversi ke ms untuk perbandingan dengan Date.now()
+                        startTime:  roomData.create_time ? roomData.create_time * 1000 : null,
                         cover:      roomData.cover?.url_list?.[0] || null,
                         title:      roomData.title || null,
                         ownerAvatar,

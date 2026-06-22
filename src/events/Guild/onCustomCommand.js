@@ -3,6 +3,9 @@ const { EmbedBuilder } = require('discord.js');
 const cache        = require('../../utils/GuildCache');
 const { logError } = require('../../utils/logError');
 
+// key: `${guildId}:${trigger}:${userId}` → timestamp of last use
+const cooldownMap = new Map();
+
 module.exports = new Event({
     event: 'messageCreate',
     once:  false,
@@ -47,6 +50,31 @@ module.exports = new Event({
                           (contentNaked !== null && prefixMatch(contentNaked));
             }
             if (!matches) continue;
+
+            // Channel restriction
+            if (Array.isArray(cmd.allowedChannels) && cmd.allowedChannels.length > 0) {
+                if (!cmd.allowedChannels.includes(message.channel.id)) continue;
+            }
+
+            // Role restriction
+            if (Array.isArray(cmd.allowedRoles) && cmd.allowedRoles.length > 0) {
+                const memberRoles = message.member?.roles?.cache;
+                if (!memberRoles || !cmd.allowedRoles.some(r => memberRoles.has(r))) continue;
+            }
+
+            // Cooldown per user
+            const cdSecs = Number(cmd.cooldown) || 0;
+            if (cdSecs > 0) {
+                const cdKey = `${guildId}:${cmd.trigger}:${message.author.id}`;
+                const lastUsed = cooldownMap.get(cdKey) || 0;
+                const now = Date.now();
+                if (now - lastUsed < cdSecs * 1000) break;
+                cooldownMap.set(cdKey, now);
+                if (cooldownMap.size > 10000) {
+                    const cutoff = now - 3600_000;
+                    for (const [k, v] of cooldownMap) { if (v < cutoff) cooldownMap.delete(k); }
+                }
+            }
 
             if (cmd.responseType === 'embed' || cmd.responseType === 'both') {
                 const res   = cmd.response || {};

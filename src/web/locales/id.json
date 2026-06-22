@@ -1490,7 +1490,17 @@
     "confirm_delete_title": "Hapus Command",
     "confirm_delete_msg": "Hapus command \"{{trigger}}\"?",
     "err_limit": "Batas command tercapai (10/10). Hapus command yang ada terlebih dahulu.",
-    "err_duplicate": "Command \"{{trigger}}\" sudah ada. Gunakan tombol Edit untuk mengubahnya."
+    "err_duplicate": "Command \"{{trigger}}\" sudah ada. Gunakan tombol Edit untuk mengubahnya.",
+    "restr_title": "Batasan Akses",
+    "restr_cooldown_label": "Cooldown",
+    "restr_cooldown_hint": "detik per user — 0 = nonaktif",
+    "restr_roles_label": "Role yang Diizinkan",
+    "restr_roles_hint": "kosong = semua",
+    "restr_channels_label": "Channel yang Diizinkan",
+    "restr_channels_hint": "kosong = semua",
+    "restr_search_roles": "Cari role…",
+    "restr_search_channels": "Cari channel…",
+    "restr_badge_restricted": "Terbatas"
   },
   "extlog": {
     "page_title": "Extended Logging",

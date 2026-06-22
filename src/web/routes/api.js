@@ -3524,11 +3524,14 @@ router.post('/guild/:guildId/custom-commands', requireLogin, requireManageGuild,
         return res.status(400).json({ success: false, message: 'Invalid commands format.' });
 
     const clean = commands.filter(c => c.trigger && typeof c.trigger === 'string').map(c => ({
-        trigger:      String(c.trigger).trim().slice(0, 50),
-        mode:         ['prefix', 'exact'].includes(c.mode) ? c.mode : 'prefix',
-        responseType: ['plain', 'embed', 'both'].includes(c.responseType) ? c.responseType : 'plain',
-        response:     c.response || {},
-        enabled:      c.enabled !== false,
+        trigger:         String(c.trigger).trim().slice(0, 50),
+        mode:            ['prefix', 'exact'].includes(c.mode) ? c.mode : 'prefix',
+        responseType:    ['plain', 'embed', 'both'].includes(c.responseType) ? c.responseType : 'plain',
+        response:        c.response || {},
+        enabled:         c.enabled !== false,
+        cooldown:        Math.min(Math.max(0, parseInt(c.cooldown) || 0), 3600),
+        allowedRoles:    Array.isArray(c.allowedRoles)    ? c.allowedRoles.filter(r => typeof r === 'string' && r)    : [],
+        allowedChannels: Array.isArray(c.allowedChannels) ? c.allowedChannels.filter(r => typeof r === 'string' && r) : [],
     }));
 
     if (clean.length > 10)

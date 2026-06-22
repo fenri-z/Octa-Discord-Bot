@@ -89,6 +89,66 @@
                 </div>
             </div>
 
+            <!-- Access & Restrictions -->
+            <div class="cc-restr-wrap" style="margin-bottom:.85rem;">
+                <button type="button" class="cc-restr-toggle" id="ccRestrToggle" onclick="toggleCcRestr()">
+                    <i data-lucide="shield" style="width:13px;height:13px;flex-shrink:0;color:var(--accent);"></i>
+                    <span><%= t('custom_commands.restr_title') %></span>
+                    <span id="ccRestrBadge" class="cc-badge" style="display:none;background:rgba(88,101,242,.18);color:#c0c7ff;margin-left:.35rem;"></span>
+                    <i data-lucide="chevron-down" id="ccRestrChevron" style="width:13px;height:13px;margin-left:auto;transition:transform .2s;"></i>
+                </button>
+                <div class="cc-restr-body" id="ccRestrBody" style="display:none;">
+                    <!-- Cooldown inline row -->
+                    <div class="cc-restr-row">
+                        <span class="cc-restr-label">
+                            <i data-lucide="clock" style="width:12px;height:12px;flex-shrink:0;"></i>
+                            <%= t('custom_commands.restr_cooldown_label') %>
+                        </span>
+                        <input type="number" id="ccCooldown" class="input cc-restr-cd-input" data-flt-ignore
+                               value="0" min="0" max="3600" step="1"
+                               oninput="onFormInput();renderCcRestrBadge()">
+                        <span class="cc-restr-hint"><%= t('custom_commands.restr_cooldown_hint') %></span>
+                    </div>
+                    <!-- Roles + Channels -->
+                    <div class="cc-two-col cc-restr-pickers">
+                        <div>
+                            <div class="cc-restr-label" style="margin-bottom:.4rem;">
+                                <i data-lucide="users" style="width:12px;height:12px;flex-shrink:0;"></i>
+                                <%= t('custom_commands.restr_roles_label') %>
+                                <span class="cc-restr-hint"><%= t('custom_commands.restr_roles_hint') %></span>
+                            </div>
+                            <div class="cc-multipick">
+                                <div class="cc-pick-chips" id="ccRoleChips"></div>
+                                <div style="position:relative;">
+                                    <input type="text" class="input input-sm" id="ccRoleSearch"
+                                           placeholder="<%= t('custom_commands.restr_search_roles') %>" autocomplete="off" data-flt-ignore
+                                           oninput="filterCcPick('role',this.value)"
+                                           onfocus="openCcPick('role')">
+                                    <div class="cc-pick-drop" id="ccRoleDrop" style="display:none;"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="cc-restr-label" style="margin-bottom:.4rem;">
+                                <i data-lucide="hash" style="width:12px;height:12px;flex-shrink:0;"></i>
+                                <%= t('custom_commands.restr_channels_label') %>
+                                <span class="cc-restr-hint"><%= t('custom_commands.restr_channels_hint') %></span>
+                            </div>
+                            <div class="cc-multipick">
+                                <div class="cc-pick-chips" id="ccChannelChips"></div>
+                                <div style="position:relative;">
+                                    <input type="text" class="input input-sm" id="ccChannelSearch"
+                                           placeholder="<%= t('custom_commands.restr_search_channels') %>" autocomplete="off" data-flt-ignore
+                                           oninput="filterCcPick('channel',this.value)"
+                                           onfocus="openCcPick('channel')">
+                                    <div class="cc-pick-drop" id="ccChannelDrop" style="display:none;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="cc-form-preview-row">
                 <!-- Left: response inputs -->
                 <div class="cc-form-inputs">
@@ -541,6 +601,62 @@
     .cc-badge { display:none; }
 }
 
+/* ── Access Restrictions collapsible ────────────────────────────── */
+.cc-restr-toggle {
+    width:100%; display:flex; align-items:center; gap:.5rem;
+    background:var(--bg3); border:1px solid var(--border); border-radius:8px;
+    padding:.5rem .85rem; font-size:.84rem; font-weight:600; color:var(--text);
+    cursor:pointer; text-align:left; transition:border-color .15s;
+}
+.cc-restr-toggle:hover { border-color:var(--accent); }
+.cc-restr-body {
+    background:var(--bg3); border:1px solid var(--border); border-top:none;
+    border-radius:0 0 8px 8px; padding:.75rem .85rem; display:flex; flex-direction:column; gap:.75rem;
+}
+.cc-restr-row {
+    display:flex; align-items:center; gap:.6rem; flex-wrap:wrap;
+}
+.cc-restr-label {
+    display:flex; align-items:center; gap:.3rem;
+    font-size:.8rem; font-weight:600; color:var(--text); white-space:nowrap;
+}
+.cc-restr-hint {
+    font-size:.75rem; font-weight:400; color:var(--text-muted);
+}
+.cc-restr-cd-input {
+    width:80px !important; padding:.3rem .55rem !important; font-size:.85rem !important; flex-shrink:0;
+}
+.cc-restr-pickers { gap:.75rem; }
+/* ── Multipick (role / channel tag picker) ───────────────────────── */
+.cc-multipick { display:flex; flex-direction:column; gap:.35rem; }
+.cc-pick-chips { display:flex; flex-wrap:wrap; gap:.3rem; min-height:0; }
+.cc-pick-chip {
+    display:inline-flex; align-items:center; gap:.3rem;
+    background:rgba(88,101,242,.18); color:#c0c7ff;
+    border-radius:999px; padding:.15rem .45rem .15rem .6rem;
+    font-size:.78rem; font-weight:500;
+}
+[data-theme="light"] .cc-pick-chip { background:rgba(88,101,242,.12); color:#3f4cbf; }
+.cc-pick-chip-del {
+    background:none; border:none; cursor:pointer; padding:0;
+    color:inherit; opacity:.55; display:flex; align-items:center; transition:opacity .15s;
+    line-height:1;
+}
+.cc-pick-chip-del:hover { opacity:1; }
+.cc-pick-drop {
+    position:absolute; top:calc(100% + 4px); left:0; right:0;
+    background:var(--bg2); border:1px solid var(--border);
+    border-radius:8px; z-index:200; max-height:190px; overflow-y:auto;
+    box-shadow:0 4px 16px rgba(0,0,0,.25);
+}
+.cc-pick-drop-item {
+    display:flex; align-items:center; gap:.4rem;
+    padding:.38rem .65rem; cursor:pointer; font-size:.84rem; transition:background .1s;
+}
+.cc-pick-drop-item:hover { background:rgba(88,101,242,.12); }
+.cc-pick-drop-item.cc-pick-selected { opacity:.4; cursor:default; pointer-events:none; }
+.cc-pick-drop-empty { padding:.55rem .65rem; font-size:.82rem; color:var(--text-muted); }
+
 /* ── Edit button ─────────────────────────────────────────────────── */
 .cc-btn-edit {
     background: rgba(255,255,255,.06);
@@ -571,6 +687,7 @@ const I18N_CC_DEL_TITLE  = '<%- t("custom_commands.confirm_delete_title") %>';
 const I18N_CC_DEL_MSG    = '<%- t("custom_commands.confirm_delete_msg") %>';
 const I18N_CC_ERR_LIMIT  = <%- JSON.stringify(t("custom_commands.err_limit")) %>;
 const I18N_CC_ERR_DUP    = <%- JSON.stringify(t("custom_commands.err_duplicate")) %>;
+const I18N_CC_BADGE_RESTR = <%- JSON.stringify(t("custom_commands.restr_badge_restricted")) %>;
 const BOT_PREFIX  = <%- JSON.stringify(botPrefix) %>;
 let commands      = <%- JSON.stringify(commands) %>;
 let savedCommands = JSON.parse(JSON.stringify(commands));
@@ -595,6 +712,13 @@ const i18n = {
 // Maps for mention picker
 const CC_CHANNELS = <%- JSON.stringify(Object.fromEntries((locals.channels||[]).map(ch=>[ch.id,ch.name]))) %>;
 const CC_ROLES    = <%- JSON.stringify(Object.fromEntries((locals.roles||[]).map(r=>[r.id,{name:r.name,color:r.color||'#99aab5'}]))) %>;
+
+// Arrays for restriction pickers
+const CC_ROLES_ARR    = <%- JSON.stringify((locals.roles||[]).map(r=>({id:r.id,name:r.name,color:r.color||'#99aab5'}))) %>;
+const CC_CHANNELS_ARR = <%- JSON.stringify((locals.channels||[]).map(c=>({id:c.id,name:c.name}))) %>;
+
+let ccAllowedRoles    = [];
+let ccAllowedChannels = [];
 const CC_PLACEHOLDERS = [
     { group: 'USER', items: [
         ['{user.mention}',  'Mention user'],
@@ -866,6 +990,7 @@ function clearForm() {
     const addMsg = document.getElementById('ccAddMsg');
     addMsg.textContent = '';
     addMsg.className   = 'form-message';
+    clearCcRestrictions();
 }
 
 function buildEmbedResponse() {
@@ -961,13 +1086,17 @@ function addCommandFromForm() {
     else if (hasEmbed)     { resType = 'embed'; response = embedResp; }
     else                   { resType = 'plain'; response = { text, plainImageURL: plainImg || undefined }; }
 
+    const cooldown        = Math.max(0, parseInt(document.getElementById('ccCooldown').value) || 0);
+    const allowedRoles    = [...ccAllowedRoles];
+    const allowedChannels = [...ccAllowedChannels];
+
     if (editingIdx >= 0) {
-        commands[editingIdx] = { ...commands[editingIdx], trigger, mode, responseType: resType, response };
+        commands[editingIdx] = { ...commands[editingIdx], trigger, mode, responseType: resType, response, cooldown, allowedRoles, allowedChannels };
         editingIdx = -1;
         document.getElementById('ccFormTitle').textContent = i18n.add_title;
         document.getElementById('ccCancelEdit').style.display = 'none';
     } else {
-        commands.push({ trigger, mode, responseType: resType, response, enabled: true });
+        commands.push({ trigger, mode, responseType: resType, response, enabled: true, cooldown, allowedRoles, allowedChannels });
     }
     clearForm();
     renderList();
@@ -1014,6 +1143,7 @@ function renderList() {
                 </span>
                 <span class="cc-badge cc-badge-${cmd.mode}">${cmd.mode === 'exact' ? i18n.badge_exact : i18n.badge_prefix}</span>
                 <span class="cc-badge" style="background:rgba(88,101,242,.15);color:#5865F2;">${cmd.responseType === 'embed' ? i18n.badge_embed : cmd.responseType === 'both' ? i18n.badge_both : i18n.badge_plain}</span>
+                ${(cmd.cooldown > 0 || cmd.allowedRoles?.length || cmd.allowedChannels?.length) ? `<span class="cc-badge" style="background:rgba(254,163,0,.12);color:#f0b232;"><i data-lucide="shield" style="width:10px;height:10px;vertical-align:middle;margin-right:.2rem;"></i>${I18N_CC_BADGE_RESTR}</span>` : ''}
             </div>
             <div class="ar-panel-row-right">
                 <label class="toggle-label" style="gap:.35rem;">
@@ -1063,8 +1193,10 @@ function syncFloatBar() {
         (document.getElementById('ccEmbedColor').value.toLowerCase() !== '#5865f2') ||
         embedFields.some(f => f.name.trim() || f.value.trim())
     );
+    const restrictDirty = (parseInt(document.getElementById('ccCooldown')?.value) || 0) > 0
+                       || ccAllowedRoles.length > 0 || ccAllowedChannels.length > 0;
     const listClean = JSON.stringify(commands) === JSON.stringify(savedCommands);
-    if (!formHasContent && listClean) window._floatClean?.();
+    if (!formHasContent && !restrictDirty && listClean) window._floatClean?.();
     else window._floatDirty?.();
 }
 
@@ -1391,6 +1523,7 @@ function _fillFormFromCmd(cmd) {
     ccUpdateCount('ccPlainText', 'ccPlainCount');
     ccUpdateCount('ccEmbedDesc', 'ccDescCount');
     updatePreview();
+    setCcRestrictions(cmd);
 }
 
 function loadCommandForEdit(idx) {
@@ -1413,6 +1546,118 @@ function cancelEdit() {
     document.getElementById('ccCancelEdit').style.display = 'none';
     clearForm();
 }
+
+/* ── Restriction helpers ─────────────────────────────────────────── */
+function toggleCcRestr() {
+    const body = document.getElementById('ccRestrBody');
+    const chev = document.getElementById('ccRestrChevron');
+    const open = body.style.display !== 'none';
+    body.style.display = open ? 'none' : '';
+    if (chev) chev.style.transform = open ? '' : 'rotate(180deg)';
+}
+
+function renderCcRestrBadge() {
+    const badge = document.getElementById('ccRestrBadge');
+    if (!badge) return;
+    const cd    = parseInt(document.getElementById('ccCooldown')?.value) || 0;
+    const parts = [];
+    if (cd > 0)                    parts.push(`${cd}s cooldown`);
+    if (ccAllowedRoles.length)     parts.push(`${ccAllowedRoles.length} role${ccAllowedRoles.length > 1 ? 's' : ''}`);
+    if (ccAllowedChannels.length)  parts.push(`${ccAllowedChannels.length} channel${ccAllowedChannels.length > 1 ? 's' : ''}`);
+    if (parts.length) { badge.textContent = parts.join(', '); badge.style.display = ''; }
+    else              { badge.style.display = 'none'; }
+}
+
+function renderCcPickChips(type) {
+    const isRole  = type === 'role';
+    const arr     = isRole ? ccAllowedRoles : ccAllowedChannels;
+    const chipsEl = document.getElementById(isRole ? 'ccRoleChips' : 'ccChannelChips');
+    if (!chipsEl) return;
+    chipsEl.innerHTML = arr.map(id => {
+        let label;
+        if (isRole) {
+            const r = CC_ROLES_ARR.find(x => x.id === id);
+            label = r ? `<span style="color:${r.color}">@${escHtml(r.name)}</span>` : `<span>${escHtml(id)}</span>`;
+        } else {
+            const c = CC_CHANNELS_ARR.find(x => x.id === id);
+            label = c ? `<span>#${escHtml(c.name)}</span>` : `<span>${escHtml(id)}</span>`;
+        }
+        return `<span class="cc-pick-chip">${label}<button type="button" class="cc-pick-chip-del" onclick="removeCcPick('${type}','${id}')"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></span>`;
+    }).join('');
+    renderCcRestrBadge();
+}
+
+function filterCcPick(type, query) {
+    const isRole   = type === 'role';
+    const items    = isRole ? CC_ROLES_ARR : CC_CHANNELS_ARR;
+    const sel      = isRole ? ccAllowedRoles : ccAllowedChannels;
+    const drop     = document.getElementById(isRole ? 'ccRoleDrop' : 'ccChannelDrop');
+    const q        = (query || '').trim().toLowerCase();
+    const filtered = q ? items.filter(it => it.name.toLowerCase().includes(q)) : items;
+    if (!filtered.length) {
+        drop.innerHTML = `<div class="cc-pick-drop-empty">No results</div>`;
+    } else {
+        drop.innerHTML = filtered.map(it => {
+            const already = sel.includes(it.id);
+            const label   = isRole
+                ? `<span style="color:${it.color}">@${escHtml(it.name)}</span>`
+                : `<span>#${escHtml(it.name)}</span>`;
+            return `<div class="cc-pick-drop-item${already ? ' cc-pick-selected' : ''}" onclick="addCcPick('${type}','${it.id}')">${label}${already ? ' <span style="font-size:.73rem;opacity:.55;">(added)</span>' : ''}</div>`;
+        }).join('');
+    }
+    drop.style.display = '';
+}
+
+function openCcPick(type) {
+    const searchId = type === 'role' ? 'ccRoleSearch' : 'ccChannelSearch';
+    filterCcPick(type, document.getElementById(searchId)?.value || '');
+}
+
+function addCcPick(type, id) {
+    const isRole = type === 'role';
+    const arr    = isRole ? ccAllowedRoles : ccAllowedChannels;
+    if (!arr.includes(id)) { arr.push(id); renderCcPickChips(type); onFormInput(); }
+    document.getElementById(isRole ? 'ccRoleSearch' : 'ccChannelSearch').value = '';
+    document.getElementById(isRole ? 'ccRoleDrop' : 'ccChannelDrop').style.display = 'none';
+}
+
+function removeCcPick(type, id) {
+    if (type === 'role') ccAllowedRoles    = ccAllowedRoles.filter(r => r !== id);
+    else                 ccAllowedChannels = ccAllowedChannels.filter(c => c !== id);
+    renderCcPickChips(type);
+    onFormInput();
+}
+
+function setCcRestrictions(cmd) {
+    ccAllowedRoles    = Array.isArray(cmd.allowedRoles)    ? [...cmd.allowedRoles]    : [];
+    ccAllowedChannels = Array.isArray(cmd.allowedChannels) ? [...cmd.allowedChannels] : [];
+    document.getElementById('ccCooldown').value = cmd.cooldown || 0;
+    renderCcPickChips('role');
+    renderCcPickChips('channel');
+}
+
+function clearCcRestrictions() {
+    ccAllowedRoles    = [];
+    ccAllowedChannels = [];
+    const cd = document.getElementById('ccCooldown');
+    if (cd) cd.value = 0;
+    renderCcPickChips('role');
+    renderCcPickChips('channel');
+    const rs = document.getElementById('ccRoleSearch');
+    const cs = document.getElementById('ccChannelSearch');
+    if (rs) rs.value = '';
+    if (cs) cs.value = '';
+    document.getElementById('ccRoleDrop').style.display    = 'none';
+    document.getElementById('ccChannelDrop').style.display = 'none';
+}
+
+// Close picker dropdowns when clicking outside
+document.addEventListener('click', e => {
+    if (!e.target.closest('#ccRoleDrop') && !e.target.closest('#ccRoleSearch'))
+        document.getElementById('ccRoleDrop').style.display = 'none';
+    if (!e.target.closest('#ccChannelDrop') && !e.target.closest('#ccChannelSearch'))
+        document.getElementById('ccChannelDrop').style.display = 'none';
+});
 
 // Init pickers
 buildCcPhPicker('ccPlainPhPicker', 'ccPlainText');

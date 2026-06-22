@@ -1492,7 +1492,17 @@
     "confirm_delete_title": "Delete Command",
     "confirm_delete_msg": "Delete command \"{{trigger}}\"?",
     "err_limit": "Command limit reached (10/10). Delete an existing command first.",
-    "err_duplicate": "Command \"{{trigger}}\" already exists. Use the Edit button to modify it."
+    "err_duplicate": "Command \"{{trigger}}\" already exists. Use the Edit button to modify it.",
+    "restr_title": "Access Restrictions",
+    "restr_cooldown_label": "Cooldown",
+    "restr_cooldown_hint": "seconds per user — 0 = off",
+    "restr_roles_label": "Allowed Roles",
+    "restr_roles_hint": "empty = everyone",
+    "restr_channels_label": "Allowed Channels",
+    "restr_channels_hint": "empty = all",
+    "restr_search_roles": "Search roles…",
+    "restr_search_channels": "Search channels…",
+    "restr_badge_restricted": "Restricted"
   },
   "extlog": {
     "page_title": "Extended Logging",
