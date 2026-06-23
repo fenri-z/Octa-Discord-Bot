@@ -1773,7 +1773,7 @@ html.theme-transitioning *::after {
     display:flex; align-items:center; gap:.4rem;
 }
 .dc-channel-bar svg  { opacity:.5; flex-shrink:0; }
-.dc-channel-hash     { opacity:.5; font-size:1rem; line-height:1; flex-shrink:0; }
+.dc-channel-hash     { opacity:.5; font-weight:700; font-size:.85rem; flex-shrink:0; }
 
 /* Messages area */
 .dc-messages { padding:0; }
@@ -1888,6 +1888,15 @@ html.theme-transitioning *::after {
 .dc-mention { background:rgba(88,101,242,.3); color:#c0c7ff; border-radius:3px; padding:0 2px; font-weight:500; }
 [data-theme="light"] .dc-mention { background:rgba(88,101,242,.15); color:#4752c4; }
 
+/* Links inside Discord preview */
+.dc-window a { color:#00b0f4; text-decoration:none; }
+.dc-window a:hover { text-decoration:underline; }
+
+/* Elements that do NOT render links in Discord — override to plain text */
+.dc-embed-footer a,
+.dc-field-name a,
+.dc-embed-author a { color:inherit; text-decoration:none; pointer-events:none; cursor:text; }
+
 @media (max-width:640px) {
     .dc-embed-footer { flex-wrap:nowrap; overflow:hidden; }
     .dc-embed-footer .dc-text-wrap,
@@ -1895,6 +1904,7 @@ html.theme-transitioning *::after {
     .dc-embed { border-radius:10px; }
     .dc-embed-thumb { width:56px; height:56px; border-radius:8px; }
     .dc-embed-image { border-radius:16px; }
+    .dc-plain-image { border-radius:16px; }
 }
 @media (max-width:900px) {
     .cc-form-preview-row { flex-direction:column; align-items:stretch; }

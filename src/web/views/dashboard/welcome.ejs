@@ -459,7 +459,7 @@ function mdToHtml(text) {
         s = s
             // Masked link [teks](url) — spasi opsional di dalam kurung (seperti Discord)
             .replace(/\[([^\]]+)\]\(\s*(https?:\/\/[^\s)]+)\s*\)/g,
-                '<a href="$2" target="_blank" rel="noopener noreferrer" style="color:#00b0f4;text-decoration:none;">$1</a>')
+                '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
             .replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>')
             .replace(/\*\*(.+?)\*\*/g,     '<strong>$1</strong>')
             .replace(/\*(.+?)\*/g,         '<em>$1</em>')
@@ -471,7 +471,7 @@ function mdToHtml(text) {
             .replace(/(href="[^"]*")|((https?:\/\/[^\s<>"']+))/g, (match, hrefAttr, _, url) => {
                 if (hrefAttr) return match;
                 const clean = url.replace(/[.,;:!?)\]>]+$/, '');
-                return '<a href="' + clean + '" target="_blank" rel="noopener noreferrer" style="color:#00b0f4;text-decoration:underline;">' + clean + '</a>';
+                return '<a href="' + clean + '" target="_blank" rel="noopener noreferrer">' + clean + '</a>';
             });
 
         // Kembalikan code spans
@@ -654,6 +654,14 @@ function resolvePlaceholdersTitle(text) {
         .replace(/\{invite\.code\}/g,    SAMPLE.invite_code)
         .replace(/\{total\.invites\}/g,  SAMPLE.total_invites)
         .replace(/\{account\.created\}/g,SAMPLE.account_created);
+}
+function linkifyTitle(text) {
+    if (!text) return '';
+    const s = String(text).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    return s.replace(/(https?:\/\/[^\s<>"']+)/g, u => {
+        const c = u.replace(/[.,;:!?)\]>]+$/, '');
+        return `<a href="${c}" target="_blank" rel="noopener noreferrer">${c}</a>`;
+    });
 }
 
 // Fase 1b: untuk description/plain — {member} → marker yang akan jadi mention badge
@@ -1115,7 +1123,7 @@ function updatePreview() {
     document.getElementById('previewPill').style.background = color;
 
     // Title & desc — mdToHtml dulu (escape), baru resolvePlaceholders (inject HTML mention)
-    document.getElementById('previewTitle').innerHTML = mdToHtml(resolvePlaceholdersTitle(document.getElementById('welcomeTitle').value));
+    document.getElementById('previewTitle').innerHTML = linkifyTitle(resolvePlaceholdersTitle(document.getElementById('welcomeTitle').value));
     document.getElementById('previewDesc').innerHTML = resolveHtmlMentions(mdToHtml(resolvePlaceholders(document.getElementById('welcomeDescription').value)));
 
     // Footer

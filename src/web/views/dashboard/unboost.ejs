@@ -441,16 +441,19 @@ function resolveEmoji(html) {
 }
 
 // ── Markdown → HTML ────────────────────────────────────────────────────────
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function mdToHtml(text) {
     if (!text) return '';
     function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
     function inline(s) {
         return s
+            .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,'<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
             .replace(/\*\*\*(.+?)\*\*\*/g,'<strong><em>$1</em></strong>')
             .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
             .replace(/\*(.+?)\*/g,'<em>$1</em>')
             .replace(/__(.+?)__/g,'<u>$1</u>')
-            .replace(/~~(.+?)~~/g,'<s>$1</s>');
+            .replace(/~~(.+?)~~/g,'<s>$1</s>')
+            .replace(/(href="[^"]*")|((https?:\/\/[^\s<>"']+))/g,(m,h,_,u)=>{ if(h) return m; const c=u.replace(/[.,;:!?)\]>]+$/,''); return `<a href="${c}" target="_blank" rel="noopener noreferrer">${c}</a>`; });
     }
     const lines = text.split('\n'), out = [];
     for (const raw of lines) out.push(inline(esc(raw)));
@@ -645,7 +648,7 @@ function updateUnboostPreview() {
         plainEl.style.display = 'none';
         const color = document.getElementById('unboostColor').value || '#ED4245';
         document.getElementById('unboostPreviewPill').style.background  = color;
-        document.getElementById('unboostPreviewTitle').innerHTML = resolvePh(mdToHtml(document.getElementById('unboostTitle').value));
+        document.getElementById('unboostPreviewTitle').innerHTML = resolvePh(esc(document.getElementById('unboostTitle').value)).replace(/(https?:\/\/[^\s<>"']+)/g, u => { const c=u.replace(/[.,;:!?)\]>]+$/,''); return `<a href="${c}" target="_blank" rel="noopener noreferrer">${c}</a>`; });
         document.getElementById('unboostPreviewDesc').innerHTML  = resolveEmoji(resolvePh(mdToHtml(document.getElementById('unboostDesc').value)));
         renderFields(UNBOOST_FIELDS, 'unboostPreviewFields');
         const footer = document.getElementById('unboostFooter').value.trim();

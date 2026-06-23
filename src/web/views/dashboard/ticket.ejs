@@ -337,11 +337,13 @@ function _tkMdToHtml(text) {
     if (!text) return '';
     const lines = text.split('\n');
     return lines.map(l => _tkEsc(l)
+        .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,'<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
         .replace(/\*\*\*(.+?)\*\*\*/g,'<strong><em>$1</em></strong>')
         .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
         .replace(/\*(.+?)\*/g,'<em>$1</em>')
         .replace(/__(.+?)__/g,'<u>$1</u>')
         .replace(/~~(.+?)~~/g,'<s>$1</s>')
+        .replace(/(href="[^"]*")|((https?:\/\/[^\s<>"']+))/g,(m,h,_,u)=>{ if(h) return m; const c=u.replace(/[.,;:!?)\]>]+$/,''); return `<a href="${c}" target="_blank" rel="noopener noreferrer">${c}</a>`; })
     ).join('<br>');
 }
 function _tkResolveMentions(html) {
@@ -363,7 +365,8 @@ function updateTicketPreview() {
     const color = document.getElementById('panelColor').value || '#5865F2';
     const btn   = document.getElementById('panelBtnLabel').value || I18N_TK_BTN_DEF;
 
-    document.getElementById('tkPreviewTitle').textContent = title || I18N_TK_TITLE_DEF;
+    const _tkTitle = _tkEsc(title || I18N_TK_TITLE_DEF);
+    document.getElementById('tkPreviewTitle').innerHTML = _tkTitle.replace(/(https?:\/\/[^\s<>"']+)/g, u => { const c=u.replace(/[.,;:!?)\]>]+$/,''); return `<a href="${c}" target="_blank" rel="noopener noreferrer">${c}</a>`; });
     document.getElementById('tkPreviewDesc').innerHTML    = desc ? _tkResolveMentions(_tkMdToHtml(desc)) : _tkEsc(I18N_TK_DESC_DEF);
     document.getElementById('tkPreviewPill').style.background = color;
     document.getElementById('tkPreviewBtn').textContent   = btn;

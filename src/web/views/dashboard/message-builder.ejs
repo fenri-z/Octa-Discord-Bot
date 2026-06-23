@@ -1190,10 +1190,11 @@ function mbApplyInlineMd(s) {
     s = s.replace(/\*([^*\n]+)\*/g, '<em>$1</em>');
     s = s.replace(/(?<!\w)_([^_\n]+)_(?!\w)/g, '<em>$1</em>');
     s = s.replace(/~~(.+?)~~/g, '<s>$1</s>');
-    s = s.replace(/\[([^\]]+)\]\(https?:\/\/[^)]*\)/g, '<span style="color:#00aff4;text-decoration:underline;cursor:default;">$1</span>');
-    s = s.replace(/https?:\/\/[^\s<>"'\x00)]+/g, url => {
+    s = s.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+    s = s.replace(/(href="[^"]*")|((https?:\/\/[^\s<>"'\x00)]+))/g, (m,h,_,url) => {
+        if (h) return m;
         const clean = url.replace(/[.,;:!?\]>]+$/, '');
-        return `<span style="color:#00aff4;text-decoration:underline;cursor:default;">${clean}</span>`;
+        return `<a href="${clean}" target="_blank" rel="noopener noreferrer">${clean}</a>`;
     });
     return s.replace(/\x00(\d+)\x00/g, (_, i) => saved[+i]);
 }
@@ -1365,10 +1366,11 @@ function updatePreview() {
         const dpTitle = document.getElementById('mbPreviewTitle');
         dpTitle.style.display = title ? '' : 'none';
         if (title) {
-            const titleHtml = mbApplyInlineMd(mbResolveMentions(title));
+            const titleHtml = mbResolveMentions(title);
+            const titleLinked = titleHtml.replace(/(https?:\/\/[^\s<>"']+)/g, u => { const c=u.replace(/[.,;:!?)\]>]+$/,''); return `<a href="${c}" target="_blank" rel="noopener noreferrer">${c}</a>`; });
             dpTitle.innerHTML = titleUrl
                 ? `<span style="color:#5d9ef3;text-decoration:underline;text-underline-offset:2px;cursor:pointer;">${titleHtml}</span>`
-                : titleHtml;
+                : titleLinked;
         }
 
         // Description

@@ -85,8 +85,8 @@ module.exports = new Event({
                     const resolvedName = rp(res.author.name);
                     if (resolvedName) {
                         const ao = { name: resolvedName };
-                        if (res.author.iconURL) { const ri = rp(res.author.iconURL); try { new URL(ri); ao.iconURL = ri; } catch {} }
-                        if (res.author.url)     try { new URL(res.author.url); ao.url = res.author.url; } catch {}
+                        if (res.author.iconURL) { const ri = rp(String(res.author.iconURL||'')); try { const p = new URL(ri); if (/^https?:$/.test(p.protocol) && p.hostname.includes('.')) ao.iconURL = ri; } catch {} }
+                        if (res.author.url)     { const ru = rp(String(res.author.url    ||'')); try { const p = new URL(ru); if (/^https?:$/.test(p.protocol) && p.hostname.includes('.')) ao.url     = ru; } catch {} }
                         try { embed.setAuthor(ao); } catch {}
                     }
                 }
@@ -94,7 +94,7 @@ module.exports = new Event({
                     const resolvedTitle = rp(res.title);
                     if (resolvedTitle) {
                         try { embed.setTitle(resolvedTitle); } catch {}
-                        if (res.titleUrl) try { embed.setURL(res.titleUrl); } catch {}
+                        if (res.titleUrl) { const ru = rp(String(res.titleUrl||'')); try { const p = new URL(ru); if (/^https?:$/.test(p.protocol) && p.hostname.includes('.')) embed.setURL(ru); } catch {} }
                     }
                 }
                 if (res.description) {

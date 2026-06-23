@@ -443,7 +443,7 @@ function mdToHtml(text) {
             return '\x01C' + i + '\x01';
         });
         s = s
-            .replace(/\[([^\]]+)\]\(\s*(https?:\/\/[^\s)]+)\s*\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" style="color:#00b0f4;text-decoration:none;">$1</a>')
+            .replace(/\[([^\]]+)\]\(\s*(https?:\/\/[^\s)]+)\s*\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
             .replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>')
             .replace(/\*\*(.+?)\*\*/g,     '<strong>$1</strong>')
             .replace(/\*(.+?)\*/g,         '<em>$1</em>')
@@ -453,7 +453,7 @@ function mdToHtml(text) {
             .replace(/(href="[^"]*")|((https?:\/\/[^\s<>"']+))/g, (match, hrefAttr, _, url) => {
                 if (hrefAttr) return match;
                 const clean = url.replace(/[.,;:!?)\]>]+$/, '');
-                return '<a href="' + clean + '" target="_blank" rel="noopener noreferrer" style="color:#00b0f4;text-decoration:underline;">' + clean + '</a>';
+                return '<a href="' + clean + '" target="_blank" rel="noopener noreferrer">' + clean + '</a>';
             });
         return s.replace(/\x01C(\d+)\x01/g, (_, i) => codeStore[+i]);
     }
@@ -537,6 +537,14 @@ function resolvePlaceholdersTitle(text) {
         .replace(/\{server\}/g,      SAMPLE.server)
         .replace(/\{count\}/g,       SAMPLE.count)
         .replace(/\{account\.created\}/g,SAMPLE.account_created);
+}
+function linkifyTitle(text) {
+    if (!text) return '';
+    const s = String(text).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    return s.replace(/(https?:\/\/[^\s<>"']+)/g, u => {
+        const c = u.replace(/[.,;:!?)\]>]+$/, '');
+        return `<a href="${c}" target="_blank" rel="noopener noreferrer">${c}</a>`;
+    });
 }
 
 // Untuk description/plain — {member} → marker mention badge
@@ -858,7 +866,7 @@ function updatePreview() {
     if (_msgsEl) _msgsEl.style.display = 'block';
 
     document.getElementById('previewPill').style.background = color;
-    document.getElementById('previewTitle').innerHTML = mdToHtml(resolvePlaceholdersTitle(document.getElementById('goodbyeTitle').value));
+    document.getElementById('previewTitle').innerHTML = linkifyTitle(resolvePlaceholdersTitle(document.getElementById('goodbyeTitle').value));
     document.getElementById('previewDesc').innerHTML  = resolveHtmlMentions(mdToHtml(resolvePlaceholders(document.getElementById('goodbyeDescription').value)));
 
     const footer = document.getElementById('goodbyeFooter').value.trim();

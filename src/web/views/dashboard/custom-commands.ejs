@@ -998,7 +998,9 @@ function clearForm() {
     document.getElementById('ccEmbedFooterIcon').value  = '';
     document.getElementById('ccEmbedTimestamp').checked = false;
     document.getElementById('ccEmbedColor').value       = '#5865F2';
-    document.getElementById('ccMode').value = 'prefix';
+    const _modeReset = document.getElementById('ccMode');
+    _modeReset.value = 'prefix';
+    _modeReset.dispatchEvent(new Event('change', { bubbles: true }));
     const barEl = document.getElementById('ccEeBarEl');
     if (barEl) barEl.style.background = '#5865F2';
     ['ccEmbedAuthorIcon','ccEmbedThumbnail','ccEmbedImage','ccEmbedFooterIcon'].forEach(id => {
@@ -1381,8 +1383,9 @@ function applyInlineMd(s) {
     s = s.replace(/\*([^*\n]+)\*/g, '<em>$1</em>');
     s = s.replace(/(?<!\w)_([^_\n]+)_(?!\w)/g, '<em>$1</em>');
     s = s.replace(/~~(.+?)~~/g, '<s>$1</s>');
-    s = s.replace(/\[([^\]]+)\]\(https?:\/\/[^)]*\)/g, '<span style="color:#00aff4;text-decoration:underline;cursor:default;">$1</span>');
+    s = s.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
     s = s.replace(/\x00(\d+)\x00/g, (_, i) => saved[+i]);
+    s = s.replace(/(href="[^"]*")|((https?:\/\/[^\s<>"']+))/g,(m,h,_,u)=>{ if(h) return m; const c=u.replace(/[.,;:!?)\]>]+$/,''); return `<a href="${c}" target="_blank" rel="noopener noreferrer">${c}</a>`; });
     return s;
 }
 function applyDiscordMarkdown(s) {
@@ -1535,7 +1538,9 @@ function closeCcPickers() {
 function _fillFormFromCmd(cmd) {
     const res = cmd.response || {};
     document.getElementById('ccTrigger').value           = cmd.trigger || '';
-    document.getElementById('ccMode').value              = cmd.mode    || 'prefix';
+    const _modeEl = document.getElementById('ccMode');
+    _modeEl.value = cmd.mode || 'prefix';
+    _modeEl.dispatchEvent(new Event('change', { bubbles: true }));
     document.getElementById('ccPlainText').value         = res.text    || '';
     document.getElementById('ccPlainImage').value        = res.plainImageURL || '';
     document.getElementById('ccEmbedAuthor').value       = res.author?.name    || '';

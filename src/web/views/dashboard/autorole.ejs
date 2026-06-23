@@ -1836,14 +1836,14 @@ function mdToHtml(text) {
         const store = [];
         s = s.replace(/`(.+?)`/g, (_,c) => { const i=store.length; store.push('<code style="background:#2b2d31;padding:1px 5px;border-radius:3px;font-size:.85em;font-family:Consolas,monospace;">'+c+'</code>'); return '\x01C'+i+'\x01'; });
         s = s
-            .replace(/\[([^\]]+)\]\(\s*(https?:\/\/[^\s)]+)\s*\)/g,'<a href="$2" target="_blank" rel="noopener noreferrer" style="color:#00b0f4;text-decoration:none;">$1</a>')
+            .replace(/\[([^\]]+)\]\(\s*(https?:\/\/[^\s)]+)\s*\)/g,'<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
             .replace(/\*\*\*(.+?)\*\*\*/g,'<strong><em>$1</em></strong>')
             .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
             .replace(/\*(.+?)\*/g,'<em>$1</em>')
             .replace(/__(.+?)__/g,'<u>$1</u>')
             .replace(/~~(.+?)~~/g,'<s>$1</s>')
             .replace(/\|\|(.+?)\|\|/g,'<span style="background:#202225;border-radius:2px;color:transparent;cursor:pointer;" onclick="this.style.color=\'#dbdee1\'">$1</span>')
-            .replace(/(href="[^"]*")|((https?:\/\/[^\s<>"']+))/g,(m,h,_,u)=>{ if(h) return m; const c=u.replace(/[.,;:!?)\]>]+$/,''); return '<a href="'+c+'" target="_blank" rel="noopener noreferrer" style="color:#00b0f4;text-decoration:underline;">'+c+'</a>'; });
+            .replace(/(href="[^"]*")|((https?:\/\/[^\s<>"']+))/g,(m,h,_,u)=>{ if(h) return m; const c=u.replace(/[.,;:!?)\]>]+$/,''); return '<a href="'+c+'" target="_blank" rel="noopener noreferrer">'+c+'</a>'; });
         return s.replace(/\x01C(\d+)\x01/g,(_,i)=>store[+i]);
     }
     const lines=text.split('\n'), out=[];
@@ -2063,13 +2063,15 @@ function updatePanelPreview() {
             } else { authorEl.style.display = 'none'; }
         }
 
-        // Title — Discord embed titles do not support emoji or mentions, render as plain markdown only
+        // Title — Discord embed titles do not render markdown, but bare URLs are shown as links
         const titleEl = document.getElementById('apModalPreviewTitle');
         if (titleEl) {
             if (title) {
+                const _tEsc = escHtml(title);
+                const _tLinked = _tEsc.replace(/(https?:\/\/[^\s<>"']+)/g, u => { const c=u.replace(/[.,;:!?)\]>]+$/,''); return `<a href="${c}" target="_blank" rel="noopener noreferrer">${c}</a>`; });
                 titleEl.innerHTML = validUrl(titleUrl)
-                    ? `<a href="${titleUrl}" target="_blank" style="color:#00b0f4;">${mdToHtml(title)}</a>`
-                    : mdToHtml(title);
+                    ? `<a href="${escHtml(titleUrl)}" target="_blank">${_tEsc}</a>`
+                    : _tLinked;
                 titleEl.style.display = '';
             } else { titleEl.style.display = 'none'; }
         }
@@ -2923,13 +2925,15 @@ function updateReactPanelPreview() {
             } else { authorEl.style.display = 'none'; }
         }
 
-        // Title — Discord embed titles do not support emoji or mentions, render as plain markdown only
+        // Title — Discord embed titles do not render markdown, but bare URLs are shown as links
         const titleEl = document.getElementById('rpModalPreviewTitle');
         if (titleEl) {
             if (title) {
+                const _tEsc = escHtml(title);
+                const _tLinked = _tEsc.replace(/(https?:\/\/[^\s<>"']+)/g, u => { const c=u.replace(/[.,;:!?)\]>]+$/,''); return `<a href="${c}" target="_blank" rel="noopener noreferrer">${c}</a>`; });
                 titleEl.innerHTML = validUrl(titleUrl)
-                    ? `<a href="${titleUrl}" target="_blank" style="color:#00b0f4;">${mdToHtml(title)}</a>`
-                    : mdToHtml(title);
+                    ? `<a href="${escHtml(titleUrl)}" target="_blank">${_tEsc}</a>`
+                    : _tLinked;
                 titleEl.style.display = '';
             } else { titleEl.style.display = 'none'; }
         }
