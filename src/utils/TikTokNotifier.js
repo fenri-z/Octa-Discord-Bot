@@ -828,9 +828,16 @@ class TikTokNotifier {
             db.set(failKey, String(failures));
             warn(`[TikTok/Health] Health check failed (${failures}/${HEALTH_FAIL_THRESHOLD})`);
 
-            if (failures >= HEALTH_FAIL_THRESHOLD && db.get(alertedKey) !== 'true') {
-                db.set(alertedKey, 'true');
-                await this._sendHealthDM(false).catch(err => warn(`[TikTok/Health] Failed to send alert DM: ${err.message}`));
+            if (failures >= HEALTH_FAIL_THRESHOLD) {
+                // Restart otomatis setelah threshold — bersihkan state & timer lama lalu mulai ulang
+                warn(`[TikTok/Health] Threshold tercapai — restart TikTok notifier...`);
+                this.stop();
+                setTimeout(() => this.start(), 5_000);
+
+                if (db.get(alertedKey) !== 'true') {
+                    db.set(alertedKey, 'true');
+                    await this._sendHealthDM(false).catch(err => warn(`[TikTok/Health] Failed to send alert DM: ${err.message}`));
+                }
             }
         }
     }
