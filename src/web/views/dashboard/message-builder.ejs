@@ -1356,7 +1356,7 @@ function updatePreview() {
         if (author) {
             const aIconOk = isHttpImg(authorIcon);
             const innerHtml = authorUrl
-                ? `<span style="cursor:pointer;text-decoration:underline;text-underline-offset:2px;text-decoration-color:rgba(128,128,128,.5);">${mbResolveMentions(author)}</span>`
+                ? `<a class="dc-author-url" href="${escHtml(authorUrl)}" target="_blank" rel="noopener noreferrer">${mbResolveMentions(author)}</a>`
                 : mbResolveMentions(author);
             dpAuthor.innerHTML = (aIconOk ? `<img class="dc-author-icon" src="${escHtml(authorIcon)}" onerror="this.style.display='none'" alt=""> ` : '') +
                 `<span class="dc-text-wrap">${innerHtml}</span>`;

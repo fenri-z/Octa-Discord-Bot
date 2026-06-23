@@ -1892,10 +1892,16 @@ html.theme-transitioning *::after {
 .dc-window a { color:#00b0f4; text-decoration:none; }
 .dc-window a:hover { text-decoration:underline; }
 
+/* Embed title URL — always underlined (Discord behaviour) */
+.dc-embed-title a { text-decoration:underline; }
+
 /* Elements that do NOT render links in Discord — override to plain text */
 .dc-embed-footer a,
 .dc-field-name a,
 .dc-embed-author a { color:inherit; text-decoration:none; pointer-events:none; cursor:text; }
+
+/* Author URL link — blue + underlined + clickable (Discord behaviour) */
+.dc-embed-author a.dc-author-url { color:#00b0f4; text-decoration:underline; pointer-events:auto; cursor:pointer; }
 
 @media (max-width:640px) {
     .dc-embed-footer { flex-wrap:nowrap; overflow:hidden; }

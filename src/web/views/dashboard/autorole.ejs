@@ -2057,7 +2057,7 @@ function updatePanelPreview() {
         if (authorEl) {
             if (authorName) {
                 const iconHtml = validUrl(authorIcon) ? `<img src="${authorIcon}" style="width:16px;height:16px;border-radius:50%;margin-right:.3rem;vertical-align:middle;" onerror="this.style.display='none'">` : '';
-                const link = validUrl(authorUrl) ? `<a href="${authorUrl}" target="_blank" style="color:inherit;">${escHtml(authorName)}</a>` : escHtml(authorName);
+                const link = validUrl(authorUrl) ? `<a class="dc-author-url" href="${escHtml(authorUrl)}" target="_blank" rel="noopener noreferrer">${escHtml(authorName)}</a>` : escHtml(authorName);
                 authorEl.innerHTML = iconHtml + link;
                 authorEl.style.display = '';
             } else { authorEl.style.display = 'none'; }
@@ -2919,7 +2919,7 @@ function updateReactPanelPreview() {
         if (authorEl) {
             if (authorName) {
                 const iconHtml = validUrl(authorIcon) ? `<img src="${authorIcon}" style="width:16px;height:16px;border-radius:50%;margin-right:.3rem;vertical-align:middle;" onerror="this.style.display='none'">` : '';
-                const link = validUrl(authorUrl) ? `<a href="${authorUrl}" target="_blank" style="color:inherit;">${escHtml(authorName)}</a>` : escHtml(authorName);
+                const link = validUrl(authorUrl) ? `<a class="dc-author-url" href="${escHtml(authorUrl)}" target="_blank" rel="noopener noreferrer">${escHtml(authorName)}</a>` : escHtml(authorName);
                 authorEl.innerHTML = iconHtml + link;
                 authorEl.style.display = '';
             } else { authorEl.style.display = 'none'; }
