@@ -1705,27 +1705,51 @@ function mbBuildEmbed(data) {
     if (data.timestamp) embed.setTimestamp();
     return embed;
 }
-async function mbFetchImageAttachment(url) {
-    const mod = url.startsWith('https') ? require('https') : require('http');
-    return new Promise(resolve => {
-        try {
-            const req = mod.get(url, {
-                headers: {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-                    'Accept': 'image/png,image/jpeg,image/gif,image/webp,image/*,*/*;q=0.9',
-                },
-            }, res => {
-                const ct = (res.headers['content-type'] || '').split(';')[0].trim();
-                if (!ct.startsWith('image/')) { res.destroy(); return resolve(null); }
-                const chunks = [];
-                res.on('data', chunk => chunks.push(chunk));
-                res.on('end', () => resolve(Buffer.concat(chunks)));
-                res.on('error', () => resolve(null));
-            });
-            req.setTimeout(8000, () => { req.destroy(); resolve(null); });
-            req.on('error', () => resolve(null));
-        } catch { resolve(null); }
+function _mbFetchBufDirect(url, maxRedirects = 5) {
+    return new Promise((resolve, reject) => {
+        const mod = url.startsWith('https') ? require('https') : require('http');
+        let origin = '';
+        try { origin = new URL(url).origin; } catch {}
+        const req = mod.get(url, {
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+                'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
+                'Accept-Language': 'en-US,en;q=0.9',
+                ...(origin ? { 'Referer': origin + '/' } : {}),
+            },
+        }, res => {
+            if ([301,302,307,308].includes(res.statusCode) && res.headers.location && maxRedirects > 0)
+                return _mbFetchBufDirect(res.headers.location, maxRedirects - 1).then(resolve).catch(reject);
+            if (res.statusCode !== 200) {
+                res.resume();
+                const err = new Error(`HTTP ${res.statusCode}`);
+                err.statusCode = res.statusCode;
+                return reject(err);
+            }
+            const ct = (res.headers['content-type'] || '').split(';')[0].trim();
+            if (!ct.startsWith('image/')) {
+                res.destroy();
+                return reject(Object.assign(new Error('not_image'), { code: 'NOT_IMAGE' }));
+            }
+            const chunks = [];
+            res.on('data', c => chunks.push(c));
+            res.on('end', () => resolve(Buffer.concat(chunks)));
+            res.on('error', reject);
+        });
+        req.setTimeout(10000, () => { req.destroy(); reject(new Error('timeout')); });
+        req.on('error', reject);
     });
+}
+async function mbFetchImageAttachment(url) {
+    const alreadyProxied = url.includes('wsrv.nl') || url.includes('images.weserv.nl');
+    try {
+        return await _mbFetchBufDirect(url);
+    } catch {
+        if (alreadyProxied) return null;
+        try {
+            return await _mbFetchBufDirect(`https://wsrv.nl/?url=${encodeURIComponent(url)}&n=-1`);
+        } catch { return null; }
+    }
 }
 async function mbBuildSendOpts(data) {
     const type = data.messageType || 'embed';
