@@ -6,6 +6,33 @@ const { logError } = require('../../utils/logError');
 // key: `${guildId}:${trigger}:${userId}` → timestamp of last use
 const cooldownMap = new Map();
 
+function isDirectImageUrl(url) {
+    return /^https?:\/\/.+/i.test(url);
+}
+
+async function fetchImageAttachment(url) {
+    const mod = url.startsWith('https') ? require('https') : require('http');
+    return new Promise(resolve => {
+        try {
+            const req = mod.get(url, {
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+                    'Accept': 'image/png,image/jpeg,image/gif,image/webp,image/*,*/*;q=0.9',
+                },
+            }, res => {
+                const ct = (res.headers['content-type'] || '').split(';')[0].trim();
+                if (!ct.startsWith('image/')) { res.destroy(); return resolve(null); }
+                const chunks = [];
+                res.on('data', chunk => chunks.push(chunk));
+                res.on('end', () => resolve(Buffer.concat(chunks)));
+                res.on('error', () => resolve(null));
+            });
+            req.setTimeout(8000, () => { req.destroy(); resolve(null); });
+            req.on('error', () => resolve(null));
+        } catch { resolve(null); }
+    });
+}
+
 module.exports = new Event({
     event: 'messageCreate',
     once:  false,
@@ -127,9 +154,12 @@ module.exports = new Event({
                     sendOpts.content = rp(res.text);
                     sendOpts.allowedMentions = { parse: ['users', 'roles'] };
                 }
-                if (res.plainImageURL) {
-                    const ri = rp(res.plainImageURL);
-                    try { new URL(ri); if (isDirectImageUrl(ri)) sendOpts.files = [{ attachment: ri }]; } catch {}
+                if (res.plainImageURL && isDirectImageUrl(res.plainImageURL)) {
+                    const buf = await fetchImageAttachment(res.plainImageURL);
+                    if (buf) {
+                        const ext = (res.plainImageURL.match(/\.(png|jpe?g|gif|webp|bmp|avif)/i) || ['', 'png'])[1];
+                        sendOpts.files = [{ attachment: buf, name: `image.${ext}` }];
+                    }
                 }
                 await message.channel.send(sendOpts).catch(err => logError('[onCustomCommand] send failed:', err));
             } else {
@@ -139,9 +169,12 @@ module.exports = new Event({
                     content: replacePlaceholders(text, message),
                     allowedMentions: { parse: ['users', 'roles'] },
                 };
-                if (plainImg) {
-                    const ri = replacePlaceholders(plainImg, message);
-                    try { new URL(ri); if (isDirectImageUrl(ri)) sendOpts.files = [{ attachment: ri }]; } catch {}
+                if (plainImg && isDirectImageUrl(plainImg)) {
+                    const buf = await fetchImageAttachment(plainImg);
+                    if (buf) {
+                        const ext = (plainImg.match(/\.(png|jpe?g|gif|webp|bmp|avif)/i) || ['', 'png'])[1];
+                        sendOpts.files = [{ attachment: buf, name: `image.${ext}` }];
+                    }
                 }
                 await message.channel.send(sendOpts).catch(err => logError('[onCustomCommand] send failed:', err));
             }
@@ -150,9 +183,6 @@ module.exports = new Event({
     }
 }).toJSON();
 
-function isDirectImageUrl(url) {
-    return /\.(png|jpe?g|gif|webp|bmp|avif)(?:[?#]|$)/i.test(url);
-}
 
 function replacePlaceholders(text, message) {
     if (!text || typeof text !== 'string') return '';

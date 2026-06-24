@@ -187,14 +187,14 @@ router.post('/guild/:guildId/welcome', requireLogin, requireManageGuild, vNotifF
     const {
         enabled, channelId,
         messageType, plainText,
-        title, description, color, footerText, thumbnail,
+        title, description, color, footerText, thumbnail, embedImageUrl,
         showMemberNew, showAkunDibuat, showTotalMember,
         showDiundangOleh, showKodeInvite, showTotalUndangan,
         cardEnabled, cardWelcomeText, cardUserPrefix, cardSubText,
         cardBgColor, cardBgColor2, cardAccentColor, cardTextColor,
         cardAvatarShape, cardBgType, cardBgImageUrl,
         cardOverlayColor, cardOverlayOpacity,
-        cardTitleColor, cardUsernameColor, cardMsgColor, cardFont,
+        cardTitleColor, cardUsernameColor, cardMsgColor, cardFont, cardLayout,
     } = req.body;
 
     const db      = req.discordClient?.database;
@@ -259,7 +259,7 @@ router.post('/guild/:guildId/welcome', requireLogin, requireManageGuild, vNotifF
     setDbBool(db, `welcome-cardEnabled-${guildId}`, !!cardEnabled);
     db.set(`welcome-cardWelcomeText-${guildId}`, (cardWelcomeText || 'WELCOME').slice(0, 20));
     db.set(`welcome-cardUserPrefix-${guildId}`,  cardUserPrefix != null ? String(cardUserPrefix).slice(0, 5) : '.');
-    db.set(`welcome-cardSubText-${guildId}`,     (cardSubText != null ? String(cardSubText) : 'TO {server}').slice(0, 60));
+    db.set(`welcome-cardSubText-${guildId}`,     (cardSubText != null ? String(cardSubText).trim() : 'TO {server}').slice(0, 60));
     const hexRe = /^#[0-9A-Fa-f]{6}$/;
     db.set(`welcome-cardBgColor-${guildId}`,  hexRe.test(cardBgColor)    ? cardBgColor    : '#1a1a2e');
     db.set(`welcome-cardBgColor2-${guildId}`, hexRe.test(cardBgColor2)   ? cardBgColor2   : '#16213e');
@@ -275,6 +275,8 @@ router.post('/guild/:guildId/welcome', requireLogin, requireManageGuild, vNotifF
     db.set(`welcome-cardUsernameColor-${guildId}`,  hexRe.test(cardUsernameColor)  ? cardUsernameColor  : '#5865F2');
     db.set(`welcome-cardMsgColor-${guildId}`,       hexRe.test(cardMsgColor)       ? cardMsgColor       : '#cccccc');
     db.set(`welcome-cardFont-${guildId}`,           ['impact','arial','georgia','courier','verdana'].includes(cardFont) ? cardFont : 'impact');
+    db.set(`welcome-cardLayout-${guildId}`,         ['banner','classic'].includes(cardLayout) ? cardLayout : 'banner');
+    db.set(`welcome-embedImageUrl-${guildId}`,      (embedImageUrl || '').trim().slice(0, 500));
 
     guildCache.del(`welcome-cfg-${guildId}`);
     res.json({ success: true, message: 'Welcome settings saved successfully.' });
@@ -285,12 +287,12 @@ router.post('/guild/:guildId/goodbye', requireLogin, requireManageGuild, vNotifF
     const {
         enabled, channelId,
         messageType, plainText,
-        title, description, color, footerText, thumbnail,
+        title, description, color, footerText, thumbnail, embedImageUrl,
         cardEnabled, cardWelcomeText, cardSubText,
         cardBgColor, cardBgColor2, cardAccentColor, cardTextColor,
         cardAvatarShape, cardBgType, cardBgImageUrl,
         cardOverlayColor, cardOverlayOpacity,
-        cardTitleColor, cardUsernameColor, cardMsgColor, cardFont,
+        cardTitleColor, cardUsernameColor, cardMsgColor, cardFont, cardLayout,
         showMember, showBergabung, showAkunDibuat, showTotalMember,
     } = req.body;
 
@@ -356,6 +358,8 @@ router.post('/guild/:guildId/goodbye', requireLogin, requireManageGuild, vNotifF
     db.set(`goodbye-cardUsernameColor-${guildId}`,      cardUsernameColor?.trim() || '');
     db.set(`goodbye-cardMsgColor-${guildId}`,           cardMsgColor?.trim()     || '#cccccc');
     db.set(`goodbye-cardFont-${guildId}`,               cardFont                 || 'impact');
+    db.set(`goodbye-cardLayout-${guildId}`,             ['banner','classic'].includes(cardLayout) ? cardLayout : 'banner');
+    db.set(`goodbye-embedImageUrl-${guildId}`,          (embedImageUrl || '').trim().slice(0, 500));
 
     // Fields
     setDbBool(db, `goodbye-showMember-${guildId}`,      !!showMember);
@@ -421,12 +425,12 @@ router.post('/guild/:guildId/booster-boost', requireLogin, requireManageGuild, (
     const guildId = req.params.guildId;
     if (!db) return res.status(500).json({ success: false, message: 'Database not available.' });
 
-    const { enabled, channelId, messageType, plainText, title, description, color, footerText,
+    const { enabled, channelId, messageType, plainText, title, description, color, footerText, embedImageUrl,
             showMember, showMulaiBoost, showTotalBoost, showLevelServer, showThumbnail,
             cardEnabled, cardWelcomeText, cardSubText, cardBgColor, cardBgColor2,
             cardAccentColor, cardAvatarShape, cardBgType, cardBgImageUrl,
             cardOverlayColor, cardOverlayOpacity, cardTitleColor, cardUsernameColor,
-            cardMsgColor, cardFont } = req.body;
+            cardMsgColor, cardFont, cardLayout } = req.body;
 
     if (!channelId) return res.json({ success: false, message: 'Target channel is required.' });
     if (!req.botGuild.channels.cache.get(channelId)) return res.json({ success: false, message: 'Channel not found.' });
@@ -456,7 +460,7 @@ router.post('/guild/:guildId/booster-boost', requireLogin, requireManageGuild, (
     db.set(`booster-boost-showThumbnail-${guildId}`,  showThumbnail  ? 'true' : 'false');
     db.set(`booster-boost-cardEnabled-${guildId}`,    cardEnabled    ? 'true' : 'false');
     if (cardWelcomeText)         db.set(`booster-boost-cardWelcomeText-${guildId}`, cardWelcomeText);
-    if (cardSubText != null)     db.set(`booster-boost-cardSubText-${guildId}`,    cardSubText);
+    if (cardSubText != null)     db.set(`booster-boost-cardSubText-${guildId}`,    String(cardSubText).trim());
     if (cardBgColor)        db.set(`booster-boost-cardBgColor-${guildId}`,        cardBgColor);
     if (cardBgColor2)       db.set(`booster-boost-cardBgColor2-${guildId}`,       cardBgColor2);
     if (cardAccentColor)    db.set(`booster-boost-cardAccent-${guildId}`,         cardAccentColor);
@@ -469,6 +473,8 @@ router.post('/guild/:guildId/booster-boost', requireLogin, requireManageGuild, (
     if (cardUsernameColor)  db.set(`booster-boost-cardUsernameColor-${guildId}`,  cardUsernameColor);
     if (cardMsgColor)       db.set(`booster-boost-cardMsgColor-${guildId}`,       cardMsgColor);
     if (cardFont)           db.set(`booster-boost-cardFont-${guildId}`,           cardFont);
+    db.set(`booster-boost-cardLayout-${guildId}`, ['banner','classic'].includes(cardLayout) ? cardLayout : 'banner');
+    db.set(`booster-boost-embedImageUrl-${guildId}`, (embedImageUrl || '').trim().slice(0, 500));
     if (channelId)  db.set(`booster-boost-channel-${guildId}`,   channelId);
     else            db.delete(`booster-boost-channel-${guildId}`);
     if (plainText !== undefined) db.set(`booster-boost-plainText-${guildId}`, plainText);
@@ -490,12 +496,12 @@ router.post('/guild/:guildId/booster-unboost', requireLogin, requireManageGuild,
     const guildId = req.params.guildId;
     if (!db) return res.status(500).json({ success: false, message: 'Database not available.' });
 
-    const { enabled, channelId, messageType, plainText, title, description, color, footerText,
+    const { enabled, channelId, messageType, plainText, title, description, color, footerText, embedImageUrl,
             showMember, showTotalBoost, showLevelServer, showThumbnail,
             cardEnabled, cardWelcomeText, cardSubText, cardBgColor, cardBgColor2,
             cardAccentColor, cardAvatarShape, cardBgType, cardBgImageUrl,
             cardOverlayColor, cardOverlayOpacity, cardTitleColor, cardUsernameColor,
-            cardMsgColor, cardFont } = req.body;
+            cardMsgColor, cardFont, cardLayout } = req.body;
 
     if (!channelId) return res.json({ success: false, message: 'Target channel is required.' });
     if (!req.botGuild.channels.cache.get(channelId)) return res.json({ success: false, message: 'Channel not found.' });
@@ -524,7 +530,7 @@ router.post('/guild/:guildId/booster-unboost', requireLogin, requireManageGuild,
     db.set(`booster-unboost-showThumbnail-${guildId}`,  showThumbnail  ? 'true' : 'false');
     db.set(`booster-unboost-cardEnabled-${guildId}`,    cardEnabled    ? 'true' : 'false');
     if (cardWelcomeText)         db.set(`booster-unboost-cardWelcomeText-${guildId}`, cardWelcomeText);
-    if (cardSubText != null)     db.set(`booster-unboost-cardSubText-${guildId}`,    cardSubText);
+    if (cardSubText != null)     db.set(`booster-unboost-cardSubText-${guildId}`,    String(cardSubText).trim());
     if (cardBgColor)        db.set(`booster-unboost-cardBgColor-${guildId}`,        cardBgColor);
     if (cardBgColor2)       db.set(`booster-unboost-cardBgColor2-${guildId}`,       cardBgColor2);
     if (cardAccentColor)    db.set(`booster-unboost-cardAccent-${guildId}`,         cardAccentColor);
@@ -537,6 +543,8 @@ router.post('/guild/:guildId/booster-unboost', requireLogin, requireManageGuild,
     if (cardUsernameColor)  db.set(`booster-unboost-cardUsernameColor-${guildId}`,  cardUsernameColor);
     if (cardMsgColor)       db.set(`booster-unboost-cardMsgColor-${guildId}`,       cardMsgColor);
     if (cardFont)           db.set(`booster-unboost-cardFont-${guildId}`,           cardFont);
+    db.set(`booster-unboost-cardLayout-${guildId}`, ['banner','classic'].includes(cardLayout) ? cardLayout : 'banner');
+    db.set(`booster-unboost-embedImageUrl-${guildId}`, (embedImageUrl || '').trim().slice(0, 500));
     if (channelId)  db.set(`booster-unboost-channel-${guildId}`,   channelId);
     else            db.delete(`booster-unboost-channel-${guildId}`);
     if (plainText !== undefined) db.set(`booster-unboost-plainText-${guildId}`, plainText);
@@ -1697,20 +1705,45 @@ function mbBuildEmbed(data) {
     if (data.timestamp) embed.setTimestamp();
     return embed;
 }
-function mbBuildSendOpts(data) {
+async function mbFetchImageAttachment(url) {
+    const mod = url.startsWith('https') ? require('https') : require('http');
+    return new Promise(resolve => {
+        try {
+            const req = mod.get(url, {
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+                    'Accept': 'image/png,image/jpeg,image/gif,image/webp,image/*,*/*;q=0.9',
+                },
+            }, res => {
+                const ct = (res.headers['content-type'] || '').split(';')[0].trim();
+                if (!ct.startsWith('image/')) { res.destroy(); return resolve(null); }
+                const chunks = [];
+                res.on('data', chunk => chunks.push(chunk));
+                res.on('end', () => resolve(Buffer.concat(chunks)));
+                res.on('error', () => resolve(null));
+            });
+            req.setTimeout(8000, () => { req.destroy(); resolve(null); });
+            req.on('error', () => resolve(null));
+        } catch { resolve(null); }
+    });
+}
+async function mbBuildSendOpts(data) {
     const type = data.messageType || 'embed';
     const hasEmbed = type === 'embed' || type === 'both';
     const hasText  = type === 'plain' || type === 'both';
     const opts = {};
-
     opts.content = (hasText && data.plainText) ? data.plainText.slice(0, 2000) : null;
+    opts.embeds  = hasEmbed ? [mbBuildEmbed(data)] : [];
 
-    // Send plainImage as a real file attachment (no URL text shown in Discord)
-    if (hasText && data.plainImage && /^https?:\/\/.+/i.test(data.plainImage)) {
-        try { new URL(data.plainImage); opts.files = [{ attachment: data.plainImage }]; } catch {}
+    const plainImage = (data.plainImage || '').trim();
+    if (hasText && plainImage) {
+        const buf = await mbFetchImageAttachment(plainImage);
+        if (buf) {
+            const ext = (plainImage.match(/\.(png|jpe?g|gif|webp|bmp|avif)/i) || ['', 'png'])[1];
+            opts.files = [{ attachment: buf, name: `image.${ext}` }];
+        }
     }
 
-    opts.embeds = hasEmbed ? [mbBuildEmbed(data)] : [];
     return opts;
 }
 
@@ -1797,7 +1830,7 @@ router.post('/guild/:guildId/message-builder', requireLogin, requireManageGuild,
             const msg = await channel.messages.fetch(sent.messageId);
             if (!msg) throw new Error('Message not found.');
 
-            await msg.edit({ ...mbBuildSendOpts(data), attachments: [] });
+            await msg.edit({ ...(await mbBuildSendOpts(data)), attachments: [] });
             return res.json({ success: true, message: `Template "${name}" saved and Discord message successfully updated! ✅` });
 
         } catch (err) {
@@ -1919,7 +1952,7 @@ router.post('/guild/:guildId/message-builder/:name/send', requireLogin, requireM
     if (!channel) return res.json({ success: false, message: 'Target channel not found. It may have been deleted.' });
 
     try {
-        const sent = await channel.send(mbBuildSendOpts(template));
+        const sent = await channel.send(await mbBuildSendOpts(template));
         db?.set(`pesan-unik-sent-${guildId}-${name}`, JSON.stringify({ messageId: sent.id, channelId: channel.id }));
         res.json({ success: true, message: `Successfully sent to #${channel.name}!`, messageId: sent.id, channelId: channel.id });
     } catch (err) {
@@ -2123,23 +2156,99 @@ router.post('/guild/:guildId/serverstats/reset', requireLogin, requireManageGuil
 
 // ── GET /api/guild/:guildId/image-proxy — proxy gambar eksternal agar canvas ─
 // bisa menggambar tanpa terkena blokir CORS browser.
-router.get('/guild/:guildId/image-proxy', requireLogin, requireManageGuild, (req, res) => {
-    const { url } = req.query;
-    if (!url || !/^https?:\/\/.+/.test(url)) return res.status(400).json({ success: false, message: 'Invalid URL.' });
-
-    const mod = url.startsWith('https') ? require('https') : require('http');
-    const request = mod.get(url, { timeout: 8000, headers: { 'User-Agent': 'Mozilla/5.0' } }, (upstream) => {
+const REDIRECT_CODES = new Set([301, 302, 303, 307, 308]);
+function proxyFetch(targetUrl, res, hops = 0) {
+    if (hops > 5) return res.status(500).json({ success: false, message: 'Too many redirects.' });
+    const mod = targetUrl.startsWith('https') ? require('https') : require('http');
+    const origin = new URL(targetUrl).origin;
+    const req = mod.get(targetUrl, {
+        timeout: 10000,
+        headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+            'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Referer': origin + '/',
+        },
+    }, (upstream) => {
+        if (REDIRECT_CODES.has(upstream.statusCode) && upstream.headers.location) {
+            upstream.resume();
+            let next = upstream.headers.location;
+            if (!next.startsWith('http')) next = new URL(next, targetUrl).href;
+            return proxyFetch(next, res, hops + 1);
+        }
         if (upstream.statusCode !== 200) {
+            upstream.resume();
+            const blocked = [403, 429, 503].includes(upstream.statusCode);
+            const alreadyProxied = targetUrl.includes('wsrv.nl') || targetUrl.includes('images.weserv.nl');
+            if (blocked && !alreadyProxied) {
+                const wsrvUrl = `https://wsrv.nl/?url=${encodeURIComponent(targetUrl)}&n=-1`;
+                return proxyFetch(wsrvUrl, res, hops + 1);
+            }
             return res.status(upstream.statusCode || 500).json({ success: false, message: `HTTP ${upstream.statusCode}` });
         }
         const ct = upstream.headers['content-type'] || 'image/png';
+        if (!ct.startsWith('image/')) {
+            upstream.resume();
+            return res.status(415).json({ success: false, message: 'URL did not return an image.' });
+        }
         res.setHeader('Content-Type', ct);
         res.setHeader('Cache-Control', 'public, max-age=3600');
         upstream.pipe(res);
     });
-    request.on('error', () => res.status(500).json({ success: false, message: 'Failed to fetch image.' }));
-    request.on('timeout', () => { request.destroy(); res.status(504).json({ success: false, message: 'Timeout.' }); });
+    req.on('error', () => { if (!res.headersSent) res.status(500).json({ success: false, message: 'Failed to fetch image.' }); });
+    req.on('timeout', () => { req.destroy(); if (!res.headersSent) res.status(504).json({ success: false, message: 'Timeout.' }); });
+}
+
+router.get('/guild/:guildId/image-proxy', requireLogin, requireManageGuild, (req, res) => {
+    const { url } = req.query;
+    if (!url || !/^https?:\/\/.+/.test(url)) return res.status(400).json({ success: false, message: 'Invalid URL.' });
+    proxyFetch(url, res);
 });
+
+// ── POST /api/guild/:guildId/upload-card-bg — Upload gambar ke ImgBB ─────────
+router.post('/guild/:guildId/upload-card-bg', requireLogin, requireManageGuild,
+    express.json({ limit: '12mb' }),
+    async (req, res) => {
+        const apiKey = process.env.IMGBB_API_KEY;
+        if (!apiKey) return res.status(500).json({ success: false, message: 'ImgBB API key not configured. Add IMGBB_API_KEY to .env' });
+
+        const { image } = req.body;
+        if (!image || typeof image !== 'string') return res.status(400).json({ success: false, message: 'No image provided.' });
+
+        const base64 = image.replace(/^data:image\/[a-z+]+;base64,/, '');
+        if (!base64) return res.status(400).json({ success: false, message: 'Invalid image data.' });
+
+        const body = new URLSearchParams({ key: apiKey, image: base64 }).toString();
+        try {
+            const url = await new Promise((resolve, reject) => {
+                const req2 = require('https').request({
+                    hostname: 'api.imgbb.com',
+                    path: '/1/upload',
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Content-Length': Buffer.byteLength(body) },
+                    timeout: 20000,
+                }, (upstream) => {
+                    let data = '';
+                    upstream.on('data', c => data += c);
+                    upstream.on('end', () => {
+                        try {
+                            const json = JSON.parse(data);
+                            if (json.success) resolve(json.data.url);
+                            else reject(new Error(json.error?.message || 'ImgBB upload failed'));
+                        } catch { reject(new Error('Invalid response from ImgBB')); }
+                    });
+                });
+                req2.on('error', reject);
+                req2.on('timeout', () => { req2.destroy(); reject(new Error('Timeout uploading to ImgBB')); });
+                req2.write(body);
+                req2.end();
+            });
+            res.json({ success: true, url });
+        } catch (err) {
+            res.status(500).json({ success: false, message: err.message || 'Upload failed.' });
+        }
+    }
+);
 
 // ══════════════════════════════════════════════════════════════════════════════
 // YouTube Notifications

@@ -1,5 +1,5 @@
 const { EmbedBuilder, AttachmentBuilder } = require("discord.js");
-const { generateCardAsync } = require("../../utils/generateWelcomeCard");
+const { generateCardAsync } = require("../../utils/generateCard");
 const { logError, safeRun } = require("../../utils/logError");
 const cache = require("../../utils/GuildCache");
 const Event = require("../../structure/Event");
@@ -38,8 +38,10 @@ function readWelcomeConfig(db, guildId) {
         cardUsernameColor:  db.get(`welcome-cardUsernameColor-${g}`)|| cardAccent,
         cardMsgColor:       db.get(`welcome-cardMsgColor-${g}`)     ?? '#cccccc',
         cardFont:           db.get(`welcome-cardFont-${g}`)         ?? 'impact',
+        cardLayout:         db.get(`welcome-cardLayout-${g}`)       ?? 'banner',
         plainText:          db.get(`welcome-plainText-${g}`)        ?? '',
         thumbnail:          bool(db, `welcome-thumbnail-${g}`, false),
+        embedImageUrl:      db.get(`welcome-embedImageUrl-${g}`)    ?? '',
     };
 }
 
@@ -64,8 +66,8 @@ module.exports = new Event({
             cardEnabled, cardBgColor, cardBgColor2, cardAccent, cardTextColor,
             cardWelcomeText, cardSubText, cardAvatarShape,
             cardBgType, cardBgImageUrl, cardOverlayColor, cardOverlayOpacity,
-            cardTitleColor, cardUsernameColor, cardMsgColor, cardFont,
-            plainText, thumbnail,
+            cardTitleColor, cardUsernameColor, cardMsgColor, cardFont, cardLayout,
+            plainText, thumbnail, embedImageUrl,
         } = cfg;
 
         // ── Cari channel sambutan ─────────────────────────────────────────
@@ -154,6 +156,7 @@ module.exports = new Event({
                     usernameColor:  cardUsernameColor,
                     messageColor:   cardMsgColor,
                     fontFamily:     cardFont,
+                    cardLayout:     cardLayout,
                 });
                 cardAttachment = new AttachmentBuilder(Buffer.from(cardBuf), { name: 'welcome-card.png' });
                 console.log('[onMemberJoin] Card generated OK, size:', cardBuf.length);
@@ -192,7 +195,8 @@ module.exports = new Event({
 
             if (footerText) embed.setFooter({ text: parseTitle(footerText) });
             if (thumbnail)  embed.setThumbnail(member.user.displayAvatarURL({ dynamic: true, size: 256 }));
-            if (cardAttachment) embed.setImage('attachment://welcome-card.png');
+            if (embedImageUrl) embed.setImage(embedImageUrl);
+            else if (cardAttachment) embed.setImage('attachment://welcome-card.png');
 
             const embedPayload = { embeds: [embed] };
             if (cardAttachment) embedPayload.files = [cardAttachment];

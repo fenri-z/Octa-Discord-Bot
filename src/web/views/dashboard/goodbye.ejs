@@ -65,18 +65,10 @@
 
                 <div class="form-group">
                     <label class="label"><%= t('common.message_type') %></label>
-                    <div style="display:flex;gap:.75rem;">
-                        <label class="radio-label" style="display:flex;align-items:center;gap:.5rem;cursor:pointer;">
-                            <input type="radio" name="goodbyeMessageType" id="typePlain" value="plain"
-                                   <%= (goodbyeData.messageType || 'plain') === 'plain' ? 'checked' : '' %>>
-                            <span><%= t('common.plain_text') %></span>
-                        </label>
-                        <label class="radio-label" style="display:flex;align-items:center;gap:.5rem;cursor:pointer;">
-                            <input type="radio" name="goodbyeMessageType" id="typeEmbed" value="embed"
-                                   <%= (goodbyeData.messageType || 'plain') === 'embed' ? 'checked' : '' %>>
-                            <span><%= t('common.embed') %></span>
-                        </label>
-                    </div>
+                    <select id="goodbyeMessageType" class="select" style="font-size:.82rem;">
+                        <option value="plain" <%= (goodbyeData.messageType||'plain')==='plain'?'selected':'' %>><%= t('common.plain_text') %></option>
+                        <option value="embed" <%= (goodbyeData.messageType||'plain')==='embed'?'selected':'' %>><%= t('common.embed') %></option>
+                    </select>
                 </div>
 
                 <!-- ── Panel Teks Biasa ── -->
@@ -192,16 +184,10 @@
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;">
                         <div class="form-group">
                             <label class="label">Avatar Shape</label>
-                            <div style="display:flex;gap:.6rem;margin-top:.2rem;">
-                                <label style="display:flex;align-items:center;gap:.4rem;cursor:pointer;font-size:.85rem;">
-                                    <input type="radio" name="cardAvatarShape" value="circle" <%= (goodbyeData.cardAvatarShape||'circle')==='circle'?'checked':'' %>>
-                                    <span>Circle</span>
-                                </label>
-                                <label style="display:flex;align-items:center;gap:.4rem;cursor:pointer;font-size:.85rem;">
-                                    <input type="radio" name="cardAvatarShape" value="square" <%= goodbyeData.cardAvatarShape==='square'?'checked':'' %>>
-                                    <span>Square</span>
-                                </label>
-                            </div>
+                            <select id="cardAvatarShape" class="select" style="font-size:.82rem;">
+                                <option value="circle" <%= (goodbyeData.cardAvatarShape||'circle')==='circle'?'selected':'' %>>Circle</option>
+                                <option value="square" <%= goodbyeData.cardAvatarShape==='square'?'selected':'' %>>Square</option>
+                            </select>
                         </div>
                         <div class="form-group">
                             <label class="label">Font</label>
@@ -209,6 +195,13 @@
                                 <% [['impact','Impact'],['arial','Arial'],['georgia','Georgia'],['courier','Courier New'],['verdana','Verdana']].forEach(function(f){ %>
                                     <option value="<%= f[0] %>" <%= (goodbyeData.cardFont||'impact')===f[0]?'selected':'' %>><%= f[1] %></option>
                                 <% }) %>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="label"><%= t('common.card_layout') %></label>
+                            <select id="cardLayout" class="select" style="font-size:.82rem;">
+                                <option value="banner" <%= (goodbyeData.cardLayout||'banner')==='banner'?'selected':'' %>><%= t('common.layout_banner') %></option>
+                                <option value="classic" <%= goodbyeData.cardLayout==='classic'?'selected':'' %>><%= t('common.layout_classic') %></option>
                             </select>
                         </div>
                     </div>
@@ -335,7 +328,7 @@
                         <label class="label">Description Card</label>
                         <div class="input-count-wrap">
                             <input type="text" id="cardSubText" class="input" maxlength="60"
-                                   placeholder="FROM {server}" value="<%= goodbyeData.cardSubText||'FROM {server}' %>"
+                                   placeholder="FROM {server}" value="<%= goodbyeData.cardSubText ?? '' %>"
                                    oninput="mbInlineCount('cardSubText','cardSubTextCount')">
                             <span class="input-inline-count" id="cardSubTextCount">0 / 60</span>
                         </div>
@@ -600,7 +593,7 @@ function _syncCardPlacement() {
     const dataUrl = canvas ? canvas.toDataURL() : '';
     if (imgEmbed && dataUrl) imgEmbed.src = dataUrl;
     if (imgPlain && dataUrl) imgPlain.src = dataUrl;
-    const isPlain = document.getElementById('typePlain').checked;
+    const isPlain = (document.getElementById('goodbyeMessageType')?.value || 'plain') === 'plain';
     if (isPlain) {
         const plainVal    = (document.getElementById('goodbyePlainText') || {}).value || '';
         const hasContent  = !!plainVal.trim();
@@ -632,7 +625,7 @@ async function drawCardPreview() {
     const titleClr = document.getElementById('cardTitleColor')?.value   || '#ffffff';
     const userClr  = document.getElementById('cardUsernameColor')?.value || accent;
     const msgClr   = document.getElementById('cardMsgColor')?.value     || '#cccccc';
-    const shape    = document.querySelector('input[name="cardAvatarShape"]:checked')?.value || 'circle';
+    const shape    = document.getElementById('cardAvatarShape')?.value || 'circle';
     const fontSel  = document.getElementById('cardFont')?.value         || 'impact';
     const fontMap  = { impact:"Impact,'Arial Black',sans-serif", arial:'Arial,Helvetica,sans-serif', georgia:"Georgia,'Times New Roman',serif", courier:"'Courier New',Courier,monospace", verdana:'Verdana,Geneva,sans-serif' };
     const fontFam  = fontMap[fontSel] || fontMap.impact;
@@ -678,58 +671,85 @@ async function drawCardPreview() {
 
     if (overlayOp > 0) { ctx.save(); rr(0,0,W,H,16); ctx.clip(); ctx.globalAlpha=overlayOp; ctx.fillStyle=overlayClr; ctx.fillRect(0,0,W,H); ctx.globalAlpha=1; ctx.restore(); }
 
+    // ── Layout params ─────────────────────────────────────────────────────
+    const isBanner = (document.getElementById('cardLayout')?.value || 'banner') !== 'classic';
+    const AS = isBanner ? Math.round(150*W/1100) : Math.round(170*W/1100);
+    const BD = isBanner ? Math.round(8*W/1100)   : Math.round(6*W/1100);
+    const BT = AS + BD*2;
+    const avL = isBanner ? Math.round((W-BT)/2)  : Math.round(50*W/1100);
+    const avT = isBanner ? Math.round(28*H/400)  : Math.round((H-BT)/2);
+    const isSquare = shape==='square';
+
     if (bgType !== 'transparent') {
         ctx.globalAlpha=0.07; ctx.fillStyle=accent;
-        ctx.beginPath(); ctx.arc(W-60,40,80,0,Math.PI*2); ctx.fill();
-        ctx.beginPath(); ctx.arc(W-20,H-20,60,0,Math.PI*2); ctx.fill();
+        if (isBanner) {
+            ctx.beginPath(); ctx.arc(Math.round(80*W/1100),Math.round(80*H/400),Math.round(120*W/1100),0,Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(W-Math.round(80*W/1100),H-Math.round(80*H/400),Math.round(100*W/1100),0,Math.PI*2); ctx.fill();
+        } else {
+            ctx.beginPath(); ctx.arc(W-Math.round(60*W/1100),Math.round(40*H/400),Math.round(80*W/1100),0,Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(W-Math.round(20*W/1100),H-Math.round(20*H/400),Math.round(60*W/1100),0,Math.PI*2); ctx.fill();
+        }
         ctx.globalAlpha=1;
     }
 
-    const AS=120,BD=5,avL=50,avT=(H-AS-BD*2)/2,TX=avL+AS+BD*2+40;
-    const isSquare = shape==='square';
     ctx.fillStyle=accent;
-    if (isSquare) { rr(avL,avT,AS+BD*2,AS+BD*2,20); ctx.fill(); }
-    else { ctx.beginPath(); ctx.arc(avL+(AS+BD*2)/2,avT+(AS+BD*2)/2,(AS+BD*2)/2,0,Math.PI*2); ctx.fill(); }
+    if (isSquare) { rr(avL,avT,BT,BT,isBanner?20:14); ctx.fill(); }
+    else { ctx.beginPath(); ctx.arc(avL+BT/2,avT+BT/2,BT/2,0,Math.PI*2); ctx.fill(); }
 
     const avatarProxyUrl = '/api/guild/<%= guild.id %>/image-proxy?url=' + encodeURIComponent(SAMPLE.avatarUrl);
     await new Promise(resAvatar => {
         const avImg = new Image();
         avImg.onload = () => {
             ctx.save();
-            if (isSquare) { rr(avL+BD,avT+BD,AS,AS,14); ctx.clip(); }
+            if (isSquare) { rr(avL+BD,avT+BD,AS,AS,isBanner?16:10); ctx.clip(); }
             else { ctx.beginPath(); ctx.arc(avL+BD+AS/2,avT+BD+AS/2,AS/2,0,Math.PI*2); ctx.clip(); }
             ctx.drawImage(avImg,avL+BD,avT+BD,AS,AS); ctx.restore(); resAvatar();
         };
         avImg.onerror = () => {
             ctx.fillStyle='#5a6070';
-            if (isSquare) { rr(avL+BD,avT+BD,AS,AS,14); ctx.fill(); }
+            if (isSquare) { rr(avL+BD,avT+BD,AS,AS,isBanner?16:10); ctx.fill(); }
             else { ctx.beginPath(); ctx.arc(avL+BD+AS/2,avT+BD+AS/2,AS/2,0,Math.PI*2); ctx.fill(); }
             const cx=avL+BD+AS/2,cy=avT+BD+AS/2; ctx.fillStyle='#8892a4';
-            ctx.beginPath(); ctx.arc(cx,cy-20,22,0,Math.PI*2); ctx.fill();
-            ctx.beginPath(); ctx.ellipse(cx,cy+40,35,28,0,0,Math.PI*2); ctx.fill(); resAvatar();
+            ctx.beginPath(); ctx.arc(cx,cy-AS*0.14,AS*0.18,0,Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.ellipse(cx,cy+AS*0.28,AS*0.28,AS*0.22,0,0,Math.PI*2); ctx.fill(); resAvatar();
         };
         avImg.src = avatarProxyUrl;
     });
 
-    const availW = W - TX - 20;
-    let titleFs = 54;
-    ctx.font = `900 ${titleFs}px ${fontFam}`;
-    while (titleFs > 20 && ctx.measureText(bigText).width > availW) { titleFs -= 2; ctx.font = `900 ${titleFs}px ${fontFam}`; }
-    ctx.shadowColor=titleClr; ctx.shadowBlur=8; ctx.fillStyle=titleClr; ctx.fillText(bigText,TX,115); ctx.shadowBlur=0;
-    ctx.shadowColor='rgba(0,0,0,0.5)'; ctx.shadowBlur=4; ctx.font=`700 24px ${fontFam}`; ctx.fillStyle=userClr; ctx.fillText(SAMPLE.username,TX,157,availW); ctx.shadowBlur=0;
-    ctx.font=`600 16px ${fontFam}`; ctx.fillStyle=msgClr; ctx.fillText(sub,TX,192,availW);
+    if (isBanner) {
+        const CX=W/2, TITLE_Y=Math.round(282*H/400), USER_Y=Math.round(330*H/400), SUB_Y=Math.round(380*H/400), TEXT_W=W-Math.round(120*W/1100);
+        let titleFs=Math.round(74*H/400); ctx.font=`900 ${titleFs}px ${fontFam}`;
+        while (titleFs>14 && ctx.measureText(bigText).width>TEXT_W) { titleFs-=2; ctx.font=`900 ${titleFs}px ${fontFam}`; }
+        ctx.shadowColor=titleClr; ctx.shadowBlur=6; ctx.fillStyle=titleClr; ctx.textAlign='center';
+        ctx.fillText(bigText,CX,TITLE_Y,TEXT_W); ctx.shadowBlur=0;
+        ctx.font=`700 ${Math.round(30*H/400)}px ${fontFam}`; ctx.shadowColor='rgba(0,0,0,0.5)'; ctx.shadowBlur=4; ctx.fillStyle=userClr;
+        ctx.fillText(SAMPLE.username,CX,USER_Y,TEXT_W); ctx.shadowBlur=0;
+        ctx.font=`600 ${Math.round(36*H/400)}px ${fontFam}`; ctx.fillStyle=msgClr;
+        ctx.fillText(sub,CX,SUB_Y,TEXT_W); ctx.textAlign='left';
+    } else {
+        const TX=avL+BT+Math.round(50*W/1100), availW=W-TX-20;
+        const TITLE_Y=Math.round(190*H/400), USER_Y=Math.round(245*H/400), SUB_Y=Math.round(290*H/400);
+        let titleFs=Math.round(80*H/400); ctx.font=`900 ${titleFs}px ${fontFam}`;
+        while (titleFs>14 && ctx.measureText(bigText).width>availW) { titleFs-=2; ctx.font=`900 ${titleFs}px ${fontFam}`; }
+        ctx.shadowColor=titleClr; ctx.shadowBlur=8; ctx.fillStyle=titleClr;
+        ctx.fillText(bigText,TX,TITLE_Y,availW); ctx.shadowBlur=0;
+        ctx.font=`700 ${Math.round(34*H/400)}px ${fontFam}`; ctx.shadowColor='rgba(0,0,0,0.5)'; ctx.shadowBlur=4; ctx.fillStyle=userClr;
+        ctx.fillText(SAMPLE.username,TX,USER_Y,availW); ctx.shadowBlur=0;
+        ctx.font=`600 ${Math.round(36*H/400)}px ${fontFam}`; ctx.fillStyle=msgClr;
+        ctx.fillText(sub,TX,SUB_Y,availW);
+    }
 
     _syncCardPlacement();
 }
 
 // ── Panel toggles ────────────────────────────────────────────────────────────
 function toggleMessageTypePanel() {
-    const isPlain = document.getElementById('typePlain').checked;
+    const isPlain = (document.getElementById('goodbyeMessageType')?.value || 'plain') === 'plain';
     document.getElementById('plainTextPanel').style.display = isPlain ? 'block' : 'none';
     document.getElementById('embedPanel').style.display     = isPlain ? 'none'  : 'block';
     updatePreview();
 }
-document.querySelectorAll('input[name="goodbyeMessageType"]').forEach(el => el.addEventListener('change', toggleMessageTypePanel));
+document.getElementById('goodbyeMessageType')?.addEventListener('change', toggleMessageTypePanel);
 
 function toggleCardPanel() {
     const en = document.getElementById('cardEnabled').checked;
@@ -744,7 +764,9 @@ document.getElementById('cardEnabled').addEventListener('change', toggleCardPane
     if (el) el.addEventListener('input',  () => drawCardPreview());
     if (el) el.addEventListener('change', () => drawCardPreview());
 });
-document.querySelectorAll('input[name="cardAvatarShape"], input[name="cardBgType"]').forEach(el => el.addEventListener('change', () => drawCardPreview()));
+document.querySelectorAll('input[name="cardBgType"]').forEach(el => el.addEventListener('change', () => drawCardPreview()));
+document.getElementById('cardAvatarShape')?.addEventListener('change', () => drawCardPreview());
+document.getElementById('cardLayout')?.addEventListener('change', () => drawCardPreview());
 
 // ── Sync hex & picker ─────────────────────────────────────────────────────────
 function syncHex(inputId, pickerId) {
@@ -820,7 +842,7 @@ function updatePreview() {
     const color  = document.getElementById('goodbyeColor').value || '#ED4245';
     const thumb  = document.getElementById('goodbyeThumbnail').checked;
     const chanId = document.getElementById('goodbyeChannel').value;
-    const isPlain = document.getElementById('typePlain').checked;
+    const isPlain = (document.getElementById('goodbyeMessageType')?.value || 'plain') === 'plain';
 
     document.getElementById('previewPlainMsg').style.display = isPlain ? 'block' : 'none';
     document.getElementById('previewEmbed').style.display    = isPlain ? 'none'  : 'flex';
@@ -944,7 +966,7 @@ async function saveGoodbye(guildId) {
     const payload = {
         enabled:       document.getElementById('goodbyeEnabled').checked,
         channelId:     document.getElementById('goodbyeChannel').value,
-        messageType:   document.querySelector('input[name="goodbyeMessageType"]:checked')?.value || 'embed',
+        messageType:   document.getElementById('goodbyeMessageType')?.value || 'plain',
         plainText:     (document.getElementById('goodbyePlainText') || {}).value?.trim() || '',
         title:         document.getElementById('goodbyeTitle').value.trim(),
         description:   document.getElementById('goodbyeDescription').value.trim(),
@@ -958,7 +980,8 @@ async function saveGoodbye(guildId) {
         cardBgColor2:       document.getElementById('cardBgColor2').value.trim()        || '#2e0a0a',
         cardAccentColor:    document.getElementById('cardAccentColor').value.trim()     || '#ED4245',
         cardTextColor:      document.getElementById('cardTitleColor')?.value.trim()     || '#ffffff',
-        cardAvatarShape:    document.querySelector('input[name="cardAvatarShape"]:checked')?.value || 'circle',
+        cardAvatarShape:    document.getElementById('cardAvatarShape')?.value || 'circle',
+        cardLayout:         document.getElementById('cardLayout')?.value || 'banner',
         cardBgType:         document.querySelector('input[name="cardBgType"]:checked')?.value      || 'gradient',
         cardBgImageUrl:     document.getElementById('cardBgImageUrl')?.value.trim()     || '',
         cardOverlayColor:   document.getElementById('cardOverlayColor')?.value.trim()   || '#000000',

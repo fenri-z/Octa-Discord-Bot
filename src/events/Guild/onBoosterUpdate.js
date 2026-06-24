@@ -1,6 +1,6 @@
 ﻿const { EmbedBuilder, AttachmentBuilder } = require("discord.js");
 const Event = require("../../structure/Event");
-const { generateCardAsync } = require('../../utils/generateWelcomeCard');
+const { generateCardAsync } = require('../../utils/generateCard');
 const { logError, safeRun } = require('../../utils/logError');
 const cache = require('../../utils/GuildCache');
 
@@ -51,6 +51,8 @@ function _buildBoosterConfig(client, guildId) {
         boostCardUsernameColor: client.database.get(`booster-boost-cardUsernameColor-${guildId}`) ?? '#FF73FA',
         boostCardMsgColor:      client.database.get(`booster-boost-cardMsgColor-${guildId}`)      ?? '#cccccc',
         boostCardFont:          client.database.get(`booster-boost-cardFont-${guildId}`)          ?? 'impact',
+        boostCardLayout:        client.database.get(`booster-boost-cardLayout-${guildId}`)        ?? 'banner',
+        boostEmbedImageUrl:     client.database.get(`booster-boost-embedImageUrl-${guildId}`)     ?? '',
 
         unboostEnabled:         getBool(client, `booster-unboost-enabled-${guildId}`,        false),
         unboostChannelId:       client.database.get(`booster-unboost-channel-${guildId}`)    ?? null,
@@ -79,6 +81,8 @@ function _buildBoosterConfig(client, guildId) {
         unboostCardUsernameColor:client.database.get(`booster-unboost-cardUsernameColor-${guildId}`) ?? '#ED4245',
         unboostCardMsgColor:     client.database.get(`booster-unboost-cardMsgColor-${guildId}`)      ?? '#cccccc',
         unboostCardFont:         client.database.get(`booster-unboost-cardFont-${guildId}`)          ?? 'impact',
+        unboostCardLayout:       client.database.get(`booster-unboost-cardLayout-${guildId}`)       ?? 'banner',
+        unboostEmbedImageUrl:    client.database.get(`booster-unboost-embedImageUrl-${guildId}`)    ?? '',
 
         autoroleEnabled:    getBool(client, `booster-autorole-enabled-${guildId}`,   false),
         autoroleRoleId:     client.database.get(`booster-autorole-role-${guildId}`)  ?? null,
@@ -196,6 +200,7 @@ module.exports = new Event({
                         usernameColor:  cfg.boostCardUsernameColor,
                         messageColor:   cfg.boostCardMsgColor,
                         fontFamily:     cfg.boostCardFont,
+                        cardLayout:     cfg.boostCardLayout,
                     });
                     boostCard = new AttachmentBuilder(Buffer.from(buf), { name: 'boost-card.png' });
                 } catch (err) { logError('[onBoosterUpdate][boost] Card generation failed:', err); }
@@ -223,7 +228,8 @@ module.exports = new Event({
                 if (cfg.boostShowLevelServer) boostFields.push({ name: '🏅 Level Server', value: `Level **${guild.premiumTier}**`,                              inline: true });
                 if (boostFields.length) embed.addFields(...boostFields);
                 if (cfg.boostFooter) embed.setFooter({ text: parseTitle(cfg.boostFooter, newMember, guild) });
-                if (boostCard) embed.setImage('attachment://boost-card.png');
+                if (cfg.boostEmbedImageUrl) embed.setImage(cfg.boostEmbedImageUrl);
+                else if (boostCard) embed.setImage('attachment://boost-card.png');
                 const payload = { embeds: [embed] };
                 if (boostCard) payload.files = [boostCard];
                 await channel.send(payload).catch(async (err) => {
@@ -293,6 +299,7 @@ module.exports = new Event({
                         usernameColor:  cfg.unboostCardUsernameColor,
                         messageColor:   cfg.unboostCardMsgColor,
                         fontFamily:     cfg.unboostCardFont,
+                        cardLayout:     cfg.unboostCardLayout,
                     });
                     unboostCard = new AttachmentBuilder(Buffer.from(buf), { name: 'unboost-card.png' });
                 } catch (err) { logError('[onBoosterUpdate][unboost] Card generation failed:', err); }
@@ -319,7 +326,8 @@ module.exports = new Event({
                 if (cfg.unboostShowLevelServer) unboostFields.push({ name: '🏅 Level Server', value: `Level **${guild.premiumTier}**`,                    inline: true });
                 if (unboostFields.length) embed.addFields(...unboostFields);
                 if (cfg.unboostFooter) embed.setFooter({ text: parseTitle(cfg.unboostFooter, newMember, guild) });
-                if (unboostCard) embed.setImage('attachment://unboost-card.png');
+                if (cfg.unboostEmbedImageUrl) embed.setImage(cfg.unboostEmbedImageUrl);
+                else if (unboostCard) embed.setImage('attachment://unboost-card.png');
                 const payload = { embeds: [embed] };
                 if (unboostCard) payload.files = [unboostCard];
                 await channel.send(payload).catch(async (err) => {

@@ -10,7 +10,7 @@ const ApplicationCommand = require("../../structure/ApplicationCommand");
 const { getLang, getStrings } = require('../../utils/BotLang');
 const { resolveChannel } = require('../../utils/resolveGuildOption');
 const { checkBotPermissions } = require('../../utils/checkBotPermissions');
-const { generateCardAsync } = require('../../utils/generateWelcomeCard');
+const { generateCardAsync } = require('../../utils/generateCard');
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 function setBool(client, key, val) {

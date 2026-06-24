@@ -176,10 +176,13 @@
                                           oninput="ccResizeArea(this);ccUpdateCount('ccPlainText','ccPlainCount');updatePreview()"></textarea>
                                 <div class="mb-char-count" id="ccPlainCount">0 / 2000</div>
                             </div>
-                            <textarea id="ccPlainImage" class="input input-sm mb-url-area" data-flt-ignore rows="1"
-                                      placeholder="Image URL (https://...) — optional"
-                                      data-url-label="Image URL"
-                                      oninput="ccResizeArea(this);updatePreview()"></textarea>
+                            <div>
+                                <label class="label">Image URL <span style="font-size:.75rem;font-weight:400;color:var(--text-muted);">(optional, direct link ending .png/.jpg/.gif/.webp)</span></label>
+                                <textarea id="ccPlainImage" class="input input-sm mb-url-area" data-flt-ignore rows="1"
+                                       placeholder="https://..."
+                                       data-url-label="Image URL"
+                                       oninput="ccResizeArea(this);updatePreview()"></textarea>
+                            </div>
                         </div>
                     </div>
                     <div id="ccEmbedSection" class="mb-section">
@@ -358,8 +361,8 @@
                                     <span class="dc-timestamp">Today at 12:00</span>
                                 </div>
                                 <div id="ccDpText" class="dc-plain-msg" style="display:none;"></div>
-                                <div id="ccDpPlainImage" class="dc-plain-image" style="display:none;">
-                                    <img id="ccDpPlainImg" src="" alt="" onerror="this.closest('.dc-plain-image').style.display='none'">
+                                <div id="ccDpPlainImage" style="display:none;margin-top:.25rem;">
+                                    <img id="ccDpPlainImg" src="" alt="" style="max-width:300px;border-radius:4px;">
                                 </div>
                                 <div id="ccDpEmbed" class="dc-embed" style="display:none;">
                                     <div id="ccDpEmbedBar" class="dc-embed-pill" style="background:#5865F2;"></div>
@@ -779,8 +782,8 @@ async function apiFetch(path, method, body) {
 
 
 function updatePreview() {
-    const plainImg  = (document.getElementById('ccPlainImage')?.value      || '').trim();
     const text      = (document.getElementById('ccPlainText')?.value       || '').trimEnd();
+    const plainImg  = (document.getElementById('ccPlainImage')?.value      || '').trim();
     const author    = (document.getElementById('ccEmbedAuthor')?.value     || '').trim();
     const aIcon     = (document.getElementById('ccEmbedAuthorIcon')?.value || '').trim();
     const authorUrl = (document.getElementById('ccEmbedAuthorUrl')?.value  || '').trim();
@@ -795,33 +798,26 @@ function updatePreview() {
     const ts     = document.getElementById('ccEmbedTimestamp')?.checked;
 
     const activeFields = embedFields.filter(f => f.name.trim() || f.value.trim());
-    const showText  = text.length > 0;
-    const showEmbed = !!(author || title || desc || activeFields.length || image || thumb || footer || ts);
-
+    const showText     = text.length > 0;
+    const showEmbed    = !!(author || title || desc || activeFields.length || image || thumb || footer || ts);
     const showPlainImg = !!(plainImg && isDirectImageUrl(plainImg));
-    // Warn: red border if URL is not empty and not a direct image link
-    (function() {
-        const el = document.getElementById('ccPlainImage');
-        if (!el) return;
-        const bad = !!plainImg && !isUrlPlaceholder(plainImg) && !isDirectImageUrl(plainImg);
-        el.classList.toggle('cc-url-warn', bad);
-        el.title = bad
-            ? (isHttpUrl(plainImg) ? '⚠ Must be a direct image link (.png, .jpg, .gif, .webp)' : '⚠ URL must start with https://')
-            : '';
-    })();
+    setWarn('ccPlainImage', plainImg, true);
+
     document.getElementById('ccDpText').style.display       = showText     ? '' : 'none';
     document.getElementById('ccDpEmbed').style.display      = showEmbed    ? '' : 'none';
     document.getElementById('ccDpEmpty').style.display      = (!showText && !showEmbed && !showPlainImg) ? '' : 'none';
 
-    if (showText) document.getElementById('ccDpText').innerHTML = resolveCcPreview(text, true);
-
     const dpPlainImage = document.getElementById('ccDpPlainImage');
     if (showPlainImg) {
         dpPlainImage.style.display = '';
-        document.getElementById('ccDpPlainImg').src = resolveSampleUrl(plainImg) || plainImg;
+        const dpPlainImg = document.getElementById('ccDpPlainImg');
+        dpPlainImg.src = resolveSampleUrl(plainImg) || plainImg;
+        dpPlainImg.onerror = () => { dpPlainImage.style.display = 'none'; };
     } else {
         dpPlainImage.style.display = 'none';
     }
+
+    if (showText) document.getElementById('ccDpText').innerHTML = resolveCcPreview(text, true);
 
     if (showEmbed) {
         document.getElementById('ccDpEmbedBar').style.background = color;
@@ -1003,7 +999,7 @@ function clearForm() {
     _modeReset.dispatchEvent(new Event('change', { bubbles: true }));
     const barEl = document.getElementById('ccEeBarEl');
     if (barEl) barEl.style.background = '#5865F2';
-    ['ccEmbedAuthorIcon','ccEmbedThumbnail','ccEmbedImage','ccEmbedFooterIcon'].forEach(id => {
+    ['ccPlainImage','ccEmbedAuthorIcon','ccEmbedThumbnail','ccEmbedImage','ccEmbedFooterIcon'].forEach(id => {
         document.getElementById(id)?.classList.remove('cc-url-warn');
     });
     _lastWarnedUrl.clear();
@@ -1216,6 +1212,7 @@ function syncFloatBar() {
     const formHasContent = !!(
         document.getElementById('ccTrigger').value.trim()          ||
         document.getElementById('ccPlainText').value.trim()        ||
+        document.getElementById('ccPlainImage').value.trim()       ||
         document.getElementById('ccEmbedAuthor').value.trim()      ||
         document.getElementById('ccEmbedAuthorUrl').value.trim()   ||
         document.getElementById('ccEmbedAuthorIcon').value.trim()  ||
@@ -1287,7 +1284,7 @@ function validateUrlOnBlur(el, event) {
 function getInvalidUrlField() {
     // [id, label, mustBeImage]
     const fields = [
-        ['ccPlainImage',      'Image URL',         true],
+        ['ccPlainImage',      'Image URL',          true],
         ['ccEmbedAuthorUrl',  'Author URL',         false],
         ['ccEmbedAuthorIcon', 'Author Icon URL',    true],
         ['ccEmbedTitleUrl',   'Title URL',          false],
@@ -1541,7 +1538,7 @@ function _fillFormFromCmd(cmd) {
     const _modeEl = document.getElementById('ccMode');
     _modeEl.value = cmd.mode || 'prefix';
     _modeEl.dispatchEvent(new Event('change', { bubbles: true }));
-    document.getElementById('ccPlainText').value         = res.text    || '';
+    document.getElementById('ccPlainText').value         = res.text         || '';
     document.getElementById('ccPlainImage').value        = res.plainImageURL || '';
     document.getElementById('ccEmbedAuthor').value       = res.author?.name    || '';
     document.getElementById('ccEmbedAuthorUrl').value    = res.author?.url     || '';

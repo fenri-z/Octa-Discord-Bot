@@ -1,5 +1,5 @@
 const { EmbedBuilder, AttachmentBuilder } = require("discord.js");
-const { generateCardAsync } = require("../../utils/generateWelcomeCard");
+const { generateCardAsync } = require("../../utils/generateCard");
 const { logError, safeRun } = require("../../utils/logError");
 const cache = require("../../utils/GuildCache");
 const Event = require("../../structure/Event");
@@ -39,6 +39,8 @@ function readGoodbyeConfig(db, guildId) {
         cardUsernameColor:   db.get(`goodbye-cardUsernameColor-${g}`)|| cardAccentColor,
         cardMsgColor:        db.get(`goodbye-cardMsgColor-${g}`)     ?? '#cccccc',
         cardFont:            db.get(`goodbye-cardFont-${g}`)         ?? 'impact',
+        cardLayout:          db.get(`goodbye-cardLayout-${g}`)       ?? 'banner',
+        embedImageUrl:       db.get(`goodbye-embedImageUrl-${g}`)    ?? '',
     };
 }
 
@@ -63,7 +65,7 @@ module.exports = new Event({
             cardEnabled, cardBgColor, cardBgColor2, cardAccentColor, cardTextColor,
             cardWelcomeText, cardSubText, cardAvatarShape, cardBgType, cardBgImageUrl,
             cardOverlayColor, cardOverlayOpacity, cardTitleColor, cardUsernameColor,
-            cardMsgColor, cardFont,
+            cardMsgColor, cardFont, cardLayout, embedImageUrl,
         } = cfg;
 
         // ── Cari channel tujuan ───────────────────────────────────────────
@@ -119,6 +121,7 @@ module.exports = new Event({
                     usernameColor:  cardUsernameColor || cardAccentColor,
                     messageColor:   cardMsgColor,
                     fontFamily:     cardFont,
+                    cardLayout:     cardLayout,
                 });
                 cardAttachment = new AttachmentBuilder(Buffer.from(cardBuf), { name: 'goodbye-card.png' });
                 console.log('[onMemberLeave] Card generated OK, size:', cardBuf.length);
@@ -152,7 +155,8 @@ module.exports = new Event({
 
         if (footerText) embed.setFooter({ text: parseTitle(footerText) });
         if (thumbnail)  embed.setThumbnail(member.user.displayAvatarURL({ dynamic: true, size: 256 }));
-        if (cardAttachment) embed.setImage('attachment://goodbye-card.png');
+        if (embedImageUrl) embed.setImage(embedImageUrl);
+        else if (cardAttachment) embed.setImage('attachment://goodbye-card.png');
 
         const payload = { embeds: [embed] };
         if (cardAttachment) payload.files = [cardAttachment];

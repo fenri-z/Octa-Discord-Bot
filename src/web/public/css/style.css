@@ -924,8 +924,8 @@ code {
 .mb-char-count.danger { color:#ed4245; font-weight:600; }
 .mb-count-wrap { position:relative; display:block; }
 .mb-count-wrap input.input  { padding-right:4.6rem; }
-.mb-count-wrap textarea.input { padding-bottom:1.3rem; }
-.mb-count-wrap .mb-char-count { position:absolute; right:.5rem; bottom:.38rem; margin-top:0; font-size:.68rem; pointer-events:none; white-space:nowrap; }
+.mb-count-wrap textarea.input { padding-bottom:1.6rem; }
+.mb-count-wrap .mb-char-count { position:absolute; right:.5rem; bottom:.45rem; margin-top:0; font-size:.68rem; pointer-events:none; white-space:nowrap; }
 .input-count-wrap { position:relative; display:flex; align-items:flex-end; }
 .input-count-wrap .input { padding-right:5.5rem; }
 .textarea-count-wrap { position:relative; padding-bottom:1.4rem; }
@@ -1117,6 +1117,11 @@ code {
 .toast-error {
     background: linear-gradient(135deg, rgba(210,45,48,.97) 0%, rgba(160,30,32,.97) 100%);
     border: 1px solid rgba(255,120,120,.25);
+    color: #fff;
+}
+.toast-warning {
+    background: linear-gradient(135deg, rgba(180,110,0,.97) 0%, rgba(140,85,0,.97) 100%);
+    border: 1px solid rgba(255,200,80,.25);
     color: #fff;
 }
 
@@ -1887,6 +1892,13 @@ html.theme-transitioning *::after {
 /* Discord mention badge */
 .dc-mention { background:rgba(88,101,242,.3); color:#c0c7ff; border-radius:3px; padding:0 2px; font-weight:500; }
 [data-theme="light"] .dc-mention { background:rgba(88,101,242,.15); color:#4752c4; }
+
+/* Range input track fix for light mode */
+[data-theme="light"] input[type="range"] { -webkit-appearance: none; appearance: none; height: 4px; border-radius: 2px; background: var(--border); outline: none; cursor: pointer; }
+[data-theme="light"] input[type="range"]::-webkit-slider-runnable-track { background: var(--border); height: 4px; border-radius: 2px; }
+[data-theme="light"] input[type="range"]::-moz-range-track { background: var(--border); height: 4px; border-radius: 2px; }
+[data-theme="light"] input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: var(--accent); margin-top: -5px; cursor: pointer; }
+[data-theme="light"] input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: var(--accent); border: none; cursor: pointer; }
 
 /* Links inside Discord preview */
 .dc-window a { color:#00b0f4; text-decoration:none; }

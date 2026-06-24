@@ -123,9 +123,12 @@
                                           oninput="mbResizeArea(this);mbUpdateCount('editPlainText','plainTextCount');onFormInput()"></textarea>
                                 <div class="mb-char-count" id="plainTextCount">0 / 2000</div>
                             </div>
-                            <textarea id="editPlainImage" class="input input-sm mb-url-area" data-flt-ignore rows="1"
-                                      placeholder="<%= t('message_builder.ph_plain_image') %>"
-                                      oninput="mbResizeArea(this);mbWarnUrl(this,true);onFormInput()" onblur="mbWarnUrl(this,true,event)"></textarea>
+                            <div>
+                                <label class="label">Image URL <span style="font-size:.75rem;font-weight:400;color:var(--text-muted);">(optional, direct link ending .png/.jpg/.gif/.webp)</span></label>
+                                <textarea id="editPlainImage" class="input input-sm mb-url-area" data-flt-ignore rows="1"
+                                       placeholder="https://..."
+                                       oninput="mbResizeArea(this);mbWarnUrl(this,true);onFormInput()" onblur="mbWarnUrl(this,true,event)"></textarea>
+                            </div>
                         </div>
                     </div>
 
@@ -294,8 +297,8 @@
                                     <span class="dc-timestamp">Today at 12:00</span>
                                 </div>
                                 <div id="mbPreviewPlain" class="dc-plain-msg" style="display:none;"></div>
-                                <div id="mbPreviewPlainImageWrap" class="dc-plain-image" style="display:none;">
-                                    <img id="mbPreviewPlainImage" src="" alt="" onerror="this.closest('.dc-plain-image').style.display='none'">
+                                <div id="mbPreviewPlainImageWrap" style="display:none;margin-top:.25rem;">
+                                    <img id="mbPreviewPlainImage" src="" alt="" style="max-width:300px;border-radius:4px;">
                                 </div>
                                 <div id="mbPreviewEmbed" class="dc-embed" style="display:none;">
                                     <div id="mbPreviewPill" class="dc-embed-pill" style="background:#5865F2;"></div>
@@ -971,7 +974,7 @@ async function saveTemplate() {
 
     // Validate URL fields before saving
     const _urlFields = [
-        { id: 'editPlainImage',  label: 'Image URL (text)',      img: true  },
+        { id: 'editPlainImage',  label: 'Image URL',             img: true  },
         { id: 'editAuthorUrl',   label: 'Author URL',            img: false },
         { id: 'editAuthorIcon',  label: 'Author icon URL',       img: true  },
         { id: 'editTitleUrl',    label: 'Title URL',             img: false },
@@ -1315,7 +1318,6 @@ function mbUpdatePreviewChannel() {
 function updatePreview() {
     mbUpdatePreviewChannel();
     const plainText  = document.getElementById('editPlainText').value;
-    const plainImage = document.getElementById('editPlainImage').value.trim();
     const title      = document.getElementById('editTitle').value.trim();
     const titleUrl   = document.getElementById('editTitleUrl').value.trim();
     const desc       = document.getElementById('editDescription').value.trim();
@@ -1329,6 +1331,7 @@ function updatePreview() {
     const thumb      = document.getElementById('editThumbnail').value.trim();
     const ts         = document.getElementById('editTimestamp').checked;
 
+    const plainImage  = document.getElementById('editPlainImage').value.trim();
     const activeFields = mbEmbedFields.filter(f => f.name.trim() || f.value.trim());
     const hasPlain = !!(plainText.trim() || plainImage);
     const hasEmbed = !!(title || desc || author || footer || image || thumb || activeFields.length);
@@ -1341,8 +1344,12 @@ function updatePreview() {
     // Plain image
     const plainImgWrap = document.getElementById('mbPreviewPlainImageWrap');
     const plainImgEl   = document.getElementById('mbPreviewPlainImage');
-    if (isHttpImg(plainImage)) { plainImgEl.src = plainImage; plainImgWrap.style.display = ''; }
-    else { plainImgWrap.style.display = 'none'; }
+    if (plainImage && isHttpImg(plainImage)) {
+        plainImgEl.src = plainImage;
+        plainImgWrap.style.display = '';
+    } else {
+        plainImgWrap.style.display = 'none';
+    }
 
     // Embed
     const embedEl = document.getElementById('mbPreviewEmbed');
