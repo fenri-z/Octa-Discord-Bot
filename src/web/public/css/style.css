@@ -924,8 +924,8 @@ code {
 .mb-char-count.danger { color:#ed4245; font-weight:600; }
 .mb-count-wrap { position:relative; display:block; }
 .mb-count-wrap input.input  { padding-right:4.6rem; }
-.mb-count-wrap textarea.input { padding-bottom:1.6rem; }
-.mb-count-wrap .mb-char-count { position:absolute; right:.5rem; bottom:.45rem; margin-top:0; font-size:.68rem; pointer-events:none; white-space:nowrap; }
+.mb-count-wrap textarea.input { padding-bottom:1.3rem; }
+.mb-count-wrap .mb-char-count { position:absolute; right:.5rem; bottom:.38rem; margin-top:0; font-size:.68rem; pointer-events:none; white-space:nowrap; }
 .input-count-wrap { position:relative; display:flex; align-items:flex-end; }
 .input-count-wrap .input { padding-right:5.5rem; }
 .textarea-count-wrap { position:relative; padding-bottom:1.4rem; }

@@ -170,12 +170,12 @@
                 </div><!-- /embedPanel -->
 
                 <div class="form-group" style="margin-top:1.5rem;border-top:1px solid var(--border);padding-top:1.25rem;">
-                    <label class="label" style="margin-bottom:.75rem;">Goodbye Card</label>
+                    <label class="label" style="margin-bottom:.75rem;"><%= t('goodbye.card_section') %></label>
                     <label class="toggle-label">
                         <input type="checkbox" id="cardEnabled" class="toggle-input"
                                <%= goodbyeData.cardEnabled ? 'checked' : '' %>>
                         <span class="toggle-slider"></span>
-                        <span>Send goodbye card image</span>
+                        <span><%= t('goodbye.card_enable') %></span>
                     </label>
                 </div>
 
@@ -183,14 +183,14 @@
 
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;">
                         <div class="form-group">
-                            <label class="label">Avatar Shape</label>
+                            <label class="label"><%= t('card_image.avatar_shape') %></label>
                             <select id="cardAvatarShape" class="select" style="font-size:.82rem;">
-                                <option value="circle" <%= (goodbyeData.cardAvatarShape||'circle')==='circle'?'selected':'' %>>Circle</option>
-                                <option value="square" <%= goodbyeData.cardAvatarShape==='square'?'selected':'' %>>Square</option>
+                                <option value="circle" <%= (goodbyeData.cardAvatarShape||'circle')==='circle'?'selected':'' %>><%= t('card_image.shape_circle') %></option>
+                                <option value="square" <%= goodbyeData.cardAvatarShape==='square'?'selected':'' %>><%= t('card_image.shape_square') %></option>
                             </select>
                         </div>
                         <div class="form-group">
-                            <label class="label">Font</label>
+                            <label class="label"><%= t('card_image.font_label') %></label>
                             <select id="cardFont" class="select" style="font-size:.82rem;">
                                 <% [['impact','Impact'],['arial','Arial'],['georgia','Georgia'],['courier','Courier New'],['verdana','Verdana']].forEach(function(f){ %>
                                     <option value="<%= f[0] %>" <%= (goodbyeData.cardFont||'impact')===f[0]?'selected':'' %>><%= f[1] %></option>
@@ -198,29 +198,26 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label class="label"><%= t('common.card_layout') %></label>
+                            <label class="label"><%= t('card_image.card_layout') %></label>
                             <select id="cardLayout" class="select" style="font-size:.82rem;">
-                                <option value="banner" <%= (goodbyeData.cardLayout||'banner')==='banner'?'selected':'' %>><%= t('common.layout_banner') %></option>
-                                <option value="classic" <%= goodbyeData.cardLayout==='classic'?'selected':'' %>><%= t('common.layout_classic') %></option>
+                                <option value="banner" <%= (goodbyeData.cardLayout||'banner')==='banner'?'selected':'' %>><%= t('card_image.layout_banner') %></option>
+                                <option value="classic" <%= goodbyeData.cardLayout==='classic'?'selected':'' %>><%= t('card_image.layout_classic') %></option>
                             </select>
                         </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="label">Background Type</label>
-                        <div style="display:flex;gap:.75rem;flex-wrap:wrap;margin-top:.2rem;">
-                            <% [['gradient','Gradient'],['solid','Solid'],['image','Image URL'],['transparent','Transparent']].forEach(function(bt){ %>
-                            <label style="display:flex;align-items:center;gap:.4rem;cursor:pointer;font-size:.85rem;">
-                                <input type="radio" name="cardBgType" value="<%= bt[0] %>" <%= (goodbyeData.cardBgType||'gradient')===bt[0]?'checked':'' %>>
-                                <span><%= bt[1] %></span>
-                            </label>
-                            <% }) %>
+                        <div class="form-group">
+                            <label class="label"><%= t('card_image.bg_type') %></label>
+                            <select id="cardBgType" class="select" style="font-size:.82rem;">
+                                <option value="gradient" <%= (goodbyeData.cardBgType||'gradient')==='gradient'?'selected':'' %>><%= t('card_image.bg_gradient') %></option>
+                                <option value="solid" <%= goodbyeData.cardBgType==='solid'?'selected':'' %>><%= t('card_image.bg_solid') %></option>
+                                <option value="image" <%= goodbyeData.cardBgType==='image'?'selected':'' %>><%= t('card_image.bg_image') %></option>
+                                <option value="transparent" <%= goodbyeData.cardBgType==='transparent'?'selected':'' %>><%= t('card_image.bg_transparent') %></option>
+                            </select>
                         </div>
                     </div>
 
                     <div id="cardBgGradientPanel" style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;">
                         <div class="form-group">
-                            <label class="label" id="cardBgColor1Label">Left Background</label>
+                            <label class="label" id="cardBgColor1Label"><%= t('card_image.bg_left') %></label>
                             <div style="display:flex;gap:.5rem;align-items:center;">
                                 <input type="color" id="cardBgColorPicker" value="<%= goodbyeData.cardBgColor||'#1a0a0a' %>"
                                        style="width:38px;height:32px;border:none;border-radius:5px;cursor:pointer;padding:0;background:none;"
@@ -230,7 +227,7 @@
                             </div>
                         </div>
                         <div class="form-group" id="cardBgColor2Group">
-                            <label class="label">Right Background</label>
+                            <label class="label"><%= t('card_image.bg_right') %></label>
                             <div style="display:flex;gap:.5rem;align-items:center;">
                                 <input type="color" id="cardBgColor2Picker" value="<%= goodbyeData.cardBgColor2||'#2e0a0a' %>"
                                        style="width:38px;height:32px;border:none;border-radius:5px;cursor:pointer;padding:0;background:none;"
@@ -242,16 +239,16 @@
                     </div>
 
                     <div id="cardBgImagePanel" style="display:none;" class="form-group">
-                        <label class="label">Background Image URL</label>
+                        <label class="label"><%= t('card_image.bg_image_url') %></label>
                         <input type="text" id="cardBgImageUrl" class="input"
                                placeholder="https://example.com/background.jpg"
                                value="<%= goodbyeData.cardBgImageUrl||'' %>">
-                        <div class="hint" style="margin-top:.3rem;">JPEG/PNG image URL · Will be auto-resized to fit the card</div>
+                        <div class="hint" style="margin-top:.3rem;"><%= t('card_image.bg_image_hint') %></div>
                     </div>
 
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;">
                         <div class="form-group">
-                            <label class="label">Overlay Color</label>
+                            <label class="label"><%= t('card_image.overlay_color') %></label>
                             <div style="display:flex;gap:.5rem;align-items:center;">
                                 <input type="color" id="cardOverlayColorPicker" value="<%= goodbyeData.cardOverlayColor||'#000000' %>"
                                        style="width:38px;height:32px;border:none;border-radius:5px;cursor:pointer;padding:0;background:none;"
@@ -262,7 +259,7 @@
                         </div>
                         <div class="form-group">
                             <label class="label" style="display:flex;justify-content:space-between;">
-                                <span>Overlay Opacity</span>
+                                <span><%= t('card_image.overlay_opacity') %></span>
                                 <span id="cardOverlayOpacityVal" style="color:var(--text-muted);font-weight:400;"><%= goodbyeData.cardOverlayOpacity||'0' %>%</span>
                             </label>
                             <input type="range" id="cardOverlayOpacity" min="0" max="100"
@@ -274,7 +271,7 @@
 
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;">
                         <div class="form-group">
-                            <label class="label">Title Color (GOODBYE)</label>
+                            <label class="label"><%= t('card_image.title_color') %></label>
                             <div style="display:flex;gap:.5rem;align-items:center;">
                                 <input type="color" id="cardTitleColorPicker" value="<%= goodbyeData.cardTitleColor||'#ffffff' %>"
                                        style="width:38px;height:32px;border:none;border-radius:5px;cursor:pointer;padding:0;background:none;"
@@ -284,7 +281,7 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label class="label">Username Color</label>
+                            <label class="label"><%= t('card_image.username_color') %></label>
                             <div style="display:flex;gap:.5rem;align-items:center;">
                                 <input type="color" id="cardUsernameColorPicker" value="<%= goodbyeData.cardUsernameColor||goodbyeData.cardAccentColor||'#ED4245' %>"
                                        style="width:38px;height:32px;border:none;border-radius:5px;cursor:pointer;padding:0;background:none;"
@@ -294,7 +291,7 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label class="label">Message Color (sub text)</label>
+                            <label class="label"><%= t('card_image.msg_color') %></label>
                             <div style="display:flex;gap:.5rem;align-items:center;">
                                 <input type="color" id="cardMsgColorPicker" value="<%= goodbyeData.cardMsgColor||'#cccccc' %>"
                                        style="width:38px;height:32px;border:none;border-radius:5px;cursor:pointer;padding:0;background:none;"
@@ -304,7 +301,7 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label class="label">Avatar Border Color</label>
+                            <label class="label"><%= t('card_image.avatar_border') %></label>
                             <div style="display:flex;gap:.5rem;align-items:center;">
                                 <input type="color" id="cardAccentPicker" value="<%= goodbyeData.cardAccentColor||'#ED4245' %>"
                                        style="width:38px;height:32px;border:none;border-radius:5px;cursor:pointer;padding:0;background:none;"
@@ -316,7 +313,7 @@
                     </div>
 
                     <div class="form-group">
-                        <label class="label">Title Card</label>
+                        <label class="label"><%= t('card_image.large_text') %></label>
                         <div class="input-count-wrap">
                             <input type="text" id="cardWelcomeText" class="input" maxlength="20"
                                    placeholder="GOODBYE" value="<%= goodbyeData.cardWelcomeText||'GOODBYE' %>"
@@ -325,7 +322,7 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="label">Description Card</label>
+                        <label class="label"><%= t('card_image.small_text') %></label>
                         <div class="input-count-wrap">
                             <input type="text" id="cardSubText" class="input" maxlength="60"
                                    placeholder="FROM {server}" value="<%= goodbyeData.cardSubText ?? '' %>"
@@ -406,6 +403,9 @@
 }
 @media (max-width: 900px) {
     .goodbye-editor-layout { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) {
+    .settings-card [style*="grid-template-columns"] { grid-template-columns: 1fr !important; }
 }
 #cardPanel { margin-top: .5rem; }
 </style>
@@ -615,7 +615,7 @@ async function drawCardPreview() {
     const canvas = document.getElementById('cardCanvas');
     const ctx    = canvas.getContext('2d');
     const W = canvas.width, H = canvas.height;
-    const bgType   = document.querySelector('input[name="cardBgType"]:checked')?.value || 'gradient';
+    const bgType   = document.getElementById('cardBgType')?.value || 'gradient';
     const bg1      = document.getElementById('cardBgColor')?.value      || '#1a0a0a';
     const bg2      = document.getElementById('cardBgColor2')?.value     || '#2e0a0a';
     const bgImgUrl = (document.getElementById('cardBgImageUrl')?.value  || '').trim();
@@ -641,7 +641,7 @@ async function drawCardPreview() {
     if (imgPanel)  imgPanel.style.display  = bgType === 'image' ? 'block' : 'none';
     if (col2Grp)   col2Grp.style.display   = bgType === 'gradient' ? 'block' : 'none';
     const lbl = document.getElementById('cardBgColor1Label');
-    if (lbl) lbl.textContent = bgType === 'gradient' ? 'Left Background' : 'Background Color';
+    if (lbl) lbl.textContent = bgType === 'gradient' ? I18N_CARD_BG_LEFT : I18N_CARD_BG_COLOR;
 
     ctx.clearRect(0, 0, W, H);
     function rr(x, y, w, h, r) {
@@ -764,7 +764,7 @@ document.getElementById('cardEnabled').addEventListener('change', toggleCardPane
     if (el) el.addEventListener('input',  () => drawCardPreview());
     if (el) el.addEventListener('change', () => drawCardPreview());
 });
-document.querySelectorAll('input[name="cardBgType"]').forEach(el => el.addEventListener('change', () => drawCardPreview()));
+document.getElementById('cardBgType')?.addEventListener('change', () => drawCardPreview());
 document.getElementById('cardAvatarShape')?.addEventListener('change', () => drawCardPreview());
 document.getElementById('cardLayout')?.addEventListener('change', () => drawCardPreview());
 
@@ -782,6 +782,8 @@ function syncPicker(inputId, pickerId) {
 }
 
 // ── Placeholder picker ────────────────────────────────────────────────────────
+const I18N_CARD_BG_LEFT  = '<%= t("card_image.bg_left") %>';
+const I18N_CARD_BG_COLOR = '<%= t("card_image.bg_color") %>';
 const I18N_GB_PH_MENTION         = '<%= t("goodbye.ph_mention") %>';
 const I18N_GB_PH_USERNAME        = '<%= t("goodbye.ph_username") %>';
 const I18N_GB_PH_TAG             = '<%= t("goodbye.ph_tag") %>';
@@ -982,7 +984,7 @@ async function saveGoodbye(guildId) {
         cardTextColor:      document.getElementById('cardTitleColor')?.value.trim()     || '#ffffff',
         cardAvatarShape:    document.getElementById('cardAvatarShape')?.value || 'circle',
         cardLayout:         document.getElementById('cardLayout')?.value || 'banner',
-        cardBgType:         document.querySelector('input[name="cardBgType"]:checked')?.value      || 'gradient',
+        cardBgType:         document.getElementById('cardBgType')?.value      || 'gradient',
         cardBgImageUrl:     document.getElementById('cardBgImageUrl')?.value.trim()     || '',
         cardOverlayColor:   document.getElementById('cardOverlayColor')?.value.trim()   || '#000000',
         cardOverlayOpacity: parseInt(document.getElementById('cardOverlayOpacity')?.value || '0'),

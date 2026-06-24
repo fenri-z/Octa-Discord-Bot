@@ -215,22 +215,20 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label class="label"><%= t('common.card_layout') %></label>
+                            <label class="label"><%= t('card_image.card_layout') %></label>
                             <select id="unboostCardLayout" class="select" style="font-size:.82rem;">
-                                <option value="banner" <%= (unboostData.cardLayout||'banner')==='banner'?'selected':'' %>><%= t('common.layout_banner') %></option>
-                                <option value="classic" <%= unboostData.cardLayout==='classic'?'selected':'' %>><%= t('common.layout_classic') %></option>
+                                <option value="banner" <%= (unboostData.cardLayout||'banner')==='banner'?'selected':'' %>><%= t('card_image.layout_banner') %></option>
+                                <option value="classic" <%= unboostData.cardLayout==='classic'?'selected':'' %>><%= t('card_image.layout_classic') %></option>
                             </select>
                         </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="label"><%= t('booster.card_bg_type') %></label>
-                        <div style="display:flex;gap:.75rem;flex-wrap:wrap;margin-top:.2rem;">
-                            <% [['gradient',t('booster.card_bg_gradient')],['solid',t('booster.card_bg_solid')],['image',t('booster.card_bg_image_url_opt')],['transparent',t('booster.card_bg_transparent')]].forEach(function(bt){ %>
-                            <label style="display:flex;align-items:center;gap:.4rem;cursor:pointer;font-size:.85rem;">
-                                <input type="radio" name="unboostCardBgType" value="<%= bt[0] %>" <%= (unboostData.cardBgType||'gradient')===bt[0]?'checked':'' %>>
-                                <span><%= bt[1] %></span>
-                            </label>
-                            <% }) %>
+                        <div class="form-group">
+                            <label class="label"><%= t('booster.card_bg_type') %></label>
+                            <select id="unboostCardBgType" class="select" style="font-size:.82rem;">
+                                <option value="gradient" <%= (unboostData.cardBgType||'gradient')==='gradient'?'selected':'' %>><%= t('booster.card_bg_gradient') %></option>
+                                <option value="solid" <%= unboostData.cardBgType==='solid'?'selected':'' %>><%= t('booster.card_bg_solid') %></option>
+                                <option value="image" <%= unboostData.cardBgType==='image'?'selected':'' %>><%= t('booster.card_bg_image_url_opt') %></option>
+                                <option value="transparent" <%= unboostData.cardBgType==='transparent'?'selected':'' %>><%= t('booster.card_bg_transparent') %></option>
+                            </select>
                         </div>
                     </div>
                     <div id="unboostCardBgGradientPanel" style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;">
@@ -252,6 +250,7 @@
                     <div id="unboostCardBgImagePanel" style="display:none;" class="form-group">
                         <label class="label"><%= t('booster.card_bg_image_url') %></label>
                         <input type="text" id="unboostCardBgImageUrl" class="input" placeholder="https://..." value="<%= unboostData.cardBgImageUrl||'' %>">
+                        <div class="hint" style="margin-top:.3rem;"><%= t('card_image.bg_image_hint') %></div>
                     </div>
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;">
                         <div class="form-group">
@@ -383,6 +382,9 @@
 @media (max-width: 900px) {
     .booster-editor-layout { grid-template-columns: 1fr; }
 }
+@media (max-width: 560px) {
+    .settings-card [style*="grid-template-columns"] { grid-template-columns: 1fr !important; }
+}
 </style>
 
 <script>
@@ -485,7 +487,7 @@ document.getElementById('unboostCardEnabled').addEventListener('change', functio
     document.getElementById('unboostCardPanel').style.display = this.checked ? 'block' : 'none';
     drawUnboostCard();
 });
-document.querySelectorAll('input[name="unboostCardBgType"]').forEach(el => el.addEventListener('change', drawUnboostCard));
+document.getElementById('unboostCardBgType')?.addEventListener('change', drawUnboostCard);
 document.getElementById('unboostCardAvatarShape')?.addEventListener('change', drawUnboostCard);
 document.getElementById('unboostCardLayout')?.addEventListener('change', drawUnboostCard);
 ['unboostCardWelcomeText','unboostCardSubText','unboostCardFont','unboostCardBgImageUrl'].forEach(id => {
@@ -533,7 +535,7 @@ async function drawUnboostCard() {
     const W = canvas.width, H = canvas.height;
 
     const g = id => document.getElementById('unboostCard' + id);
-    const bgType    = document.querySelector('input[name="unboostCardBgType"]:checked')?.value || 'gradient';
+    const bgType    = document.getElementById('unboostCardBgType')?.value || 'gradient';
     const bg1       = g('BgColor')?.value      || '#1e0a0a';
     const bg2       = g('BgColor2')?.value     || '#2e0a0a';
     const bgImgUrl  = (g('BgImageUrl')?.value  || '').trim();
@@ -783,7 +785,7 @@ async function saveUnboost() {
             cardAccentColor:    document.getElementById('unboostCardAccentColor').value.trim()    || '#ED4245',
             cardAvatarShape:    document.getElementById('unboostCardAvatarShape')?.value || 'circle',
             cardLayout:         document.getElementById('unboostCardLayout')?.value || 'banner',
-            cardBgType:         document.querySelector('input[name="unboostCardBgType"]:checked')?.value      || 'gradient',
+            cardBgType:         document.getElementById('unboostCardBgType')?.value      || 'gradient',
             cardBgImageUrl:     document.getElementById('unboostCardBgImageUrl')?.value.trim()    || '',
             cardOverlayColor:   document.getElementById('unboostCardOverlayColor')?.value.trim()  || '#000000',
             cardOverlayOpacity: parseInt(document.getElementById('unboostCardOverlayOpacity')?.value || '0'),

@@ -42,6 +42,12 @@ function readWelcomeConfig(db, guildId) {
         plainText:          db.get(`welcome-plainText-${g}`)        ?? '',
         thumbnail:          bool(db, `welcome-thumbnail-${g}`, false),
         embedImageUrl:      db.get(`welcome-embedImageUrl-${g}`)    ?? '',
+        showMemberNew:      bool(db, `welcome-showMemberNew-${g}`,     false),
+        showAkunDibuat:     bool(db, `welcome-showAkunDibuat-${g}`,    false),
+        showTotalMember:    bool(db, `welcome-showTotalMember-${g}`,   false),
+        showDiundangOleh:   bool(db, `welcome-showDiundangOleh-${g}`,  false),
+        showKodeInvite:     bool(db, `welcome-showKodeInvite-${g}`,    false),
+        showTotalUndangan:  bool(db, `welcome-showTotalUndangan-${g}`, false),
     };
 }
 
@@ -68,6 +74,8 @@ module.exports = new Event({
             cardBgType, cardBgImageUrl, cardOverlayColor, cardOverlayOpacity,
             cardTitleColor, cardUsernameColor, cardMsgColor, cardFont, cardLayout,
             plainText, thumbnail, embedImageUrl,
+            showMemberNew, showAkunDibuat, showTotalMember,
+            showDiundangOleh, showKodeInvite, showTotalUndangan,
         } = cfg;
 
         // ── Cari channel sambutan ─────────────────────────────────────────
@@ -181,7 +189,16 @@ module.exports = new Event({
             const colorHex = color.startsWith('#') ? color : `#${color}`;
             const hasText   = title.trim() || description.trim();
 
-            if (!hasText) {
+            const embedFields = [];
+            if (showMemberNew)    embedFields.push({ name: 'Member',          value: member.user.username,                              inline: true });
+            if (showAkunDibuat)   embedFields.push({ name: 'Account Created', value: createdRelative,                                   inline: true });
+            if (showTotalMember)  embedFields.push({ name: 'Total Members',   value: String(totalMembers),                              inline: true });
+            if (showDiundangOleh) embedFields.push({ name: 'Invited By',      value: inviter ? inviter.tag : 'Unknown',                 inline: true });
+            if (showKodeInvite)   embedFields.push({ name: 'Invite Code',     value: usedInvite ? usedInvite.code : 'Unknown',          inline: true });
+            if (showTotalUndangan)embedFields.push({ name: 'Total Invites',   value: inviter ? String(inviterTotalUses) : '-',          inline: true });
+            const hasFields = embedFields.length > 0;
+
+            if (!hasText && !hasFields) {
                 if (cardAttachment) {
                     const cardOnlyEmbed = new EmbedBuilder().setColor(colorHex).setImage('attachment://welcome-card.png');
                     await welcomeChannel.send({ embeds: [cardOnlyEmbed], files: [cardAttachment] }).catch(e => _sendErr('card-only embed send failed', e));
@@ -192,6 +209,7 @@ module.exports = new Event({
             const embed = new EmbedBuilder().setColor(colorHex);
             if (parseTitle(title))  embed.setTitle(parseTitle(title));
             if (parse(description)) embed.setDescription(parse(description));
+            if (hasFields)          embed.addFields(embedFields);
 
             if (footerText) embed.setFooter({ text: parseTitle(footerText) });
             if (thumbnail)  embed.setThumbnail(member.user.displayAvatarURL({ dynamic: true, size: 256 }));

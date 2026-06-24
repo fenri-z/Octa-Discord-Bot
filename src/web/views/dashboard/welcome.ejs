@@ -167,6 +167,42 @@
                     </label>
                 </div>
 
+                <div class="form-group" style="border-top:1px solid var(--border);padding-top:1rem;margin-top:.5rem;">
+                    <label class="label" style="margin-bottom:.75rem;"><%= t('booster.field_info') %></label>
+                    <div style="display:flex;flex-direction:column;gap:.6rem;">
+                        <label class="toggle-label">
+                            <input type="checkbox" id="showMemberNew" class="toggle-input"
+                                   <%= welcomeData.showMemberNew ? 'checked' : '' %> onchange="updatePreview()">
+                            <span class="toggle-slider"></span><span><%= t('welcome.field_new_member') %></span>
+                        </label>
+                        <label class="toggle-label">
+                            <input type="checkbox" id="showAkunDibuat" class="toggle-input"
+                                   <%= welcomeData.showAkunDibuat ? 'checked' : '' %> onchange="updatePreview()">
+                            <span class="toggle-slider"></span><span><%= t('welcome.field_account_created') %></span>
+                        </label>
+                        <label class="toggle-label">
+                            <input type="checkbox" id="showTotalMember" class="toggle-input"
+                                   <%= welcomeData.showTotalMember ? 'checked' : '' %> onchange="updatePreview()">
+                            <span class="toggle-slider"></span><span><%= t('welcome.field_total_members') %></span>
+                        </label>
+                        <label class="toggle-label">
+                            <input type="checkbox" id="showDiundangOleh" class="toggle-input"
+                                   <%= welcomeData.showDiundangOleh ? 'checked' : '' %> onchange="updatePreview()">
+                            <span class="toggle-slider"></span><span><%= t('welcome.field_invited_by') %></span>
+                        </label>
+                        <label class="toggle-label">
+                            <input type="checkbox" id="showKodeInvite" class="toggle-input"
+                                   <%= welcomeData.showKodeInvite ? 'checked' : '' %> onchange="updatePreview()">
+                            <span class="toggle-slider"></span><span><%= t('welcome.field_invite_code') %></span>
+                        </label>
+                        <label class="toggle-label">
+                            <input type="checkbox" id="showTotalUndangan" class="toggle-input"
+                                   <%= welcomeData.showTotalUndangan ? 'checked' : '' %> onchange="updatePreview()">
+                            <span class="toggle-slider"></span><span><%= t('welcome.field_total_invites') %></span>
+                        </label>
+                    </div>
+                </div>
+
                 </div><!-- /embedPanel -->
 
                 <div class="form-group" style="margin-top:1.5rem;border-top:1px solid var(--border);padding-top:1.25rem;">
@@ -183,14 +219,14 @@
 
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;">
                         <div class="form-group">
-                            <label class="label"><%= t('welcome.avatar_shape') %></label>
+                            <label class="label"><%= t('card_image.avatar_shape') %></label>
                             <select id="cardAvatarShape" class="select" style="font-size:.82rem;">
-                                <option value="circle" <%= (welcomeData.cardAvatarShape||'circle')==='circle'?'selected':'' %>><%= t('welcome.shape_circle') %></option>
-                                <option value="square" <%= welcomeData.cardAvatarShape==='square'?'selected':'' %>><%= t('welcome.shape_square') %></option>
+                                <option value="circle" <%= (welcomeData.cardAvatarShape||'circle')==='circle'?'selected':'' %>><%= t('card_image.shape_circle') %></option>
+                                <option value="square" <%= welcomeData.cardAvatarShape==='square'?'selected':'' %>><%= t('card_image.shape_square') %></option>
                             </select>
                         </div>
                         <div class="form-group">
-                            <label class="label"><%= t('welcome.font_label') %></label>
+                            <label class="label"><%= t('card_image.font_label') %></label>
                             <select id="cardFont" class="select" style="font-size:.82rem;">
                                 <% [['impact','Impact'],['arial','Arial'],['georgia','Georgia'],['courier','Courier New'],['verdana','Verdana']].forEach(function(f){ %>
                                     <option value="<%= f[0] %>" <%= (welcomeData.cardFont||'impact')===f[0]?'selected':'' %>><%= f[1] %></option>
@@ -199,29 +235,28 @@
                         </div>
                     </div>
 
-                    <div class="form-group">
-                        <label class="label"><%= t('common.card_layout') %></label>
-                        <select id="cardLayout" class="select" style="font-size:.82rem;">
-                            <option value="banner" <%= (welcomeData.cardLayout||'banner')==='banner'?'selected':'' %>><%= t('common.layout_banner') %></option>
-                            <option value="classic" <%= welcomeData.cardLayout==='classic'?'selected':'' %>><%= t('common.layout_classic') %></option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="label"><%= t('welcome.bg_type') %></label>
-                        <div style="display:flex;gap:.75rem;flex-wrap:wrap;margin-top:.2rem;">
-                            <% [['gradient', t('welcome.bg_gradient')],['solid', t('welcome.bg_solid')],['image', t('welcome.bg_image')],['transparent', t('welcome.bg_transparent')]].forEach(function(bt){ %>
-                            <label style="display:flex;align-items:center;gap:.4rem;cursor:pointer;font-size:.85rem;">
-                                <input type="radio" name="cardBgType" value="<%= bt[0] %>" <%= (welcomeData.cardBgType||'gradient')===bt[0]?'checked':'' %>>
-                                <span><%= bt[1] %></span>
-                            </label>
-                            <% }) %>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;">
+                        <div class="form-group">
+                            <label class="label"><%= t('card_image.card_layout') %></label>
+                            <select id="cardLayout" class="select" style="font-size:.82rem;">
+                                <option value="banner" <%= (welcomeData.cardLayout||'banner')==='banner'?'selected':'' %>><%= t('card_image.layout_banner') %></option>
+                                <option value="classic" <%= welcomeData.cardLayout==='classic'?'selected':'' %>><%= t('card_image.layout_classic') %></option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="label"><%= t('card_image.bg_type') %></label>
+                            <select id="cardBgType" class="select" style="font-size:.82rem;">
+                                <option value="gradient" <%= (welcomeData.cardBgType||'gradient')==='gradient'?'selected':'' %>><%= t('card_image.bg_gradient') %></option>
+                                <option value="solid" <%= welcomeData.cardBgType==='solid'?'selected':'' %>><%= t('card_image.bg_solid') %></option>
+                                <option value="image" <%= welcomeData.cardBgType==='image'?'selected':'' %>><%= t('card_image.bg_image') %></option>
+                                <option value="transparent" <%= welcomeData.cardBgType==='transparent'?'selected':'' %>><%= t('card_image.bg_transparent') %></option>
+                            </select>
                         </div>
                     </div>
 
                     <div id="cardBgGradientPanel" style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;">
                         <div class="form-group">
-                            <label class="label" id="cardBgColor1Label"><%= t('welcome.bg_left') %></label>
+                            <label class="label" id="cardBgColor1Label"><%= t('card_image.bg_left') %></label>
                             <div style="display:flex;gap:.5rem;align-items:center;">
                                 <input type="color" id="cardBgColorPicker" value="<%= welcomeData.cardBgColor||'#1a1a2e' %>"
                                        style="width:38px;height:32px;border:none;border-radius:5px;cursor:pointer;padding:0;background:none;"
@@ -231,7 +266,7 @@
                             </div>
                         </div>
                         <div class="form-group" id="cardBgColor2Group">
-                            <label class="label"><%= t('welcome.bg_right') %></label>
+                            <label class="label"><%= t('card_image.bg_right') %></label>
                             <div style="display:flex;gap:.5rem;align-items:center;">
                                 <input type="color" id="cardBgColor2Picker" value="<%= welcomeData.cardBgColor2||'#16213e' %>"
                                        style="width:38px;height:32px;border:none;border-radius:5px;cursor:pointer;padding:0;background:none;"
@@ -243,16 +278,16 @@
                     </div>
 
                     <div id="cardBgImagePanel" style="display:none;" class="form-group">
-                        <label class="label"><%= t('welcome.bg_image_url') %></label>
+                        <label class="label"><%= t('card_image.bg_image_url') %></label>
                         <input type="text" id="cardBgImageUrl" class="input"
                                placeholder="https://example.com/background.jpg"
                                value="<%= welcomeData.cardBgImageUrl||'' %>">
-                        <div class="hint" style="margin-top:.3rem;"><%= t('welcome.bg_image_hint') %></div>
+                        <div class="hint" style="margin-top:.3rem;"><%= t('card_image.bg_image_hint') %></div>
                     </div>
 
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;">
                         <div class="form-group">
-                            <label class="label"><%= t('welcome.overlay_color') %></label>
+                            <label class="label"><%= t('card_image.overlay_color') %></label>
                             <div style="display:flex;gap:.5rem;align-items:center;">
                                 <input type="color" id="cardOverlayColorPicker" value="<%= welcomeData.cardOverlayColor||'#000000' %>"
                                        style="width:38px;height:32px;border:none;border-radius:5px;cursor:pointer;padding:0;background:none;"
@@ -263,7 +298,7 @@
                         </div>
                         <div class="form-group">
                             <label class="label" style="display:flex;justify-content:space-between;">
-                                <span><%= t('welcome.overlay_opacity') %></span>
+                                <span><%= t('card_image.overlay_opacity') %></span>
                                 <span id="cardOverlayOpacityVal" style="color:var(--text-muted);font-weight:400;"><%= welcomeData.cardOverlayOpacity||'0' %>%</span>
                             </label>
                             <input type="range" id="cardOverlayOpacity" min="0" max="100"
@@ -275,7 +310,7 @@
 
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;">
                         <div class="form-group">
-                            <label class="label"><%= t('welcome.title_color') %></label>
+                            <label class="label"><%= t('card_image.title_color') %></label>
                             <div style="display:flex;gap:.5rem;align-items:center;">
                                 <input type="color" id="cardTitleColorPicker" value="<%= welcomeData.cardTitleColor||'#ffffff' %>"
                                        style="width:38px;height:32px;border:none;border-radius:5px;cursor:pointer;padding:0;background:none;"
@@ -285,7 +320,7 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label class="label"><%= t('welcome.username_color') %></label>
+                            <label class="label"><%= t('card_image.username_color') %></label>
                             <div style="display:flex;gap:.5rem;align-items:center;">
                                 <input type="color" id="cardUsernameColorPicker" value="<%= welcomeData.cardUsernameColor||welcomeData.cardAccentColor||'#5865F2' %>"
                                        style="width:38px;height:32px;border:none;border-radius:5px;cursor:pointer;padding:0;background:none;"
@@ -295,7 +330,7 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label class="label"><%= t('welcome.msg_color') %></label>
+                            <label class="label"><%= t('card_image.msg_color') %></label>
                             <div style="display:flex;gap:.5rem;align-items:center;">
                                 <input type="color" id="cardMsgColorPicker" value="<%= welcomeData.cardMsgColor||'#cccccc' %>"
                                        style="width:38px;height:32px;border:none;border-radius:5px;cursor:pointer;padding:0;background:none;"
@@ -305,7 +340,7 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label class="label"><%= t('welcome.avatar_border') %></label>
+                            <label class="label"><%= t('card_image.avatar_border') %></label>
                             <div style="display:flex;gap:.5rem;align-items:center;">
                                 <input type="color" id="cardAccentPicker" value="<%= welcomeData.cardAccentColor||'#5865F2' %>"
                                        style="width:38px;height:32px;border:none;border-radius:5px;cursor:pointer;padding:0;background:none;"
@@ -317,7 +352,7 @@
                     </div>
 
                     <div class="form-group">
-                        <label class="label"><%= t('welcome.large_text') %></label>
+                        <label class="label"><%= t('card_image.large_text') %></label>
                         <div class="input-count-wrap">
                             <input type="text" id="cardWelcomeText" class="input" maxlength="20"
                                    placeholder="WELCOME" value="<%= welcomeData.cardWelcomeText||'WELCOME' %>"
@@ -326,7 +361,7 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="label"><%= t('welcome.small_text') %></label>
+                        <label class="label"><%= t('card_image.small_text') %></label>
                         <div class="input-count-wrap">
                             <input type="text" id="cardSubText" class="input" maxlength="60"
                                    placeholder="TO {server}" value="<%= welcomeData.cardSubText ?? '' %>"
@@ -410,6 +445,9 @@
 }
 @media (max-width: 900px) {
     .welcome-editor-layout { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) {
+    .settings-card [style*="grid-template-columns"] { grid-template-columns: 1fr !important; }
 }
 #cardPanel { margin-top: .5rem; }
 </style>
@@ -769,7 +807,7 @@ async function drawCardPreview() {
     const ctx    = canvas.getContext('2d');
     const W = canvas.width, H = canvas.height;
 
-    const bgType   = document.querySelector('input[name="cardBgType"]:checked')?.value || 'gradient';
+    const bgType   = document.getElementById('cardBgType')?.value || 'gradient';
     const bg1      = document.getElementById('cardBgColor')?.value      || '#1a1a2e';
     const bg2      = document.getElementById('cardBgColor2')?.value     || '#16213e';
     const bgImgUrl = (document.getElementById('cardBgImageUrl')?.value  || '').trim();
@@ -800,7 +838,7 @@ async function drawCardPreview() {
     if (imgPanel)  imgPanel.style.display  = bgType === 'image' ? 'block' : 'none';
     if (col2Grp)   col2Grp.style.display   = bgType === 'gradient' ? 'block' : 'none';
     const lbl = document.getElementById('cardBgColor1Label');
-    if (lbl) lbl.textContent = bgType === 'gradient' ? 'Left Background' : 'Background Color';
+    if (lbl) lbl.textContent = bgType === 'gradient' ? I18N_CARD_BG_LEFT : I18N_CARD_BG_COLOR;
 
     ctx.clearRect(0, 0, W, H);
 
@@ -973,9 +1011,7 @@ document.getElementById('cardEnabled').addEventListener('change', toggleCardPane
     if (el) el.addEventListener('input',  () => drawCardPreview());
     if (el) el.addEventListener('change', () => drawCardPreview());
 });
-document.querySelectorAll('input[name="cardBgType"]').forEach(el =>
-    el.addEventListener('change', () => drawCardPreview())
-);
+document.getElementById('cardBgType')?.addEventListener('change', () => drawCardPreview());
 document.getElementById('cardAvatarShape')?.addEventListener('change', () => drawCardPreview());
 document.getElementById('cardLayout')?.addEventListener('change', () => drawCardPreview());
 
@@ -993,6 +1029,14 @@ function syncPicker(inputId, pickerId) {
 }
 
 // ── Placeholder picker ────────────────────────────────────────────────────
+const I18N_CARD_BG_LEFT  = '<%= t("card_image.bg_left") %>';
+const I18N_CARD_BG_COLOR = '<%= t("card_image.bg_color") %>';
+const I18N_WL_FIELD_MEMBER_NEW  = '<%= t("welcome.field_new_member") %>';
+const I18N_WL_FIELD_AKUN_DIBUAT = '<%= t("welcome.field_account_created") %>';
+const I18N_WL_FIELD_TOTAL_MBR   = '<%= t("welcome.field_total_members") %>';
+const I18N_WL_FIELD_DIUNDANG    = '<%= t("welcome.field_invited_by") %>';
+const I18N_WL_FIELD_KODE_INV    = '<%= t("welcome.field_invite_code") %>';
+const I18N_WL_FIELD_TOTAL_INV   = '<%= t("welcome.field_total_invites") %>';
 const I18N_WL_PH_MENTION         = '<%= t("welcome.ph_mention") %>';
 const I18N_WL_PH_USERNAME        = '<%= t("welcome.ph_username") %>';
 const I18N_WL_PH_TAG             = '<%= t("welcome.ph_tag") %>';
@@ -1066,6 +1110,24 @@ const ROLES = <%- JSON.stringify(
 // ── Auto-log saat load untuk memudahkan debug ────────────────────────────
 window._debugWelcome = () => ({ CHANNELS, ROLES, memberCache, roleCache });
 
+const WELCOME_FIELDS = [
+    { id: 'showMemberNew',    name: I18N_WL_FIELD_MEMBER_NEW,  value: () => SAMPLE.username },
+    { id: 'showAkunDibuat',   name: I18N_WL_FIELD_AKUN_DIBUAT, value: () => SAMPLE.account_created },
+    { id: 'showTotalMember',  name: I18N_WL_FIELD_TOTAL_MBR,   value: () => SAMPLE.count },
+    { id: 'showDiundangOleh', name: I18N_WL_FIELD_DIUNDANG,    value: () => SAMPLE.inviter },
+    { id: 'showKodeInvite',   name: I18N_WL_FIELD_KODE_INV,    value: () => SAMPLE.invite_code },
+    { id: 'showTotalUndangan',name: I18N_WL_FIELD_TOTAL_INV,   value: () => SAMPLE.total_invites },
+];
+
+function renderWelcomeFields() {
+    const el = document.getElementById('previewFields');
+    if (!el) return;
+    const active = WELCOME_FIELDS.filter(f => document.getElementById(f.id)?.checked);
+    el.innerHTML = active.map(f =>
+        `<div><div class="dc-field-name">${f.name}</div><div class="dc-field-value">${f.value()}</div></div>`
+    ).join('');
+}
+
 function updatePreview() {
     const color  = document.getElementById('welcomeColor').value || '#5865F2';
     const thumb  = document.getElementById('welcomeThumbnail').checked;
@@ -1100,7 +1162,8 @@ function updatePreview() {
     const _descVal  = document.getElementById('welcomeDescription').value.trim();
     const _msgsEl = document.querySelector('.dc-messages');
 
-    if (!_titleVal && !_descVal) {
+    const _hasActiveFields = WELCOME_FIELDS.some(f => document.getElementById(f.id)?.checked);
+    if (!_titleVal && !_descVal && !_hasActiveFields) {
         // Bersihkan semua elemen embed agar konten lama tidak tertinggal
         document.getElementById('previewTitle').innerHTML  = '';
         document.getElementById('previewDesc').innerHTML   = '';
@@ -1129,6 +1192,9 @@ function updatePreview() {
     // Title & desc — mdToHtml dulu (escape), baru resolvePlaceholders (inject HTML mention)
     document.getElementById('previewTitle').innerHTML = linkifyTitle(resolvePlaceholdersTitle(document.getElementById('welcomeTitle').value));
     document.getElementById('previewDesc').innerHTML = resolveHtmlMentions(mdToHtml(resolvePlaceholders(document.getElementById('welcomeDescription').value)));
+
+    // Fields
+    renderWelcomeFields();
 
     // Footer
     const footerEl = document.getElementById('previewFooter');
@@ -1222,6 +1288,12 @@ async function saveWelcome(guildId) {
         color:             document.getElementById('welcomeColor').value.trim() || '#5865F2',
         footerText:        document.getElementById('welcomeFooter').value.trim(),
         thumbnail:         document.getElementById('welcomeThumbnail').checked,
+        showMemberNew:     document.getElementById('showMemberNew').checked,
+        showAkunDibuat:    document.getElementById('showAkunDibuat').checked,
+        showTotalMember:   document.getElementById('showTotalMember').checked,
+        showDiundangOleh:  document.getElementById('showDiundangOleh').checked,
+        showKodeInvite:    document.getElementById('showKodeInvite').checked,
+        showTotalUndangan: document.getElementById('showTotalUndangan').checked,
         messageType:       document.getElementById('welcomeMessageType')?.value || 'embed',
         plainText:         (document.getElementById('welcomePlainText') || {}).value?.trim() || '',
         cardEnabled:        document.getElementById('cardEnabled').checked,
@@ -1233,7 +1305,7 @@ async function saveWelcome(guildId) {
         cardAccentColor:    document.getElementById('cardAccentColor').value.trim()    || '#5865F2',
         cardTextColor:      document.getElementById('cardTitleColor')?.value.trim()    || '#ffffff',
         cardAvatarShape:    document.getElementById('cardAvatarShape')?.value || 'circle',
-        cardBgType:         document.querySelector('input[name="cardBgType"]:checked')?.value      || 'gradient',
+        cardBgType:         document.getElementById('cardBgType')?.value      || 'gradient',
         cardLayout:         document.getElementById('cardLayout')?.value || 'banner',
         cardBgImageUrl:     document.getElementById('cardBgImageUrl')?.value.trim()    || '',
         cardOverlayColor:   document.getElementById('cardOverlayColor')?.value.trim()  || '#000000',
