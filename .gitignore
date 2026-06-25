@@ -1,11 +1,8 @@
 node_modules/
-.env
-gdrive-credentials.json
-oauth-credentials.json
-gdrive-token.json
 data/
-*.log
-terminal.log
+backups/
+credentials/
+.env
 .claude
 .vscode
-backups
+*.log
