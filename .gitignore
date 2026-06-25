@@ -3,10 +3,8 @@ node_modules/
 gdrive-credentials.json
 oauth-credentials.json
 gdrive-token.json
-database.db
+data/
 *.log
-database.db-shm
-database.db-wal
 terminal.log
 .claude
 .vscode

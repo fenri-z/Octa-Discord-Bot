@@ -7,17 +7,18 @@ const { success, warn } = require('./Console');
 
 const PROJECT_ROOT = path.resolve('.');
 const BACKUP_DIR   = path.resolve('./backups');
+const DB_PATH      = path.resolve('./data/database.db');
 const MAX_BACKUPS  = 7;
 const INTERVAL_MS  = 6 * 60 * 60 * 1000;
 
 // Entry .gitignore yang dilewati saat backup:
 // - node_modules : terlalu besar, bisa install ulang
 // - backups      : folder backup itu sendiri (hindari rekursi)
-// - database.db* : ditangani terpisah via better-sqlite3 .backup() API
+// - data/ : folder database, ditangani terpisah via better-sqlite3 .backup() API
 const SKIP_ENTRIES = new Set([
     'node_modules', 'node_modules/',
     'backups',      'backups/',
-    'database.db',  'database.db-shm', 'database.db-wal',
+    'data',         'data/',
 ]);
 
 let _database       = null;
@@ -98,9 +99,10 @@ async function runBackup() {
 
     try {
         if (!fs.existsSync(BACKUP_DIR)) fs.mkdirSync(BACKUP_DIR, { recursive: true });
+        fs.mkdirSync(path.join(tmpDir, 'data'), { recursive: true });
 
-        // 1. Backup SQLite secara atomik ke tmpDir/database.db
-        await _database.backup(path.join(tmpDir, 'database.db'));
+        // 1. Backup SQLite secara atomik ke tmpDir/data/database.db
+        await _database.backup(path.join(tmpDir, 'data', 'database.db'));
 
         // 2. Salin file-file dari .gitignore ke tmpDir
         const targets = _resolveTargets(_parseGitignore());

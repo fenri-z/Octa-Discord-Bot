@@ -1,6 +1,6 @@
 const config = {
     database: {
-        path: './database.db' // SQLite database path (changed from database.yml)
+        path: './data/database.db'
     },
     development: {
         enabled: false, // If true, the bot will register all application commands to a specific guild (not globally).
