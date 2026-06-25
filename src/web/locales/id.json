@@ -1512,7 +1512,9 @@
     "restr_channels_hint": "kosong = semua",
     "restr_search_roles": "Cari role…",
     "restr_search_channels": "Cari channel…",
-    "restr_badge_restricted": "Terbatas"
+    "restr_badge_restricted": "Terbatas",
+    "toast_enabled": "Command diaktifkan",
+    "toast_disabled": "Command dinonaktifkan"
   },
   "extlog": {
     "page_title": "Extended Logging",

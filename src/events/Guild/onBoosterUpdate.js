@@ -31,7 +31,6 @@ function _buildBoosterConfig(client, guildId) {
         boostDescription:   client.database.get(`booster-boost-desc-${guildId}`)    ?? 'Thank you {member} for boosting this server! 💖\nTotal boosts now: **{boosts}**.',
         boostColor:         client.database.get(`booster-boost-color-${guildId}`)    ?? '#FF73FA',
         boostFooter:            client.database.get(`booster-boost-footer-${guildId}`)           ?? '',
-        boostShowMember:        getBool(client, `booster-boost-showMember-${guildId}`,          true),
         boostShowMulaiBoost:    getBool(client, `booster-boost-showMulaiBoost-${guildId}`,   true),
         boostShowTotalBoost:    getBool(client, `booster-boost-showTotalBoost-${guildId}`,   true),
         boostShowLevelServer:   getBool(client, `booster-boost-showLevelServer-${guildId}`,  true),
@@ -222,7 +221,6 @@ module.exports = new Event({
                 if (parsedBoostDesc) embed.setDescription(parsedBoostDesc);
                 if (cfg.boostShowThumbnail) embed.setThumbnail(newMember.user.displayAvatarURL({ dynamic: true, size: 256 }));
                 const boostFields = [];
-                if (cfg.boostShowMember)      boostFields.push({ name: '👤 Member',       value: newMember.user.tag,                                             inline: true });
                 if (cfg.boostShowMulaiBoost)  boostFields.push({ name: '🚀 Boosting Since', value: `<t:${Math.floor(newMember.premiumSinceTimestamp / 1000)}:R>`, inline: true });
                 if (cfg.boostShowTotalBoost)  boostFields.push({ name: '✨ Total Boost',  value: `**${guild.premiumSubscriptionCount ?? 0}** boost`,             inline: true });
                 if (cfg.boostShowLevelServer) boostFields.push({ name: '🏅 Level Server', value: `Level **${guild.premiumTier}**`,                              inline: true });

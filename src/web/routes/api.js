@@ -2200,11 +2200,10 @@ function proxyFetch(targetUrl, res, hops = 0) {
             if (!next.startsWith('http')) next = new URL(next, targetUrl).href;
             return proxyFetch(next, res, hops + 1);
         }
+        const alreadyProxied = targetUrl.includes('wsrv.nl') || targetUrl.includes('images.weserv.nl');
         if (upstream.statusCode !== 200) {
             upstream.resume();
-            const blocked = [403, 429, 503].includes(upstream.statusCode);
-            const alreadyProxied = targetUrl.includes('wsrv.nl') || targetUrl.includes('images.weserv.nl');
-            if (blocked && !alreadyProxied) {
+            if (!alreadyProxied) {
                 const wsrvUrl = `https://wsrv.nl/?url=${encodeURIComponent(targetUrl)}&n=-1`;
                 return proxyFetch(wsrvUrl, res, hops + 1);
             }
@@ -2213,6 +2212,10 @@ function proxyFetch(targetUrl, res, hops = 0) {
         const ct = upstream.headers['content-type'] || 'image/png';
         if (!ct.startsWith('image/')) {
             upstream.resume();
+            if (!alreadyProxied) {
+                const wsrvUrl = `https://wsrv.nl/?url=${encodeURIComponent(targetUrl)}&n=-1`;
+                return proxyFetch(wsrvUrl, res, hops + 1);
+            }
             return res.status(415).json({ success: false, message: 'URL did not return an image.' });
         }
         res.setHeader('Content-Type', ct);

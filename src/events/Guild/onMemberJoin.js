@@ -42,9 +42,6 @@ function readWelcomeConfig(db, guildId) {
         plainText:          db.get(`welcome-plainText-${g}`)        ?? '',
         thumbnail:          bool(db, `welcome-thumbnail-${g}`, false),
         embedImageUrl:      db.get(`welcome-embedImageUrl-${g}`)    ?? '',
-        showMemberNew:      bool(db, `welcome-showMemberNew-${g}`,     false),
-        showAkunDibuat:     bool(db, `welcome-showAkunDibuat-${g}`,    false),
-        showTotalMember:    bool(db, `welcome-showTotalMember-${g}`,   false),
         showDiundangOleh:   bool(db, `welcome-showDiundangOleh-${g}`,  false),
         showKodeInvite:     bool(db, `welcome-showKodeInvite-${g}`,    false),
         showTotalUndangan:  bool(db, `welcome-showTotalUndangan-${g}`, false),
@@ -74,7 +71,6 @@ module.exports = new Event({
             cardBgType, cardBgImageUrl, cardOverlayColor, cardOverlayOpacity,
             cardTitleColor, cardUsernameColor, cardMsgColor, cardFont, cardLayout,
             plainText, thumbnail, embedImageUrl,
-            showMemberNew, showAkunDibuat, showTotalMember,
             showDiundangOleh, showKodeInvite, showTotalUndangan,
         } = cfg;
 
@@ -190,9 +186,6 @@ module.exports = new Event({
             const hasText   = title.trim() || description.trim();
 
             const embedFields = [];
-            if (showMemberNew)    embedFields.push({ name: 'Member',          value: member.user.username,                              inline: true });
-            if (showAkunDibuat)   embedFields.push({ name: 'Account Created', value: createdRelative,                                   inline: true });
-            if (showTotalMember)  embedFields.push({ name: 'Total Members',   value: String(totalMembers),                              inline: true });
             if (showDiundangOleh) embedFields.push({ name: 'Invited By',      value: inviter ? inviter.tag : 'Unknown',                 inline: true });
             if (showKodeInvite)   embedFields.push({ name: 'Invite Code',     value: usedInvite ? usedInvite.code : 'Unknown',          inline: true });
             if (showTotalUndangan)embedFields.push({ name: 'Total Invites',   value: inviter ? String(inviterTotalUses) : '-',          inline: true });

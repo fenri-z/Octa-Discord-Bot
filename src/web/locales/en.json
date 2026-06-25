@@ -1514,7 +1514,9 @@
     "restr_channels_hint": "empty = all",
     "restr_search_roles": "Search roles…",
     "restr_search_channels": "Search channels…",
-    "restr_badge_restricted": "Restricted"
+    "restr_badge_restricted": "Restricted",
+    "toast_enabled": "Command enabled",
+    "toast_disabled": "Command disabled"
   },
   "extlog": {
     "page_title": "Extended Logging",

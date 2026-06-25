@@ -76,11 +76,20 @@ function escXml(s) {
 }
 
 const FONT_MAP = {
-    impact:  "Impact, 'Arial Black', sans-serif",
-    arial:   'Arial, Helvetica, sans-serif',
-    georgia: "Georgia, 'Times New Roman', serif",
-    courier: "'Courier New', Courier, monospace",
-    verdana: 'Verdana, Geneva, sans-serif',
+    impact:      "Impact, 'Arial Black', sans-serif",
+    arial:       'Arial, Helvetica, sans-serif',
+    georgia:     "Georgia, 'Times New Roman', serif",
+    courier:     "'Courier New', Courier, monospace",
+    verdana:     'Verdana, Geneva, sans-serif',
+    discord:     "'GG Sans', Whitney, Inter, 'Noto Sans', 'Helvetica Neue', Arial, sans-serif",
+    bebasnew:    "'Bebas Neue', Impact, sans-serif",
+    montserrat:  "'Montserrat', Arial, sans-serif",
+    poppins:     "'Poppins', Arial, sans-serif",
+    oswald:      "'Oswald', Arial, sans-serif",
+    orbitron:    "'Orbitron', Arial, sans-serif",
+    russoone:    "'Russo One', Impact, sans-serif",
+    exo2:        "'Exo 2', Arial, sans-serif",
+    rajdhani:    "'Rajdhani', Arial, sans-serif",
 };
 
 // Render an SVG buffer at 2× density then resize down to target W×H
@@ -119,7 +128,7 @@ async function generateCard({
     usernameColor  = '',
     messageColor   = '#cccccc',
     // Font
-    fontFamily     = 'impact',
+    fontFamily     = 'poppins',
     // Legacy
     textColor      = '',
 } = {}) {
@@ -132,18 +141,18 @@ async function generateCard({
 
     // ── Layout dimensions ─────────────────────────────────────────────────
     const isBanner = cardLayout !== 'classic';
-    const W  = 1100;
-    const H  = 400;
-    const AS = isBanner ? 150 : 170;    // avatar size
-    const BD = isBanner ? 8   : 6;     // border thickness
+    const W  = 1024;
+    const H  = 420;
+    const AS = isBanner ? 185 : 195;    // avatar size
+    const BD = isBanner ? 8   : 6;      // border thickness
     const BT = AS + BD * 2;             // border total
 
     // ── Avatar position ───────────────────────────────────────────────────
     const AVL = isBanner
         ? Math.round((W - BT) / 2)          // centered horizontally
-        : 50;                                // fixed left
+        : 45;                                // fixed left
     const AVT = isBanner
-        ? 28                                 // top-center
+        ? 25                                 // top-center
         : Math.round((H - BT) / 2);         // vertically centered
 
     // ── Avatar ────────────────────────────────────────────────────────────
@@ -235,16 +244,16 @@ async function generateCard({
     if (isBanner) {
         // ── Banner layout: avatar top-center, text centered ───────────────
         const TEXT_W    = W - 120;
-        const TITLE_Y   = 282, USER_Y = 330, SUB_Y = 368;
+        const TITLE_Y   = 305, USER_Y = 352, SUB_Y = 390;
         const CX        = W / 2;
 
-        const baseTitleFs  = 74;
+        const baseTitleFs  = 72;
         const approxCharW  = baseTitleFs * 0.58;
         const estimatedW   = welcomeText.length * approxCharW;
         const titleFs      = estimatedW > TEXT_W ? Math.max(30, Math.floor(baseTitleFs * TEXT_W / estimatedW)) : baseTitleFs;
-        const titleLs      = titleFs < 48 ? 0 : 4;
+        const titleLs      = titleFs < 52 ? 0 : 4;
 
-        const baseUserFs   = 30;
+        const baseUserFs   = 32;
         const estimatedUW  = username.length * baseUserFs * 0.6;
         const userFs       = estimatedUW > TEXT_W ? Math.max(18, Math.floor(baseUserFs * TEXT_W / estimatedUW)) : baseUserFs;
 
@@ -267,10 +276,10 @@ async function generateCard({
 </svg>`);
     } else {
         // ── Classic layout: avatar left, text right ───────────────────────
-        const TX      = AVL + BT + 50;  // text start x (AVL=50, BT=190) = 290
-        const AVAIL_W = W - TX - 25;    // available text width = 833
+        const TX      = AVL + BT + 50;  // text start x: 45 + 207 + 50 = 302
+        const AVAIL_W = W - TX - 25;    // available text width: 1024 - 302 - 25 = 697
 
-        const baseTitleFs = 80;
+        const baseTitleFs = 84;
         const approxCharW = baseTitleFs * 0.62 + 3;
         const estimatedW  = welcomeText.length * approxCharW;
         const titleFs     = estimatedW > AVAIL_W ? Math.max(28, Math.floor(baseTitleFs * AVAIL_W / estimatedW)) : baseTitleFs;
@@ -280,15 +289,15 @@ async function generateCard({
   <defs><clipPath id="tc"><rect x="${TX}" y="0" width="${AVAIL_W}" height="${H}"/></clipPath></defs>
   ${effectiveBgType !== 'transparent' ? `<circle cx="${W-60}" cy="40" r="80" fill="${accentColor}" opacity="0.07"/>
   <circle cx="${W-20}" cy="${H-20}" r="60" fill="${accentColor}" opacity="0.04"/>` : ''}
-  <text x="${TX}" y="190" font-family="${resolvedFont}" font-size="${titleFs}" font-weight="900"
+  <text x="${TX}" y="192" font-family="${resolvedFont}" font-size="${titleFs}" font-weight="900"
         letter-spacing="${titleLs}" fill="${resolvedTitle}" opacity="0.35" clip-path="url(#tc)">${s.w}</text>
-  <text x="${TX}" y="190" font-family="${resolvedFont}" font-size="${titleFs}" font-weight="900"
+  <text x="${TX}" y="192" font-family="${resolvedFont}" font-size="${titleFs}" font-weight="900"
         letter-spacing="${titleLs}" fill="${resolvedTitle}" clip-path="url(#tc)">${s.w}</text>
-  <text x="${TX}" y="247" font-family="${resolvedFont}" font-size="34" font-weight="700"
+  <text x="${TX}" y="240" font-family="${resolvedFont}" font-size="34" font-weight="700"
         fill="rgba(0,0,0,0.6)" clip-path="url(#tc)">${s.u}</text>
-  <text x="${TX}" y="245" font-family="${resolvedFont}" font-size="34" font-weight="700"
+  <text x="${TX}" y="238" font-family="${resolvedFont}" font-size="34" font-weight="700"
         fill="${resolvedUsername}" clip-path="url(#tc)">${s.u}</text>
-  <text x="${TX}" y="283" font-family="${resolvedFont}" font-size="22" font-weight="600"
+  <text x="${TX}" y="275" font-family="${resolvedFont}" font-size="22" font-weight="600"
         fill="${resolvedMsg}" clip-path="url(#tc)">${s.t}</text>
 </svg>`);
     }

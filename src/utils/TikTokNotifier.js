@@ -307,8 +307,10 @@ class TikTokNotifier {
                 }
             } catch (err) {
                 warn(`[TikTok] Poll error ${username}: ${err.message}`);
-                // Jika username tidak ditemukan (diganti/dihapus), skip 30 menit agar tidak spam
-                const isInvalid = /invalid|not found|secondary user id/i.test(err.message);
+                // Hanya skip jika tikwm eksplisit bilang username tidak valid (bukan rate limit atau error yt-dlp).
+                // "secondary user id" dari yt-dlp bisa terjadi karena TikTok bot-protection sementara,
+                // bukan berarti akun tidak ada — jangan cache untuk kasus itu.
+                const isInvalid = /unique_id is invalid/i.test(err.message);
                 if (isInvalid) {
                     this._pollErrorCache.set(username, Date.now() + 30 * 60 * 1000);
                 }
@@ -768,10 +770,11 @@ class TikTokNotifier {
         if (live.title) embed.addFields({ name: '🎙️ Stream Title', value: live.title, inline: false });
         embed.addFields({ name: '🔗 Link', value: `[Click Me ▶](${liveUrl})`, inline: false });
 
-        if (account.thumbnail) embed.setThumbnail(account.thumbnail);
-        // Snapshot asli dari stream (kalau tersedia) — fallback ke avatar akun
+        // Proxy via wsrv.nl agar signed URL TikTok tidak expired sebelum Discord cache gambarnya
+        const wsrv = url => url ? `https://wsrv.nl/?url=${encodeURIComponent(url)}` : null;
+        if (account.thumbnail) embed.setThumbnail(wsrv(account.thumbnail));
         const liveImage = live.cover || account.thumbnail;
-        if (liveImage) embed.setImage(liveImage);
+        if (liveImage) embed.setImage(wsrv(liveImage));
 
         const _ttBase = (process.env.BASE_URL || '').replace(/\/$/, '');
         const _ttLiveFooter = { text: _ttBase ? 'TikTok LIVE' : '🔴 TikTok LIVE' };

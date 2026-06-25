@@ -192,8 +192,8 @@
                         <div class="form-group">
                             <label class="label"><%= t('card_image.font_label') %></label>
                             <select id="cardFont" class="select" style="font-size:.82rem;">
-                                <% [['impact','Impact'],['arial','Arial'],['georgia','Georgia'],['courier','Courier New'],['verdana','Verdana']].forEach(function(f){ %>
-                                    <option value="<%= f[0] %>" <%= (goodbyeData.cardFont||'impact')===f[0]?'selected':'' %>><%= f[1] %></option>
+                                <% [['impact','Impact'],['arial','Arial'],['georgia','Georgia'],['courier','Courier New'],['verdana','Verdana'],['discord','Discord (GG Sans)'],['bebasnew','Bebas Neue'],['montserrat','Montserrat'],['poppins','Poppins'],['oswald','Oswald'],['orbitron','Orbitron'],['russoone','Russo One'],['exo2','Exo 2'],['rajdhani','Rajdhani']].forEach(function(f){ %>
+                                    <option value="<%= f[0] %>" <%= (goodbyeData.cardFont||'poppins')===f[0]?'selected':'' %>><%= f[1] %></option>
                                 <% }) %>
                             </select>
                         </div>
@@ -348,7 +348,7 @@
                     </div>
                     <!-- Card preview -->
                     <div id="cardPreviewWrap" style="display:none;padding:.75rem 1rem .25rem;">
-                        <canvas id="cardCanvas" width="760" height="247"
+                        <canvas id="cardCanvas" width="1024" height="420"
                                 style="width:100%;border-radius:12px;display:block;"></canvas>
                         <div style="font-size:.7rem;color:#80848e;margin-top:.3rem;text-align:right;">Goodbye Card Preview</div>
                     </div>
@@ -626,9 +626,9 @@ async function drawCardPreview() {
     const userClr  = document.getElementById('cardUsernameColor')?.value || accent;
     const msgClr   = document.getElementById('cardMsgColor')?.value     || '#cccccc';
     const shape    = document.getElementById('cardAvatarShape')?.value || 'circle';
-    const fontSel  = document.getElementById('cardFont')?.value         || 'impact';
-    const fontMap  = { impact:"Impact,'Arial Black',sans-serif", arial:'Arial,Helvetica,sans-serif', georgia:"Georgia,'Times New Roman',serif", courier:"'Courier New',Courier,monospace", verdana:'Verdana,Geneva,sans-serif' };
-    const fontFam  = fontMap[fontSel] || fontMap.impact;
+    const fontSel  = document.getElementById('cardFont')?.value         || 'poppins';
+    const fontMap  = { impact:"Impact,'Arial Black',sans-serif", arial:'Arial,Helvetica,sans-serif', georgia:"Georgia,'Times New Roman',serif", courier:"'Courier New',Courier,monospace", verdana:'Verdana,Geneva,sans-serif', discord:"'GG Sans',Whitney,Inter,'Noto Sans','Helvetica Neue',Arial,sans-serif", bebasnew:"'Bebas Neue',Impact,sans-serif", montserrat:"'Montserrat',Arial,sans-serif", poppins:"'Poppins',Arial,sans-serif", oswald:"'Oswald',Arial,sans-serif", orbitron:"'Orbitron',Arial,sans-serif", russoone:"'Russo One',Impact,sans-serif", exo2:"'Exo 2',Arial,sans-serif", rajdhani:"'Rajdhani',Arial,sans-serif" };
+    const fontFam  = fontMap[fontSel] || fontMap.poppins;
     const bigText  = document.getElementById('cardWelcomeText')?.value  || 'GOODBYE';
     const sub      = (document.getElementById('cardSubText')?.value     ?? '')
                        .replace(/{server}/gi, SAMPLE.server).replace(/{count}/gi, SAMPLE.count).replace(/{tag}/gi, SAMPLE.tag);
@@ -673,21 +673,21 @@ async function drawCardPreview() {
 
     // ── Layout params ─────────────────────────────────────────────────────
     const isBanner = (document.getElementById('cardLayout')?.value || 'banner') !== 'classic';
-    const AS = isBanner ? Math.round(150*W/1100) : Math.round(170*W/1100);
-    const BD = isBanner ? Math.round(8*W/1100)   : Math.round(6*W/1100);
+    const AS = isBanner ? Math.round(185*W/1024) : Math.round(195*W/1024);
+    const BD = isBanner ? Math.round(8*W/1024)   : Math.round(6*W/1024);
     const BT = AS + BD*2;
-    const avL = isBanner ? Math.round((W-BT)/2)  : Math.round(50*W/1100);
-    const avT = isBanner ? Math.round(28*H/400)  : Math.round((H-BT)/2);
+    const avL = isBanner ? Math.round((W-BT)/2)  : Math.round(45*W/1024);
+    const avT = isBanner ? 25 : Math.round((H-BT)/2);
     const isSquare = shape==='square';
 
     if (bgType !== 'transparent') {
         ctx.globalAlpha=0.07; ctx.fillStyle=accent;
         if (isBanner) {
-            ctx.beginPath(); ctx.arc(Math.round(80*W/1100),Math.round(80*H/400),Math.round(120*W/1100),0,Math.PI*2); ctx.fill();
-            ctx.beginPath(); ctx.arc(W-Math.round(80*W/1100),H-Math.round(80*H/400),Math.round(100*W/1100),0,Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(80, 80, 120, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(W-80, H-80, 100, 0, Math.PI*2); ctx.fill();
         } else {
-            ctx.beginPath(); ctx.arc(W-Math.round(60*W/1100),Math.round(40*H/400),Math.round(80*W/1100),0,Math.PI*2); ctx.fill();
-            ctx.beginPath(); ctx.arc(W-Math.round(20*W/1100),H-Math.round(20*H/400),Math.round(60*W/1100),0,Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(W-60, 40, 80, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(W-20, H-20, 60, 0, Math.PI*2); ctx.fill();
         }
         ctx.globalAlpha=1;
     }
@@ -717,25 +717,31 @@ async function drawCardPreview() {
     });
 
     if (isBanner) {
-        const CX=W/2, TITLE_Y=Math.round(282*H/400), USER_Y=Math.round(330*H/400), SUB_Y=Math.round(380*H/400), TEXT_W=W-Math.round(120*W/1100);
-        let titleFs=Math.round(74*H/400); ctx.font=`900 ${titleFs}px ${fontFam}`;
-        while (titleFs>14 && ctx.measureText(bigText).width>TEXT_W) { titleFs-=2; ctx.font=`900 ${titleFs}px ${fontFam}`; }
-        ctx.shadowColor=titleClr; ctx.shadowBlur=6; ctx.fillStyle=titleClr; ctx.textAlign='center';
-        ctx.fillText(bigText,CX,TITLE_Y,TEXT_W); ctx.shadowBlur=0;
-        ctx.font=`700 ${Math.round(30*H/400)}px ${fontFam}`; ctx.shadowColor='rgba(0,0,0,0.5)'; ctx.shadowBlur=4; ctx.fillStyle=userClr;
-        ctx.fillText(SAMPLE.username,CX,USER_Y,TEXT_W); ctx.shadowBlur=0;
-        ctx.font=`600 ${Math.round(36*H/400)}px ${fontFam}`; ctx.fillStyle=msgClr;
+        const CX=W/2, TITLE_Y=305, USER_Y=352, SUB_Y=390, TEXT_W=W-Math.round(120*W/1024);
+        let titleFs=72; ctx.font=`bold ${titleFs}px ${fontFam}`;
+        while (titleFs>14 && ctx.measureText(bigText).width>TEXT_W) { titleFs-=2; ctx.font=`bold ${titleFs}px ${fontFam}`; }
+        const titleLs=titleFs<52?0:4; if('letterSpacing' in ctx) ctx.letterSpacing=titleLs+'px';
+        ctx.textAlign='center'; ctx.fillStyle=titleClr; ctx.globalAlpha=0.3;
+        ctx.fillText(bigText,CX,TITLE_Y,TEXT_W); ctx.globalAlpha=1; ctx.fillText(bigText,CX,TITLE_Y,TEXT_W);
+        if('letterSpacing' in ctx) ctx.letterSpacing='0px';
+        ctx.font=`700 32px ${fontFam}`; ctx.fillStyle='rgba(0,0,0,0.55)';
+        ctx.fillText(SAMPLE.username,CX,USER_Y+2,TEXT_W); ctx.fillStyle=userClr;
+        ctx.fillText(SAMPLE.username,CX,USER_Y,TEXT_W);
+        ctx.font=`600 20px ${fontFam}`; ctx.fillStyle=msgClr;
         ctx.fillText(sub,CX,SUB_Y,TEXT_W); ctx.textAlign='left';
     } else {
-        const TX=avL+BT+Math.round(50*W/1100), availW=W-TX-20;
-        const TITLE_Y=Math.round(190*H/400), USER_Y=Math.round(245*H/400), SUB_Y=Math.round(290*H/400);
-        let titleFs=Math.round(80*H/400); ctx.font=`900 ${titleFs}px ${fontFam}`;
-        while (titleFs>14 && ctx.measureText(bigText).width>availW) { titleFs-=2; ctx.font=`900 ${titleFs}px ${fontFam}`; }
-        ctx.shadowColor=titleClr; ctx.shadowBlur=8; ctx.fillStyle=titleClr;
-        ctx.fillText(bigText,TX,TITLE_Y,availW); ctx.shadowBlur=0;
-        ctx.font=`700 ${Math.round(34*H/400)}px ${fontFam}`; ctx.shadowColor='rgba(0,0,0,0.5)'; ctx.shadowBlur=4; ctx.fillStyle=userClr;
-        ctx.fillText(SAMPLE.username,TX,USER_Y,availW); ctx.shadowBlur=0;
-        ctx.font=`600 ${Math.round(36*H/400)}px ${fontFam}`; ctx.fillStyle=msgClr;
+        const TX=avL+BT+Math.round(50*W/1024), availW=W-TX-20;
+        const TITLE_Y=192, USER_Y=238, SUB_Y=275;
+        let titleFs=84; ctx.font=`bold ${titleFs}px ${fontFam}`;
+        while (titleFs>14 && ctx.measureText(bigText).width>availW) { titleFs-=2; ctx.font=`bold ${titleFs}px ${fontFam}`; }
+        const titleLsC=titleFs<52?0:3; if('letterSpacing' in ctx) ctx.letterSpacing=titleLsC+'px';
+        ctx.fillStyle=titleClr; ctx.globalAlpha=0.35; ctx.fillText(bigText,TX,TITLE_Y,availW);
+        ctx.globalAlpha=1; ctx.fillText(bigText,TX,TITLE_Y,availW);
+        if('letterSpacing' in ctx) ctx.letterSpacing='0px';
+        ctx.font=`700 34px ${fontFam}`; ctx.fillStyle='rgba(0,0,0,0.6)';
+        ctx.fillText(SAMPLE.username,TX,USER_Y+2,availW); ctx.fillStyle=userClr;
+        ctx.fillText(SAMPLE.username,TX,USER_Y,availW);
+        ctx.font=`600 22px ${fontFam}`; ctx.fillStyle=msgClr;
         ctx.fillText(sub,TX,SUB_Y,availW);
     }
 
@@ -747,6 +753,7 @@ function toggleMessageTypePanel() {
     const isPlain = (document.getElementById('goodbyeMessageType')?.value || 'plain') === 'plain';
     document.getElementById('plainTextPanel').style.display = isPlain ? 'block' : 'none';
     document.getElementById('embedPanel').style.display     = isPlain ? 'none'  : 'block';
+    if (isPlain) mbResizeArea(document.getElementById('goodbyePlainText'));
     updatePreview();
 }
 document.getElementById('goodbyeMessageType')?.addEventListener('change', toggleMessageTypePanel);
@@ -991,7 +998,7 @@ async function saveGoodbye(guildId) {
         cardTitleColor:     document.getElementById('cardTitleColor')?.value.trim()     || '#ffffff',
         cardUsernameColor:  document.getElementById('cardUsernameColor')?.value.trim()  || '#ED4245',
         cardMsgColor:       document.getElementById('cardMsgColor')?.value.trim()       || '#cccccc',
-        cardFont:           document.getElementById('cardFont')?.value                  || 'impact',
+        cardFont:           document.getElementById('cardFont')?.value                  || 'poppins',
     };
     const res  = await fetch(`/api/guild/${guildId}/goodbye`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -1032,6 +1039,7 @@ function mbInlineCount(inputId, countId) {
     ct.className = 'input-inline-count' + (len >= max ? ' danger' : len >= max * 0.9 ? ' warn' : '');
 }
 document.addEventListener('DOMContentLoaded', () => {
+    toggleMessageTypePanel();
     document.querySelectorAll('.mb-auto-resize').forEach(mbResizeArea);
     mbUpdateCount('goodbyePlainText',   'goodbyePlainCount');
     mbInlineCount('goodbyeTitle',       'goodbyeTitleCount');

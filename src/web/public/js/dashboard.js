@@ -176,11 +176,14 @@ window.queueToast = function(text, type) {
         label.removeAttribute('onclick');
         label.style.cursor = 'pointer';
         label.style.userSelect = 'none';
-        if (!label.querySelector('.preview-eye-icon')) {
-            label.insertAdjacentHTML('afterbegin', EYE);
-        }
+
+        const isMobile = window.innerWidth <= 680;
+        const panel = label.parentElement;
+        if (isMobile && panel) panel.classList.add('dc-preview-hidden');
+
+        label.insertAdjacentHTML('afterbegin', isMobile ? EYE_OFF : EYE);
+
         label.addEventListener('click', () => {
-            const panel = label.parentElement;
             if (!panel) return;
             const hidden = panel.classList.toggle('dc-preview-hidden');
             const icon = label.querySelector('.preview-eye-icon');
@@ -196,6 +199,45 @@ window.queueToast = function(text, type) {
         document.querySelectorAll('.preview-label').forEach(initLabel);
     }
 
+    function applyBreakpoint(isMobile) {
+        document.querySelectorAll('.preview-label').forEach(label => {
+            const panel = label.parentElement;
+            if (!panel) return;
+            const icon = label.querySelector('.preview-eye-icon');
+            if (isMobile) {
+                panel.classList.add('dc-preview-hidden');
+                if (icon) { const t = document.createElement('span'); t.innerHTML = EYE_OFF; icon.replaceWith(t.firstElementChild); }
+            } else {
+                panel.classList.remove('dc-preview-hidden');
+                if (icon) { const t = document.createElement('span'); t.innerHTML = EYE; icon.replaceWith(t.firstElementChild); }
+            }
+        });
+    }
+
+    const mq = window.matchMedia('(max-width:680px)');
+    mq.addEventListener('change', e => applyBreakpoint(e.matches));
+
     document.addEventListener('DOMContentLoaded', initAll);
     window.initPreviewToggles = initAll;
 })();
+
+// ── Global mbResizeArea override ──────────────────────────────────────────
+window.mbResizeArea = function (el) {
+    if (!el) return;
+    el.style.height = '1px';
+    el.style.height = el.scrollHeight + 'px';
+};
+
+function _runAllResize() {
+    document.querySelectorAll('.mb-auto-resize').forEach(window.mbResizeArea);
+}
+
+// Re-run on load (accurate dimensions after fonts/images ready)
+window.addEventListener('load', _runAllResize);
+
+// Re-run on viewport resize so textarea height stays correct
+let _resizeDebounce;
+window.addEventListener('resize', () => {
+    clearTimeout(_resizeDebounce);
+    _resizeDebounce = setTimeout(_runAllResize, 100);
+});

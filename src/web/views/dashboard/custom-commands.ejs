@@ -550,8 +550,8 @@
 .mb-char-count.danger { color: #ed4245; font-weight: 600; }
 .mb-count-wrap { position: relative; display: block; }
 .mb-count-wrap input.input  { padding-right: 4.6rem; }
-.mb-count-wrap textarea.input { padding-bottom: 1.3rem; }
-.mb-count-wrap .mb-char-count { position: absolute; right: .5rem; bottom: .38rem; margin-top: 0; font-size: .68rem; pointer-events: none; white-space: nowrap; }
+.mb-count-wrap textarea.input { padding-bottom: 1.8rem; }
+.mb-count-wrap .mb-char-count { position: absolute; right: .5rem; bottom: .4rem; margin-top: 0; font-size: .68rem; pointer-events: none; white-space: nowrap; }
 
 
 /* ── Embed Builder ───────────────────────────────────────────────── */
@@ -728,6 +728,8 @@ const i18n = {
     err_no_text:    '<%= t('custom_commands.err_no_text') %>',
     err_no_embed:   '<%= t('custom_commands.err_no_embed') %>',
     err_no_both:    '<%= t('custom_commands.err_no_both') %>',
+    toast_enabled:  '<%= t('custom_commands.toast_enabled') %>',
+    toast_disabled: '<%= t('custom_commands.toast_disabled') %>',
 };
 
 // Maps for mention picker
@@ -1011,11 +1013,11 @@ function clearForm() {
     ccUpdateCount('ccEmbedAuthor','ccAuthorCount');
     ccUpdateCount('ccEmbedTitle', 'ccTitleCount');
     ccUpdateCount('ccEmbedFooter','ccFooterCount');
+    clearCcRestrictions();
     updatePreview();
     const addMsg = document.getElementById('ccAddMsg');
     addMsg.textContent = '';
     addMsg.className   = 'form-message';
-    clearCcRestrictions();
 }
 
 function buildEmbedResponse() {
@@ -1202,10 +1204,29 @@ function renderList() {
     }
 }
 
-function toggleCmd(el) {
+async function toggleCmd(el) {
     const idx = parseInt(el.closest('.cc-row').dataset.idx);
+    const prev = commands[idx].enabled;
     commands[idx].enabled = el.checked;
-    syncFloatBar();
+    el.disabled = true;
+    try {
+        const data = await apiFetch('/custom-commands', 'POST', { commands });
+        if (data.success) {
+            savedCommands = JSON.parse(JSON.stringify(commands));
+            refreshCcStats();
+            syncFloatBar();
+            showToast(el.checked ? i18n.toast_enabled : i18n.toast_disabled, 'success');
+        } else {
+            commands[idx].enabled = prev;
+            el.checked = prev;
+            showAlert(data.message);
+        }
+    } catch {
+        commands[idx].enabled = prev;
+        el.checked = prev;
+    } finally {
+        el.disabled = false;
+    }
 }
 
 function syncFloatBar() {

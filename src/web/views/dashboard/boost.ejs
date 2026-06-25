@@ -169,11 +169,6 @@
                         <label class="label" style="margin-bottom:.75rem;"><%= t('booster.field_info') %></label>
                         <div style="display:flex;flex-direction:column;gap:.6rem;">
                             <label class="toggle-label">
-                                <input type="checkbox" id="boostShowMember" class="toggle-input"
-                                       <%= boostData.showMember ? 'checked' : '' %> onchange="updateBoostPreview()">
-                                <span class="toggle-slider"></span><span><%= t('booster.field_member') %></span>
-                            </label>
-                            <label class="toggle-label">
                                 <input type="checkbox" id="boostShowMulaiBoost" class="toggle-input"
                                        <%= boostData.showMulaiBoost ? 'checked' : '' %> onchange="updateBoostPreview()">
                                 <span class="toggle-slider"></span><span><%= t('booster.field_boost_start') %></span>
@@ -214,8 +209,8 @@
                         <div class="form-group">
                             <label class="label"><%= t('booster.card_font') %></label>
                             <select id="boostCardFont" class="select" style="font-size:.82rem;">
-                                <% [['impact','Impact'],['arial','Arial'],['georgia','Georgia'],['courier','Courier New'],['verdana','Verdana']].forEach(function(f){ %>
-                                    <option value="<%= f[0] %>" <%= (boostData.cardFont||'impact')===f[0]?'selected':'' %>><%= f[1] %></option>
+                                <% [['impact','Impact'],['arial','Arial'],['georgia','Georgia'],['courier','Courier New'],['verdana','Verdana'],['discord','Discord (GG Sans)'],['bebasnew','Bebas Neue'],['montserrat','Montserrat'],['poppins','Poppins'],['oswald','Oswald'],['orbitron','Orbitron'],['russoone','Russo One'],['exo2','Exo 2'],['rajdhani','Rajdhani']].forEach(function(f){ %>
+                                    <option value="<%= f[0] %>" <%= (boostData.cardFont||'poppins')===f[0]?'selected':'' %>><%= f[1] %></option>
                                 <% }) %>
                             </select>
                         </div>
@@ -332,7 +327,7 @@
                     </div>
                     <div class="dc-messages">
                         <div id="boostCardPreviewWrap" style="display:none;padding:.75rem 1rem .25rem;">
-                            <canvas id="boostCardCanvas" width="760" height="247" style="width:100%;border-radius:12px;display:block;"></canvas>
+                            <canvas id="boostCardCanvas" width="1024" height="420" style="width:100%;border-radius:12px;display:block;"></canvas>
                         </div>
                         <div class="dc-message">
                             <img class="dc-avatar"
@@ -397,7 +392,6 @@ const GUILD_ID = '<%= guild.id %>';
 const CHANNELS = <%- JSON.stringify(Object.fromEntries((locals.channels||[]).map(ch=>[ch.id,ch.name]))) %>;
 const ROLES = <%- JSON.stringify(Object.fromEntries((locals.roles||[]).map(r=>[r.id,{name:r.name,color:r.color}]))) %>;
 
-const I18N_BOOST_FIELD_MBR   = '<%= t("booster.field_member") %>';
 const I18N_BOOST_FIELD_BST   = '<%= t("booster.field_boost_start") %>';
 const I18N_BOOST_FIELD_TOT   = '<%= t("booster.field_total_boost") %>';
 const I18N_BOOST_FIELD_LVL   = '<%= t("booster.field_level_server") %>';
@@ -427,6 +421,7 @@ function toggleBoostType() {
     const isPlain = (document.getElementById('boostMessageType')?.value || 'plain') === 'plain';
     document.getElementById('boostPlainPanel').style.display  = isPlain ? 'block' : 'none';
     document.getElementById('boostEmbedPanel').style.display  = isPlain ? 'none'  : 'block';
+    if (isPlain) mbResizeArea(document.getElementById('boostPlainText'));
     updateBoostPreview();
     drawBoostCard();
 }
@@ -552,9 +547,9 @@ async function drawBoostCard() {
     const userClr   = g('UsernameColor')?.value|| accent;
     const msgClr    = g('MsgColor')?.value     || '#cccccc';
     const shape     = document.getElementById('boostCardAvatarShape')?.value || 'circle';
-    const fontSel   = g('Font')?.value         || 'impact';
-    const fontMap   = { impact:"Impact,'Arial Black',sans-serif", arial:'Arial,Helvetica,sans-serif', georgia:"Georgia,'Times New Roman',serif", courier:"'Courier New',Courier,monospace", verdana:'Verdana,Geneva,sans-serif' };
-    const fontFam   = fontMap[fontSel] || fontMap.impact;
+    const fontSel   = g('Font')?.value         || 'poppins';
+    const fontMap   = { impact:"Impact,'Arial Black',sans-serif", arial:'Arial,Helvetica,sans-serif', georgia:"Georgia,'Times New Roman',serif", courier:"'Courier New',Courier,monospace", verdana:'Verdana,Geneva,sans-serif', discord:"'GG Sans',Whitney,Inter,'Noto Sans','Helvetica Neue',Arial,sans-serif", bebasnew:"'Bebas Neue',Impact,sans-serif", montserrat:"'Montserrat',Arial,sans-serif", poppins:"'Poppins',Arial,sans-serif", oswald:"'Oswald',Arial,sans-serif", orbitron:"'Orbitron',Arial,sans-serif", russoone:"'Russo One',Impact,sans-serif", exo2:"'Exo 2',Arial,sans-serif", rajdhani:"'Rajdhani',Arial,sans-serif" };
+    const fontFam   = fontMap[fontSel] || fontMap.poppins;
     const bigText   = g('WelcomeText')?.value  || 'BOOST!';
     const sub       = (g('SubText')?.value ?? '')
                         .replace(/{server}/gi, SAMPLE.server)
@@ -588,21 +583,21 @@ async function drawBoostCard() {
 
     // ── Layout params ─────────────────────────────────────────────────────
     const isBanner = (document.getElementById('boostCardLayout')?.value || 'banner') !== 'classic';
-    const AS = isBanner ? Math.round(150*W/1100) : Math.round(170*W/1100);
-    const BD = isBanner ? Math.round(8*W/1100)   : Math.round(6*W/1100);
+    const AS = isBanner ? Math.round(185*W/1024) : Math.round(195*W/1024);
+    const BD = isBanner ? Math.round(8*W/1024)   : Math.round(6*W/1024);
     const BT = AS + BD*2;
-    const avL = isBanner ? Math.round((W-BT)/2)  : Math.round(50*W/1100);
-    const avT = isBanner ? Math.round(28*H/400)  : Math.round((H-BT)/2);
+    const avL = isBanner ? Math.round((W-BT)/2)  : Math.round(45*W/1024);
+    const avT = isBanner ? 25 : Math.round((H-BT)/2);
     const isSquare = shape==='square';
 
     if (bgType !== 'transparent') {
         ctx.globalAlpha=0.07;ctx.fillStyle=accent;
         if (isBanner) {
-            ctx.beginPath();ctx.arc(Math.round(80*W/1100),Math.round(80*H/400),Math.round(120*W/1100),0,Math.PI*2);ctx.fill();
-            ctx.beginPath();ctx.arc(W-Math.round(80*W/1100),H-Math.round(80*H/400),Math.round(100*W/1100),0,Math.PI*2);ctx.fill();
+            ctx.beginPath();ctx.arc(80,80,120,0,Math.PI*2);ctx.fill();
+            ctx.beginPath();ctx.arc(W-80,H-80,100,0,Math.PI*2);ctx.fill();
         } else {
-            ctx.beginPath();ctx.arc(W-Math.round(60*W/1100),Math.round(40*H/400),Math.round(80*W/1100),0,Math.PI*2);ctx.fill();
-            ctx.beginPath();ctx.arc(W-Math.round(20*W/1100),H-Math.round(20*H/400),Math.round(60*W/1100),0,Math.PI*2);ctx.fill();
+            ctx.beginPath();ctx.arc(W-60,40,80,0,Math.PI*2);ctx.fill();
+            ctx.beginPath();ctx.arc(W-20,H-20,60,0,Math.PI*2);ctx.fill();
         }
         ctx.globalAlpha=1;
     }
@@ -620,25 +615,31 @@ async function drawBoostCard() {
     });
 
     if (isBanner) {
-        const CX=W/2,TITLE_Y=Math.round(282*H/400),USER_Y=Math.round(330*H/400),SUB_Y=Math.round(380*H/400),TEXT_W=W-Math.round(120*W/1100);
-        let titleFs=Math.round(74*H/400);ctx.font=`900 ${titleFs}px ${fontFam}`;
-        while(titleFs>14&&ctx.measureText(bigText).width>TEXT_W){titleFs-=2;ctx.font=`900 ${titleFs}px ${fontFam}`;}
-        ctx.shadowColor=titleClr;ctx.shadowBlur=6;ctx.fillStyle=titleClr;ctx.textAlign='center';
-        ctx.fillText(bigText,CX,TITLE_Y,TEXT_W);ctx.shadowBlur=0;
-        ctx.font=`700 ${Math.round(30*H/400)}px ${fontFam}`;ctx.shadowColor='rgba(0,0,0,0.5)';ctx.shadowBlur=4;ctx.fillStyle=userClr;
-        ctx.fillText(SAMPLE.username,CX,USER_Y,TEXT_W);ctx.shadowBlur=0;
-        ctx.font=`600 ${Math.round(36*H/400)}px ${fontFam}`;ctx.fillStyle=msgClr;
+        const CX=W/2,TITLE_Y=305,USER_Y=352,SUB_Y=390,TEXT_W=W-Math.round(120*W/1024);
+        let titleFs=72;ctx.font=`bold ${titleFs}px ${fontFam}`;
+        while(titleFs>14&&ctx.measureText(bigText).width>TEXT_W){titleFs-=2;ctx.font=`bold ${titleFs}px ${fontFam}`;}
+        const titleLs=titleFs<52?0:4; if('letterSpacing' in ctx) ctx.letterSpacing=titleLs+'px';
+        ctx.textAlign='center';ctx.fillStyle=titleClr;ctx.globalAlpha=0.3;
+        ctx.fillText(bigText,CX,TITLE_Y,TEXT_W);ctx.globalAlpha=1;ctx.fillText(bigText,CX,TITLE_Y,TEXT_W);
+        if('letterSpacing' in ctx) ctx.letterSpacing='0px';
+        ctx.font=`700 32px ${fontFam}`;ctx.fillStyle='rgba(0,0,0,0.55)';
+        ctx.fillText(SAMPLE.username,CX,USER_Y+2,TEXT_W);ctx.fillStyle=userClr;
+        ctx.fillText(SAMPLE.username,CX,USER_Y,TEXT_W);
+        ctx.font=`600 20px ${fontFam}`;ctx.fillStyle=msgClr;
         ctx.fillText(sub,CX,SUB_Y,TEXT_W);ctx.textAlign='left';
     } else {
-        const TX=avL+BT+Math.round(50*W/1100),availW=W-TX-20;
-        const TITLE_Y=Math.round(190*H/400),USER_Y=Math.round(245*H/400),SUB_Y=Math.round(290*H/400);
-        let titleFs=Math.round(80*H/400);ctx.font=`900 ${titleFs}px ${fontFam}`;
-        while(titleFs>14&&ctx.measureText(bigText).width>availW){titleFs-=2;ctx.font=`900 ${titleFs}px ${fontFam}`;}
-        ctx.shadowColor=titleClr;ctx.shadowBlur=8;ctx.fillStyle=titleClr;
-        ctx.fillText(bigText,TX,TITLE_Y,availW);ctx.shadowBlur=0;
-        ctx.font=`700 ${Math.round(34*H/400)}px ${fontFam}`;ctx.shadowColor='rgba(0,0,0,0.5)';ctx.shadowBlur=4;ctx.fillStyle=userClr;
-        ctx.fillText(SAMPLE.username,TX,USER_Y,availW);ctx.shadowBlur=0;
-        ctx.font=`600 ${Math.round(36*H/400)}px ${fontFam}`;ctx.fillStyle=msgClr;
+        const TX=avL+BT+Math.round(50*W/1024),availW=W-TX-20;
+        const TITLE_Y=192,USER_Y=238,SUB_Y=275;
+        let titleFs=84;ctx.font=`bold ${titleFs}px ${fontFam}`;
+        while(titleFs>14&&ctx.measureText(bigText).width>availW){titleFs-=2;ctx.font=`bold ${titleFs}px ${fontFam}`;}
+        const titleLsC=titleFs<52?0:3; if('letterSpacing' in ctx) ctx.letterSpacing=titleLsC+'px';
+        ctx.fillStyle=titleClr;ctx.globalAlpha=0.35;ctx.fillText(bigText,TX,TITLE_Y,availW);
+        ctx.globalAlpha=1;ctx.fillText(bigText,TX,TITLE_Y,availW);
+        if('letterSpacing' in ctx) ctx.letterSpacing='0px';
+        ctx.font=`700 34px ${fontFam}`;ctx.fillStyle='rgba(0,0,0,0.6)';
+        ctx.fillText(SAMPLE.username,TX,USER_Y+2,availW);ctx.fillStyle=userClr;
+        ctx.fillText(SAMPLE.username,TX,USER_Y,availW);
+        ctx.font=`600 22px ${fontFam}`;ctx.fillStyle=msgClr;
         ctx.fillText(sub,TX,SUB_Y,availW);
     }
     _syncCardPlacement();
@@ -646,7 +647,6 @@ async function drawBoostCard() {
 
 // ── Field sample data ──────────────────────────────────────────────────────
 const BOOST_FIELDS = [
-    { id: 'boostShowMember',     name: I18N_BOOST_FIELD_MBR, value: () => SAMPLE.username },
     { id: 'boostShowMulaiBoost', name: I18N_BOOST_FIELD_BST, value: () => 'just now' },
     { id: 'boostShowTotalBoost', name: I18N_BOOST_FIELD_TOT, value: () => `${SAMPLE.boosts} boost` },
     { id: 'boostShowLevelServer',name: I18N_BOOST_FIELD_LVL, value: () => `Level <%= guild.premiumTier %>` },
@@ -780,7 +780,6 @@ async function saveBoost() {
             description:      document.getElementById('boostDesc').value.trim(),
             footerText:       document.getElementById('boostFooter').value.trim(),
             color,
-            showMember:       document.getElementById('boostShowMember').checked,
             showMulaiBoost:   document.getElementById('boostShowMulaiBoost').checked,
             showTotalBoost:   document.getElementById('boostShowTotalBoost').checked,
             showLevelServer:  document.getElementById('boostShowLevelServer').checked,
@@ -800,7 +799,7 @@ async function saveBoost() {
             cardTitleColor:     document.getElementById('boostCardTitleColor')?.value.trim()    || '#ffffff',
             cardUsernameColor:  document.getElementById('boostCardUsernameColor')?.value.trim() || '#FF73FA',
             cardMsgColor:       document.getElementById('boostCardMsgColor')?.value.trim()      || '#cccccc',
-            cardFont:           document.getElementById('boostCardFont')?.value                 || 'impact',
+            cardFont:           document.getElementById('boostCardFont')?.value                 || 'poppins',
         })
     });
     const data = await res.json();
@@ -885,6 +884,7 @@ function mbInlineCount(inputId, countId) {
     ct.className = 'input-inline-count' + (len >= max ? ' danger' : len >= max * 0.9 ? ' warn' : '');
 }
 document.addEventListener('DOMContentLoaded', () => {
+    toggleBoostType();
     document.querySelectorAll('.mb-auto-resize').forEach(mbResizeArea);
     mbUpdateCount('boostPlainText',        'boostPlainCount');
     mbInlineCount('boostTitle',            'boostTitleCount');
