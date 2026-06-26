@@ -39,7 +39,7 @@ function readGoodbyeConfig(db, guildId) {
         cardUsernameColor:   db.get(`goodbye-cardUsernameColor-${g}`)|| cardAccentColor,
         cardMsgColor:        db.get(`goodbye-cardMsgColor-${g}`)     ?? '#cccccc',
         cardFont:            db.get(`goodbye-cardFont-${g}`)         ?? 'impact',
-        cardLayout:          db.get(`goodbye-cardLayout-${g}`)       ?? 'banner',
+        cardLayout:          db.get(`goodbye-cardLayout-${g}`)       ?? 'classic',
         embedImageUrl:       db.get(`goodbye-embedImageUrl-${g}`)    ?? '',
     };
 }

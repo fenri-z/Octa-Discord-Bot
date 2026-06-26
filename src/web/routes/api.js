@@ -274,8 +274,8 @@ router.post('/guild/:guildId/welcome', requireLogin, requireManageGuild, vNotifF
     db.set(`welcome-cardTitleColor-${guildId}`,     hexRe.test(cardTitleColor)     ? cardTitleColor     : '#ffffff');
     db.set(`welcome-cardUsernameColor-${guildId}`,  hexRe.test(cardUsernameColor)  ? cardUsernameColor  : '#5865F2');
     db.set(`welcome-cardMsgColor-${guildId}`,       hexRe.test(cardMsgColor)       ? cardMsgColor       : '#cccccc');
-    db.set(`welcome-cardFont-${guildId}`,           ['impact','arial','georgia','courier','verdana'].includes(cardFont) ? cardFont : 'impact');
-    db.set(`welcome-cardLayout-${guildId}`,         ['banner','classic'].includes(cardLayout) ? cardLayout : 'banner');
+    db.set(`welcome-cardFont-${guildId}`,           ['impact','arial','georgia','courier','verdana','discord','bebasnew','montserrat','poppins','oswald','orbitron','russoone','exo2','rajdhani'].includes(cardFont) ? cardFont : 'poppins');
+    db.set(`welcome-cardLayout-${guildId}`,         ['classic','left','right'].includes(cardLayout) ? cardLayout : 'classic');
     db.set(`welcome-embedImageUrl-${guildId}`,      (embedImageUrl || '').trim().slice(0, 500));
 
     guildCache.del(`welcome-cfg-${guildId}`);
@@ -357,8 +357,8 @@ router.post('/guild/:guildId/goodbye', requireLogin, requireManageGuild, vNotifF
     db.set(`goodbye-cardTitleColor-${guildId}`,         cardTitleColor?.trim()   || '#ffffff');
     db.set(`goodbye-cardUsernameColor-${guildId}`,      cardUsernameColor?.trim() || '');
     db.set(`goodbye-cardMsgColor-${guildId}`,           cardMsgColor?.trim()     || '#cccccc');
-    db.set(`goodbye-cardFont-${guildId}`,               cardFont                 || 'impact');
-    db.set(`goodbye-cardLayout-${guildId}`,             ['banner','classic'].includes(cardLayout) ? cardLayout : 'banner');
+    db.set(`goodbye-cardFont-${guildId}`,               ['impact','arial','georgia','courier','verdana','discord','bebasnew','montserrat','poppins','oswald','orbitron','russoone','exo2','rajdhani'].includes(cardFont) ? cardFont : 'poppins');
+    db.set(`goodbye-cardLayout-${guildId}`,             ['classic','left','right'].includes(cardLayout) ? cardLayout : 'classic');
     db.set(`goodbye-embedImageUrl-${guildId}`,          (embedImageUrl || '').trim().slice(0, 500));
 
     // Fields
@@ -472,8 +472,8 @@ router.post('/guild/:guildId/booster-boost', requireLogin, requireManageGuild, (
     if (cardTitleColor)     db.set(`booster-boost-cardTitleColor-${guildId}`,     cardTitleColor);
     if (cardUsernameColor)  db.set(`booster-boost-cardUsernameColor-${guildId}`,  cardUsernameColor);
     if (cardMsgColor)       db.set(`booster-boost-cardMsgColor-${guildId}`,       cardMsgColor);
-    if (cardFont)           db.set(`booster-boost-cardFont-${guildId}`,           cardFont);
-    db.set(`booster-boost-cardLayout-${guildId}`, ['banner','classic'].includes(cardLayout) ? cardLayout : 'banner');
+    db.set(`booster-boost-cardFont-${guildId}`,           ['impact','arial','georgia','courier','verdana','discord','bebasnew','montserrat','poppins','oswald','orbitron','russoone','exo2','rajdhani'].includes(cardFont) ? cardFont : 'poppins');
+    db.set(`booster-boost-cardLayout-${guildId}`, ['classic','left','right'].includes(cardLayout) ? cardLayout : 'classic');
     db.set(`booster-boost-embedImageUrl-${guildId}`, (embedImageUrl || '').trim().slice(0, 500));
     if (channelId)  db.set(`booster-boost-channel-${guildId}`,   channelId);
     else            db.delete(`booster-boost-channel-${guildId}`);
@@ -542,8 +542,8 @@ router.post('/guild/:guildId/booster-unboost', requireLogin, requireManageGuild,
     if (cardTitleColor)     db.set(`booster-unboost-cardTitleColor-${guildId}`,     cardTitleColor);
     if (cardUsernameColor)  db.set(`booster-unboost-cardUsernameColor-${guildId}`,  cardUsernameColor);
     if (cardMsgColor)       db.set(`booster-unboost-cardMsgColor-${guildId}`,       cardMsgColor);
-    if (cardFont)           db.set(`booster-unboost-cardFont-${guildId}`,           cardFont);
-    db.set(`booster-unboost-cardLayout-${guildId}`, ['banner','classic'].includes(cardLayout) ? cardLayout : 'banner');
+    db.set(`booster-unboost-cardFont-${guildId}`,           ['impact','arial','georgia','courier','verdana','discord','bebasnew','montserrat','poppins','oswald','orbitron','russoone','exo2','rajdhani'].includes(cardFont) ? cardFont : 'poppins');
+    db.set(`booster-unboost-cardLayout-${guildId}`, ['classic','left','right'].includes(cardLayout) ? cardLayout : 'classic');
     db.set(`booster-unboost-embedImageUrl-${guildId}`, (embedImageUrl || '').trim().slice(0, 500));
     if (channelId)  db.set(`booster-unboost-channel-${guildId}`,   channelId);
     else            db.delete(`booster-unboost-channel-${guildId}`);

@@ -1,46 +1,84 @@
 # OCTA BOT
 
-Discord bot berbasis **discord.js v14** dengan web dashboard, ditulis sepenuhnya dalam JavaScript.
+A feature-rich Discord bot built with **discord.js v14** and a web dashboard, written entirely in JavaScript.
 
-## Fitur
+## Features
 
-- Handler commands, components, dan events berbasis discord.js v14
-- Mendukung semua tipe command:
-  - Message commands
-  - Application commands (Chat Input, User Context, Message Context)
-- Handler components: Buttons, Select Menus, Modals, Autocomplete
-- Database SQLite via `better-sqlite3` (key-value store)
-- Web dashboard dengan Discord OAuth2 login
-- Fitur dashboard:
-  - Welcome & Goodbye messages (dengan preview live)
-  - Autorole
-  - Server booster reward
-  - Message Builder
-  - Server Stats (channel statistik anggota)
-  - Invite Links (monitor semua invite server)
+### Moderation
+- Ban, kick, mute, warn members
+- Auto-moderation (word/spam filter)
+- Moderation log (audit trail)
+- Anti-raid protection on member join
 
-## Dependensi
+### Utility
+- Welcome & Goodbye messages with custom image cards
+- Autorole: on join, button-based, reaction-based, booster-based
+- AFK system
+- XP / leveling system with rank cards
+- Leaderboard
+- Giveaway system
+- Poll system
+- Ticket system
+- Server stats channels (member count, etc.)
+- Invite link monitor
+- Starboard
+- Custom commands per server
+- Activity / extended logging (voice, message deletes, member changes)
+- Language selection per server (English & Indonesian)
+
+### Live Notifications
+- YouTube live / new video notifications
+- Twitch live notifications
+- TikTok live notifications
+
+### Web Dashboard
+- Discord OAuth2 login
+- Manage all bot settings per server from a browser
+- Live preview for welcome & goodbye cards
+- Message Builder (custom embed sender)
+- Owner panel: server list, database viewer, broadcast, blacklist, backup, eval, logs, config
+
+### Technical Highlights
+- Slash commands, user context, message context, and prefix (message) commands
+- Component handlers: Buttons, Select Menus, Modals, Autocomplete
+- SQLite database via `better-sqlite3` (persistent, no separate DB server needed)
+- SQLite-backed session store (sessions survive bot restarts)
+- Image processing with `sharp` (rank cards, welcome/goodbye cards)
+- i18n support via `i18next` (English & Indonesian)
+- Google Drive integration for automated database backups
+- ImgBB integration for image hosting
+
+## Dependencies
 
 ```
-discord.js        ^14.x
-better-sqlite3    latest
-dotenv            latest
-colors            latest
-express           latest
-express-session   latest
-passport          latest
-passport-discord  latest
-ejs               latest
-compression       latest
+discord.js              ^14.x
+better-sqlite3          latest
+dotenv                  latest
+colors                  latest
+express                 latest
+express-session         latest
+express-validator       latest
+passport                latest
+passport-discord        latest
+ejs                     latest
+compression             latest
+sharp                   latest
+i18next                 latest
+i18next-fs-backend      latest
+i18next-http-middleware latest
+multer                  latest
+googleapis              latest
+tiktok-live-connector   latest
+pm2                     latest
 ```
 
-> Node.js v18 atau lebih baru direkomendasikan.
+> Node.js v18 or newer is required.
 
-## Setup Cepat
+## Quick Setup
 
-Lihat **[SETUP.md](./SETUP.md)** untuk panduan lengkap instalasi dan deployment ke VPS.
+See **[SETUP.md](./SETUP.md)** for the full installation and VPS deployment guide.
 
-## Struktur Command
+## Command Structure
 
 ### Application Command (Slash Command):
 
@@ -78,6 +116,6 @@ new MessageCommand({
 });
 ```
 
-## Lisensi
+## License
 
 [GPL-3.0](./LICENSE)

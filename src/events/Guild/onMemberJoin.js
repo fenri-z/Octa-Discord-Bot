@@ -38,7 +38,7 @@ function readWelcomeConfig(db, guildId) {
         cardUsernameColor:  db.get(`welcome-cardUsernameColor-${g}`)|| cardAccent,
         cardMsgColor:       db.get(`welcome-cardMsgColor-${g}`)     ?? '#cccccc',
         cardFont:           db.get(`welcome-cardFont-${g}`)         ?? 'impact',
-        cardLayout:         db.get(`welcome-cardLayout-${g}`)       ?? 'banner',
+        cardLayout:         db.get(`welcome-cardLayout-${g}`)       ?? 'classic',
         plainText:          db.get(`welcome-plainText-${g}`)        ?? '',
         thumbnail:          bool(db, `welcome-thumbnail-${g}`, false),
         embedImageUrl:      db.get(`welcome-embedImageUrl-${g}`)    ?? '',

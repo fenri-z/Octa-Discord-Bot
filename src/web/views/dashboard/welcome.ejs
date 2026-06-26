@@ -212,17 +212,24 @@
                         </div>
                         <div class="form-group">
                             <label class="label"><%= t('card_image.font_label') %></label>
-                            <select id="cardFont" class="select" style="font-size:.82rem;">
-                                <% [['impact','Impact'],['arial','Arial'],['georgia','Georgia'],['courier','Courier New'],['verdana','Verdana'],['discord','Discord (GG Sans)'],['bebasnew','Bebas Neue'],['montserrat','Montserrat'],['poppins','Poppins'],['oswald','Oswald'],['orbitron','Orbitron'],['russoone','Russo One'],['exo2','Exo 2'],['rajdhani','Rajdhani']].forEach(function(f){ %>
-                                    <option value="<%= f[0] %>" <%= (welcomeData.cardFont||'poppins')===f[0]?'selected':'' %>><%= f[1] %></option>
-                                <% }) %>
-                            </select>
+                            <div class="font-picker" id="cardFont-picker">
+                                <button type="button" class="font-picker-trigger">
+                                    <span class="font-picker-label">Poppins</span>
+                                </button>
+                                <div class="font-picker-list" hidden>
+                                    <% [['poppins','Poppins',"'Poppins',Arial,sans-serif"],['impact','Impact',"Impact,'Arial Black',sans-serif"],['arial','Arial','Arial,Helvetica,sans-serif'],['georgia','Georgia',"Georgia,'Times New Roman',serif"],['courier','Courier New',"'Courier New',Courier,monospace"],['verdana','Verdana','Verdana,Geneva,sans-serif'],['discord','Discord (GG Sans)',"'GG Sans',Whitney,Inter,'Noto Sans','Helvetica Neue',Arial,sans-serif"],['bebasnew','Bebas Neue',"'Bebas Neue',Impact,sans-serif"],['montserrat','Montserrat',"'Montserrat',Arial,sans-serif"],['oswald','Oswald',"'Oswald',Arial,sans-serif"],['orbitron','Orbitron',"'Orbitron',Arial,sans-serif"],['russoone','Russo One',"'Russo One',Impact,sans-serif"],['exo2','Exo 2',"'Exo 2',Arial,sans-serif"],['rajdhani','Rajdhani',"'Rajdhani',Arial,sans-serif"]].forEach(function(f){ %>
+                                        <div class="fp-item" data-value="<%= f[0] %>" style="font-family:<%= f[2] %>"><%= f[1] %></div>
+                                    <% }); %>
+                                </div>
+                            </div>
+                            <input type="hidden" id="cardFont" value="<%= welcomeData.cardFont || 'poppins' %>">
                         </div>
                         <div class="form-group">
                             <label class="label"><%= t('card_image.card_layout') %></label>
                             <select id="cardLayout" class="select" style="font-size:.82rem;">
-                                <option value="banner" <%= (welcomeData.cardLayout||'banner')==='banner'?'selected':'' %>><%= t('card_image.layout_banner') %></option>
-                                <option value="classic" <%= welcomeData.cardLayout==='classic'?'selected':'' %>><%= t('card_image.layout_classic') %></option>
+                                <option value="classic" <%= (welcomeData.cardLayout||'classic')==='classic'?'selected':'' %>><%= t('card_image.layout_classic') %></option>
+                                <option value="left" <%= welcomeData.cardLayout==='left'?'selected':'' %>><%= t('card_image.layout_left') %></option>
+                                <option value="right" <%= welcomeData.cardLayout==='right'?'selected':'' %>><%= t('card_image.layout_right') %></option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -370,7 +377,7 @@
                     </div>
                     <!-- Card preview (above message) -->
                     <div id="cardPreviewWrap" style="display:none;padding:.75rem 1rem .25rem;">
-                        <canvas id="cardCanvas" width="1024" height="420"
+                        <canvas id="cardCanvas" width="900" height="450"
                                 style="width:100%;border-radius:12px;display:block;"></canvas>
                         <div style="font-size:.7rem;color:#80848e;margin-top:.3rem;text-align:right;">Welcome Card Preview</div>
                     </div>
@@ -887,30 +894,35 @@ async function drawCardPreview() {
     }
 
     // ── Layout params (mirror generateCard.js) ────────────────────────────
-    const isBanner = (document.getElementById('cardLayout')?.value || 'banner') !== 'classic';
-    const AS = isBanner ? Math.round(185*W/1024) : Math.round(195*W/1024);
-    const BD = isBanner ? Math.round(8*W/1024)   : Math.round(6*W/1024);
+    const _layout = document.getElementById('cardLayout')?.value || 'classic';
+    const isClassic = _layout !== 'left' && _layout !== 'right';
+    const isRight   = _layout === 'right';
+    const AS = isClassic ? Math.round(185*W/900) : Math.round(195*W/900);
+    const BD = isClassic ? Math.round(8*W/900)   : Math.round(6*W/900);
     const BT = AS + BD*2;
-    const avL = isBanner ? Math.round((W-BT)/2)  : Math.round(45*W/1024);
-    const avT = isBanner ? 25 : Math.round((H-BT)/2);
+    const avL = isClassic ? Math.round((W-BT)/2) : isRight ? W-BT-Math.round(65*W/900) : Math.round(65*W/900);
+    const avT = isClassic ? 25 : Math.round((H-BT)/2);
     const isSquare = shape === 'square';
 
     // ── Decorative circles ────────────────────────────────────────────────
     if (bgType !== 'transparent') {
         ctx.globalAlpha = 0.07; ctx.fillStyle = accent;
-        if (isBanner) {
+        if (isClassic) {
             ctx.beginPath(); ctx.arc(80, 80, 120, 0, Math.PI*2); ctx.fill();
             ctx.beginPath(); ctx.arc(W-80, H-80, 100, 0, Math.PI*2); ctx.fill();
+        } else if (isRight) {
+            ctx.beginPath(); ctx.arc(60, 40, 80, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(20, H-Math.round(20*H/450), Math.round(60*W/900), 0, Math.PI*2); ctx.fill();
         } else {
             ctx.beginPath(); ctx.arc(W-60, 40, 80, 0, Math.PI*2); ctx.fill();
-            ctx.beginPath(); ctx.arc(W-Math.round(20*W/1024), H-Math.round(20*H/500), Math.round(60*W/1024), 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(W-Math.round(20*W/900), H-Math.round(20*H/450), Math.round(60*W/900), 0, Math.PI*2); ctx.fill();
         }
         ctx.globalAlpha = 1;
     }
 
     // ── Avatar border ─────────────────────────────────────────────────────
     ctx.fillStyle = accent;
-    if (isSquare) { rr(avL, avT, BT, BT, isBanner ? 20 : 14); ctx.fill(); }
+    if (isSquare) { rr(avL, avT, BT, BT, isClassic ? 20 : 14); ctx.fill(); }
     else { ctx.beginPath(); ctx.arc(avL+BT/2, avT+BT/2, BT/2, 0, Math.PI*2); ctx.fill(); }
 
     // ── Avatar image ──────────────────────────────────────────────────────
@@ -919,14 +931,14 @@ async function drawCardPreview() {
         const avImg = new Image();
         avImg.onload = () => {
             ctx.save();
-            if (isSquare) { rr(avL+BD, avT+BD, AS, AS, isBanner ? 16 : 10); ctx.clip(); }
+            if (isSquare) { rr(avL+BD, avT+BD, AS, AS, isClassic ? 16 : 10); ctx.clip(); }
             else { ctx.beginPath(); ctx.arc(avL+BD+AS/2, avT+BD+AS/2, AS/2, 0, Math.PI*2); ctx.clip(); }
             ctx.drawImage(avImg, avL+BD, avT+BD, AS, AS);
             ctx.restore(); resAvatar();
         };
         avImg.onerror = () => {
             ctx.fillStyle = '#5a6070';
-            if (isSquare) { rr(avL+BD, avT+BD, AS, AS, isBanner ? 16 : 10); ctx.fill(); }
+            if (isSquare) { rr(avL+BD, avT+BD, AS, AS, isClassic ? 16 : 10); ctx.fill(); }
             else { ctx.beginPath(); ctx.arc(avL+BD+AS/2, avT+BD+AS/2, AS/2, 0, Math.PI*2); ctx.fill(); }
             const cx = avL+BD+AS/2, cy = avT+BD+AS/2;
             ctx.fillStyle = '#8892a4';
@@ -938,10 +950,10 @@ async function drawCardPreview() {
     });
 
     // ── Text ──────────────────────────────────────────────────────────────
-    if (isBanner) {
+    if (isClassic) {
         const CX = W/2;
-        const TITLE_Y = 305, USER_Y = 352, SUB_Y = 390;
-        const TEXT_W  = W - Math.round(120*W/1024);
+        const TITLE_Y = 327, USER_Y = 377, SUB_Y = 418;
+        const TEXT_W  = W - Math.round(120*W/900);
         let titleFs = 72;
         ctx.font = `bold ${titleFs}px ${fontFam}`;
         while (titleFs > 14 && ctx.measureText(bigText).width > TEXT_W) { titleFs -= 2; ctx.font = `bold ${titleFs}px ${fontFam}`; }
@@ -958,10 +970,28 @@ async function drawCardPreview() {
         ctx.font = `600 20px ${fontFam}`; ctx.fillStyle = msgClr;
         ctx.fillText(sub, CX, SUB_Y, TEXT_W);
         ctx.textAlign = 'left';
+    } else if (isRight) {
+        const TX = Math.round(40*W/900);
+        const availW = avL - Math.round(50*W/900) - TX;
+        const TITLE_Y = 207, USER_Y = 258, SUB_Y = 300;
+        let titleFs = 84;
+        ctx.font = `bold ${titleFs}px ${fontFam}`;
+        while (titleFs > 14 && ctx.measureText(bigText).width > availW) { titleFs -= 2; ctx.font = `bold ${titleFs}px ${fontFam}`; }
+        const titleLsR = titleFs < 52 ? 0 : 3;
+        if ('letterSpacing' in ctx) ctx.letterSpacing = titleLsR + 'px';
+        ctx.fillStyle = titleClr; ctx.globalAlpha = 0.35;
+        ctx.fillText(bigText, TX, TITLE_Y, availW);
+        ctx.globalAlpha = 1; ctx.fillText(bigText, TX, TITLE_Y, availW);
+        if ('letterSpacing' in ctx) ctx.letterSpacing = '0px';
+        ctx.font = `700 34px ${fontFam}`;
+        ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillText(SAMPLE.username, TX, USER_Y+2, availW);
+        ctx.fillStyle = userClr; ctx.fillText(SAMPLE.username, TX, USER_Y, availW);
+        ctx.font = `600 26px ${fontFam}`; ctx.fillStyle = msgClr;
+        ctx.fillText(sub, TX, SUB_Y, availW);
     } else {
-        const TX = avL + BT + Math.round(50*W/1024);
-        const availW = W - TX - 20;
-        const TITLE_Y = 192, USER_Y = 238, SUB_Y = 275;
+        const TX = avL + BT + Math.round(50*W/900);
+        const availW = W - TX - 40;
+        const TITLE_Y = 207, USER_Y = 258, SUB_Y = 300;
         let titleFs = 84;
         ctx.font = `bold ${titleFs}px ${fontFam}`;
         while (titleFs > 14 && ctx.measureText(bigText).width > availW) { titleFs -= 2; ctx.font = `bold ${titleFs}px ${fontFam}`; }
@@ -974,7 +1004,7 @@ async function drawCardPreview() {
         ctx.font = `700 34px ${fontFam}`;
         ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillText(SAMPLE.username, TX, USER_Y+2, availW);
         ctx.fillStyle = userClr; ctx.fillText(SAMPLE.username, TX, USER_Y, availW);
-        ctx.font = `600 22px ${fontFam}`; ctx.fillStyle = msgClr;
+        ctx.font = `600 26px ${fontFam}`; ctx.fillStyle = msgClr;
         ctx.fillText(sub, TX, SUB_Y, availW);
     }
 
@@ -1292,7 +1322,7 @@ async function saveWelcome(guildId) {
         cardTextColor:      document.getElementById('cardTitleColor')?.value.trim()    || '#ffffff',
         cardAvatarShape:    document.getElementById('cardAvatarShape')?.value || 'circle',
         cardBgType:         document.getElementById('cardBgType')?.value      || 'gradient',
-        cardLayout:         document.getElementById('cardLayout')?.value || 'banner',
+        cardLayout:         document.getElementById('cardLayout')?.value || 'classic',
         cardBgImageUrl:     document.getElementById('cardBgImageUrl')?.value.trim()    || '',
         cardOverlayColor:   document.getElementById('cardOverlayColor')?.value.trim()  || '#000000',
         cardOverlayOpacity: parseInt(document.getElementById('cardOverlayOpacity')?.value || '0'),
@@ -1347,6 +1377,7 @@ document.addEventListener('DOMContentLoaded', () => {
     mbInlineCount('welcomeFooter',      'welcomeFooterCount');
     mbInlineCount('cardWelcomeText',    'cardWelcomeTextCount');
     mbInlineCount('cardSubText',        'cardSubTextCount');
+    if (window.initFontPicker) initFontPicker(document.getElementById('cardFont-picker'), document.getElementById('cardFont'));
 });
 
 window._floatSave = () => saveWelcome('<%= guild.id %>');

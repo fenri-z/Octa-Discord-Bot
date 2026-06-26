@@ -1,98 +1,191 @@
 # OCTA BOT — Setup & Deployment Guide
 
-## 1. Install dependencies
+## Prerequisites
 
-```bash
-npm install discord.js better-sqlite3 dotenv colors express express-session passport passport-discord ejs compression
-```
+- Node.js v18 or newer
+- A Discord application and bot token from the [Discord Developer Portal](https://discord.com/developers/applications)
 
-## 2. Konfigurasi file
-
-Rename file-file berikut:
-
-```
-src/example.config.js  →  src/config.js
-.env.example           →  .env
-```
-
-Isi nilai yang diperlukan di `config.js` dan `.env`.
-
-## 3. Variabel .env
-
-```env
-# Discord Bot
-TOKEN="..."             # Bot token dari Discord Developer Portal
-CLIENT_ID="..."         # Application ID
-CLIENT_SECRET="..."     # OAuth2 secret dari Discord Developer Portal → OAuth2 → General
-
-# Web Dashboard
-CALLBACK_URL="http://localhost:3000/auth/callback"
-WEB_PORT=3000
-SESSION_SECRET="..."    # String random — generate dengan:
-                        # node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
-NODE_ENV="development"
-```
-
-## 4. Daftarkan Redirect URI di Discord Developer Portal
-
-1. Buka https://discord.com/developers/applications
-2. Pilih aplikasi botmu → **OAuth2 → General**
-3. Di bagian **Redirects**, tambahkan:
-   - `http://localhost:3000/auth/callback` (development)
-   - `https://domainmu.com/auth/callback` (production)
-4. Klik **Save Changes**
-
-## 5. Jalankan bot (development)
-
-```bash
-node .
-```
-
-Bot dan dashboard berjalan bersamaan. Dashboard bisa diakses di: http://localhost:3000
+> **Note:** `better-sqlite3` and `sharp` are native Node.js modules. On most systems they install from prebuilt binaries automatically. If the build fails, install `build-essential` and `python3` first (`apt install -y build-essential python3`).
 
 ---
 
-## Deploy ke VPS (Production)
-
-### A. Install dependensi VPS
+## 1. Install Dependencies
 
 ```bash
-apt update && apt install -y nodejs npm nginx certbot python3-certbot-nginx
-npm install -g pm2
-```
-
-### B. Upload & install proyek
-
-```bash
-# Contoh pakai git:
-git clone <repo-url> /root/OCTA-BOT
-cd /root/OCTA-BOT
 npm install
 ```
 
-### C. Update .env untuk production
+---
 
-```env
-CALLBACK_URL="https://domainmu.com/auth/callback"
-NODE_ENV="production"
-WEB_PORT=3000
+## 2. Install Fonts
+
+The card generator (welcome/goodbye/rank/booster cards) renders text using system fonts. Run the included script to install all required fonts:
+
+```bash
+sudo bash scripts/install-fonts.sh
 ```
 
-### D. Jalankan dengan PM2
+This installs:
+- **System fonts**: Arial, Impact, Georgia, Verdana, Courier New (via `ttf-mscorefonts-installer`), Inter, Liberation
+- **Google Fonts**: Bebas Neue, Montserrat, Poppins, Oswald, Orbitron, Russo One, Exo 2, Rajdhani
+
+> If you skip this step, cards will still generate but will fall back to generic sans-serif fonts instead of the selected font style.
+
+---
+
+## 3. Configure the Bot
+
+### `src/config.js`
+
+Open `src/config.js` and fill in the following values:
+
+| Field | Description |
+|---|---|
+| `development.guildId` | Guild ID used when `development.enabled` is `true` (commands register to this guild only, for faster testing) |
+| `development.devGuildId` | Private guild ID for owner-only commands (these are never registered globally) |
+| `commands.prefix` | Prefix for message (text) commands |
+| `users.ownerId` | Your Discord user ID |
+| `users.developers` | Array of developer Discord user IDs |
+
+### `.env`
+
+Create a `.env` file in the project root and fill in the required values:
+
+```env
+# ── Discord Bot ────────────────────────────────────────────
+CLIENT_TOKEN="..."          # Bot token from Discord Developer Portal
+CLIENT_ID="..."             # Application ID
+DEV_GUILD_ID="..."          # Your private/dev guild ID
+
+# ── Web Dashboard ──────────────────────────────────────────
+CLIENT_SECRET="..."         # OAuth2 secret (Discord Developer Portal → OAuth2 → General)
+CALLBACK_URL="http://localhost:3000/auth/callback"
+WEB_PORT=3000
+SESSION_SECRET="..."        # Long random string — generate with:
+                            # node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+OWNER_PIN="..."             # PIN to access the owner dashboard panel
+NODE_ENV="development"      # You can change it to production if you want to
+BASE_URL="http://localhost:3000"
+
+# ── YouTube Notifications ──────────────────────────────────
+YOUTUBE_WEBSUB_SECRET="..."     # Any random secret string for WebSub verification
+YOUTUBE_API_KEY="..."           # Google Cloud API key with YouTube Data API v3 enabled
+
+# ── Twitch Notifications ───────────────────────────────────
+TWITCH_CLIENT_ID="..."
+TWITCH_CLIENT_SECRET="..."
+
+# ── Kick Notifications ─────────────────────────────────────
+KICK_CLIENT_ID="..."
+KICK_CLIENT_SECRET="..."
+
+# ── Misc ───────────────────────────────────────────────────
+REPORT_WEBHOOK_URL="..."    # Discord webhook URL for bug reports from the web
+
+# ── Google Drive Backup ────────────────────────────────────
+GDRIVE_OAUTH_PATH="./credentials/oauth2.json"   # Path to Google OAuth2 credentials file
+GDRIVE_TOKEN_PATH="./credentials/token.json"    # Path to saved Google access token
+GDRIVE_FOLDER_ID="..."      # Google Drive folder ID to upload backups to
+
+# ── Image Hosting ──────────────────────────────────────────
+IMGBB_API_KEY="..."         # API key from imgbb.com (used to host card images)
+```
+
+> Variables for optional features (YouTube, Twitch, Kick, Google Drive, ImgBB) can be left blank if you don't use those features.
+
+---
+
+## 4. Register Redirect URI in Discord Developer Portal
+
+1. Go to [https://discord.com/developers/applications](https://discord.com/developers/applications)
+2. Select your application → **OAuth2 → General**
+3. Under **Redirects**, add:
+   - `http://localhost:3000/auth/callback` (development)
+   - `https://yourdomain.com/auth/callback` (production)
+4. Click **Save Changes**
+
+---
+
+## 5. Run the Bot (Development)
+
+```bash
+node .
+# or
+npm start
+```
+
+The bot and dashboard run together. The dashboard is accessible at `http://localhost:3000`.
+
+### Other Scripts
+
+```bash
+npm run clear-commands   # Remove all registered application commands
+```
+
+---
+
+## Deploy to VPS (Production)
+
+### A. Install Node.js v18+
+
+`apt install nodejs` on Ubuntu typically installs an outdated version. Use NodeSource instead:
+
+```bash
+curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
+apt install -y nodejs
+node -v   # should print v22.x.x or similar
+```
+
+### B. Install System Dependencies
+
+```bash
+apt update && apt install -y \
+  build-essential python3 \
+  nginx certbot python3-certbot-nginx \
+  fontconfig unzip
+```
+
+> `build-essential` and `python3` are needed if `better-sqlite3` or `sharp` need to compile from source. `fontconfig` is required for the font installer script.
+
+### C. Upload & Install the Project
+
+```bash
+# Using git:
+git clone https://github.com/fenri-z/Octa-Discord-Bot.git /user/octa-bot
+cd /user/octa-bot
+npm install
+```
+
+### D. Install Fonts
+
+```bash
+sudo bash scripts/install-fonts.sh
+```
+
+### E. Update `.env` for Production
+
+```env
+CALLBACK_URL="https://yourdomain.com/auth/callback"
+NODE_ENV="production"
+WEB_PORT=3000
+BASE_URL="https://yourdomain.com"
+```
+
+### F. Run with PM2
 
 ```bash
 pm2 start src/index.js --name octa-bot
 pm2 save
-pm2 startup   # ikuti instruksi yang muncul
+pm2 startup   # follow the printed instructions
 ```
 
-### E. Setup Nginx sebagai reverse proxy
+### G. Set Up Nginx as a Reverse Proxy
 
-Buat file `/etc/nginx/sites-available/octabot`:
+Create `/etc/nginx/sites-available/octabot`:
 
 ```nginx
 server {
-    server_name domainmu.com www.domainmu.com;
+    server_name yourdomain.com www.yourdomain.com;
 
     location / {
         proxy_pass         http://localhost:3000;
@@ -113,56 +206,75 @@ ln -s /etc/nginx/sites-available/octabot /etc/nginx/sites-enabled/
 nginx -t && systemctl reload nginx
 ```
 
-### F. Aktifkan HTTPS (Let's Encrypt)
+### H. Enable HTTPS (Let's Encrypt)
 
 ```bash
-certbot --nginx -d domainmu.com -d www.domainmu.com
+certbot --nginx -d yourdomain.com -d www.yourdomain.com
 ```
 
-### G. Update Redirect URI di Discord Developer Portal
+### I. Update Redirect URI in Discord Developer Portal
 
-Ganti `http://localhost:3000/auth/callback` dengan `https://domainmu.com/auth/callback`
+Replace `http://localhost:3000/auth/callback` with `https://yourdomain.com/auth/callback`.
 
 ---
 
-## Struktur file web
+## Project Structure
 
 ```
 src/
 ├── index.js
 ├── config.js
-├── utils/
-│   └── SQLiteSessionStore.js   ← Session store SQLite (menggantikan MemoryStore)
+├── client/
+│   ├── DiscordBot.js               ← Extended Discord.js Client
+│   └── handler/
+│       ├── CommandsHandler.js
+│       ├── CommandsListener.js
+│       ├── ComponentsHandler.js
+│       ├── ComponentsListener.js
+│       └── EventsHandler.js
+├── commands/
+│   ├── Developer/                  ← Owner-only commands (eval, reload, restart)
+│   ├── Information/                ← help, userinfo
+│   ├── Moderation/                 ← ban, kick, mute, warn, automod, modlog, etc.
+│   └── Utility/                    ← welcome, goodbye, autorole, leveling, giveaway, ticket, etc.
+├── components/
+│   ├── autocomplete/
+│   ├── Button/
+│   ├── Modal/
+│   └── SelectMenu/
+├── events/
+│   ├── Client/
+│   └── Guild/
+├── locales/
+│   ├── en.js                       ← English bot locale
+│   └── id.js                       ← Indonesian bot locale
+├── structure/                      ← Base classes (ApplicationCommand, MessageCommand, etc.)
+├── utils/                          ← Helpers (DB, image gen, notifiers, cache, etc.)
 └── web/
-    ├── server.js               ← Express app utama
+    ├── server.js                   ← Express app
+    ├── middleware/
     ├── routes/
-    │   ├── auth.js             ← Login/logout Discord OAuth2
-    │   ├── dashboard.js        ← Halaman-halaman dashboard
-    │   └── api.js              ← REST API simpan settings
+    │   ├── auth.js                 ← Discord OAuth2 login/logout
+    │   ├── dashboard.js            ← Dashboard pages
+    │   ├── api.js                  ← REST API for saving settings
+    │   ├── owner.js                ← Owner panel routes
+    │   └── webhook.js              ← Webhook receiver (YouTube WebSub, etc.)
     ├── views/
-    │   ├── index.ejs           ← Landing page
-    │   ├── error.ejs           ← Halaman error
-    │   ├── partials/
-    │   │   ├── head.ejs
-    │   │   ├── navbar.ejs
-    │   │   └── footer.ejs
-    │   └── dashboard/
-    │       ├── servers.ejs     ← Pilih server
-    │       ├── home.ejs        ← Overview server
-    │       ├── welcome.ejs     ← Settings welcome message
-    │       ├── goodbye.ejs     ← Settings goodbye message
-    │       ├── autorole.ejs    ← Settings autorole
-    │       ├── booster.ejs     ← Settings booster reward
-    │       ├── message-builder.ejs  ← Kirim embed custom
-    │       ├── serverstats.ejs ← Settings server stats channels
-    │       └── invites.ejs     ← Monitor invite links server
+    │   ├── dashboard/              ← Per-feature settings pages
+    │   ├── owner/                  ← Owner panel pages
+    │   ├── pages/                  ← Public pages (ToS, Privacy, Bug Report, Commands)
+    │   └── partials/
     └── public/
         ├── css/style.css
         └── js/dashboard.js
 ```
 
-## Catatan Production
+---
 
-- Session disimpan di SQLite (`database.db`) — tidak akan hilang saat bot restart
-- `app.set('trust proxy', 1)` sudah terpasang — wajib agar cookie `secure: true` berfungsi di belakang Nginx
-- Ganti `SESSION_SECRET` dengan string random yang panjang dan simpan aman
+## Production Notes
+
+- Sessions are stored in SQLite (`data/database.db`) — they persist across bot restarts.
+- `app.set('trust proxy', 1)` is set — required for `secure: true` cookies to work behind Nginx.
+- Use a long, random `SESSION_SECRET` and keep it private.
+- Database backups can be automated to Google Drive via the owner dashboard.
+- Rank cards and welcome/goodbye cards are generated server-side using `sharp`.

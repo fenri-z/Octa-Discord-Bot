@@ -50,7 +50,7 @@ function _buildBoosterConfig(client, guildId) {
         boostCardUsernameColor: client.database.get(`booster-boost-cardUsernameColor-${guildId}`) ?? '#FF73FA',
         boostCardMsgColor:      client.database.get(`booster-boost-cardMsgColor-${guildId}`)      ?? '#cccccc',
         boostCardFont:          client.database.get(`booster-boost-cardFont-${guildId}`)          ?? 'impact',
-        boostCardLayout:        client.database.get(`booster-boost-cardLayout-${guildId}`)        ?? 'banner',
+        boostCardLayout:        client.database.get(`booster-boost-cardLayout-${guildId}`)        ?? 'classic',
         boostEmbedImageUrl:     client.database.get(`booster-boost-embedImageUrl-${guildId}`)     ?? '',
 
         unboostEnabled:         getBool(client, `booster-unboost-enabled-${guildId}`,        false),
@@ -80,7 +80,7 @@ function _buildBoosterConfig(client, guildId) {
         unboostCardUsernameColor:client.database.get(`booster-unboost-cardUsernameColor-${guildId}`) ?? '#ED4245',
         unboostCardMsgColor:     client.database.get(`booster-unboost-cardMsgColor-${guildId}`)      ?? '#cccccc',
         unboostCardFont:         client.database.get(`booster-unboost-cardFont-${guildId}`)          ?? 'impact',
-        unboostCardLayout:       client.database.get(`booster-unboost-cardLayout-${guildId}`)       ?? 'banner',
+        unboostCardLayout:       client.database.get(`booster-unboost-cardLayout-${guildId}`)       ?? 'classic',
         unboostEmbedImageUrl:    client.database.get(`booster-unboost-embedImageUrl-${guildId}`)    ?? '',
 
         autoroleEnabled:    getBool(client, `booster-autorole-enabled-${guildId}`,   false),

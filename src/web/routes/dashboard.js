@@ -317,8 +317,8 @@ router.get('/:guildId/welcome', requireLogin, requireManageGuild, async (req, re
             cardTitleColor:     db?.get(`welcome-cardTitleColor-${guildId}`)    ?? '#ffffff',
             cardUsernameColor:  db?.get(`welcome-cardUsernameColor-${guildId}`) ?? '#5865F2',
             cardMsgColor:       db?.get(`welcome-cardMsgColor-${guildId}`)      ?? '#cccccc',
-            cardFont:           db?.get(`welcome-cardFont-${guildId}`)          ?? 'impact',
-            cardLayout:         db?.get(`welcome-cardLayout-${guildId}`)        ?? 'banner',
+            cardFont:           db?.get(`welcome-cardFont-${guildId}`)          ?? 'poppins',
+            cardLayout:         db?.get(`welcome-cardLayout-${guildId}`)        ?? 'classic',
             embedImageUrl:      db?.get(`welcome-embedImageUrl-${guildId}`)     ?? '',
         };
 
@@ -419,8 +419,8 @@ router.get('/:guildId/goodbye', requireLogin, requireManageGuild, async (req, re
             cardTitleColor:     db?.get(`goodbye-cardTitleColor-${guildId}`)    ?? '#ffffff',
             cardUsernameColor:  db?.get(`goodbye-cardUsernameColor-${guildId}`) ?? '#ED4245',
             cardMsgColor:       db?.get(`goodbye-cardMsgColor-${guildId}`)      ?? '#cccccc',
-            cardFont:           db?.get(`goodbye-cardFont-${guildId}`)          ?? 'impact',
-            cardLayout:         db?.get(`goodbye-cardLayout-${guildId}`)        ?? 'banner',
+            cardFont:           db?.get(`goodbye-cardFont-${guildId}`)          ?? 'poppins',
+            cardLayout:         db?.get(`goodbye-cardLayout-${guildId}`)        ?? 'classic',
             embedImageUrl:      db?.get(`goodbye-embedImageUrl-${guildId}`)     ?? '',
             // Fields
             showMember:      getDbBool(db, `goodbye-showMember-${guildId}`,      false),
@@ -571,8 +571,8 @@ router.get('/:guildId/boost', requireLogin, requireManageGuild, async (req, res)
             cardTitleColor:     db?.get(`booster-boost-cardTitleColor-${guildId}`)          ?? '#ffffff',
             cardUsernameColor:  db?.get(`booster-boost-cardUsernameColor-${guildId}`)       ?? '#FF73FA',
             cardMsgColor:       db?.get(`booster-boost-cardMsgColor-${guildId}`)            ?? '#cccccc',
-            cardFont:           db?.get(`booster-boost-cardFont-${guildId}`)                ?? 'impact',
-            cardLayout:         db?.get(`booster-boost-cardLayout-${guildId}`)              ?? 'banner',
+            cardFont:           db?.get(`booster-boost-cardFont-${guildId}`)                ?? 'poppins',
+            cardLayout:         db?.get(`booster-boost-cardLayout-${guildId}`)              ?? 'classic',
             embedImageUrl:      db?.get(`booster-boost-embedImageUrl-${guildId}`)           ?? '',
         };
 
@@ -622,8 +622,8 @@ router.get('/:guildId/unboost', requireLogin, requireManageGuild, async (req, re
             cardTitleColor:     db?.get(`booster-unboost-cardTitleColor-${guildId}`)         ?? '#ffffff',
             cardUsernameColor:  db?.get(`booster-unboost-cardUsernameColor-${guildId}`)      ?? '#ED4245',
             cardMsgColor:       db?.get(`booster-unboost-cardMsgColor-${guildId}`)           ?? '#cccccc',
-            cardFont:           db?.get(`booster-unboost-cardFont-${guildId}`)               ?? 'impact',
-            cardLayout:         db?.get(`booster-unboost-cardLayout-${guildId}`)             ?? 'banner',
+            cardFont:           db?.get(`booster-unboost-cardFont-${guildId}`)               ?? 'poppins',
+            cardLayout:         db?.get(`booster-unboost-cardLayout-${guildId}`)             ?? 'classic',
             embedImageUrl:      db?.get(`booster-unboost-embedImageUrl-${guildId}`)          ?? '',
         };
 

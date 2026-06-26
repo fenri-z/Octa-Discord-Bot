@@ -910,6 +910,35 @@ code {
     padding-right: 2.5rem;
 }
 .select option { background: var(--bg3); }
+
+/* ── Font Picker custom dropdown ─────────────────────────────────────────── */
+.font-picker { position: relative; }
+.font-picker-trigger {
+    width: 100%; background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 8px; padding: .65rem .9rem; padding-right: 2.5rem;
+    color: var(--text); font-size: .82rem; cursor: pointer;
+    text-align: left; display: block; transition: border-color .15s;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23a3a6aa' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right .9rem center;
+}
+.font-picker-trigger:focus { outline: none; border-color: var(--accent); }
+.font-picker.open .font-picker-trigger { border-color: var(--accent); }
+.font-picker-label { font-size: 1rem; display: block; overflow: hidden; text-overflow: ellipsis; }
+.font-picker-list {
+    position: absolute; top: calc(100% + 6px); left: 0; right: 0;
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 8px; z-index: 200; overflow-y: auto; max-height: 260px;
+    box-shadow: var(--shadow-md);
+}
+.fp-item {
+    padding: .6rem .9rem; cursor: pointer; font-size: 1.05rem; line-height: 1.4;
+    color: var(--text); transition: background .1s; white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis;
+}
+.fp-item:hover    { background: rgba(var(--accent-rgb), .08); }
+.fp-item.fp-selected { background: rgba(var(--accent-rgb), .12); color: var(--accent); font-weight: 500; }
+
 .textarea { resize: vertical; min-height: 100px; word-break: break-all; overflow-wrap: anywhere; }
 
 /* ── Auto-resize textareas (message builder / custom commands) ──────────── */
@@ -924,8 +953,8 @@ code {
 .mb-char-count.danger { color:#ed4245; font-weight:600; }
 .mb-count-wrap { position:relative; display:block; }
 .mb-count-wrap input.input  { padding-right:4.6rem; }
-.mb-count-wrap textarea.input { padding-bottom:1.8rem; }
-.mb-count-wrap .mb-char-count { position:absolute; right:.5rem; bottom:.4rem; margin-top:0; font-size:.68rem; pointer-events:none; white-space:nowrap; }
+.mb-count-wrap textarea { padding-bottom:1.4rem; }
+.mb-count-wrap .mb-char-count { position:absolute; right:.5rem; bottom:.3rem; margin-top:0; font-size:.68rem; pointer-events:none; white-space:nowrap; }
 .input-count-wrap { position:relative; display:flex; align-items:flex-end; }
 .input-count-wrap .input { padding-right:5.5rem; }
 .textarea-count-wrap { position:relative; padding-bottom:1.4rem; }

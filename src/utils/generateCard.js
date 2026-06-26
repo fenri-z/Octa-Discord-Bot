@@ -113,7 +113,7 @@ async function generateCard({
     // Avatar
     avatarShape    = 'circle',
     // Layout
-    cardLayout     = 'banner',  // 'banner' | 'classic'
+    cardLayout     = 'classic',  // 'classic'
     // Background
     bgType         = 'gradient',  // 'gradient' | 'solid' | 'image' | 'transparent'
     bgColor        = '#1a1a2e',
@@ -140,18 +140,20 @@ async function generateCard({
     subText = (subText || '').replace(/{server}/gi, serverName);
 
     // ── Layout dimensions ─────────────────────────────────────────────────
-    const isBanner = cardLayout !== 'classic';
-    const W  = 1024;
-    const H  = 420;
-    const AS = isBanner ? 185 : 195;    // avatar size
-    const BD = isBanner ? 8   : 6;      // border thickness
+    const isClassic = cardLayout !== 'left' && cardLayout !== 'right';
+    const isRight   = cardLayout === 'right';
+    const W  = 900;
+    const H  = 450;
+    const AS = isClassic ? 185 : 195;    // avatar size
+    const BD = isClassic ? 8   : 6;      // border thickness
     const BT = AS + BD * 2;             // border total
 
     // ── Avatar position ───────────────────────────────────────────────────
-    const AVL = isBanner
+    const AVL = isClassic
         ? Math.round((W - BT) / 2)          // centered horizontally
-        : 45;                                // fixed left
-    const AVT = isBanner
+        : isRight ? W - BT - 65             // fixed right
+        : 65;                               // fixed left
+    const AVT = isClassic
         ? 25                                 // top-center
         : Math.round((H - BT) / 2);         // vertically centered
 
@@ -166,7 +168,7 @@ async function generateCard({
 
     // Mask at 2× for crisper edges, then resize to final size
     const AS2 = AS * 2;
-    const squareRx = isBanner ? 40 : 36;
+    const squareRx = isClassic ? 40 : 36;
     const maskSvg = isSquare
         ? `<svg width="${AS2}" height="${AS2}"><rect width="${AS2}" height="${AS2}" rx="${squareRx*2}" ry="${squareRx*2}"/></svg>`
         : `<svg width="${AS2}" height="${AS2}"><circle cx="${AS2/2}" cy="${AS2/2}" r="${AS2/2}"/></svg>`;
@@ -177,7 +179,7 @@ async function generateCard({
         .toBuffer()
         .then(buf => sharp(buf).resize(AS, AS, { kernel: sharp.kernel.lanczos3 }).png().toBuffer());
 
-    const bRx = isBanner ? 28 : 24;
+    const bRx = isClassic ? 28 : 24;
     const borderSvg = Buffer.from(isSquare
         ? `<svg width="${BT}" height="${BT}"><rect width="${BT}" height="${BT}" rx="${bRx}" ry="${bRx}" fill="${accentColor}"/></svg>`
         : `<svg width="${BT}" height="${BT}"><circle cx="${BT/2}" cy="${BT/2}" r="${BT/2}" fill="${accentColor}"/></svg>`
@@ -241,10 +243,10 @@ async function generateCard({
     };
 
     let cardSvgBuf;
-    if (isBanner) {
+    if (isClassic) {
         // ── Banner layout: avatar top-center, text centered ───────────────
         const TEXT_W    = W - 120;
-        const TITLE_Y   = 305, USER_Y = 352, SUB_Y = 390;
+        const TITLE_Y   = 327, USER_Y = 377, SUB_Y = 418;
         const CX        = W / 2;
 
         const baseTitleFs  = 72;
@@ -274,10 +276,36 @@ async function generateCard({
   <text x="${CX}" y="${SUB_Y}" text-anchor="middle" font-family="${resolvedFont}"
         font-size="20" font-weight="600" fill="${resolvedMsg}" clip-path="url(#tc)">${s.t}</text>
 </svg>`);
+    } else if (isRight) {
+        // ── Right layout: avatar right, text left ─────────────────────────
+        const TX      = 40;
+        const AVAIL_W = AVL - 50 - TX;  // 628 - 50 - 40 = 538
+
+        const baseTitleFs = 84;
+        const approxCharW = baseTitleFs * 0.62 + 3;
+        const estimatedW  = welcomeText.length * approxCharW;
+        const titleFs     = estimatedW > AVAIL_W ? Math.max(28, Math.floor(baseTitleFs * AVAIL_W / estimatedW)) : baseTitleFs;
+        const titleLs     = titleFs < 52 ? 0 : 3;
+
+        cardSvgBuf = Buffer.from(`<svg width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg">
+  <defs><clipPath id="tc"><rect x="${TX}" y="0" width="${AVAIL_W}" height="${H}"/></clipPath></defs>
+  ${effectiveBgType !== 'transparent' ? `<circle cx="60" cy="40" r="80" fill="${accentColor}" opacity="0.07"/>
+  <circle cx="20" cy="${H-20}" r="60" fill="${accentColor}" opacity="0.04"/>` : ''}
+  <text x="${TX}" y="207" font-family="${resolvedFont}" font-size="${titleFs}" font-weight="900"
+        letter-spacing="${titleLs}" fill="${resolvedTitle}" opacity="0.35" clip-path="url(#tc)">${s.w}</text>
+  <text x="${TX}" y="207" font-family="${resolvedFont}" font-size="${titleFs}" font-weight="900"
+        letter-spacing="${titleLs}" fill="${resolvedTitle}" clip-path="url(#tc)">${s.w}</text>
+  <text x="${TX}" y="260" font-family="${resolvedFont}" font-size="34" font-weight="700"
+        fill="rgba(0,0,0,0.6)" clip-path="url(#tc)">${s.u}</text>
+  <text x="${TX}" y="258" font-family="${resolvedFont}" font-size="34" font-weight="700"
+        fill="${resolvedUsername}" clip-path="url(#tc)">${s.u}</text>
+  <text x="${TX}" y="300" font-family="${resolvedFont}" font-size="26" font-weight="600"
+        fill="${resolvedMsg}" clip-path="url(#tc)">${s.t}</text>
+</svg>`);
     } else {
-        // ── Classic layout: avatar left, text right ───────────────────────
-        const TX      = AVL + BT + 50;  // text start x: 45 + 207 + 50 = 302
-        const AVAIL_W = W - TX - 25;    // available text width: 1024 - 302 - 25 = 697
+        // ── Left layout: avatar left, text right ──────────────────────────
+        const TX      = AVL + BT + 50;  // text start x: 65 + 207 + 50 = 322
+        const AVAIL_W = W - TX - 40;    // available text width: 900 - 322 - 40 = 538
 
         const baseTitleFs = 84;
         const approxCharW = baseTitleFs * 0.62 + 3;
@@ -289,15 +317,15 @@ async function generateCard({
   <defs><clipPath id="tc"><rect x="${TX}" y="0" width="${AVAIL_W}" height="${H}"/></clipPath></defs>
   ${effectiveBgType !== 'transparent' ? `<circle cx="${W-60}" cy="40" r="80" fill="${accentColor}" opacity="0.07"/>
   <circle cx="${W-20}" cy="${H-20}" r="60" fill="${accentColor}" opacity="0.04"/>` : ''}
-  <text x="${TX}" y="192" font-family="${resolvedFont}" font-size="${titleFs}" font-weight="900"
+  <text x="${TX}" y="207" font-family="${resolvedFont}" font-size="${titleFs}" font-weight="900"
         letter-spacing="${titleLs}" fill="${resolvedTitle}" opacity="0.35" clip-path="url(#tc)">${s.w}</text>
-  <text x="${TX}" y="192" font-family="${resolvedFont}" font-size="${titleFs}" font-weight="900"
+  <text x="${TX}" y="207" font-family="${resolvedFont}" font-size="${titleFs}" font-weight="900"
         letter-spacing="${titleLs}" fill="${resolvedTitle}" clip-path="url(#tc)">${s.w}</text>
-  <text x="${TX}" y="240" font-family="${resolvedFont}" font-size="34" font-weight="700"
+  <text x="${TX}" y="260" font-family="${resolvedFont}" font-size="34" font-weight="700"
         fill="rgba(0,0,0,0.6)" clip-path="url(#tc)">${s.u}</text>
-  <text x="${TX}" y="238" font-family="${resolvedFont}" font-size="34" font-weight="700"
+  <text x="${TX}" y="258" font-family="${resolvedFont}" font-size="34" font-weight="700"
         fill="${resolvedUsername}" clip-path="url(#tc)">${s.u}</text>
-  <text x="${TX}" y="275" font-family="${resolvedFont}" font-size="22" font-weight="600"
+  <text x="${TX}" y="300" font-family="${resolvedFont}" font-size="26" font-weight="600"
         fill="${resolvedMsg}" clip-path="url(#tc)">${s.t}</text>
 </svg>`);
     }

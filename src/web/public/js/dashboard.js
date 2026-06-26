@@ -241,3 +241,32 @@ window.addEventListener('resize', () => {
     clearTimeout(_resizeDebounce);
     _resizeDebounce = setTimeout(_runAllResize, 100);
 });
+
+// ── Font Picker ────────────────────────────────────────────────────────────
+window.initFontPicker = function(picker, hiddenInput) {
+    const trigger = picker.querySelector('.font-picker-trigger');
+    const label   = picker.querySelector('.font-picker-label');
+    const list    = picker.querySelector('.font-picker-list');
+    const items   = picker.querySelectorAll('.fp-item');
+
+    function select(item) {
+        items.forEach(i => i.classList.toggle('fp-selected', i === item));
+        label.textContent   = item.textContent;
+        label.style.fontFamily = item.style.fontFamily;
+        hiddenInput.value   = item.dataset.value;
+        close();
+        hiddenInput.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
+    function open()  { picker.classList.add('open');    list.removeAttribute('hidden'); }
+    function close() { picker.classList.remove('open'); list.setAttribute('hidden', ''); }
+
+    // Init: highlight current value
+    const cur = [...items].find(i => i.dataset.value === hiddenInput.value) || items[0];
+    if (cur) { cur.classList.add('fp-selected'); label.textContent = cur.textContent; label.style.fontFamily = cur.style.fontFamily; }
+
+    trigger.addEventListener('click', e => { e.stopPropagation(); picker.classList.contains('open') ? close() : open(); });
+    items.forEach(item => item.addEventListener('click', () => select(item)));
+    document.addEventListener('click', e => { if (!picker.contains(e.target)) close(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
+};

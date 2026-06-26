@@ -208,17 +208,24 @@
                         </div>
                         <div class="form-group">
                             <label class="label"><%= t('booster.card_font') %></label>
-                            <select id="boostCardFont" class="select" style="font-size:.82rem;">
-                                <% [['impact','Impact'],['arial','Arial'],['georgia','Georgia'],['courier','Courier New'],['verdana','Verdana'],['discord','Discord (GG Sans)'],['bebasnew','Bebas Neue'],['montserrat','Montserrat'],['poppins','Poppins'],['oswald','Oswald'],['orbitron','Orbitron'],['russoone','Russo One'],['exo2','Exo 2'],['rajdhani','Rajdhani']].forEach(function(f){ %>
-                                    <option value="<%= f[0] %>" <%= (boostData.cardFont||'poppins')===f[0]?'selected':'' %>><%= f[1] %></option>
-                                <% }) %>
-                            </select>
+                            <div class="font-picker" id="boostCardFont-picker">
+                                <button type="button" class="font-picker-trigger">
+                                    <span class="font-picker-label">Poppins</span>
+                                </button>
+                                <div class="font-picker-list" hidden>
+                                    <% [['poppins','Poppins',"'Poppins',Arial,sans-serif"],['impact','Impact',"Impact,'Arial Black',sans-serif"],['arial','Arial','Arial,Helvetica,sans-serif'],['georgia','Georgia',"Georgia,'Times New Roman',serif"],['courier','Courier New',"'Courier New',Courier,monospace"],['verdana','Verdana','Verdana,Geneva,sans-serif'],['discord','Discord (GG Sans)',"'GG Sans',Whitney,Inter,'Noto Sans','Helvetica Neue',Arial,sans-serif"],['bebasnew','Bebas Neue',"'Bebas Neue',Impact,sans-serif"],['montserrat','Montserrat',"'Montserrat',Arial,sans-serif"],['oswald','Oswald',"'Oswald',Arial,sans-serif"],['orbitron','Orbitron',"'Orbitron',Arial,sans-serif"],['russoone','Russo One',"'Russo One',Impact,sans-serif"],['exo2','Exo 2',"'Exo 2',Arial,sans-serif"],['rajdhani','Rajdhani',"'Rajdhani',Arial,sans-serif"]].forEach(function(f){ %>
+                                        <div class="fp-item" data-value="<%= f[0] %>" style="font-family:<%= f[2] %>"><%= f[1] %></div>
+                                    <% }); %>
+                                </div>
+                            </div>
+                            <input type="hidden" id="boostCardFont" value="<%= boostData.cardFont || 'poppins' %>">
                         </div>
                         <div class="form-group">
                             <label class="label"><%= t('card_image.card_layout') %></label>
                             <select id="boostCardLayout" class="select" style="font-size:.82rem;">
-                                <option value="banner" <%= (boostData.cardLayout||'banner')==='banner'?'selected':'' %>><%= t('card_image.layout_banner') %></option>
-                                <option value="classic" <%= boostData.cardLayout==='classic'?'selected':'' %>><%= t('card_image.layout_classic') %></option>
+                                <option value="classic" <%= (boostData.cardLayout||'classic')==='classic'?'selected':'' %>><%= t('card_image.layout_classic') %></option>
+                                <option value="left" <%= boostData.cardLayout==='left'?'selected':'' %>><%= t('card_image.layout_left') %></option>
+                                <option value="right" <%= boostData.cardLayout==='right'?'selected':'' %>><%= t('card_image.layout_right') %></option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -327,7 +334,7 @@
                     </div>
                     <div class="dc-messages">
                         <div id="boostCardPreviewWrap" style="display:none;padding:.75rem 1rem .25rem;">
-                            <canvas id="boostCardCanvas" width="1024" height="420" style="width:100%;border-radius:12px;display:block;"></canvas>
+                            <canvas id="boostCardCanvas" width="900" height="450" style="width:100%;border-radius:12px;display:block;"></canvas>
                         </div>
                         <div class="dc-message">
                             <img class="dc-avatar"
@@ -491,9 +498,10 @@ document.getElementById('boostCardEnabled').addEventListener('change', function(
 document.getElementById('boostCardBgType')?.addEventListener('change', drawBoostCard);
 document.getElementById('boostCardAvatarShape')?.addEventListener('change', drawBoostCard);
 document.getElementById('boostCardLayout')?.addEventListener('change', drawBoostCard);
-['boostCardWelcomeText','boostCardSubText','boostCardFont','boostCardBgImageUrl'].forEach(id => {
+['boostCardWelcomeText','boostCardSubText','boostCardBgImageUrl'].forEach(id => {
     const el = document.getElementById(id); if (el) el.addEventListener('input', drawBoostCard);
 });
+document.getElementById('boostCardFont')?.addEventListener('change', drawBoostCard);
 
 // ── Card placement sync ────────────────────────────────────────────────────
 function _syncCardPlacement() {
@@ -582,19 +590,24 @@ async function drawBoostCard() {
     if (overlayOp>0){ctx.save();rr(0,0,W,H,16);ctx.clip();ctx.globalAlpha=overlayOp;ctx.fillStyle=overlayClr;ctx.fillRect(0,0,W,H);ctx.globalAlpha=1;ctx.restore();}
 
     // ── Layout params ─────────────────────────────────────────────────────
-    const isBanner = (document.getElementById('boostCardLayout')?.value || 'banner') !== 'classic';
-    const AS = isBanner ? Math.round(185*W/1024) : Math.round(195*W/1024);
-    const BD = isBanner ? Math.round(8*W/1024)   : Math.round(6*W/1024);
+    const _layout = document.getElementById('boostCardLayout')?.value || 'classic';
+    const isClassic = _layout !== 'left' && _layout !== 'right';
+    const isRight   = _layout === 'right';
+    const AS = isClassic ? Math.round(185*W/900) : Math.round(195*W/900);
+    const BD = isClassic ? Math.round(8*W/900)   : Math.round(6*W/900);
     const BT = AS + BD*2;
-    const avL = isBanner ? Math.round((W-BT)/2)  : Math.round(45*W/1024);
-    const avT = isBanner ? 25 : Math.round((H-BT)/2);
+    const avL = isClassic ? Math.round((W-BT)/2) : isRight ? W-BT-Math.round(65*W/900) : Math.round(65*W/900);
+    const avT = isClassic ? 25 : Math.round((H-BT)/2);
     const isSquare = shape==='square';
 
     if (bgType !== 'transparent') {
         ctx.globalAlpha=0.07;ctx.fillStyle=accent;
-        if (isBanner) {
+        if (isClassic) {
             ctx.beginPath();ctx.arc(80,80,120,0,Math.PI*2);ctx.fill();
             ctx.beginPath();ctx.arc(W-80,H-80,100,0,Math.PI*2);ctx.fill();
+        } else if (isRight) {
+            ctx.beginPath();ctx.arc(60,40,80,0,Math.PI*2);ctx.fill();
+            ctx.beginPath();ctx.arc(20,H-20,60,0,Math.PI*2);ctx.fill();
         } else {
             ctx.beginPath();ctx.arc(W-60,40,80,0,Math.PI*2);ctx.fill();
             ctx.beginPath();ctx.arc(W-20,H-20,60,0,Math.PI*2);ctx.fill();
@@ -603,19 +616,19 @@ async function drawBoostCard() {
     }
 
     ctx.fillStyle=accent;
-    if(isSquare){rr(avL,avT,BT,BT,isBanner?20:14);ctx.fill();}
+    if(isSquare){rr(avL,avT,BT,BT,isClassic?20:14);ctx.fill();}
     else{ctx.beginPath();ctx.arc(avL+BT/2,avT+BT/2,BT/2,0,Math.PI*2);ctx.fill();}
 
     const avatarProxyUrl = `/api/guild/${GUILD_ID}/image-proxy?url=` + encodeURIComponent(SAMPLE.avatarUrl);
     await new Promise(res => {
         const avImg=new Image();
-        avImg.onload=()=>{ctx.save();if(isSquare){rr(avL+BD,avT+BD,AS,AS,isBanner?16:10);ctx.clip();}else{ctx.beginPath();ctx.arc(avL+BD+AS/2,avT+BD+AS/2,AS/2,0,Math.PI*2);ctx.clip();}ctx.drawImage(avImg,avL+BD,avT+BD,AS,AS);ctx.restore();res();};
-        avImg.onerror=()=>{ctx.fillStyle='#5a6070';if(isSquare){rr(avL+BD,avT+BD,AS,AS,isBanner?16:10);ctx.fill();}else{ctx.beginPath();ctx.arc(avL+BD+AS/2,avT+BD+AS/2,AS/2,0,Math.PI*2);ctx.fill();}const cx=avL+BD+AS/2,cy=avT+BD+AS/2;ctx.fillStyle='#8892a4';ctx.beginPath();ctx.arc(cx,cy-AS*0.14,AS*0.18,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.ellipse(cx,cy+AS*0.28,AS*0.28,AS*0.22,0,0,Math.PI*2);ctx.fill();res();};
+        avImg.onload=()=>{ctx.save();if(isSquare){rr(avL+BD,avT+BD,AS,AS,isClassic?16:10);ctx.clip();}else{ctx.beginPath();ctx.arc(avL+BD+AS/2,avT+BD+AS/2,AS/2,0,Math.PI*2);ctx.clip();}ctx.drawImage(avImg,avL+BD,avT+BD,AS,AS);ctx.restore();res();};
+        avImg.onerror=()=>{ctx.fillStyle='#5a6070';if(isSquare){rr(avL+BD,avT+BD,AS,AS,isClassic?16:10);ctx.fill();}else{ctx.beginPath();ctx.arc(avL+BD+AS/2,avT+BD+AS/2,AS/2,0,Math.PI*2);ctx.fill();}const cx=avL+BD+AS/2,cy=avT+BD+AS/2;ctx.fillStyle='#8892a4';ctx.beginPath();ctx.arc(cx,cy-AS*0.14,AS*0.18,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.ellipse(cx,cy+AS*0.28,AS*0.28,AS*0.22,0,0,Math.PI*2);ctx.fill();res();};
         avImg.src=avatarProxyUrl;
     });
 
-    if (isBanner) {
-        const CX=W/2,TITLE_Y=305,USER_Y=352,SUB_Y=390,TEXT_W=W-Math.round(120*W/1024);
+    if (isClassic) {
+        const CX=W/2,TITLE_Y=327,USER_Y=377,SUB_Y=418,TEXT_W=W-Math.round(120*W/900);
         let titleFs=72;ctx.font=`bold ${titleFs}px ${fontFam}`;
         while(titleFs>14&&ctx.measureText(bigText).width>TEXT_W){titleFs-=2;ctx.font=`bold ${titleFs}px ${fontFam}`;}
         const titleLs=titleFs<52?0:4; if('letterSpacing' in ctx) ctx.letterSpacing=titleLs+'px';
@@ -627,9 +640,23 @@ async function drawBoostCard() {
         ctx.fillText(SAMPLE.username,CX,USER_Y,TEXT_W);
         ctx.font=`600 20px ${fontFam}`;ctx.fillStyle=msgClr;
         ctx.fillText(sub,CX,SUB_Y,TEXT_W);ctx.textAlign='left';
+    } else if (isRight) {
+        const TX=Math.round(40*W/900),availW=avL-Math.round(50*W/900)-TX;
+        const TITLE_Y=207,USER_Y=258,SUB_Y=300;
+        let titleFs=84;ctx.font=`bold ${titleFs}px ${fontFam}`;
+        while(titleFs>14&&ctx.measureText(bigText).width>availW){titleFs-=2;ctx.font=`bold ${titleFs}px ${fontFam}`;}
+        const titleLsR=titleFs<52?0:3; if('letterSpacing' in ctx) ctx.letterSpacing=titleLsR+'px';
+        ctx.fillStyle=titleClr;ctx.globalAlpha=0.35;ctx.fillText(bigText,TX,TITLE_Y,availW);
+        ctx.globalAlpha=1;ctx.fillText(bigText,TX,TITLE_Y,availW);
+        if('letterSpacing' in ctx) ctx.letterSpacing='0px';
+        ctx.font=`700 34px ${fontFam}`;ctx.fillStyle='rgba(0,0,0,0.6)';
+        ctx.fillText(SAMPLE.username,TX,USER_Y+2,availW);ctx.fillStyle=userClr;
+        ctx.fillText(SAMPLE.username,TX,USER_Y,availW);
+        ctx.font=`600 26px ${fontFam}`;ctx.fillStyle=msgClr;
+        ctx.fillText(sub,TX,SUB_Y,availW);
     } else {
-        const TX=avL+BT+Math.round(50*W/1024),availW=W-TX-20;
-        const TITLE_Y=192,USER_Y=238,SUB_Y=275;
+        const TX=avL+BT+Math.round(50*W/900),availW=W-TX-40;
+        const TITLE_Y=207,USER_Y=258,SUB_Y=300;
         let titleFs=84;ctx.font=`bold ${titleFs}px ${fontFam}`;
         while(titleFs>14&&ctx.measureText(bigText).width>availW){titleFs-=2;ctx.font=`bold ${titleFs}px ${fontFam}`;}
         const titleLsC=titleFs<52?0:3; if('letterSpacing' in ctx) ctx.letterSpacing=titleLsC+'px';
@@ -639,7 +666,7 @@ async function drawBoostCard() {
         ctx.font=`700 34px ${fontFam}`;ctx.fillStyle='rgba(0,0,0,0.6)';
         ctx.fillText(SAMPLE.username,TX,USER_Y+2,availW);ctx.fillStyle=userClr;
         ctx.fillText(SAMPLE.username,TX,USER_Y,availW);
-        ctx.font=`600 22px ${fontFam}`;ctx.fillStyle=msgClr;
+        ctx.font=`600 26px ${fontFam}`;ctx.fillStyle=msgClr;
         ctx.fillText(sub,TX,SUB_Y,availW);
     }
     _syncCardPlacement();
@@ -791,7 +818,7 @@ async function saveBoost() {
             cardBgColor2:       document.getElementById('boostCardBgColor2').value.trim()       || '#1e0a2e',
             cardAccentColor:    document.getElementById('boostCardAccentColor').value.trim()    || '#FF73FA',
             cardAvatarShape:    document.getElementById('boostCardAvatarShape')?.value || 'circle',
-            cardLayout:         document.getElementById('boostCardLayout')?.value || 'banner',
+            cardLayout:         document.getElementById('boostCardLayout')?.value || 'classic',
             cardBgType:         document.getElementById('boostCardBgType')?.value      || 'gradient',
             cardBgImageUrl:     document.getElementById('boostCardBgImageUrl')?.value.trim()    || '',
             cardOverlayColor:   document.getElementById('boostCardOverlayColor')?.value.trim()  || '#000000',
@@ -892,6 +919,7 @@ document.addEventListener('DOMContentLoaded', () => {
     mbInlineCount('boostFooter',           'boostFooterCount');
     mbInlineCount('boostCardWelcomeText',  'boostCardWelcomeTextCount');
     mbInlineCount('boostCardSubText',      'boostCardSubTextCount');
+    if (window.initFontPicker) initFontPicker(document.getElementById('boostCardFont-picker'), document.getElementById('boostCardFont'));
 });
 
 window._floatSave = saveBoost;
