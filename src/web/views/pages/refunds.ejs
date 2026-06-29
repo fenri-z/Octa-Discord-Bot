@@ -1,0 +1,201 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+<style>
+.legal-wrap {
+    max-width: 860px; margin: 0 auto;
+    padding: 3.5rem 1.5rem 5rem;
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 2.5rem;
+    align-items: start;
+}
+.legal-toc {
+    position: sticky; top: calc(var(--navbar-h, 56px) + 1.5rem);
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1.1rem;
+}
+.legal-toc-title {
+    font-size: .7rem; font-weight: 800; text-transform: uppercase;
+    letter-spacing: .09em; color: var(--text-muted); margin-bottom: .75rem;
+}
+.legal-toc a {
+    display: block; font-size: .8rem; color: var(--text-muted);
+    text-decoration: none; padding: .3rem .4rem; border-radius: 5px;
+    transition: background .15s, color .15s; line-height: 1.4;
+}
+.legal-toc a:hover { background: rgba(255,255,255,.05); color: var(--text); }
+.legal-toc a.active { background: rgba(87,242,135,.1); color: #57F287; }
+.legal-content { min-width: 0; }
+.legal-header   { margin-bottom: 2rem; padding-bottom: 1.25rem; border-bottom: 1px solid var(--border); }
+.legal-header h1 { font-size: 1.75rem; font-weight: 800; margin-bottom: .4rem; }
+.legal-meta { font-size: .8rem; color: var(--text-muted); }
+.legal-meta span { color: #57F287; }
+.legal-section { margin-bottom: 2.5rem; }
+.legal-section h2 {
+    font-size: 1.05rem; font-weight: 700;
+    color: var(--text); margin-bottom: .85rem;
+    padding-bottom: .5rem; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: .6rem;
+}
+.legal-section h2 .sec-num {
+    width: 24px; height: 24px; border-radius: 6px; flex-shrink: 0;
+    background: rgba(87,242,135,.12); color: #57F287;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .72rem; font-weight: 800;
+}
+.legal-section p  { font-size: .875rem; color: var(--text-muted); line-height: 1.8; margin-bottom: .75rem; }
+.legal-section ul { padding-left: 1.25rem; margin-bottom: .75rem; }
+.legal-section ul li { font-size: .875rem; color: var(--text-muted); line-height: 1.8; margin-bottom: .2rem; }
+.legal-section a  { color: #57F287; text-decoration: none; }
+.legal-section a:hover { text-decoration: underline; }
+.legal-notice {
+    background: rgba(87,242,135,.06); border: 1px solid rgba(87,242,135,.18);
+    border-radius: 8px; padding: .85rem 1rem;
+    font-size: .82rem; color: var(--text-muted); line-height: 1.65;
+    margin-bottom: 2rem;
+}
+.legal-highlight {
+    background: rgba(87,242,135,.06); border: 1px solid rgba(87,242,135,.18);
+    border-radius: 8px; padding: .85rem 1rem; margin-top: .75rem;
+    font-size: .82rem; color: var(--text-muted); line-height: 1.65;
+}
+.legal-highlight strong { color: #57F287; }
+@media (max-width: 700px) {
+    .legal-wrap { grid-template-columns: 1fr; padding: 2rem 1rem 4rem; gap: 1.5rem; }
+    .legal-toc   { position: static; }
+}
+</style>
+
+<div class="legal-wrap">
+    <aside class="legal-toc">
+        <div class="legal-toc-title">Contents</div>
+        <a href="#s1">Overview</a>
+        <a href="#s2">Eligibility</a>
+        <a href="#s3">Non-Refundable</a>
+        <a href="#s4">How to Request</a>
+        <a href="#s5">Processing Time</a>
+        <a href="#s6">Cancellation</a>
+        <a href="#s7">Contact Us</a>
+    </aside>
+
+    <main class="legal-content">
+        <div class="legal-header">
+            <h1>Refund Policy</h1>
+            <div class="legal-meta">
+                Last updated: <span>28 June 2026</span> &nbsp;·&nbsp;
+                Applies to: <span><%- locals.botNavName || 'OCTA Bot' %> Premium & Pro</span>
+            </div>
+        </div>
+
+        <div class="legal-notice">
+            This Refund Policy governs all purchases of Premium and Pro subscriptions for
+            <%- locals.botNavName || 'OCTA Bot' %>. By completing a purchase, you acknowledge
+            that you have read and agreed to this policy.
+        </div>
+
+        <div class="legal-section" id="s1">
+            <h2><span class="sec-num">1</span> Overview</h2>
+            <p>
+                We offer subscription plans for Discord servers that unlock additional features and higher usage limits.
+                Because our service is digital and access is granted immediately upon payment, we maintain a limited
+                but fair refund policy.
+            </p>
+            <p>
+                All subscriptions are billed in Indonesian Rupiah (IDR) and are available in Weekly, Monthly,
+                and Yearly durations for both Premium and Pro tiers.
+            </p>
+        </div>
+
+        <div class="legal-section" id="s2">
+            <h2><span class="sec-num">2</span> Eligibility for Refund</h2>
+            <p>You may be eligible for a refund if <strong>all</strong> of the following conditions are met:</p>
+            <ul>
+                <li>The refund request is submitted within <strong>7 days</strong> of the original purchase date.</li>
+                <li>The premium features have not been actively used (e.g., no custom commands created, no autorole panels configured using premium slots).</li>
+                <li>The request is your first refund for that tier (Premium or Pro).</li>
+                <li>The purchase was not part of a promotional or discounted offer.</li>
+            </ul>
+            <div class="legal-highlight">
+                <strong>7-Day Window:</strong> Refund requests submitted more than 7 days after the purchase date will not be accepted, regardless of the reason.
+            </div>
+        </div>
+
+        <div class="legal-section" id="s3">
+            <h2><span class="sec-num">3</span> Non-Refundable Situations</h2>
+            <p>Refunds will <strong>not</strong> be issued in the following cases:</p>
+            <ul>
+                <li>More than 7 days have passed since the purchase.</li>
+                <li>Premium or Pro features have been actively used during the subscription period.</li>
+                <li>The subscription was cancelled by us due to a violation of our <a href="/terms-of-service">Terms of Service</a>.</li>
+                <li>The request is for a subscription renewal (only the initial purchase is eligible).</li>
+                <li>Partial refunds for unused days within an active subscription period.</li>
+                <li>Refunds requested due to not reading the feature list or plan limitations before purchasing.</li>
+            </ul>
+        </div>
+
+        <div class="legal-section" id="s4">
+            <h2><span class="sec-num">4</span> How to Request a Refund</h2>
+            <p>To submit a refund request, contact us through one of the following channels:</p>
+            <ul>
+                <li><strong>Discord Server:</strong> <a href="https://discord.gg/DMPvHf46gu" target="_blank" rel="noopener noreferrer">discord.gg/DMPvHf46gu</a> — open a support ticket</li>
+                <li><strong>Bug / Support Form:</strong> <a href="/report-bug">octa-bot.my.id/report-bug</a></li>
+            </ul>
+            <p>Please include the following information in your request:</p>
+            <ul>
+                <li>Your Discord username and user ID</li>
+                <li>The Discord server (guild) ID the subscription was applied to</li>
+                <li>The plan purchased (e.g., Premium Monthly)</li>
+                <li>The date of purchase</li>
+                <li>Reason for the refund request</li>
+            </ul>
+        </div>
+
+        <div class="legal-section" id="s5">
+            <h2><span class="sec-num">5</span> Processing Time</h2>
+            <p>
+                Once we receive a valid refund request, we will review it within <strong>3–5 business days</strong>.
+                If approved, the refund will be returned to the original payment method.
+            </p>
+            <p>
+                Refund processing times depend on your payment provider and may take an additional 3–7 business days
+                to appear in your account after approval.
+            </p>
+        </div>
+
+        <div class="legal-section" id="s6">
+            <h2><span class="sec-num">6</span> Cancellation</h2>
+            <p>
+                You may cancel your subscription at any time from the
+                <a href="/dashboard">dashboard</a>. Cancellation stops future renewals but does
+                <strong>not</strong> automatically trigger a refund for the current billing period.
+                If you wish to cancel and also request a refund, please contact us within the 7-day eligibility window.
+            </p>
+        </div>
+
+        <div class="legal-section" id="s7">
+            <h2><span class="sec-num">7</span> Contact Us</h2>
+            <p>If you have any questions about this Refund Policy, please reach out:</p>
+            <ul>
+                <li><strong>Discord Community:</strong> — <a href="https://discord.gg/DMPvHf46gu" target="_blank" rel="noopener noreferrer">Join our server</a></li>
+                <li><strong>Support Form:</strong> — <a href="/report-bug">Report / Contact</a></li>
+            </ul>
+        </div>
+    </main>
+</div>
+
+<script>
+const sections = document.querySelectorAll('.legal-section');
+const tocLinks  = document.querySelectorAll('.legal-toc a');
+const observer  = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+        if (e.isIntersecting) {
+            tocLinks.forEach(a => a.classList.remove('active'));
+            const active = document.querySelector(`.legal-toc a[href="#${e.target.id}"]`);
+            if (active) active.classList.add('active');
+        }
+    });
+}, { rootMargin: '-20% 0px -70% 0px' });
+sections.forEach(s => observer.observe(s));
+</script>
+
+<%- include('../partials/footer') %>

@@ -120,6 +120,7 @@
         <button class="cmd-tab" onclick="setTab('moderation', this)">Moderation</button>
         <button class="cmd-tab" onclick="setTab('utility', this)">Utility</button>
         <button class="cmd-tab" onclick="setTab('social', this)">Social Media</button>
+        <button class="cmd-tab" onclick="setTab('premium', this)">Subscription</button>
     </div>
 
     <!-- Commands list -->
@@ -350,6 +351,25 @@
                         Kick Notification
                     </div>
                     <div class="cmd-card-desc"><%= t('commands.cmd_kick_stream') %></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Premium -->
+        <div class="cmd-category" data-cat="premium">
+            <div class="cmd-cat-label">
+                <div class="cat-dot" style="background:#FEE75C;"></div>
+                Subscription
+                <span class="cmd-count">2</span>
+            </div>
+            <div class="cmd-grid">
+                <div class="cmd-card" data-name="/subscription status tier limits">
+                    <div class="cmd-card-name"><code>/subscription status</code></div>
+                    <div class="cmd-card-desc"><%= t('commands.cmd_premium_status') %></div>
+                </div>
+                <div class="cmd-card" data-name="/subscription info plan expires">
+                    <div class="cmd-card-name"><code>/subscription info</code></div>
+                    <div class="cmd-card-desc"><%= t('commands.cmd_premium_info') %></div>
                 </div>
             </div>
         </div>

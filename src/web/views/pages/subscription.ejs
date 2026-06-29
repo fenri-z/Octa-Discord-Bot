@@ -1,0 +1,336 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+<style>
+.sub-wrap {
+    max-width: 980px; margin: 0 auto;
+    padding: 3.5rem 1.5rem 5rem;
+}
+.sub-header {
+    text-align: center; margin-bottom: 2.5rem;
+}
+.sub-header h1 {
+    font-size: 2rem; font-weight: 800; margin-bottom: .5rem;
+}
+.sub-header p {
+    font-size: .95rem; color: var(--text-muted); max-width: 500px; margin: 0 auto;
+}
+.sub-tier-tabs {
+    display: flex; align-items: center; gap: 3px;
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 999px; padding: 3px;
+    width: fit-content; margin: 0 auto 2rem;
+}
+.sub-tier-tab {
+    display: flex; align-items: center; gap: .4rem;
+    padding: .38rem 1.25rem; border-radius: 999px;
+    font-size: .82rem; font-weight: 600;
+    border: none; background: none; cursor: pointer;
+    color: var(--text-muted); transition: background .18s, color .18s;
+    font-family: inherit; white-space: nowrap;
+}
+.sub-tier-tab.active { background: #FEE75C; color: #0e0f18; }
+.sub-tier-tab.active[data-tier="pro"] { background: #a855f7; color: #fff; }
+.sub-plans-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
+    margin-bottom: 2.5rem;
+}
+.sub-plan-card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 14px; padding: 1.5rem;
+    display: flex; flex-direction: column; gap: .75rem;
+    transition: border-color .2s, box-shadow .2s;
+}
+.sub-plan-card:hover {
+    border-color: rgba(var(--accent-rgb),.35);
+    box-shadow: 0 0 0 3px rgba(var(--accent-rgb),.06);
+}
+.sub-plan-card.popular { border-color: rgba(var(--accent-rgb),.45); }
+.sub-plan-card.best-value { border-color: rgba(240,160,50,.4); }
+.sub-plan-header { display: flex; align-items: center; justify-content: space-between; }
+.sub-plan-name { font-size: .9rem; font-weight: 700; }
+.sub-plan-badge {
+    font-size: .65rem; font-weight: 700; padding: .18rem .55rem;
+    border-radius: 4px; text-transform: uppercase; letter-spacing: .05em;
+    background: rgba(var(--accent-rgb),.12); color: var(--accent);
+    border: 1px solid rgba(var(--accent-rgb),.25);
+}
+.sub-plan-badge.starter {
+    background: rgba(87,242,135,.1); color: #57F287;
+    border-color: rgba(87,242,135,.25);
+}
+.sub-plan-price {
+    font-size: 1.6rem; font-weight: 800; color: var(--text);
+    line-height: 1.1;
+}
+.sub-plan-price span {
+    font-size: .8rem; font-weight: 500; color: var(--text-muted);
+}
+.sub-plan-features {
+    list-style: none; padding: 0; margin: 0;
+    display: flex; flex-direction: column; gap: .45rem;
+    flex: 1;
+}
+.sub-plan-features li {
+    font-size: .83rem; color: var(--text-muted);
+    display: flex; align-items: center; gap: .5rem;
+}
+.sub-plan-features li::before {
+    content: ''; width: 6px; height: 6px; border-radius: 50%;
+    background: var(--accent); flex-shrink: 0;
+}
+.sub-plan-features--pro li::before { background: #a855f7; }
+.sub-plan-cta {
+    display: block; text-align: center; text-decoration: none;
+    padding: .6rem 1rem; border-radius: 8px; font-size: .85rem;
+    font-weight: 600; border: 1px solid var(--border);
+    background: var(--bg3); color: var(--text);
+    transition: background .15s, border-color .15s;
+    margin-top: .25rem;
+}
+.sub-plan-cta:hover { background: rgba(var(--accent-rgb),.1); border-color: rgba(var(--accent-rgb),.4); }
+.sub-plan-cta.pro { color: #a855f7; border-color: rgba(168,85,247,.3); }
+.sub-plan-cta.pro:hover { background: rgba(168,85,247,.1); }
+
+/* Compare Table */
+.sub-compare-card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 14px; overflow: hidden; margin-bottom: 2rem;
+}
+.sub-compare-header {
+    padding: 1rem 1.25rem; border-bottom: 1px solid var(--border);
+    font-size: 1rem; font-weight: 600;
+}
+.sub-compare-table-wrap { overflow-x: auto; }
+.sub-compare-table {
+    width: 100%; border-collapse: collapse;
+    font-size: .85rem;
+}
+.sub-compare-table th {
+    padding: .75rem 1.25rem; text-align: left;
+    font-size: .75rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .06em; color: var(--text-muted);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+}
+.sub-compare-table td {
+    padding: .7rem 1.25rem; border-bottom: 1px solid rgba(255,255,255,.04);
+    color: var(--text-muted);
+}
+.sub-compare-table tr:last-child td { border-bottom: none; }
+.sub-compare-table .feat-name { font-weight: 500; color: var(--text); }
+.sub-compare-table .col-premium { color: var(--accent); font-weight: 600; }
+.sub-compare-table .col-pro { color: #a855f7; font-weight: 600; }
+.sub-note {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.1rem 1.25rem;
+    font-size: .83rem; color: var(--text-muted); line-height: 1.7;
+}
+.sub-note a { color: var(--accent); text-decoration: none; }
+.sub-note a:hover { text-decoration: underline; }
+@media (max-width: 700px) {
+    .sub-plans-grid { grid-template-columns: 1fr; }
+    .sub-wrap { padding: 2rem 1rem 4rem; }
+}
+</style>
+
+<div class="sub-wrap">
+    <div class="sub-header">
+        <h1>Subscription Plans</h1>
+        <p>Choose the plan that fits your Discord server. Upgrade or cancel anytime.</p>
+    </div>
+
+    <!-- Tier Tabs -->
+    <div class="sub-tier-tabs">
+        <button class="sub-tier-tab active" data-tier="premium" onclick="switchTier('premium')">Premium</button>
+        <button class="sub-tier-tab" data-tier="pro" onclick="switchTier('pro')">Pro</button>
+    </div>
+
+    <!-- Premium Plans -->
+    <div id="section-premium" class="sub-plans-grid">
+        <div class="sub-plan-card">
+            <div class="sub-plan-header">
+                <div class="sub-plan-name">Weekly</div>
+                <div class="sub-plan-badge starter">Starter</div>
+            </div>
+            <div class="sub-plan-price">Rp 15,000 <span>/ 7 days</span></div>
+            <ul class="sub-plan-features">
+                <li>All premium features</li>
+                <li>100 autorole panels</li>
+                <li>100 custom commands</li>
+                <li>Community support</li>
+            </ul>
+            <a href="/dashboard" class="sub-plan-cta">Get Started</a>
+        </div>
+        <div class="sub-plan-card popular">
+            <div class="sub-plan-header">
+                <div class="sub-plan-name">Monthly</div>
+                <div class="sub-plan-badge">Most Popular</div>
+            </div>
+            <div class="sub-plan-price">Rp 45,000 <span>/ 30 days</span></div>
+            <ul class="sub-plan-features">
+                <li>All premium features</li>
+                <li>100 autorole panels</li>
+                <li>100 custom commands</li>
+                <li>Priority support</li>
+            </ul>
+            <a href="/dashboard" class="sub-plan-cta">Get Started</a>
+        </div>
+        <div class="sub-plan-card best-value">
+            <div class="sub-plan-header">
+                <div class="sub-plan-name">Yearly</div>
+                <div class="sub-plan-badge">Best Value</div>
+            </div>
+            <div class="sub-plan-price">Rp 399,000 <span>/ 365 days</span></div>
+            <ul class="sub-plan-features">
+                <li>All premium features</li>
+                <li>100 autorole panels</li>
+                <li>100 custom commands</li>
+                <li>Priority support</li>
+                <li>Save vs monthly</li>
+            </ul>
+            <a href="/dashboard" class="sub-plan-cta">Get Started</a>
+        </div>
+    </div>
+
+    <!-- Pro Plans -->
+    <div id="section-pro" class="sub-plans-grid" style="display:none;">
+        <div class="sub-plan-card" style="border-color:rgba(168,85,247,.2);">
+            <div class="sub-plan-header">
+                <div class="sub-plan-name">Weekly</div>
+                <div class="sub-plan-badge starter">Starter</div>
+            </div>
+            <div class="sub-plan-price" style="color:#a855f7;">Rp 35,000 <span>/ 7 days</span></div>
+            <ul class="sub-plan-features sub-plan-features--pro">
+                <li>All Pro features</li>
+                <li>Unlimited panels & commands</li>
+                <li>Custom bot identity</li>
+                <li>25 social media trackers</li>
+            </ul>
+            <a href="/dashboard" class="sub-plan-cta pro">Get Started</a>
+        </div>
+        <div class="sub-plan-card popular" style="border-color:rgba(168,85,247,.45);">
+            <div class="sub-plan-header">
+                <div class="sub-plan-name">Monthly</div>
+                <div class="sub-plan-badge" style="background:rgba(168,85,247,.12);color:#a855f7;border-color:rgba(168,85,247,.3);">Most Popular</div>
+            </div>
+            <div class="sub-plan-price" style="color:#a855f7;">Rp 99,000 <span>/ 30 days</span></div>
+            <ul class="sub-plan-features sub-plan-features--pro">
+                <li>All Pro features</li>
+                <li>Unlimited panels & commands</li>
+                <li>Custom bot identity</li>
+                <li>25 social media trackers</li>
+            </ul>
+            <a href="/dashboard" class="sub-plan-cta pro">Get Started</a>
+        </div>
+        <div class="sub-plan-card best-value" style="border-color:rgba(168,85,247,.45);">
+            <div class="sub-plan-header">
+                <div class="sub-plan-name">Yearly</div>
+                <div class="sub-plan-badge" style="background:rgba(168,85,247,.12);color:#a855f7;border-color:rgba(168,85,247,.3);">Best Value</div>
+            </div>
+            <div class="sub-plan-price" style="color:#a855f7;">Rp 899,000 <span>/ 365 days</span></div>
+            <ul class="sub-plan-features sub-plan-features--pro">
+                <li>All Pro features</li>
+                <li>Unlimited panels & commands</li>
+                <li>Custom bot identity</li>
+                <li>25 social media trackers</li>
+                <li>Save vs monthly</li>
+            </ul>
+            <a href="/dashboard" class="sub-plan-cta pro">Get Started</a>
+        </div>
+    </div>
+
+    <!-- Compare Table -->
+    <div class="sub-compare-card">
+        <div class="sub-compare-header">Feature Comparison</div>
+        <div class="sub-compare-table-wrap">
+            <table class="sub-compare-table">
+                <thead>
+                    <tr>
+                        <th>Feature</th>
+                        <th>Free</th>
+                        <th class="col-premium">Premium</th>
+                        <th class="col-pro">Pro</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="feat-name">Custom Bot Identity</td>
+                        <td>—</td>
+                        <td>—</td>
+                        <td class="col-pro">✓</td>
+                    </tr>
+                    <tr>
+                        <td class="feat-name">Card Customization</td>
+                        <td>—</td>
+                        <td class="col-premium">✓</td>
+                        <td class="col-pro">✓</td>
+                    </tr>
+                    <tr>
+                        <td class="feat-name">Custom Profile</td>
+                        <td>—</td>
+                        <td class="col-premium">✓</td>
+                        <td class="col-pro">✓</td>
+                    </tr>
+                    <tr>
+                        <td class="feat-name">Autorole Button Panels</td>
+                        <td>10</td>
+                        <td class="col-premium">100</td>
+                        <td class="col-pro">Unlimited</td>
+                    </tr>
+                    <tr>
+                        <td class="feat-name">Autorole Reaction Panels</td>
+                        <td>10</td>
+                        <td class="col-premium">100</td>
+                        <td class="col-pro">Unlimited</td>
+                    </tr>
+                    <tr>
+                        <td class="feat-name">Custom Commands</td>
+                        <td>10</td>
+                        <td class="col-premium">100</td>
+                        <td class="col-pro">Unlimited</td>
+                    </tr>
+                    <tr>
+                        <td class="feat-name">Message Builder Templates</td>
+                        <td>10</td>
+                        <td class="col-premium">100</td>
+                        <td class="col-pro">Unlimited</td>
+                    </tr>
+                    <tr>
+                        <td class="feat-name">Social Media Trackers</td>
+                        <td>1</td>
+                        <td class="col-premium">10</td>
+                        <td class="col-pro">25</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Note -->
+    <div class="sub-note">
+        Subscriptions are per-server (Discord guild). Each server requires its own active subscription.
+        Payments are processed in Indonesian Rupiah (IDR). By subscribing, you agree to our
+        <a href="/terms-of-service">Terms of Service</a> and <a href="/refunds">Refund Policy</a>.
+        For questions, join our <a href="https://discord.gg/DMPvHf46gu" target="_blank" rel="noopener">Discord Server</a>.
+    </div>
+</div>
+
+<script>
+function switchTier(tier) {
+    var secP = document.getElementById('section-premium');
+    var secPr = document.getElementById('section-pro');
+    var tabs = document.querySelectorAll('.sub-tier-tab');
+    var isPro = tier === 'pro';
+    secP.style.display  = isPro ? 'none' : '';
+    secPr.style.display = isPro ? '' : 'none';
+    tabs.forEach(function(t) {
+        t.classList.toggle('active', t.dataset.tier === tier);
+    });
+}
+</script>
+
+<%- include('../partials/site-footer') %>
+</body>
+</html>
