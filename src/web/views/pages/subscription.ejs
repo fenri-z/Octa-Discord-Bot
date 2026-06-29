@@ -1,4 +1,22 @@
 <%- include('../partials/head') %>
+<script>
+(function(){
+    var img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = function(){
+        var c = document.createElement('canvas');
+        c.width = c.height = 64;
+        var ctx = c.getContext('2d');
+        ctx.beginPath();
+        ctx.arc(32, 32, 32, 0, Math.PI * 2);
+        ctx.clip();
+        ctx.drawImage(img, 0, 0, 64, 64);
+        var link = document.querySelector("link[rel='icon']");
+        if (link) link.href = c.toDataURL();
+    };
+    img.src = document.querySelector("link[rel='icon']").href;
+})();
+</script>
 <%- include('../partials/navbar') %>
 <style>
 .sub-wrap {
@@ -138,59 +156,59 @@
 <div class="sub-wrap">
     <div class="sub-header">
         <h1>Subscription Plans</h1>
-        <p>Choose the plan that fits your Discord server. Upgrade or cancel anytime.</p>
+        <p><%= t('subscription_page.subtitle') %></p>
     </div>
 
     <!-- Tier Tabs -->
     <div class="sub-tier-tabs">
-        <button class="sub-tier-tab active" data-tier="premium" onclick="switchTier('premium')">Premium</button>
-        <button class="sub-tier-tab" data-tier="pro" onclick="switchTier('pro')">Pro</button>
+        <button class="sub-tier-tab active" data-tier="premium" onclick="switchTier('premium')"><%= t('subscription_page.tab_premium') %></button>
+        <button class="sub-tier-tab" data-tier="pro" onclick="switchTier('pro')"><%= t('subscription_page.tab_pro') %></button>
     </div>
 
     <!-- Premium Plans -->
     <div id="section-premium" class="sub-plans-grid">
         <div class="sub-plan-card">
             <div class="sub-plan-header">
-                <div class="sub-plan-name">Weekly</div>
-                <div class="sub-plan-badge starter">Starter</div>
+                <div class="sub-plan-name"><%= t('subscription_page.plan_weekly') %></div>
+                <div class="sub-plan-badge starter"><%= t('subscription_page.badge_starter') %></div>
             </div>
-            <div class="sub-plan-price">Rp 15,000 <span>/ 7 days</span></div>
+            <div class="sub-plan-price">Rp 15,000 <span><%= t('subscription_page.period_7') %></span></div>
             <ul class="sub-plan-features">
-                <li>All premium features</li>
-                <li>100 autorole panels</li>
-                <li>100 custom commands</li>
-                <li>Community support</li>
+                <li><%= t('subscription_page.feat_all_premium') %></li>
+                <li><%= t('subscription_page.feat_autorole_panels') %></li>
+                <li><%= t('subscription_page.feat_custom_commands') %></li>
+                <li><%= t('subscription_page.feat_community_support') %></li>
             </ul>
-            <a href="/dashboard" class="sub-plan-cta">Get Started</a>
+            <a href="/dashboard" class="sub-plan-cta"><%= t('subscription_page.cta') %></a>
         </div>
         <div class="sub-plan-card popular">
             <div class="sub-plan-header">
-                <div class="sub-plan-name">Monthly</div>
-                <div class="sub-plan-badge">Most Popular</div>
+                <div class="sub-plan-name"><%= t('subscription_page.plan_monthly') %></div>
+                <div class="sub-plan-badge"><%= t('subscription_page.badge_popular') %></div>
             </div>
-            <div class="sub-plan-price">Rp 45,000 <span>/ 30 days</span></div>
+            <div class="sub-plan-price">Rp 45,000 <span><%= t('subscription_page.period_30') %></span></div>
             <ul class="sub-plan-features">
-                <li>All premium features</li>
-                <li>100 autorole panels</li>
-                <li>100 custom commands</li>
-                <li>Priority support</li>
+                <li><%= t('subscription_page.feat_all_premium') %></li>
+                <li><%= t('subscription_page.feat_autorole_panels') %></li>
+                <li><%= t('subscription_page.feat_custom_commands') %></li>
+                <li><%= t('subscription_page.feat_priority_support') %></li>
             </ul>
-            <a href="/dashboard" class="sub-plan-cta">Get Started</a>
+            <a href="/dashboard" class="sub-plan-cta"><%= t('subscription_page.cta') %></a>
         </div>
         <div class="sub-plan-card best-value">
             <div class="sub-plan-header">
-                <div class="sub-plan-name">Yearly</div>
-                <div class="sub-plan-badge">Best Value</div>
+                <div class="sub-plan-name"><%= t('subscription_page.plan_yearly') %></div>
+                <div class="sub-plan-badge"><%= t('subscription_page.badge_best_value') %></div>
             </div>
-            <div class="sub-plan-price">Rp 399,000 <span>/ 365 days</span></div>
+            <div class="sub-plan-price">Rp 399,000 <span><%= t('subscription_page.period_365') %></span></div>
             <ul class="sub-plan-features">
-                <li>All premium features</li>
-                <li>100 autorole panels</li>
-                <li>100 custom commands</li>
-                <li>Priority support</li>
-                <li>Save vs monthly</li>
+                <li><%= t('subscription_page.feat_all_premium') %></li>
+                <li><%= t('subscription_page.feat_autorole_panels') %></li>
+                <li><%= t('subscription_page.feat_custom_commands') %></li>
+                <li><%= t('subscription_page.feat_priority_support') %></li>
+                <li><%= t('subscription_page.feat_save_vs_monthly') %></li>
             </ul>
-            <a href="/dashboard" class="sub-plan-cta">Get Started</a>
+            <a href="/dashboard" class="sub-plan-cta"><%= t('subscription_page.cta') %></a>
         </div>
     </div>
 
@@ -198,107 +216,107 @@
     <div id="section-pro" class="sub-plans-grid" style="display:none;">
         <div class="sub-plan-card" style="border-color:rgba(168,85,247,.2);">
             <div class="sub-plan-header">
-                <div class="sub-plan-name">Weekly</div>
-                <div class="sub-plan-badge starter">Starter</div>
+                <div class="sub-plan-name"><%= t('subscription_page.plan_weekly') %></div>
+                <div class="sub-plan-badge starter"><%= t('subscription_page.badge_starter') %></div>
             </div>
-            <div class="sub-plan-price" style="color:#a855f7;">Rp 35,000 <span>/ 7 days</span></div>
+            <div class="sub-plan-price" style="color:#a855f7;">Rp 35,000 <span><%= t('subscription_page.period_7') %></span></div>
             <ul class="sub-plan-features sub-plan-features--pro">
-                <li>All Pro features</li>
-                <li>Unlimited panels & commands</li>
-                <li>Custom bot identity</li>
-                <li>25 social media trackers</li>
+                <li><%= t('subscription_page.feat_all_pro') %></li>
+                <li><%= t('subscription_page.feat_unlimited') %></li>
+                <li><%= t('subscription_page.feat_custom_identity') %></li>
+                <li><%= t('subscription_page.feat_social_trackers') %></li>
             </ul>
-            <a href="/dashboard" class="sub-plan-cta pro">Get Started</a>
+            <a href="/dashboard" class="sub-plan-cta pro"><%= t('subscription_page.cta') %></a>
         </div>
         <div class="sub-plan-card popular" style="border-color:rgba(168,85,247,.45);">
             <div class="sub-plan-header">
-                <div class="sub-plan-name">Monthly</div>
-                <div class="sub-plan-badge" style="background:rgba(168,85,247,.12);color:#a855f7;border-color:rgba(168,85,247,.3);">Most Popular</div>
+                <div class="sub-plan-name"><%= t('subscription_page.plan_monthly') %></div>
+                <div class="sub-plan-badge" style="background:rgba(168,85,247,.12);color:#a855f7;border-color:rgba(168,85,247,.3);"><%= t('subscription_page.badge_popular') %></div>
             </div>
-            <div class="sub-plan-price" style="color:#a855f7;">Rp 99,000 <span>/ 30 days</span></div>
+            <div class="sub-plan-price" style="color:#a855f7;">Rp 99,000 <span><%= t('subscription_page.period_30') %></span></div>
             <ul class="sub-plan-features sub-plan-features--pro">
-                <li>All Pro features</li>
-                <li>Unlimited panels & commands</li>
-                <li>Custom bot identity</li>
-                <li>25 social media trackers</li>
+                <li><%= t('subscription_page.feat_all_pro') %></li>
+                <li><%= t('subscription_page.feat_unlimited') %></li>
+                <li><%= t('subscription_page.feat_custom_identity') %></li>
+                <li><%= t('subscription_page.feat_social_trackers') %></li>
             </ul>
-            <a href="/dashboard" class="sub-plan-cta pro">Get Started</a>
+            <a href="/dashboard" class="sub-plan-cta pro"><%= t('subscription_page.cta') %></a>
         </div>
         <div class="sub-plan-card best-value" style="border-color:rgba(168,85,247,.45);">
             <div class="sub-plan-header">
-                <div class="sub-plan-name">Yearly</div>
-                <div class="sub-plan-badge" style="background:rgba(168,85,247,.12);color:#a855f7;border-color:rgba(168,85,247,.3);">Best Value</div>
+                <div class="sub-plan-name"><%= t('subscription_page.plan_yearly') %></div>
+                <div class="sub-plan-badge" style="background:rgba(168,85,247,.12);color:#a855f7;border-color:rgba(168,85,247,.3);"><%= t('subscription_page.badge_best_value') %></div>
             </div>
-            <div class="sub-plan-price" style="color:#a855f7;">Rp 899,000 <span>/ 365 days</span></div>
+            <div class="sub-plan-price" style="color:#a855f7;">Rp 899,000 <span><%= t('subscription_page.period_365') %></span></div>
             <ul class="sub-plan-features sub-plan-features--pro">
-                <li>All Pro features</li>
-                <li>Unlimited panels & commands</li>
-                <li>Custom bot identity</li>
-                <li>25 social media trackers</li>
-                <li>Save vs monthly</li>
+                <li><%= t('subscription_page.feat_all_pro') %></li>
+                <li><%= t('subscription_page.feat_unlimited') %></li>
+                <li><%= t('subscription_page.feat_custom_identity') %></li>
+                <li><%= t('subscription_page.feat_social_trackers') %></li>
+                <li><%= t('subscription_page.feat_save_vs_monthly') %></li>
             </ul>
-            <a href="/dashboard" class="sub-plan-cta pro">Get Started</a>
+            <a href="/dashboard" class="sub-plan-cta pro"><%= t('subscription_page.cta') %></a>
         </div>
     </div>
 
     <!-- Compare Table -->
     <div class="sub-compare-card">
-        <div class="sub-compare-header">Feature Comparison</div>
+        <div class="sub-compare-header"><%= t('subscription_page.compare_title') %></div>
         <div class="sub-compare-table-wrap">
             <table class="sub-compare-table">
                 <thead>
                     <tr>
-                        <th>Feature</th>
-                        <th>Free</th>
-                        <th class="col-premium">Premium</th>
-                        <th class="col-pro">Pro</th>
+                        <th><%= t('subscription_page.col_feature') %></th>
+                        <th><%= t('subscription_page.col_free') %></th>
+                        <th class="col-premium"><%= t('subscription_page.col_premium') %></th>
+                        <th class="col-pro"><%= t('subscription_page.col_pro') %></th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td class="feat-name">Custom Bot Identity</td>
+                        <td class="feat-name"><%= t('subscription_page.row_custom_identity') %></td>
                         <td>—</td>
                         <td>—</td>
                         <td class="col-pro">✓</td>
                     </tr>
                     <tr>
-                        <td class="feat-name">Card Customization</td>
+                        <td class="feat-name"><%= t('subscription_page.row_card_custom') %></td>
                         <td>—</td>
                         <td class="col-premium">✓</td>
                         <td class="col-pro">✓</td>
                     </tr>
                     <tr>
-                        <td class="feat-name">Custom Profile</td>
+                        <td class="feat-name"><%= t('subscription_page.row_custom_profile') %></td>
                         <td>—</td>
                         <td class="col-premium">✓</td>
                         <td class="col-pro">✓</td>
                     </tr>
                     <tr>
-                        <td class="feat-name">Autorole Button Panels</td>
+                        <td class="feat-name"><%= t('subscription_page.row_autorole_button') %></td>
                         <td>10</td>
                         <td class="col-premium">100</td>
-                        <td class="col-pro">Unlimited</td>
+                        <td class="col-pro"><%= t('subscription_page.val_unlimited') %></td>
                     </tr>
                     <tr>
-                        <td class="feat-name">Autorole Reaction Panels</td>
+                        <td class="feat-name"><%= t('subscription_page.row_autorole_reaction') %></td>
                         <td>10</td>
                         <td class="col-premium">100</td>
-                        <td class="col-pro">Unlimited</td>
+                        <td class="col-pro"><%= t('subscription_page.val_unlimited') %></td>
                     </tr>
                     <tr>
-                        <td class="feat-name">Custom Commands</td>
+                        <td class="feat-name"><%= t('subscription_page.row_custom_commands') %></td>
                         <td>10</td>
                         <td class="col-premium">100</td>
-                        <td class="col-pro">Unlimited</td>
+                        <td class="col-pro"><%= t('subscription_page.val_unlimited') %></td>
                     </tr>
                     <tr>
-                        <td class="feat-name">Message Builder Templates</td>
+                        <td class="feat-name"><%= t('subscription_page.row_message_builder') %></td>
                         <td>10</td>
                         <td class="col-premium">100</td>
-                        <td class="col-pro">Unlimited</td>
+                        <td class="col-pro"><%= t('subscription_page.val_unlimited') %></td>
                     </tr>
                     <tr>
-                        <td class="feat-name">Social Media Trackers</td>
+                        <td class="feat-name"><%= t('subscription_page.row_social_trackers') %></td>
                         <td>1</td>
                         <td class="col-premium">10</td>
                         <td class="col-pro">25</td>
@@ -310,10 +328,7 @@
 
     <!-- Note -->
     <div class="sub-note">
-        Subscriptions are per-server (Discord guild). Each server requires its own active subscription.
-        Payments are processed in Indonesian Rupiah (IDR). By subscribing, you agree to our
-        <a href="/terms-of-service">Terms of Service</a> and <a href="/refunds">Refund Policy</a>.
-        For questions, join our <a href="https://discord.gg/DMPvHf46gu" target="_blank" rel="noopener">Discord Server</a>.
+        <%- t('subscription_page.note') %>
     </div>
 </div>
 
