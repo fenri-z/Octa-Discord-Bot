@@ -53,8 +53,8 @@ app.set('trust proxy', 1);
 
 // ─── Middleware ───────────────────────────────────────────────────────────────
 app.use(compression());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '15mb' }));
+app.use(express.urlencoded({ extended: true, limit: '15mb' }));
 
 app.use(express.static(path.join(__dirname, 'public'), {
     maxAge: process.env.NODE_ENV === 'production' ? '1h' : 0,
@@ -158,6 +158,14 @@ app.get('/privacy-policy', (req, res) => {
 
 app.get('/terms-of-service', (req, res) => {
     res.render('pages/terms-of-service', { title: 'Terms of Service', hasSidebar: false });
+});
+
+app.get('/subscription', (req, res) => {
+    res.render('pages/subscription', { title: 'Subscription Plans', hasSidebar: false });
+});
+
+app.get('/refunds', (req, res) => {
+    res.render('pages/refunds', { title: 'Refund Policy', hasSidebar: false });
 });
 
 app.get('/commands', (req, res) => {
