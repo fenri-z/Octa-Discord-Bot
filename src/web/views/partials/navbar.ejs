@@ -1,7 +1,87 @@
+<% const _lang = locals.currentLang || 'en'; const _t = typeof t === 'function' ? t : (k) => k; %>
+<% const _inviteUrl = locals.botClientId ? `https://discord.com/oauth2/authorize?client_id=${locals.botClientId}&permissions=8&scope=bot+applications.commands` : '#'; %>
+
+<% if (!user) { %>
+<!-- ═══ PUBLIC NAVBAR (belum login) ═══ -->
+<nav class="navbar pub-navbar">
+    <!-- Kiri: hamburger (mobile) + brand + nav links (desktop) -->
+    <div class="pub-nav-left">
+        <button class="pub-hamburger-btn" id="pubMenuToggle" aria-label="Buka menu" onclick="togglePubMenu()">
+            <i data-lucide="menu"></i>
+        </button>
+        <a href="/" class="navbar-brand">
+            <img class="navbar-bot-avatar"
+                 src="<%- locals.botNavAvatar || 'https://cdn.discordapp.com/embed/avatars/0.png' %>"
+                 alt="<%- locals.botNavName || 'Bot' %>"
+                 onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+            <span class="navbar-bot-name"><%- locals.botNavName || 'OCTA BOT' %></span>
+        </a>
+        <div class="pub-nav-links">
+            <a href="/dashboard" class="pub-nav-link">Dashboard</a>
+            <a href="<%= _inviteUrl %>" class="pub-nav-link" target="_blank" rel="noopener">Invite Me</a>
+            <a href="https://discord.gg/DMPvHf46gu" class="pub-nav-link" target="_blank" rel="noopener">Join Server</a>
+            <a href="/commands" class="pub-nav-link">Commands</a>
+        </div>
+    </div>
+
+    <!-- Kanan: lang switcher (desktop) + login text -->
+    <div class="pub-nav-right">
+        <div class="nav-lang pub-lang-desktop" id="navLang" onclick="toggleLangMenu()">
+            <span class="nav-lang-flag"><%= _lang === 'id' ? '🇮🇩' : '🇬🇧' %></span>
+            <span class="nav-lang-code"><%= _lang === 'id' ? 'ID' : 'EN' %></span>
+            <span class="nav-chevron">▾</span>
+        </div>
+        <div class="nav-lang-dropdown" id="navLangDropdown">
+            <a href="/lang/en" class="nav-lang-item<%= _lang === 'en' ? ' active' : '' %>">
+                <span>🇬🇧</span> English
+                <% if (_lang === 'en') { %><i data-lucide="check" style="width:13px;height:13px;margin-left:auto;"></i><% } %>
+            </a>
+            <a href="/lang/id" class="nav-lang-item<%= _lang === 'id' ? ' active' : '' %>">
+                <span>🇮🇩</span> Indonesia
+                <% if (_lang === 'id') { %><i data-lucide="check" style="width:13px;height:13px;margin-left:auto;"></i><% } %>
+            </a>
+        </div>
+        <a href="/auth/login" class="pub-login-text"><%= _t('nav.login') %></a>
+    </div>
+</nav>
+
+<!-- Mobile drawer untuk public nav -->
+<div class="pub-mobile-menu" id="pubMobileMenu">
+    <div class="pub-mobile-menu-inner">
+        <a href="/dashboard" class="pub-mobile-link" onclick="closePubMenu()">
+            <i data-lucide="layout-grid"></i> Dashboard
+        </a>
+        <a href="<%= _inviteUrl %>" class="pub-mobile-link" target="_blank" rel="noopener" onclick="closePubMenu()">
+            <i data-lucide="plus-circle"></i> Invite Me
+        </a>
+        <a href="https://discord.gg/DMPvHf46gu" class="pub-mobile-link" target="_blank" rel="noopener" onclick="closePubMenu()">
+            <i data-lucide="message-circle"></i> Join Server
+        </a>
+        <a href="/commands" class="pub-mobile-link" onclick="closePubMenu()">
+            <i data-lucide="terminal"></i> Commands
+        </a>
+        <div class="pub-mobile-divider"></div>
+        <div class="pub-mobile-lang">
+            <a href="/lang/en" class="pub-mobile-lang-item<%= _lang === 'en' ? ' active' : '' %>">
+                🇬🇧 English
+            </a>
+            <a href="/lang/id" class="pub-mobile-lang-item<%= _lang === 'id' ? ' active' : '' %>">
+                🇮🇩 Indonesia
+            </a>
+        </div>
+    </div>
+</div>
+<div class="pub-menu-overlay" id="pubMenuOverlay" onclick="closePubMenu()"></div>
+
+<% } else { %>
+<!-- ═══ AUTHENTICATED NAVBAR (sudah login) ═══ -->
 <nav class="navbar">
-    <!-- Kiri: hamburger (mobile) + brand bot -->
     <div class="navbar-left">
+        <% if (locals.hasSidebar) { %>
         <button class="hamburger-btn" id="sidebarToggle" aria-label="Buka menu" onclick="toggleSidebar()"><i data-lucide="menu"></i></button>
+        <% } else { %>
+        <button class="hamburger-btn" id="pubAuthMenuToggle" aria-label="Buka menu" onclick="togglePubAuthMenu()"><i data-lucide="menu"></i></button>
+        <% } %>
         <a href="/" class="navbar-brand">
             <img class="navbar-bot-avatar"
                  src="<%- locals.botNavAvatar || 'https://cdn.discordapp.com/embed/avatars/0.png' %>"
@@ -10,84 +90,83 @@
             <span class="navbar-bot-name"><%- locals.botNavName || 'OCTA BOT' %></span>
         </a>
     </div>
-
-    <!-- Kanan: avatar user + dropdown atau tombol login -->
     <div class="navbar-right">
-        <% const _lang = locals.currentLang || 'en'; const _t = typeof t === 'function' ? t : (k) => k; %>
-
-        <% if (user) { %>
-            <div class="nav-user" id="navUser" onclick="toggleUserMenu()">
-                <img class="user-avatar"
+        <div class="nav-user" id="navUser" onclick="toggleUserMenu()">
+            <img class="user-avatar"
+                 src="https://cdn.discordapp.com/avatars/<%= user.id %>/<%= user.avatar %>.png"
+                 alt="<%= user.username %>"
+                 onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+            <span class="nav-chevron">▾</span>
+        </div>
+        <div class="nav-dropdown" id="navDropdown">
+            <div class="nav-dropdown-user">
+                <img class="nav-dropdown-avatar"
                      src="https://cdn.discordapp.com/avatars/<%= user.id %>/<%= user.avatar %>.png"
                      alt="<%= user.username %>"
                      onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
-                <span class="nav-chevron">▾</span>
-            </div>
-            <div class="nav-dropdown" id="navDropdown">
-                <div class="nav-dropdown-user">
-                    <img class="nav-dropdown-avatar"
-                         src="https://cdn.discordapp.com/avatars/<%= user.id %>/<%= user.avatar %>.png"
-                         alt="<%= user.username %>"
-                         onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
-                    <div class="nav-dropdown-userinfo">
-                        <span class="nav-dropdown-displayname"><%= user.global_name || user.username %></span>
-                        <% if (user.global_name && user.global_name !== user.username) { %>
-                        <span class="nav-dropdown-username">@<%= user.username %></span>
-                        <% } %>
-                    </div>
+                <div class="nav-dropdown-userinfo">
+                    <span class="nav-dropdown-displayname"><%= user.global_name || user.username %></span>
+                    <% if (user.global_name && user.global_name !== user.username) { %>
+                    <span class="nav-dropdown-username">@<%= user.username %></span>
+                    <% } %>
                 </div>
-                <div class="nav-dropdown-divider"></div>
-                <a href="/dashboard" class="nav-dropdown-item"><i data-lucide="layout-grid"></i> <%= _t('nav.dashboard') %></a>
-                <% if (locals.isOwner) { %>
-                <a href="/dev-console" class="nav-dropdown-item nav-dropdown-owner"><i data-lucide="shield-check"></i> Dev Console</a>
-                <% } %>
-                <div class="nav-dropdown-divider"></div>
-                <div class="nav-dropdown-label"><i data-lucide="palette"></i> Appearance</div>
-                <div class="nav-appearance">
-                    <button class="theme-btn" data-theme-val="auto"  title="Follow System"><i data-lucide="monitor"></i></button>
-                    <button class="theme-btn" data-theme-val="light" title="Light"><i data-lucide="sun"></i></button>
-                    <button class="theme-btn" data-theme-val="dark"  title="Dark"><i data-lucide="moon"></i></button>
-                    <span class="nav-appearance-sep"></span>
-                    <button class="accent-dot" data-accent-val="blue"    title="Blue"    style="background:#5865f2"></button>
-                    <button class="accent-dot" data-accent-val="blurple" title="Blurple" style="background:#7289da"></button>
-                    <button class="accent-dot" data-accent-val="emerald" title="Emerald" style="background:#2ecc71"></button>
-                    <button class="accent-dot" data-accent-val="rose"    title="Rose"    style="background:#eb459e"></button>
-                    <button class="accent-dot" data-accent-val="amber"   title="Amber"   style="background:#f0a032"></button>
-                </div>
-                <div class="nav-dropdown-divider"></div>
-                <div class="nav-dropdown-label"><i data-lucide="languages"></i> Language</div>
-                <a href="/lang/en" class="nav-dropdown-item<%= _lang === 'en' ? ' active' : '' %>">
-                    <span class="nav-lang-flag">🇬🇧</span> English
-                    <% if (_lang === 'en') { %><i data-lucide="check" style="width:13px;height:13px;margin-left:auto;"></i><% } %>
-                </a>
-                <a href="/lang/id" class="nav-dropdown-item<%= _lang === 'id' ? ' active' : '' %>">
-                    <span class="nav-lang-flag">🇮🇩</span> Indonesia
-                    <% if (_lang === 'id') { %><i data-lucide="check" style="width:13px;height:13px;margin-left:auto;"></i><% } %>
-                </a>
-                <div class="nav-dropdown-divider"></div>
-                <a href="/auth/logout" class="nav-dropdown-item nav-dropdown-logout"><i data-lucide="log-out"></i> <%= _t('nav.logout') %></a>
             </div>
-        <% } else { %>
-            <!-- Language switcher untuk state belum login -->
-            <div class="nav-lang" id="navLang" onclick="toggleLangMenu()">
-                <span class="nav-lang-flag"><%= _lang === 'id' ? '🇮🇩' : '🇬🇧' %></span>
-                <span class="nav-lang-code"><%= _lang === 'id' ? 'ID' : 'EN' %></span>
-                <span class="nav-chevron">▾</span>
+            <div class="nav-dropdown-divider"></div>
+            <a href="/dashboard" class="nav-dropdown-item"><i data-lucide="layout-grid"></i> <%= _t('nav.dashboard') %></a>
+            <% if (locals.isOwner) { %>
+            <a href="/dev-console" class="nav-dropdown-item nav-dropdown-owner"><i data-lucide="shield-check"></i> Dev Console</a>
+            <% } %>
+            <div class="nav-dropdown-divider"></div>
+            <div class="nav-dropdown-label"><i data-lucide="palette"></i> Appearance</div>
+            <div class="nav-appearance">
+                <button class="theme-btn" data-theme-val="auto"  title="Follow System"><i data-lucide="monitor"></i></button>
+                <button class="theme-btn" data-theme-val="light" title="Light"><i data-lucide="sun"></i></button>
+                <button class="theme-btn" data-theme-val="dark"  title="Dark"><i data-lucide="moon"></i></button>
+                <span class="nav-appearance-sep"></span>
+                <button class="accent-dot" data-accent-val="blue"    title="Blue"    style="background:#5865f2"></button>
+                <button class="accent-dot" data-accent-val="blurple" title="Blurple" style="background:#7289da"></button>
+                <button class="accent-dot" data-accent-val="emerald" title="Emerald" style="background:#2ecc71"></button>
+                <button class="accent-dot" data-accent-val="rose"    title="Rose"    style="background:#eb459e"></button>
+                <button class="accent-dot" data-accent-val="amber"   title="Amber"   style="background:#f0a032"></button>
             </div>
-            <div class="nav-lang-dropdown" id="navLangDropdown">
-                <a href="/lang/en" class="nav-lang-item<%= _lang === 'en' ? ' active' : '' %>">
-                    <span>🇬🇧</span> English
-                    <% if (_lang === 'en') { %><i data-lucide="check" style="width:13px;height:13px;margin-left:auto;"></i><% } %>
-                </a>
-                <a href="/lang/id" class="nav-lang-item<%= _lang === 'id' ? ' active' : '' %>">
-                    <span>🇮🇩</span> Indonesia
-                    <% if (_lang === 'id') { %><i data-lucide="check" style="width:13px;height:13px;margin-left:auto;"></i><% } %>
-                </a>
-            </div>
-            <a href="/auth/login" class="btn btn-primary btn-sm"><%= _t('nav.login') %></a>
-        <% } %>
+            <div class="nav-dropdown-divider"></div>
+            <div class="nav-dropdown-label"><i data-lucide="languages"></i> Language</div>
+            <a href="/lang/en" class="nav-dropdown-item<%= _lang === 'en' ? ' active' : '' %>">
+                <span class="nav-lang-flag">🇬🇧</span> English
+                <% if (_lang === 'en') { %><i data-lucide="check" style="width:13px;height:13px;margin-left:auto;"></i><% } %>
+            </a>
+            <a href="/lang/id" class="nav-dropdown-item<%= _lang === 'id' ? ' active' : '' %>">
+                <span class="nav-lang-flag">🇮🇩</span> Indonesia
+                <% if (_lang === 'id') { %><i data-lucide="check" style="width:13px;height:13px;margin-left:auto;"></i><% } %>
+            </a>
+            <div class="nav-dropdown-divider"></div>
+            <a href="/auth/logout" class="nav-dropdown-item nav-dropdown-logout"><i data-lucide="log-out"></i> <%= _t('nav.logout') %></a>
+        </div>
     </div>
 </nav>
+
+<% if (!locals.hasSidebar) { %>
+<!-- Mobile drawer untuk halaman publik (sudah login) -->
+<div class="pub-mobile-menu" id="pubAuthMobileMenu">
+    <div class="pub-mobile-menu-inner">
+        <a href="/dashboard" class="pub-mobile-link" onclick="closePubAuthMenu()">
+            <i data-lucide="layout-grid"></i> Dashboard
+        </a>
+        <a href="<%= _inviteUrl %>" class="pub-mobile-link" target="_blank" rel="noopener" onclick="closePubAuthMenu()">
+            <i data-lucide="plus-circle"></i> Invite Me
+        </a>
+        <a href="https://discord.gg/DMPvHf46gu" class="pub-mobile-link" target="_blank" rel="noopener" onclick="closePubAuthMenu()">
+            <i data-lucide="message-circle"></i> Join Server
+        </a>
+        <a href="/commands" class="pub-mobile-link" onclick="closePubAuthMenu()">
+            <i data-lucide="terminal"></i> Commands
+        </a>
+    </div>
+</div>
+<div class="pub-menu-overlay" id="pubAuthMenuOverlay" onclick="closePubAuthMenu()"></div>
+<% } %>
+
+<% } %>
 
 <!-- Spacer so content doesn't go under fixed navbar -->
 <div class="navbar-spacer"></div>
@@ -101,6 +180,52 @@
 </style>
 
 <script>
+/* ── Public mobile menu (authenticated, non-sidebar pages) ── */
+function togglePubAuthMenu() {
+    var menu    = document.getElementById('pubAuthMobileMenu');
+    var overlay = document.getElementById('pubAuthMenuOverlay');
+    var btn     = document.getElementById('pubAuthMenuToggle');
+    if (!menu) return;
+    var isOpen = menu.classList.toggle('open');
+    overlay.classList.toggle('active', isOpen);
+    btn.innerHTML = isOpen ? '<i data-lucide="x"></i>' : '<i data-lucide="menu"></i>';
+    if (window.lucide) lucide.createIcons();
+    isOpen ? _lockBodyScroll() : _unlockBodyScroll();
+}
+function closePubAuthMenu() {
+    var menu    = document.getElementById('pubAuthMobileMenu');
+    var overlay = document.getElementById('pubAuthMenuOverlay');
+    var btn     = document.getElementById('pubAuthMenuToggle');
+    if (!menu) return;
+    menu.classList.remove('open');
+    overlay.classList.remove('active');
+    if (btn) { btn.innerHTML = '<i data-lucide="menu"></i>'; if (window.lucide) lucide.createIcons(); }
+    _unlockBodyScroll();
+}
+
+/* ── Public mobile menu ── */
+function togglePubMenu() {
+    var menu    = document.getElementById('pubMobileMenu');
+    var overlay = document.getElementById('pubMenuOverlay');
+    var btn     = document.getElementById('pubMenuToggle');
+    if (!menu) return;
+    var isOpen = menu.classList.toggle('open');
+    overlay.classList.toggle('active', isOpen);
+    btn.innerHTML = isOpen ? '<i data-lucide="x"></i>' : '<i data-lucide="menu"></i>';
+    if (window.lucide) lucide.createIcons();
+    isOpen ? _lockBodyScroll() : _unlockBodyScroll();
+}
+function closePubMenu() {
+    var menu    = document.getElementById('pubMobileMenu');
+    var overlay = document.getElementById('pubMenuOverlay');
+    var btn     = document.getElementById('pubMenuToggle');
+    if (!menu) return;
+    menu.classList.remove('open');
+    overlay.classList.remove('active');
+    if (btn) { btn.innerHTML = '<i data-lucide="menu"></i>'; if (window.lucide) lucide.createIcons(); }
+    _unlockBodyScroll();
+}
+
 /* ── Sidebar safe area — hitung tinggi sidebar + padding bawah yang aman ──────
    Strategi: ukur selisih window.screen.height vs window.innerHeight vs
    visualViewport.height untuk mendapatkan gesture bar height yang akurat,

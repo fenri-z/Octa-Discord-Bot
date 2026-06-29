@@ -10,7 +10,7 @@
   "nav": {
     "dashboard": "Dashboard",
     "logout": "Logout",
-    "login": "Login with Discord"
+    "login": "Login"
   },
   "sidebar": {
     "all_servers": "All Servers"

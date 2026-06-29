@@ -31,6 +31,7 @@
 }
 .sub-header p {
     font-size: .95rem; color: var(--text-muted); max-width: 500px; margin: 0 auto;
+    word-break: break-word;
 }
 .sub-tier-tabs {
     display: flex; align-items: center; gap: 3px;
@@ -73,6 +74,10 @@
     border-radius: 4px; text-transform: uppercase; letter-spacing: .05em;
     background: rgba(var(--accent-rgb),.12); color: var(--accent);
     border: 1px solid rgba(var(--accent-rgb),.25);
+    white-space: nowrap; flex-shrink: 0;
+}
+.sub-plan-name {
+    min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .sub-plan-badge.starter {
     background: rgba(87,242,135,.1); color: #57F287;
@@ -147,9 +152,27 @@
 }
 .sub-note a { color: var(--accent); text-decoration: none; }
 .sub-note a:hover { text-decoration: underline; }
-@media (max-width: 700px) {
+@media (max-width: 900px) {
+    .sub-plans-grid { grid-template-columns: repeat(2, 1fr); }
+    .sub-plan-card:last-child:nth-child(odd) {
+        grid-column: 1 / -1; max-width: calc(50% - .625rem); margin: 0 auto; width: 100%;
+    }
+}
+@media (max-width: 600px) {
     .sub-plans-grid { grid-template-columns: 1fr; }
+    .sub-plan-card:last-child:nth-child(odd) { grid-column: auto; max-width: 100%; }
     .sub-wrap { padding: 2rem 1rem 4rem; }
+    .sub-header h1 { font-size: 1.5rem; }
+    .sub-header p { font-size: .875rem; }
+    .sub-plan-card { padding: 1.1rem; }
+    .sub-compare-table th,
+    .sub-compare-table td { padding: .55rem .75rem; font-size: .78rem; }
+    .sub-compare-header { padding: .85rem 1rem; font-size: .9rem; }
+}
+@media (max-width: 380px) {
+    .sub-header h1 { font-size: 1.3rem; }
+    .sub-plan-price { font-size: 1.35rem; }
+    .sub-tier-tab { padding: .35rem .9rem; font-size: .78rem; }
 }
 </style>
 

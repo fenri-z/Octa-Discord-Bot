@@ -10,7 +10,7 @@
   "nav": {
     "dashboard": "Dashboard",
     "logout": "Keluar",
-    "login": "Masuk dengan Discord"
+    "login": "Login"
   },
   "sidebar": {
     "all_servers": "Semua Server"
